@@ -22,7 +22,9 @@ in_pt <- file.path("data", "gadm_codes")
 
 group_fields <- c("ADM_0", "ADM_1", "cell", "lat.grid", "long.grid")
 
-new_res <- (1 / 120) * 10
+gr_size <- 20
+  
+new_res <- (1 / 120) * gr_size
 
 
 # ---------------------------------------- are you using the cluster? 
