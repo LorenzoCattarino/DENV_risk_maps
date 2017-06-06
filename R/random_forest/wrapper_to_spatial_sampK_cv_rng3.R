@@ -2,7 +2,7 @@ wrapper_to_core_fun <- function(
   i, model_dataset, grid_size, 
   pseudo_abs_logical, predictors,
   dependent_variable, no_trees, min_node_size, 
-  x.data, y.data){
+  x_data, y_data, my_weights){
   
   no_data <- nrow(model_dataset)
   
@@ -44,9 +44,10 @@ wrapper_to_core_fun <- function(
     train_set = training_dataset,
     no_trees = no_trees, 
     min_node_size = min_node_size,
-    x_data = x.data, 
-    y_data = y.data,
-    valid_points = valid_point_pos)
+    x_data = x_data, 
+    y_data = y_data,
+    valid_points = valid_point_pos,
+    my_weights = my_weights)
   
   ret$train_point_pos <- train_point_pos
   ret$valid_point_pos <- valid_point_pos
