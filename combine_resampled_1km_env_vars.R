@@ -23,7 +23,7 @@ out_pt <- file.path(
   "output", 
   "env_variables")
 
-out_fl_nm <- "aggreg_pixel_level_env_vars_10km.RDS"
+out_fl_nm <- "aggreg_pixel_level_env_vars_20km.RDS"
 
 
 # ---------------------------------------- rebuild the queue
