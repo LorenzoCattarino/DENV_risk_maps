@@ -190,20 +190,3 @@ write_out_csv(x = factor_combinations,
                                   tuned_parameter), 
               file_name = "factor_combinations",
               exp_id = exp_id)
-
-
-# ---------------------------------------- 
-
-# write out the list of model objects only for 1 specific combination of factors!
-
-#-----------------------------------------
-
-
-if(FALSE){
-  saveRDS(RF_fits[[1]][[3]], 
-          file.path("output", 
-                    "dengue_dataset", 
-                    "sensitivity_analysis",
-                    tuned_parameter,
-                    paste0("list_of_models_exp_", exp_id, ".RDS")))
-}
