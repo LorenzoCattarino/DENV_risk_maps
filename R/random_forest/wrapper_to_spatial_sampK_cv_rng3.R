@@ -1,8 +1,8 @@
 wrapper_to_core_fun <- function(
   i, model_dataset, grid_size, 
-  pseudo_abs_logical, predictors,
-  dependent_variable, no_trees, min_node_size, 
-  x_data, y_data, my_weights){
+  predictors, dependent_variable, 
+  no_trees, min_node_size, 
+  x_data, y_data){
   
   no_data <- nrow(model_dataset)
   
@@ -27,9 +27,8 @@ wrapper_to_core_fun <- function(
   # get the position (1/0) of the points in the validating dataset
   valid_point_pos <- get_validating_point_positions(no_data, training_dataset)
   
-  # remove pseudo absences
-  train_point_pos <- train_point_pos[!pseudo_abs_logical]
-  valid_point_pos <- valid_point_pos[!pseudo_abs_logical]    
+  # get weights 
+  my_weights <- training_dataset$new_weight  
   
   # subset training dataset
   training_dataset <- training_dataset[, c(dependent_variable, predictors)]
