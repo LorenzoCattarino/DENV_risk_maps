@@ -137,7 +137,7 @@ pxl_dataset <- inner_join(pxl_dataset, o_j)
 # ---------------------------------------- submit job
 
 
-if(CLUSTER){
+if (CLUSTER) {
   
   EM_alg_run <- obj$enqueue(
     exp_max_algorithm(
@@ -153,7 +153,7 @@ if(CLUSTER){
       model_out_path = md_out_pth,
       pred_out_path = prd_out_pth))
   
-}else{
+} else {
   
   EM_alg_run <- exp_max_algorithm(
     niter = niter, 

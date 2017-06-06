@@ -77,7 +77,7 @@ aggreg_pxl_env_var <- remove_NA_rows(aggreg_pxl_env_var, my_predictors)
 # ---------------------------------------- submit job
 
 
-if(CLUSTER){
+if (CLUSTER) {
   
   p_i <- obj$enqueue(
     make_predictions(
@@ -85,7 +85,7 @@ if(CLUSTER){
       dataset = aggreg_pxl_env_var, 
       sel_preds = my_predictors))
   
-}else{
+} else {
   
   p_i <- make_predictions(
       mod_obj = RF_obj, 

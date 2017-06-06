@@ -149,7 +149,7 @@ if (CLUSTER) {
     x_data = x_data, 
     y_data = y_data)
 
-}else{
+} else {
   
   RF_fit <- lapply(seq_len(no_fits), 
                    wrapper_to_core_fun, 
