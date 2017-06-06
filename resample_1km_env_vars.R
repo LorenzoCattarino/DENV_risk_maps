@@ -1,4 +1,3 @@
-#setwd("Y:/data/processed/fullres/tiles")
 options(didewin.cluster = "fi--didemrchnb")
 
 CLUSTER <- FALSE
@@ -23,7 +22,8 @@ in_pt <- file.path("data", "gadm_codes")
 
 group_fields <- c("cell", "lat.grid", "long.grid")
 
-gr_size=20
+gr_size <- 20
+
 new_res <- (1 / 120) * gr_size
 
 out_pt <- file.path(
