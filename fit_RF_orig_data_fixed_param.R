@@ -3,12 +3,12 @@ options(didewin.cluster = "fi--didemrchnb")
 CLUSTER <- FALSE
 
 my_resources <- c(
-file.path("R", "utility_functions.R"),
-  file.path("R", "random_forest", "fit_random_forest_model.R"),
-  file.path("R", "random_forest", "make_RF_predictions.R"),
-  file.path("R", "random_forest", "get_1_0_point_position.R"),
-  file.path("R", "random_forest", "calculate_sum_squared_errors.R"),
-  file.path("R", "random_forest", "spatial_sampK_cv_rng3.R"))
+file.path("R", "utility_functions.r"),
+  file.path("R", "random_forest", "fit_random_forest_model.r"),
+  file.path("R", "random_forest", "make_RF_predictions.r"),
+  file.path("R", "random_forest", "get_1_0_point_position.r"),
+  file.path("R", "random_forest", "calculate_sum_squared_errors.r"),
+  file.path("R", "random_forest", "spatial_sampK_cv_rng3.r"))
 
 my_pkgs <- c("ranger", "weights")
 
@@ -27,19 +27,15 @@ no_trees <- 500
 
 min_node_size <- 20
 
-pseudoAbs_value <- 0
+pseudoAbs_value <- -0.02
 
 all_wgt <- 1
 
 pAbs_wgt <- 0.25
 
-out_path <- file.path(
-  "output",
-  "dengue_dataset",
-  "model_objects",
-  "fit_all_data")
+out_path <- file.path("output", "model_objects")
 
-out_name <- "list_of_models.RDS"   
+out_name <- "list_of_boot_models.rds"   
           
 
 # ---------------------------------------- Are you using the cluster?
