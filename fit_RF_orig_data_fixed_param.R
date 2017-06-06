@@ -66,7 +66,7 @@ if (CLUSTER) {
 
 # load FOI dataset
 foi_data <- read.csv(
-  file.path("output", "All_FOI_estimates_linear_env_var.csv"),
+  file.path("output", "foi", "All_FOI_estimates_linear_env_var.csv"),
   stringsAsFactors = FALSE)
 
 # predicting variable rank
