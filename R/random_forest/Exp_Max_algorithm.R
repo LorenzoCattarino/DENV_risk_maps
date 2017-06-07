@@ -3,7 +3,7 @@ exp_max_algorithm <- function(
   no_trees, min_node_size,
   my_predictors, grp_flds, 
   out_model_name, out_pred_name,
-  model_out_path, pred_out_path){
+  model_out_path, pred_out_path, boot_inds){
   
   diagnostics <- c("RF_ms_i", "ss_i", "ss_j", "min_wgt", "max_wgt", "n_NA_pred")
   
@@ -60,7 +60,7 @@ exp_max_algorithm <- function(
     min_wgt <- min(case_weights)
     max_wgt <- max(case_weights)
     
-    training_dataset <- dd[, c("u_i", my_predictors)]
+    training_dataset <- dd[unlist(boot_inds), c("u_i", my_predictors)]
 	  #write.csv(training_dataset,"debug.csv")
     
     RF_obj <- ranger(
