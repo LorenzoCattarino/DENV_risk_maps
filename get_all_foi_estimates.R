@@ -1,5 +1,3 @@
-rm(list = ls())
-
 # load packages
 library(ggmap)
 library(maptools)
@@ -7,9 +5,9 @@ library(geosphere)
 library(boot)
 
 # load functions 
-source(file.path("R", "prepare_datasets", "get_admin_unit_names.R"))
-source(file.path("R", "prepare_datasets", "get_geocode_results.R"))
-source(file.path("R", "convert_df_to_list.R"))
+source(file.path("R", "prepare_datasets", "get_admin_unit_names.r"))
+source(file.path("R", "prepare_datasets", "get_geocode_results.r"))
+source(file.path("R", "utility_functions.r"))
 
 # load data 
 datasets <- c(
@@ -87,20 +85,28 @@ output_dts_2 <- lapply(output_dts, function(x) x[, fields])
 # bind all together 
 All_FOI_estimates <- do.call("rbind", output_dts_2)
 
+# remove missing data 
+All_FOI_estimates <- subset(All_FOI_estimates, !is.na(FOI))
+  
+# remove outliers 
+All_FOI_estimates <- subset(All_FOI_estimates, ISO != "PYF" & ISO != "HTI")
+
+# add point ID (you will need it when doing the spatial disaggregation)
+All_FOI_estimates <- cbind(data_id = seq_len(nrow(All_FOI_estimates)), All_FOI_estimates)
+
 dengue_point_countries <- All_FOI_estimates[!duplicated(All_FOI_estimates[, c("country", "ID_0")]), c("country", "ID_0")]
 
 write.table(All_FOI_estimates, 
-            file.path("output", 
-                      "dengue_dataset", 
-                      "foi", 
-                      "All_FOI_estimates_linear.txt"), 
-            row.names = FALSE, sep = ",")
+            file.path("output", "foi", "All_FOI_estimates_linear.txt"), 
+            row.names = FALSE, 
+            sep = ",")
 
 write.table(dengue_point_countries[order(as.character(dengue_point_countries$country)), ], 
             file.path("output", 
                       "datasets", 
                       "dengue_point_countries.csv"), 
-            row.names = FALSE, sep = ",")
+            row.names = FALSE, 
+            sep = ",")
 
 
 # # ---------------------------------------- Calculate FOI^2  
