@@ -1,4 +1,4 @@
-exp_max_algorithm_multi_run <- function(
+exp_max_algorithm_boot <- function(
   i, pxl_dataset, gr_size,
   niter, foi_data, no_trees, 
   min_node_size, my_predictors, grp_flds,
