@@ -3,22 +3,19 @@ library(ggplot2)
 library(grid)
 
 # load functions 
-source(file.path("R", "burden_and_interventions", "get_age_band_bounds.R"))
-source(file.path("R", "burden_and_interventions", "wrapper_to_get_R0.R"))
-source(file.path("R", "burden_and_interventions", "calculate_probabilities_and_R0.R"))
-source(file.path("R", "burden_and_interventions", "calculate_infection_probability_and_number.R"))
-source(file.path("R", "burden_and_interventions", "calculate_average_infect_probab.R"))
-source(file.path("R", "burden_and_interventions", "calculate_R0.R"))
+source(file.path("R", "burden_and_interventions", "get_age_band_bounds.r"))
+source(file.path("R", "burden_and_interventions", "wrapper_to_get_R0.r"))
+source(file.path("R", "burden_and_interventions", "calculate_probabilities_and_R0.r"))
+source(file.path("R", "burden_and_interventions", "calculate_infection_probability_and_number.r"))
+source(file.path("R", "burden_and_interventions", "calculate_average_infect_probab.r"))
+source(file.path("R", "burden_and_interventions", "calculate_R0.r"))
 
 
 # ---------------------------------------- load data 
 
 
 All_FOI_estimates <- read.table(
-  file.path("output", 
-            "dengue_dataset", 
-            "foi", 
-            "All_FOI_estimates_linear.txt"), 
+  file.path("output", "foi", "All_FOI_estimates_linear.txt"), 
   header = TRUE, 
   sep = ",", 
   stringsAsFactors = FALSE)
@@ -141,10 +138,7 @@ All_R_0_estimates <- data.frame(
 
 
 write.table(All_R_0_estimates, 
-            file.path("output", 
-                      "dengue_dataset",
-                      "R_0", 
-                      "All_R_0_estimates.csv"), 
+            file.path("output", "R_0", "All_R_0_estimates.csv"), 
             row.names = FALSE, 
             sep = ",")
 
@@ -156,9 +150,7 @@ All_R_0_estimates <- All_R_0_estimates[order(All_R_0_estimates$FOI), ]
 
 All_R_0_estimates$ID_point <- seq_len(nrow(All_R_0_estimates))
 
-png(file.path("figures", 
-              "dengue_dataset",
-              "reprod_number_plot.png"), 
+png(file.path("figures", "reprod_number_plot.png"), 
     width = 20, 
     height = 14, 
     units = "in", 
