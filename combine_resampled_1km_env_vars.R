@@ -57,7 +57,7 @@ all_pixel_df <- do.call("rbind", pxl_job)
 data_points <- all_pixel_df[all_pixel_df$type != "pseudoAbsence", ]
 psAb <- all_pixel_df[all_pixel_df$type == "pseudoAbsence", ]
 
-psAb_spl <- split(psAb, list(psAb$ADM_0, psAb$ADM_1), drop = TRUE)
+psAb_spl <- split(psAb, list(psAb$data_id, psAb$ADM_0, psAb$ADM_1), drop = TRUE)
 
 lng <- lapply(psAb_spl, nrow)
        
@@ -67,7 +67,7 @@ sub_n_sample <- function(i, a){
   i[ids,]
 }
   
-psAb_spl_smp <- lapply(psAb_spl, sub_n_sample, 700)
+psAb_spl_smp <- lapply(psAb_spl, sub_n_sample, 215)
 
 psAbs_square <- do.call("rbind", psAb_spl_smp)
 
