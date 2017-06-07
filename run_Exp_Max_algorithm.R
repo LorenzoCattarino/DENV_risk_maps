@@ -1,7 +1,3 @@
-# install.packages("didewin",
-#                  repos=c(CRAN="https://cran.rstudio.com",
-#                          drat="https://richfitz.github.io/drat"))
-
 options(didewin.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
