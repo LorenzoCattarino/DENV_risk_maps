@@ -1,18 +1,18 @@
-options(didewin.cluster = "fi--didemrchnb")
+options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
-  file.path("R", "prepare_datasets", "filter_and_resample.R"),
-  file.path("R", "prepare_datasets", "grid_up_foi_dataset.R"),
-  file.path("R", "prepare_datasets", "average_up.R"))
+  file.path("R", "prepare_datasets", "filter_and_resample.r"),
+  file.path("R", "prepare_datasets", "grid_up_foi_dataset.r"),
+  file.path("R", "prepare_datasets", "average_up.r"))
 
 my_pkgs <- c("data.table", "dplyr")
 
 context::context_log_start()
-ctx <- context::context_save(packages = my_pkgs,
-                             sources = my_resources,
-                             root = "context")
+ctx <- context::context_save(path = "context",
+                             packages = my_pkgs,
+                             sources = my_resources)
 
 
 # ---------------------------------------- define parameters
@@ -20,7 +20,7 @@ ctx <- context::context_save(packages = my_pkgs,
 
 in_pt <- file.path("data", "gadm_codes")
 
-group_fields <- c("ADM_0", "ADM_1", "cell", "lat.grid", "long.grid")
+group_fields <- c("ADM_0", "ADM_1", "cell", "data_id")
 
 gr_size <- 20
   
@@ -32,7 +32,7 @@ new_res <- (1 / 120) * gr_size
 
 if (CLUSTER) {
   
-  obj <- didewin::queue_didewin(ctx)
+  obj <- didehpc::queue_didehpc(ctx)
 
 } else {
   
@@ -52,35 +52,15 @@ all_predictors <- read.table(
   stringsAsFactors = FALSE)
 
 foi_data <- read.csv(
-  file.path("output", 
-            "dengue_dataset", 
-            "All_FOI_estimates_linear_env_var.csv"),
+  file.path("output", "foi", "All_FOI_estimates_linear_env_var.csv"),
   stringsAsFactors = FALSE)
 
 
 # ---------------------------------------- pre processing
 
 
-# remove outliers 
-foi_data <- subset(foi_data, ISO != "PYF" & ISO != "HTI")
-
 names(foi_data)[names(foi_data) == "ID_0"] <- "ADM_0"
 names(foi_data)[names(foi_data) == "ID_1"] <- "ADM_1"
-
-foi_data[foi_data$type!= "pseudoAbsence", "type"] <- "data"
-
-
-# ----------------------------------------
-
-# get unique combinations of adm0, adm1 and (data) type
-
-#  NOTE: a particular adm0-adm1 combination can be either data or pseudoAbsence type
-#  because creation of pseudoAbsences has been done following adm1-based classification of dengue occurrence
-#  so no duplicate adm0-adm1 combinations exist with regard to type 
-
-# ----------------------------------------
-
-foi_data <- foi_data[!duplicated(foi_data[, c("ADM_0", "ADM_1")]), c("ADM_0", "ADM_1", "type")]
 
 var_names <- all_predictors$variable
 
@@ -103,10 +83,10 @@ if (CLUSTER) {
     grp_flds = group_fields, 
     grid_size = new_res)
 
-}else{
+} else {
   
   pxl_job <- lapply(
-    fi[1],
+    fi[159],
     filter_and_resample,
     foi_dts = foi_data, 
     env_var_names = var_names, 
