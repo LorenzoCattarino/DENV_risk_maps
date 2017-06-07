@@ -1,34 +1,36 @@
-options(didewin.cluster = "fi--didemrchnb")
+options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- FALSE
 
 my_resources <- c(
-  file.path("R", "utility_functions.R"),
-  file.path("R", "prepare_datasets", "remove_NA_rows.R"),
-  file.path("R", "random_forest", "make_RF_predictions.R"))  
+  file.path("R", "utility_functions.r"),
+  file.path("R", "prepare_datasets", "remove_NA_rows.r"),
+  file.path("R", "random_forest", "make_RF_predictions.r"))  
 
-my_pkgs <- c("ranger")
+my_pkgs <- "ranger"
 
 context::context_log_start()
-ctx <- context::context_save(packages = my_pkgs,
+ctx <- context::context_save(path = "context",
                              sources = my_resources,
-                             root = "context")
+                             packages = my_pkgs)
 
 
 # ---------------------------------------- define parameters
 
 
-aggr_dts_name <- "aggreg_pixel_level_env_vars_20km.RDS"
+aggr_dts_name <- "aggreg_pixel_level_env_vars_20km.rds"
 
-out_fl_nm <- "All_FOI_estimates_disaggreg_20km.RDS"
+out_fl_nm <- "All_FOI_estimates_disaggreg_20km.rds"
 
-
+out_pth <- file.path("output", "foi")
+  
+  
 # ---------------------------------------- are you using the cluster? 
 
 
 if (CLUSTER) {
   
-  obj <- didewin::queue_didewin(ctx)
+  obj <- didewin::queue_didehpc(ctx)
   
 } else {
   
@@ -43,7 +45,7 @@ if (CLUSTER) {
 RF_obj <- readRDS(
   file.path("output",
             "model_objects",
-            "fit_all_data_model.RDS"))
+            "best_model_admin.rds"))
 
 aggreg_pxl_env_var <- readRDS(
   file.path("output", 
@@ -96,4 +98,4 @@ if (CLUSTER) {
 
 aggreg_pxl_env_var$p_i <- p_i
 
-write_out_rds(aggreg_pxl_env_var, "output", out_fl_nm)
+write_out_rds(aggreg_pxl_env_var, out_pth, out_fl_nm)
