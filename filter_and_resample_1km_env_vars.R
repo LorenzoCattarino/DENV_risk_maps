@@ -1,6 +1,6 @@
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "prepare_datasets", "filter_and_resample.r"),
@@ -20,7 +20,7 @@ ctx <- context::context_save(path = "context",
 
 in_pt <- file.path("data", "gadm_codes")
 
-group_fields <- c("ADM_0", "ADM_1", "cell", "data_id")
+group_fields <- c("data_id", "ADM_0", "ADM_1", "cell", "lat.grid", "long.grid")
 
 gr_size <- 20
   
