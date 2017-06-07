@@ -1,22 +1,21 @@
-rm(list = ls())
-
 # load functions 
-source(file.path("R", "prepare_datasets", "get_env_variables.R"))
-source(file.path("R", "convert_df_to_list.R"))
+source(file.path("R", "prepare_datasets", "get_env_variables.r"))
+source(file.path("R", "utility_functions.r"))
 
 # load data 
 All_FOI_R0_estimates <- read.csv(
-  file.path("output", 
-            "dengue_dataset",
-            "R_0", 
-            "All_R_0_estimates.csv"), 
-  header = TRUE, sep = ",", stringsAsFactors = FALSE)
+  file.path("output", "R_0", "All_R_0_estimates.csv"), 
+  header = TRUE, 
+  sep = ",", 
+  stringsAsFactors = FALSE)
 
 pseudo_absence_points <- read.csv(
   file.path("output", 
             "datasets", 
             "pseudo_absence_points_NUM_CODES.csv"), 
-  header = TRUE, sep = ",", stringsAsFactors = FALSE)
+  header = TRUE, 
+  sep = ",", 
+  stringsAsFactors = FALSE)
 
 pseudo_absence_points$FOI <- 0
 pseudo_absence_points$R_0 <- 0
@@ -52,7 +51,7 @@ extracted_var_values <- sapply(
   FT_data = FTs_dt, 
   LC_vars = LandCover_var, 
   admin_level = 1,
-  my_path = file.path("data", "env_variables", "processed"))
+  my_path = file.path("data", "env_variables"))
 
 foi_data_with_env_variables <- cbind(foi_data, t(extracted_var_values))
 
@@ -71,12 +70,13 @@ pop_col_names <- grep("pop", colnames(foi_data_with_env_variables), value = FALS
 
 colnames(foi_data_with_env_variables)[pop_col_names] <- "population"
 
+foi_data_with_env_variables <- cbind(data_id = seq_len(nrow(foi_data_with_env_variables)), foi_data_with_env_variables)
+
 # write out 
 write.table(foi_data_with_env_variables, 
-            file.path("output", 
-                      "dengue_dataset", 
-                      "All_FOI_estimates_linear_env_var.csv"), 
-            row.names = FALSE, sep = ",")
+            file.path("output", "foi", "All_FOI_estimates_linear_env_var.csv"), 
+            row.names = FALSE, 
+            sep = ",")
 
 FT_vars <- apply(expand.grid(c(fourier_transform_elem), FTs_dt), 
                  1, 
@@ -88,4 +88,5 @@ predictor_table <- data.frame(variable = all_variables)
 
 write.table(predictor_table,
             file.path("output", "datasets", "all_predictors.txt"),
-            row.names = FALSE, sep = ",")
+            row.names = FALSE, 
+            sep = ",")
