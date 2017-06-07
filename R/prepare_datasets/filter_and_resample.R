@@ -1,5 +1,7 @@
 filter_and_resample <- function(x, foi_dts, env_var_names, grp_flds, grid_size){
   
+  browser()
+  
   xx <- fread(x,
               header = TRUE, 
               sep = ",",              
@@ -10,14 +12,9 @@ filter_and_resample <- function(x, foi_dts, env_var_names, grp_flds, grid_size){
   #"Peipsi", "Moskva", "IJsselmeer", "Zeeuwse meren"
   if(is.character(xx$ADM_0)) stop("ADM_0 is a character")
   
-  #browser()
-  
-  aa <- merge(
+  aa <- inner_join(
     xx, 
-    foi_dts[, c("ADM_0", "ADM_1")], 
-    by = c("ADM_0", "ADM_1"),
-    all.x = FALSE, 
-    all.y = FALSE)
+    foi_dts[, c("data_id", "ADM_0", "ADM_1")])
   
   yy <- grid_up(
     dataset = aa, 
@@ -31,12 +28,9 @@ filter_and_resample <- function(x, foi_dts, env_var_names, grp_flds, grid_size){
     grp_flds = grp_flds, 
     var_names = env_var_names)
   
-  dd <- merge(
+  dd <- inner_join(
     cc,
-    foi_dts[, c("ADM_0", "ADM_1", "type")],
-    by = c("ADM_0", "ADM_1"),
-    all.x = FALSE,
-    all.y = FALSE)
+    foi_dts[, c("data_id", "ADM_0", "ADM_1", "type")])
   
   dd$lat.grid <- dd$lat.grid * grid_size
   
