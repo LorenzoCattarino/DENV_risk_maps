@@ -38,7 +38,7 @@ m_flds <- c("ID_0", "ID_1")
 
 interm_outs <- c("R0")
 
-base_info <- c("ID_0", "ID_1", "FOI", "variance", "population")
+base_info <- c("data_id", "ID_0", "ID_1", "FOI", "variance", "population")
 
 my_phis <- c(1, 1, 1, 1)
 
