@@ -1,5 +1,5 @@
 wrapper_to_core_fun <- function(
-  model_dataset, grid_size, 
+  i, model_dataset, grid_size, 
   predictors, dependent_variable, 
   no_trees, min_node_size, 
   x_data, y_data){
@@ -12,11 +12,8 @@ wrapper_to_core_fun <- function(
   # get the cells occupied with at least one data point
   occupied_cells <- unique(gridded_dataset$cell)
   
-  # get a bootstrapped sample of the df indices  
-  boot_inds <- do_boostrap(gridded_dataset)
-  
-  # get the full training dataset
-  training_dataset <- dataset[unlist(boot_inds), ]
+  # do bootstrapping and get the full training dataset
+  training_dataset <- do_boostrap(gridded_dataset)
   
   # get the cells occupied with at least one training point
   occupied_cells_train <- unique(training_dataset$cell)
