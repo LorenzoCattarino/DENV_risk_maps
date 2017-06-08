@@ -19,6 +19,7 @@ exp_max_algorithm_boot <- function(
     out_model_name = a,
     out_pred_name = a,
     model_out_path = model_out_path,
-    pred_out_path = pred_out_path)
+    pred_out_path = pred_out_path,
+    gr_size = gr_size)
   
 }
