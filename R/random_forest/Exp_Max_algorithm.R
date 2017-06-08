@@ -1,5 +1,5 @@
 exp_max_algorithm <- function(
-  niter, adm_dataset, pxl_dataset,
+  niter, adm_dataset, pxl_dataset_full,
   no_trees, min_node_size,
   my_predictors, grp_flds, 
   out_model_name, out_pred_name,
@@ -10,6 +10,14 @@ exp_max_algorithm <- function(
   out_mat <- matrix(0, nrow = niter, ncol = length(diagnostics))
   
   colnames(out_mat) <- diagnostics
+  
+  ### 1. get a bootstrapped sample of the pxl dataset
+  
+  # overlay squared grid on data points 
+  gridded_dataset <- grid_up(pxl_dataset_full, gr_size, rnd_dist = TRUE)
+  
+  # do bootstrapping and get the new dataset 
+  pxl_dataset <- do_boostrap(gridded_dataset)
   
   for (i in seq_len(niter)){
     
@@ -77,14 +85,8 @@ exp_max_algorithm <- function(
     
     ### 6. make new pixel level predictions
     
-    x_data <- dd[, my_predictors]
-    
-    run_predict <- predict(RF_obj, x_data)
-    
-    p_i <- run_predict$predictions
-		
-    p_i[p_i < 0] <- 0
-    
+    p_i <- make_predictions(RF_obj, dd, my_predictors)
+      
     n_NA_pred <- sum(is.na(p_i))
     
     dd$p_i <- ifelse(is.na(p_i), 0, p_i)
@@ -118,9 +120,11 @@ exp_max_algorithm <- function(
     
   }
   
-  write_out_rds(RF_obj, model_out_path, out_model_name)  
+  pxl_dataset_full$p_i <- make_predictions(RF_obj, pxl_dataset_full, my_predictors)
   
-  write_out_rds(pxl_dataset, pred_out_path, out_pred_name)
+  #write_out_rds(RF_obj, model_out_path, out_model_name)  
+  
+  write_out_rds(pxl_dataset_full, pred_out_path, out_pred_name)
 
-  out_mat
+  list(RF_obj, out_mat)
 }
