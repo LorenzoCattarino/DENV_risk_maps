@@ -36,6 +36,10 @@ filter_and_resample <- function(x, foi_dts, env_var_names, grp_flds, grid_size){
   
   dd$long.grid <- dd$long.grid * grid_size
   
+  names(dd)[names(dd) == "lat.grid"] <- "latitude"
+  
+  names(dd)[names(dd) == "long.grid"] <- "longitude"
+  
   dd    
 
 }
