@@ -1,6 +1,6 @@
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
@@ -27,7 +27,7 @@ no_trees <- 500
 
 min_node_size <- 20
 
-pseudoAbs_value <- -0.02
+pseudoAbs_value <- 0
 
 all_wgt <- 1
 
@@ -49,7 +49,6 @@ if (CLUSTER) {
 } else {
   
   context::context_load(ctx)
-  context::start_parallel_cluster(8, ctx)
 
 }
 
@@ -142,10 +141,6 @@ if (CLUSTER) {
     valid_points = valid_point_pos, 
     my_weights = my_weights)
   
-}
-
-if (!CLUSTER) {
-  context:::stop_parallel_cluster()
 }
 
 
