@@ -1,17 +1,21 @@
-options(didewin.cluster = "fi--didemrchnb")
+options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "utility_functions.R"),
-  file.path("R", "random_forest", "Exp_Max_algorithm.R"))  
+  file.path("R", "random_forest", "grid_up_foi_dataset.r"),
+  file.path("R", "random_forest", "bootstrap_foi_dataset.r"),
+  file.path("R", "random_forest", "make_RF_predictions.r"),
+  file.path("R", "random_forest", "Exp_Max_algorithm.r"),
+  file.path("R", "random_forest", "wrapper_to_Exp_Max_algorithm.r"),
+  file.path("R", "utility_functions.r"))
 
 my_pkgs <- c("ranger", "dplyr", "ggplot2")
 
 context::context_log_start()
-ctx <- context::context_save(packages = my_pkgs,
+ctx <- context::context_save(path = "context",
                              sources = my_resources,
-                             root = "context")
+                             packages = my_pkgs)
 
 
 # ---------------------------------------- rebuild the queue object?
@@ -19,8 +23,8 @@ ctx <- context::context_save(packages = my_pkgs,
 
 if (CLUSTER) {
   
-  config <- didewin::didewin_config(template = "24Core")
-  obj <- didewin::queue_didewin(ctx, config = config)
+  config <- didehpc::didehpc_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
 
 }else{
   
@@ -43,14 +47,14 @@ strip_labs <- gsub('([[:punct:]])|\\s+','_', strip_labs)
 
 fig_file_tag <- paste0(strip_labs, ".png")
   
-figure_out_path <- file.path("figures", "EM_algorithm", "best_model_20km_cw")
+figure_out_path <- file.path("figures", "EM_algorithm", "boot_model_20km_cw")
 
 
 
 # ---------------------------------------- get results 
 
 
-my_task_id <- "34e861367e454f648a75bbf1a7ae101d"
+my_task_id <- "21d364a225ff60c5215b24ad468ebafe"
 
 EM_alg_run_t <- obj$task_get(my_task_id)
 
@@ -60,7 +64,7 @@ EM_alg_run <- EM_alg_run_t$result()
 # ---------------------------------------- plot 
 
 
-data_to_plot <- as.data.frame(EM_alg_run)
+data_to_plot <- as.data.frame(EM_alg_run[[2]])
 
 data_to_plot$iter <- seq_len(nrow(data_to_plot))
 
