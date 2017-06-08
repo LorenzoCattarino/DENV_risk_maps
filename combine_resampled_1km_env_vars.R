@@ -38,7 +38,7 @@ if (CLUSTER) {
 
 }
 
-task_b_name <- "snoopy_janenschia"
+task_b_name <- "thermonuclear_grayreefshark"
 
 pxl_job_t <- obj$task_bundle_get(task_b_name)
 
