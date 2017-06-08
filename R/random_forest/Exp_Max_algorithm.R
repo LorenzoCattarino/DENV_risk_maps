@@ -15,7 +15,7 @@ exp_max_algorithm <- function(
     
     cat("iteration =", i, "\n")
     
-    #browser()
+    browser()
 
     
     ### 1. fix zero predictions
@@ -42,7 +42,7 @@ exp_max_algorithm <- function(
 
     ### 4. calculate new pseudo data value
     
-    psAbs <- dd$o_j == 0
+    psAbs <- dd$o_j == -0.02
     
     u_i <- rep(0, nrow(dd))
       
@@ -83,6 +83,8 @@ exp_max_algorithm <- function(
     
     p_i <- run_predict$predictions
 		
+    p_i[p_i < 0] <- 0
+    
     n_NA_pred <- sum(is.na(p_i))
     
     dd$p_i <- ifelse(is.na(p_i), 0, p_i)
