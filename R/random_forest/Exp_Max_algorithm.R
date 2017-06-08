@@ -18,20 +18,16 @@ exp_max_algorithm <- function(
   
   # do bootstrapping and get the new dataset 
   pxl_dataset <- do_boostrap(gridded_dataset)
+  #pxl_dataset <- pxl_dataset_full
   
   for (i in seq_len(niter)){
     
     cat("iteration =", i, "\n")
     
-    browser()
+    #browser()
 
     
-    ### 1. fix zero predictions
-    
-    #pxl_dataset$p_i[pxl_dataset$p_i == 0] <- 0.00001
-    
-    
-    ### 2. calculate scaling factors (these ones are not constant - they change at i)
+    ### 1. calculate scaling factors (these ones are not constant - they change at i)
     
     p_i_by_adm <- pxl_dataset %>% group_by_(.dots = grp_flds)
     
@@ -43,12 +39,12 @@ exp_max_algorithm <- function(
     dd$wgt_prime <- dd$pop_weight 
     
     
-    ### 3. modify the scaling factors to account for background data
+    ### 2. modify the scaling factors to account for background data
     
     dd$wgt_prime <- dd$wgt_prime * dd$new_weight
      
 
-    ### 4. calculate new pseudo data value
+    ### 3. calculate new pseudo data value
     
     psAbs <- dd$a_sum == 0
     
@@ -61,7 +57,7 @@ exp_max_algorithm <- function(
     if(sum(is.na(dd$u_i)) > 0) browser(text="u_i NA")
     
     
-    ### 5. fit RF model
+    ### 4. fit RF model
     
     case_weights <- dd$wgt_prime
 
@@ -83,7 +79,7 @@ exp_max_algorithm <- function(
     RF_ms_i <- RF_obj$prediction.error
     
     
-    ### 6. make new pixel level predictions
+    ### 5. make new pixel level predictions
     
     p_i <- make_predictions(RF_obj, dd, my_predictors)
       
@@ -95,21 +91,21 @@ exp_max_algorithm <- function(
     if(sum(is.na(dd$p_i)) > 0) browser(text="pred NA")
 
     
-    ### 7. calculate pixel level sum of square
+    ### 6. calculate pixel level sum of square
     
     ss_i <- sum(dd$wgt_prime * (dd$p_i - dd$u_i)^2)
     
     
-    ### 8. calculate population weighted mean of pixel level predictions
+    ### 7. calculate population weighted mean of pixel level predictions
     
     p_i_by_adm <- dd %>% group_by_(.dots = grp_flds)
     
     mean_p_i <- p_i_by_adm %>% summarise(mean_p_i = sum(p_i * pop_weight))
     
-    aa <- left_join(adm_dataset, mean_p_i)
+    aa <- inner_join(adm_dataset, mean_p_i)
     
     
-    ### 9. calculate admin unit level sum of square
+    ### 8. calculate admin unit level sum of square
     
     ss_j <- sum(aa$new_weight * (aa$mean_p_i - aa$o_j)^2)
     
