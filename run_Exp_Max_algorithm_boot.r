@@ -3,17 +3,14 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "fit_random_forest_model.r"),
-  file.path("R", "random_forest", "make_RF_predictions.r"),
-  file.path("R", "random_forest", "get_1_0_point_position.r"),
-  file.path("R", "random_forest", "calculate_sum_squared_errors.r"),
-  file.path("R", "random_forest", "spatial_sampK_cv_rng3.r"),
   file.path("R", "random_forest", "grid_up_foi_dataset.r"),
   file.path("R", "random_forest", "bootstrap_foi_dataset.r"),
-  file.path("R", "random_forest", "wrapper_to_spatial_sampK_cv_rng3.r"))
+  file.path("R", "random_forest", "make_RF_predictions.r"),
+  file.path("R", "random_forest", "Exp_Max_algorithm.r"),
+  file.path("R", "random_forest", "wrapper_to_Exp_Max_algorithm.r"),
+  file.path("R", "utility_functions.r"))
 
-my_pkgs <- "ranger"
+my_pkgs <- c("ranger", "dplyr")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -26,42 +23,49 @@ ctx <- context::context_save(path = "context",
 
 if (CLUSTER) {
   
-  config <- didewin::didewin_config(template = "24Core")
-  obj <- didewin::queue_didewin(ctx, config = config)
+  config <- didehpc::didehpc_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
   
   context::context_load(ctx)
-  
+  #context::parallel_cluster_start(8, ctx)
+
 }
 
 
 # ---------------------------------------- define parameters
 
 
+no_fits <- 200
+
 pxl_dts_name <- "All_FOI_estimates_disaggreg_20km.rds"
 
-out_md_nm <- "best_model_20km_cw.RDS"
+out_md_nm_all <- paste0("boot_model_20km_cw_run_", seq_len(no_fits), ".rds")
 
-out_prd_nm <- "square_predictions_best_model_20km_cw.RDS"
-
-prd_out_pth <- file.path("output", "predictions", "best_model_20km_cw")
+out_prd_nm_all <- paste0("square_predictions_boot_model_20km_cw_run_", seq_len(no_fits), ".rds")
 
 md_out_pth <- file.path("output", "model_objects")
 
-grp_flds <- c("ID_0", "ID_1")
+prd_out_pth <- file.path("output", "predictions", "boot_model_20km_cw", "all_runs")
+
+grp_flds <- c("ID_0", "ID_1", "data_id")
 
 no_trees <- 500
 
 min_node_size <- 20
 
+pseudoAbs_value <- 0
+
 all_wgt <- 1
 
 pAbs_wgt <- 0.25
 
+grid_size <- 5
+
 niter <- 35
 
-
+  
 # ---------------------------------------- load data
 
 
@@ -77,7 +81,7 @@ predictor_rank <- read.csv(
   stringsAsFactors = FALSE)
 
 foi_data <- read.csv(
-  file.path("output", "All_FOI_estimates_linear_env_var.csv"),
+  file.path("output", "foi", "All_FOI_estimates_linear_env_var.csv"),
   stringsAsFactors = FALSE) 
 
 
@@ -94,7 +98,11 @@ foi_data$new_weight <- all_wgt
 
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
+foi_data[foi_data$type == "pseudoAbsence", "FOI"] <- pseudoAbs_value
+
 names(foi_data)[names(foi_data) == "FOI"] <- "o_j"
+
+admin_dataset <- foi_data[, c(grp_flds, "o_j", "new_weight")]
   
   
 # ---------------------------------------- pre process the prediction dataset
@@ -126,19 +134,67 @@ pxl_dataset[pxl_dataset$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
 
 # drop values in pxl_dataset which are not in o_j (PYF and HTI) 
-pxl_dataset <- inner_join(pxl_dataset, o_j)
+pxl_dataset <- inner_join(pxl_dataset, foi_data[, c(grp_flds, "o_j")])
 
 
 # ---------------------------------------- submit job
 
 
+t <- obj$enqueue(
+  exp_max_algorithm_boot(
+    seq_len(no_fits)[1],
+    out_model_name = out_md_nm_all,
+    out_pred_name = out_prd_nm_all,
+    niter = niter,
+    adm_dataset = admin_dataset,
+    pxl_dataset_full = pxl_dataset,
+    no_trees = no_trees,
+    min_node_size = min_node_size,
+    my_predictors = my_predictors,
+    grp_flds = grp_flds,
+    model_out_path = md_out_pth,
+    pred_out_path = prd_out_pth,
+    gr_size = grid_size))
+
 if (CLUSTER) {
   
-queuer::qlapply(
-  seq_len(no_fits),
-  complete_EM_routine_multi_run)
+  EM_alg_run <- queuer::qlapply(
+    seq_len(no_fits),
+    exp_max_algorithm_boot,
+    obj,
+    out_model_name = out_md_nm_all, 
+    out_pred_name = out_prd_nm_all,
+    niter = niter, 
+    adm_dataset = admin_dataset, 
+    pxl_dataset_full = pxl_dataset,
+    no_trees = no_trees, 
+    min_node_size = min_node_size, 
+    my_predictors = my_predictors, 
+    grp_flds = grp_flds,
+    model_out_path = md_out_pth, 
+    pred_out_path = prd_out_pth,
+    gr_size = grid_size)
   
 }else{
   
+  EM_alg_run <- lapply(
+    seq_len(no_fits)[1],
+    exp_max_algorithm_boot,
+    out_model_name = out_md_nm_all, 
+    out_pred_name = out_prd_nm_all,
+    niter = niter, 
+    adm_dataset = admin_dataset, 
+    pxl_dataset_full = pxl_dataset,
+    no_trees = no_trees, 
+    min_node_size = min_node_size, 
+    my_predictors = my_predictors, 
+    grp_flds = grp_flds,
+    model_out_path = md_out_pth, 
+    pred_out_path = prd_out_pth,
+    gr_size = grid_size)
   
 }  
+
+if (!CLUSTER) {
+  context::parallel_cluster_stop()
+}
