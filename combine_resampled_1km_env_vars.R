@@ -55,19 +55,19 @@ all_pixel_df <- do.call("rbind", pxl_job)
 
 all_pixel_df <- all_pixel_df[setdiff(names(all_pixel_df), "cell")]
 
-data_points <- all_pixel_df[all_pixel_df$type != "pseudoAbsence", ]
-psAb <- all_pixel_df[all_pixel_df$type == "pseudoAbsence", ]
+# data_points <- all_pixel_df[all_pixel_df$type != "pseudoAbsence", ]
+# psAb <- all_pixel_df[all_pixel_df$type == "pseudoAbsence", ]
+# 
+# psAb_spl <- unname(split(psAb, list(psAb$data_id, psAb$ADM_0, psAb$ADM_1), drop = TRUE))
+# 
+# lng <- lapply(psAb_spl, nrow)
+#        
+# psAb_spl_smp <- lapply(psAb_spl, sub_n_sample, 215)
+# 
+# psAbs_square <- do.call("rbind", psAb_spl_smp)
+# 
+# all_pixel_df_2 <- rbind(data_points, psAbs_square)
+#   
+# rownames(all_pixel_df_2) <- seq_len(nrow(all_pixel_df_2))
 
-psAb_spl <- unname(split(psAb, list(psAb$data_id, psAb$ADM_0, psAb$ADM_1), drop = TRUE))
-
-lng <- lapply(psAb_spl, nrow)
-       
-psAb_spl_smp <- lapply(psAb_spl, sub_n_sample, 215)
-
-psAbs_square <- do.call("rbind", psAb_spl_smp)
-
-all_pixel_df_2 <- rbind(data_points, psAbs_square)
-  
-rownames(all_pixel_df_2) <- seq_len(nrow(all_pixel_df_2))
-
-write_out_rds(all_pixel_df_2, out_pt, out_fl_nm)
+write_out_rds(all_pixel_df, out_pt, out_fl_nm)
