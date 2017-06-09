@@ -12,7 +12,7 @@ All_FOI_R0_estimates <- read.csv(
 pseudo_absence_points <- read.csv(
   file.path("output", 
             "datasets", 
-            "pseudo_absence_points_NUM_CODES.csv"), 
+            "pseudo_absence_points_NUM_CODES_sub.csv"), 
   header = TRUE, 
   sep = ",", 
   stringsAsFactors = FALSE)
