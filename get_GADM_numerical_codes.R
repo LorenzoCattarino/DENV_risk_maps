@@ -66,9 +66,8 @@ for (i in 1:nrow(pseudo_absence_points)){
   pseudo_absence_points[i, "ID_2"] <- ID_2
 }
 
-write.table(pseudo_absence_points,
+write.csv(pseudo_absence_points,
   file.path("output", 
             "datasets", 
             "pseudo_absence_points_NUM_CODES.csv"), 
-  row.names = FALSE, 
-  sep = ",")
+  row.names = FALSE)
