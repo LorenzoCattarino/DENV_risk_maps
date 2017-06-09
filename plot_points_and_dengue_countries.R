@@ -1,13 +1,11 @@
-rm(list=ls())
-
 # load packages
 library(maptools) 
 library(dplyr)
 library(colorRamps)
 
 # load data 
-All_FOI_estimates <- read.table(file.path("data", "foi", "All_FOI_estimates_linear.txt"), header = TRUE, sep = ",")
-pseudoAbsences <- read.csv(file.path("output", "datasets", "pseudo_absence_points.csv"), header = TRUE, sep = ",")
+All_FOI_estimates <- read.table(file.path("output", "foi", "All_FOI_estimates_linear.txt"), header = TRUE, sep = ",")
+pseudoAbsences <- read.csv(file.path("output", "datasets", "pseudo_absence_points_NUM_CODES_sub.csv"), header = TRUE)
 world_shp_admin_1_dengue <- readShapePoly(file.path("data", "shapefiles", "gadm28_levels.shp", "gadm28_adm1_dengue.shp"))
 
 ## Plotting 
@@ -24,7 +22,7 @@ pseudoAbsence_points_list <- list(
   pseudoAbsence_points,
   pch = 21, fill = "yellow", col = NA, cex = 1)
 
-tiff(file.path("figures", "dengue_dataset", "dengue_points_and_absence_mask.tiff"), 
+tiff(file.path("figures", "dengue_points_and_absence_mask_2.tiff"), 
      width = 18, height = 10, units = "in", pointsize = 12,
      compression = "lzw",
      bg = "white", res = 200)
