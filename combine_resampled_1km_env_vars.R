@@ -7,6 +7,7 @@ my_resources <- c(
   file.path("R", "prepare_datasets", "grid_up_foi_dataset.r"),
   file.path("R", "prepare_datasets", "average_up.r"),
   file.path("R", "prepare_datasets", "sub_n_sample.r"),
+  file.path("R", "prepare_datasets", "remove_NA_rows.r"),
   file.path("R", "utility_functions.r"))
 
 my_pkgs <- c("data.table", "dplyr")
@@ -25,6 +26,24 @@ out_pt <- file.path("output", "env_variables")
 out_fl_nm <- "aggreg_pixel_level_env_vars_20km.RDS"
 
 
+# ---------------------------------------- load data
+
+
+predictor_rank <- read.csv(
+  file.path("output", 
+            "variable_selection", 
+            "metropolis_hastings", 
+            "exp_1", 
+            "variable_rank_final_fits_exp_1.csv"),
+  stringsAsFactors = FALSE)
+
+
+# ---------------------------------------- get the vector of best predictors
+
+
+my_predictors <- predictor_rank$variable[1:9]
+
+
 # ---------------------------------------- rebuild the queue
 
 
@@ -38,7 +57,7 @@ if (CLUSTER) {
 
 }
 
-task_b_name <- "thermonuclear_grayreefshark"
+task_b_name <- "intoxicated_amurstarfish"
 
 pxl_job_t <- obj$task_bundle_get(task_b_name)
 
@@ -53,21 +72,16 @@ all_pixel_df <- do.call("rbind", pxl_job)
 # check duplicate cell values - it is OK to have duplicate! 
 # sum(duplicated(all_pixel_df[,1:4]))
 
-all_pixel_df <- all_pixel_df[setdiff(names(all_pixel_df), "cell")]
+# assign NA to 0 covariate values 
+all_pixel_df[, my_predictors][all_pixel_df[, my_predictors] == 0] <- NA
 
-# data_points <- all_pixel_df[all_pixel_df$type != "pseudoAbsence", ]
-# psAb <- all_pixel_df[all_pixel_df$type == "pseudoAbsence", ]
-# 
-# psAb_spl <- unname(split(psAb, list(psAb$data_id, psAb$ADM_0, psAb$ADM_1), drop = TRUE))
-# 
-# lng <- lapply(psAb_spl, nrow)
-#        
-# psAb_spl_smp <- lapply(psAb_spl, sub_n_sample, 215)
-# 
-# psAbs_square <- do.call("rbind", psAb_spl_smp)
-# 
-# all_pixel_df_2 <- rbind(data_points, psAbs_square)
-#   
-# rownames(all_pixel_df_2) <- seq_len(nrow(all_pixel_df_2))
+#remove records with at least one NA predictor value
+all_pixel_df <- remove_NA_rows(all_pixel_df, my_predictors)
+
+# assign cell ID
+all_pixel_df$cell <- seq_len(nrow(all_pixel_df))
+
+# rename 
+names(all_pixel_df)[names(all_pixel_df) == "cell"] <- "square"
 
 write_out_rds(all_pixel_df, out_pt, out_fl_nm)
