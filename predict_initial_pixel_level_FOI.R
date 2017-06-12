@@ -4,7 +4,6 @@ CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "prepare_datasets", "remove_NA_rows.r"),
   file.path("R", "random_forest", "make_RF_predictions.r"))  
 
 my_pkgs <- "ranger"
@@ -65,15 +64,6 @@ predictor_rank <- read.csv(
 
 
 my_predictors <- predictor_rank$variable[1:9]
-
-
-# ---------------------------------------- pre process the prediction dataset
-
-
-aggreg_pxl_env_var[, my_predictors][aggreg_pxl_env_var[, my_predictors] == 0] <- NA
-
-#remove records with at least one NA predictor value
-aggreg_pxl_env_var <- remove_NA_rows(aggreg_pxl_env_var, my_predictors)
 
 
 # ---------------------------------------- submit job
