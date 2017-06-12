@@ -11,21 +11,23 @@ exp_max_algorithm <- function(
   
   colnames(out_mat) <- diagnostics
   
+  #browser()
+  
   ### 1. get a bootstrapped sample of the pxl dataset
   
   # overlay squared grid on data points 
-  gridded_dataset <- grid_up(pxl_dataset_full, gr_size, rnd_dist = TRUE)
+  #gridded_dataset <- grid_up(pxl_dataset_full, gr_size, rnd_dist = FALSE)
   
   # do bootstrapping and get the new dataset 
-  pxl_dataset <- do_boostrap(gridded_dataset)
-  #pxl_dataset <- pxl_dataset_full
+  #pxl_dataset <- do_boostrap(gridded_dataset)
+  pxl_dataset <- pxl_dataset_full
+  
+  write.csv(pxl_dataset, "debug.csv")
   
   for (i in seq_len(niter)){
     
     cat("iteration =", i, "\n")
     
-    #browser()
-
     
     ### 1. calculate scaling factors (these ones are not constant - they change at i)
     
