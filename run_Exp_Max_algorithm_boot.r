@@ -111,12 +111,6 @@ admin_dataset <- foi_data[, c(grp_flds, "o_j", "new_weight")]
 names(pxl_dataset)[names(pxl_dataset) == "ADM_0"] <- grp_flds[1]
 names(pxl_dataset)[names(pxl_dataset) == "ADM_1"] <- grp_flds[2]
 
-pxl_dataset[, my_predictors][pxl_dataset[, my_predictors] == 0] <- NA
-
-na_rows <- apply(pxl_dataset, 1, anyNA)
-
-pxl_dataset <- pxl_dataset[!na_rows, ]
-
 px_adm <- pxl_dataset %>% group_by_(.dots = grp_flds)
 
 adm_pop <- px_adm %>% summarise(adm_pop = sum(population))
