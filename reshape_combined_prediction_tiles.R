@@ -1,7 +1,9 @@
 library(data.table)
 library(fields)
 
+
 # ---------------------------------------- define parameters 
+
 
 x <- file.path(
   "output",
@@ -18,7 +20,10 @@ out_pt <- file.path(
 
 out_fl_nm <- "pred_0_1667_deg_wide.txt"
 
-res <- (1 / 120) * 20
+gr_size <- 20
+
+res <- (1 / 120) * gr_size
+
 lats <- seq(-90, 90, by = res)
 lons <- seq(-180, 180, by = res)
 
@@ -46,13 +51,13 @@ i.lon <- findInterval(all_preds$long.int, lons.int)
 
 mat[cbind(i.lon, i.lat)] <- all_preds$foi
 
+write.table(mat, 
+            file.path(out_pt, out_fl_nm),
+            row.names = FALSE,
+            sep = ",")
+
 png(file.path(out_pt, "map.png"), type = "cairo", antialias = "none",width = 3000, height = 1500)
 
 image.plot(lons, lats, mat, zlim=c(0,0.072))
 
 dev.off()
-
-write.table(mat, 
-            file.path(out_pt, out_fl_nm),
-            row.names = FALSE,
-            sep = ",")
