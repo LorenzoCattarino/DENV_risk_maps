@@ -93,46 +93,46 @@ fi <- list.files(in_pt,
 # ---------------------------------------- submit one test job
 
 
-t <- obj$enqueue(
-  filter_resample_and_combine(
-    seq_along(boot_samples)[1],
-    boot_samples = boot_samples, 
-    tile_ls = fi,
-    var_names = var_names, 
-    new_res = new_res, 
-    my_preds = my_predictors, 
-    out_file_path = out_pt, 
-    out_file_name = out_fl_nm_all))
+# t <- obj$enqueue(
+#   filter_resample_and_combine(
+#     seq_along(boot_samples)[1],
+#     boot_samples = boot_samples, 
+#     tile_ls = fi,
+#     var_names = var_names, 
+#     new_res = new_res, 
+#     my_preds = my_predictors, 
+#     out_file_path = out_pt, 
+#     out_file_name = out_fl_nm_all))
 
 
 # ---------------------------------------- submit all jobs
 
 
-# if (CLUSTER) {
-# 
-#   pxl_jobs <- queuer::qlapply(
-#     seq_along(boot_samples),
-#     filter_resample_and_combine,
-#     obj,
-#     boot_samples = boot_samples,
-#     tile_ls = fi,
-#     var_names = var_names,
-#     new_res = new_res,
-#     my_preds = my_predictors,
-#     out_file_path = out_pt,
-#     out_file_name = out_fl_nm_all)
-# 
-# } else {
-# 
-#   pxl_jobs <- lapply(
-#     seq_along(boot_samples)[1],
-#     filter_resample_and_combine,
-#     boot_samples = boot_samples,
-#     tile_ls = fi,
-#     var_names = var_names,
-#     new_res = new_res,
-#     my_preds = my_predictors,
-#     out_file_path = out_pt,
-#     out_file_name = out_fl_nm_all)
-# 
-# }
+if (CLUSTER) {
+
+  pxl_jobs <- queuer::qlapply(
+    seq_along(boot_samples),
+    filter_resample_and_combine,
+    obj,
+    boot_samples = boot_samples,
+    tile_ls = fi,
+    var_names = var_names,
+    new_res = new_res,
+    my_preds = my_predictors,
+    out_file_path = out_pt,
+    out_file_name = out_fl_nm_all)
+
+} else {
+
+  pxl_jobs <- lapply(
+    seq_along(boot_samples)[1],
+    filter_resample_and_combine,
+    boot_samples = boot_samples,
+    tile_ls = fi,
+    var_names = var_names,
+    new_res = new_res,
+    my_preds = my_predictors,
+    out_file_path = out_pt,
+    out_file_name = out_fl_nm_all)
+
+}
