@@ -1,3 +1,6 @@
+# Loads filtered and resampled tiles, and rbind them together
+# Also removed NA squares, assigned ID and renamed cell field
+
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
