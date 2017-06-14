@@ -1,9 +1,9 @@
 exp_max_algorithm <- function(
   niter, adm_dataset, pxl_dataset,
-  no_trees, min_node_size,
+  pxl_dataset_full, no_trees, min_node_size,
   my_predictors, grp_flds, 
   out_model_name, out_pred_name,
-  model_out_path, pred_out_path, gr_size){
+  model_out_path, pred_out_path){
   
   diagnostics <- c("RF_ms_i", "ss_i", "ss_j", "min_wgt", "max_wgt", "n_NA_pred")
   
