@@ -1,3 +1,5 @@
+# Binds different bootstrap sample together in a list and save the list 
+
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE

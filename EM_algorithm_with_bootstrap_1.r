@@ -1,3 +1,5 @@
+# Creates a set of bootstrap samples 
+
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE

@@ -1,3 +1,6 @@
+# Filters each 1km tile based on each bootstrap sample 
+# and resamples each tile to 20km resolution 
+
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
