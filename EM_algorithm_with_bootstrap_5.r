@@ -43,7 +43,7 @@ if (CLUSTER) {
 # ---------------------------------------- define parameters
 
 
-no_fits <- 200
+no_fits <- 1
   
 diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j")
 
@@ -60,19 +60,19 @@ figure_out_path <- file.path("figures",
                              "EM_algorithm", 
                              "boot_model_20km_cw", 
                              "boot_samples",
-                             paste0("fit_", seq_len(no_fits)))
+                             paste0("sample_", seq_len(no_fits)))
 
 
 # ---------------------------------------- get results 
 
 
-my_task_id <- "discophilic_honeycreeper"
+my_task_id <- "8cdb82063453ed338881e27c2554ffb4"
 
-#EM_alg_run_t <- obj$task_get(my_task_id)
-EM_alg_run_t <- obj$task_bundle_get(my_task_id)
+EM_alg_run_t <- obj$task_get(my_task_id)
+#EM_alg_run_t <- obj$task_bundle_get(my_task_id)
 
-#EM_alg_run <- EM_alg_run_t$result()
-EM_alg_run <- EM_alg_run_t$results()
+EM_alg_run <- EM_alg_run_t$result()
+#EM_alg_run <- EM_alg_run_t$results()
 
 
 # ---------------------------------------- plot 
@@ -82,7 +82,7 @@ for (j in seq_len(no_fits)){
   
   my_path <- figure_out_path[j]
   
-  one_data_set <- EM_alg_run[[j]][[2]] 
+  one_data_set <- EM_alg_run[[2]] 
     
   data_to_plot <- as.data.frame(one_data_set)
   
