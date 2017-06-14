@@ -1,3 +1,5 @@
+# Estimate foi prediction for each resample square
+
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- FALSE
