@@ -39,7 +39,7 @@ if (CLUSTER) {
   
 }
 
-task_b_name <- "preglacial_urubu"
+task_b_name <- "retiring_uromastyxmaliensis"
 
 get_boot_samples_t <- obj$task_bundle_get(task_b_name)
 
