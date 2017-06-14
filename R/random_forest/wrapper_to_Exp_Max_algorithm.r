@@ -8,7 +8,7 @@ exp_max_algorithm_boot <- function(
   model_out_path, pred_out_path){
   
   
-  browser()
+  #browser()
   
   pxl_dts_nm <- paste0(pxl_dts_nm_root, i, ".rds")
   
@@ -52,6 +52,9 @@ exp_max_algorithm_boot <- function(
   
   names(pxl_dataset_full)[names(pxl_dataset_full) == "ADM_0"] <- grp_flds[1]
   names(pxl_dataset_full)[names(pxl_dataset_full) == "ADM_1"] <- grp_flds[2]
+
+  names(pxl_dataset)[names(pxl_dataset) == "ADM_0"] <- grp_flds[1]
+  names(pxl_dataset)[names(pxl_dataset) == "ADM_1"] <- grp_flds[2]
 
   px_adm <- pxl_dataset %>% group_by_(.dots = grp_flds)
   
