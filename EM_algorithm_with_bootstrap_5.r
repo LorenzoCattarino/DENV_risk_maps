@@ -1,3 +1,8 @@
+# For each bootstrap sample, creates and saves one plot for each of three diagnostics:
+# 1) pixel level sum of squares
+# 2) admin unit levele sum of square
+# 3) mean square error of the RF object
+
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
