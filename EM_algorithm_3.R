@@ -1,4 +1,4 @@
-# Estimate foi prediction for each resample square
+# Estimate foi prediction for each resampled square
 
 options(didehpc.cluster = "fi--didemrchnb")
 
