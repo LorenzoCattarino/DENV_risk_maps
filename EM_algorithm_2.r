@@ -1,3 +1,5 @@
+# Fit RF to all original foi data (using fixed RF parameters) 
+
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- FALSE
