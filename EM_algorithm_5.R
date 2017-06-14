@@ -1,3 +1,5 @@
+# Runs the EM algorithm on the entire original foi dataset
+
 options(didewin.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
