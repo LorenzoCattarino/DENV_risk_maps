@@ -1,4 +1,4 @@
-# Estimate foi prediction for each resampled square
+# Fit RF to all original foi data (using fixed RF parameters) 
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -6,7 +6,11 @@ CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "make_RF_predictions.r"))  
+  file.path("R", "random_forest", "fit_random_forest_model.r"),
+  file.path("R", "random_forest", "make_RF_predictions.r"),
+  file.path("R", "random_forest", "get_1_0_point_position.r"),
+  file.path("R", "random_forest", "calculate_sum_squared_errors.r"),
+  file.path("R", "random_forest", "spatial_sampK_cv_rng3.r"))
 
 my_pkgs <- "ranger"
 
@@ -19,40 +23,47 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-aggr_dts_name <- "aggreg_pixel_level_env_vars_20km.rds"
+y_var <- "FOI"
 
-out_fl_nm <- "All_FOI_estimates_disaggreg_20km.rds"
+no_trees <- 500
 
-out_pth <- file.path("output", "foi")
-  
-  
-# ---------------------------------------- are you using the cluster? 
+min_node_size <- 20
+
+pseudoAbs_value <- 0
+
+all_wgt <- 1
+
+pAbs_wgt <- 0.25
+
+out_path <- file.path("output", "model_objects")
+
+out_name <- "best_model_admin.rds"   
+
+
+# ---------------------------------------- Are you using the cluster?
 
 
 if (CLUSTER) {
   
-  obj <- didewin::queue_didehpc(ctx)
-  
+  #config <- didewin::didewin_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx)
+
 } else {
   
   context::context_load(ctx)
-  
+
 }
 
 
-# ---------------------------------------- load data
+# ---------------------------------------- Load data
 
 
-RF_obj <- readRDS(
-  file.path("output",
-            "model_objects",
-            "best_model_admin.rds"))
+# load FOI dataset
+foi_data <- read.csv(
+  file.path("output", "foi", "All_FOI_estimates_linear_env_var.csv"),
+  stringsAsFactors = FALSE)
 
-aggreg_pxl_env_var <- readRDS(
-  file.path("output", 
-            "env_variables", 
-            aggr_dts_name))
-
+# predicting variable rank
 predictor_rank <- read.csv(
   file.path("output", 
             "variable_selection", 
@@ -68,26 +79,74 @@ predictor_rank <- read.csv(
 my_predictors <- predictor_rank$variable[1:9]
 
 
-# ---------------------------------------- submit job
+# ---------------------------------------- pre process the original foi dataset
 
+
+# set pseudo absence value
+foi_data[foi_data$type == "pseudoAbsence", y_var] <- pseudoAbs_value
+
+# assign weights
+foi_data$new_weight <- all_wgt
+foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
+
+# add an ID for each data point (used by get_training_point_positions() and get_validating_point_positions())
+training_dataset <- cbind(id = seq_len(nrow(foi_data)), foi_data)
+
+
+# ---------------------------------------- create objects needed for run
+
+
+no_data <- nrow(foi_data)
+
+# get the position (1/0) of the points in the validating dataset
+valid_point_pos <- get_validating_point_positions(no_data, training_dataset)
+
+# get weights 
+my_weights <- training_dataset$new_weight 
+
+# get training dataset (full dataset - no bootstrap)
+training_dataset <- foi_data[, c(y_var, my_predictors)]
+
+y_data <- foi_data[, y_var]
+
+x_data <- foi_data[, my_predictors]
+
+
+# ------------------------------------- Run RF fits
+
+
+# run one job
 
 if (CLUSTER) {
   
-  p_i <- obj$enqueue(
-    make_predictions(
-      mod_obj = RF_obj, 
-      dataset = aggreg_pxl_env_var, 
-      sel_preds = my_predictors))
+  RF_fit <- obj$enqueue(
+    spatial.cv.rf(preds = my_predictors, 
+                  y_var = y_var, 
+                  train_set = training_dataset, 
+                  no_trees = no_trees, 
+                  min_node_size = min_node_size, 
+                  x_data = x_data, 
+                  y_data = y_data, 
+                  valid_points = valid_point_pos, 
+                  my_weights = my_weights))
   
 } else {
   
-  p_i <- make_predictions(
-      mod_obj = RF_obj, 
-      dataset = aggreg_pxl_env_var, 
-      sel_preds = my_predictors)
+  RF_fit <- spatial.cv.rf(
+    preds = my_predictors, 
+    y_var = y_var, 
+    train_set = training_dataset, 
+    no_trees = no_trees, 
+    min_node_size = min_node_size, 
+    x_data = x_data, 
+    y_data = y_data, 
+    valid_points = valid_point_pos, 
+    my_weights = my_weights)
   
 }
 
-aggreg_pxl_env_var$p_i <- p_i
 
-write_out_rds(aggreg_pxl_env_var, out_pth, out_fl_nm)
+# ---------------------------------------- save model
+
+
+write_out_rds(RF_fit$obj, out_path, out_name)
