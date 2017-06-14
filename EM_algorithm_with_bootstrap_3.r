@@ -1,5 +1,6 @@
 # Filters each 1km tile based on each bootstrap sample 
-# and resamples each tile to 20km resolution 
+# and resamples each tile to 20km resolution
+# Also combined all the tiles together and save the output
 
 options(didehpc.cluster = "fi--didemrchnb")
 
