@@ -1,3 +1,9 @@
+# Creates and saves one plot for each of three diagnostics 
+# of the EM algorithm output:
+# 1) pixel level sum of squares
+# 2) admin unit levele sum of square
+# 3) mean square error of the RF object
+
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
@@ -54,11 +60,13 @@ figure_out_path <- file.path("figures", "EM_algorithm", "boot_model_20km_cw")
 # ---------------------------------------- get results 
 
 
-my_task_id <- "21d364a225ff60c5215b24ad468ebafe"
+my_task_id <- "discophilic_honeycreeper"
 
-EM_alg_run_t <- obj$task_get(my_task_id)
+#EM_alg_run_t <- obj$task_get(my_task_id)
+EM_alg_run_t <- obj$task_bundle_get(my_task_id)
 
-EM_alg_run <- EM_alg_run_t$result()
+#EM_alg_run <- EM_alg_run_t$result()
+EM_alg_run <- EM_alg_run_t$results()
   
 
 # ---------------------------------------- plot 
