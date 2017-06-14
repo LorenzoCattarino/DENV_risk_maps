@@ -37,6 +37,8 @@ if (CLUSTER) {
 # ---------------------------------------- define parameters
 
 
+no_fits <- 200
+  
 diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j")
 
 strip_labs <- c(
@@ -48,8 +50,11 @@ strip_labs <- gsub('([[:punct:]])|\\s+','_', strip_labs)
 
 fig_file_tag <- paste0(strip_labs, ".png")
 
-figure_out_path <- file.path("figures", "EM_algorithm", "boot_model_20km_cw")
-
+figure_out_path <- file.path("figures", 
+                             "EM_algorithm", 
+                             "boot_model_20km_cw", 
+                             "boot_samples",
+                             paste0("fit_", seq_len(no_fits)))
 
 
 # ---------------------------------------- get results 
@@ -67,19 +72,25 @@ EM_alg_run <- EM_alg_run_t$results()
 # ---------------------------------------- plot 
 
 
-data_to_plot <- as.data.frame(EM_alg_run[[2]])
-
-data_to_plot$iter <- seq_len(nrow(data_to_plot))
-
-dir.create(figure_out_path, FALSE, TRUE)
-
-for (i in seq_along(strip_labs)){
+for (j in seq_len(no_fits)){
   
-  png(file.path(figure_out_path, fig_file_tag[i]), 
-      width = 5, height = 4.5, units = "in",
-      res = 300)
+  my_path <- figure_out_path[j]
   
-  print(ggplot(data_to_plot, aes(iter, get(diagnostic_vars[i]))) +
+  one_data_set <- EM_alg_run[[j]][[2]] 
+    
+  data_to_plot <- as.data.frame(one_data_set)
+  
+  data_to_plot$iter <- seq_len(nrow(data_to_plot))
+  
+  dir.create(my_path, FALSE, TRUE)
+  
+  for (i in seq_along(strip_labs)){
+    
+    png(file.path(my_path, fig_file_tag[i]), 
+        width = 5, height = 4.5, units = "in",
+        res = 300)
+    
+    print(ggplot(data_to_plot, aes(iter, get(diagnostic_vars[i]))) +
           geom_line() +
           scale_x_continuous("Iterations") +
           scale_y_continuous(strip_labs[i]) +
@@ -87,7 +98,9 @@ for (i in seq_along(strip_labs)){
                 axis.title.y = element_text(size = 12),
                 axis.text.x = element_text(size = 12),
                 axis.text.y = element_text(size = 12)))
-  
-  dev.off()
-  
+    
+    dev.off()
+    
+  }
+
 }
