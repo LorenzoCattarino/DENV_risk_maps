@@ -1,6 +1,6 @@
 filter_and_resample <- function(x, foi_dts, env_var_names, grp_flds, grid_size){
   
-  browser()
+  #browser()
   
   xx <- fread(x,
               header = TRUE, 
