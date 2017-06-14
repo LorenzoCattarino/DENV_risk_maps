@@ -1,3 +1,6 @@
+# Filters each 1km tile based on the original foi dataset  
+# and resamples each tile to 20km resolution
+
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
@@ -69,7 +72,19 @@ fi <- list.files(in_pt,
                  full.names = TRUE)
 
 
-# ---------------------------------------- submit jobs
+# ---------------------------------------- submit one test job
+
+
+# t <- obj$enqueue(
+#   wrapper_to_tiles_to_dts(
+#     fi[1],
+#     foi_dts = foi_data,
+#     env_var_names = var_names,
+#     grp_flds = group_fields,
+#     grid_size = new_res))
+
+
+# ---------------------------------------- submit all jobs
 
 
 if (CLUSTER) {
@@ -94,11 +109,3 @@ if (CLUSTER) {
     grid_size = new_res)
   
 }
-
-# t <- obj$enqueue(
-#   wrapper_to_tiles_to_dts(
-#     fi[1],
-#     foi_dts = foi_data,
-#     env_var_names = var_names,
-#     grp_flds = group_fields,
-#     grid_size = new_res))
