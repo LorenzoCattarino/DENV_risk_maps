@@ -3,11 +3,7 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "prepare_datasets", "filter_resample_and_combine.r"),
-  file.path("R", "prepare_datasets", "filter_and_resample.r"),
-  file.path("R", "prepare_datasets", "grid_up_foi_dataset.r"),
-  file.path("R", "prepare_datasets", "average_up.r"),
-  file.path("R", "prepare_datasets", "remove_NA_rows.r"),
+  file.path("R", "prepare_datasets", "fortify_and_save_shp.r"),
   file.path("R", "utility_functions.r"))
 
 my_pkgs <- c("rgdal", "ggplot2")
@@ -47,7 +43,11 @@ country_shp <- readOGR(
 
 world_CRS <- CRS("+init=EPSG:4760")
 
-
+out_pt <- file.path("output", "datasets")
+  
+out_nm <- "country_shp_prj_fort.rds"
+  
+  
 # ---------------------------------------- pre processing
 
 
@@ -59,10 +59,10 @@ country_shp_prj <- spTransform(country_shp, world_CRS)
 
 if (CLUSTER) {
 
-  t <- obj$enqueue(
-    fortify(country_shp_prj, region = "ID_0"))  
+  shp_f <- obj$enqueue(fortify_and_save(country_shp_prj, out_pt, out_nm))
 
 } else {
 
-    
+  shp_f <- fortify(country_shp_prj, region = "ID_0") 
+  
 }
