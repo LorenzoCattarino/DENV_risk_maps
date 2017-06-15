@@ -7,10 +7,8 @@ CLUSTER <- TRUE
 my_resources <- c(
   file.path("R", "random_forest", "wrapper_to_Exp_Max_algorithm.r"),
   file.path("R", "random_forest", "get_1_0_point_position.r"),
-  file.path("R", "random_forest", "spatial_sampK_cv_rng3.r"),
   file.path("R", "random_forest", "fit_random_forest_model.r"),
   file.path("R", "random_forest", "make_RF_predictions.r"),
-  file.path("R", "random_forest", "calculate_sum_squared_errors.r"),
   file.path("R", "random_forest", "Exp_Max_algorithm.r"),
   file.path("R", "utility_functions.r"))
 
