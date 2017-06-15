@@ -9,7 +9,6 @@ fit_RF <- function(
                     case.weights = my_weights, 
                     write.forest = TRUE, 
                     min.node.size = min_node_size,
-                    verbose = TRUE,
-                    num.threads = 1)
+                    verbose = TRUE)
   
 }
