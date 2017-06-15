@@ -11,9 +11,9 @@ exp_max_algorithm <- function(
   
   colnames(out_mat) <- diagnostics
   
-  #browser()
-  
   for (i in seq_len(niter)){
+    
+    #browser()
     
     cat("iteration =", i, "\n")
     
