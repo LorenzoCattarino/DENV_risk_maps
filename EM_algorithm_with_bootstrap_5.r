@@ -11,10 +11,8 @@ CLUSTER <- TRUE
 my_resources <- c(
   file.path("R", "random_forest", "wrapper_to_Exp_Max_algorithm.r"),
   file.path("R", "random_forest", "get_1_0_point_position.r"),
-  file.path("R", "random_forest", "spatial_sampK_cv_rng3.r"),
   file.path("R", "random_forest", "fit_random_forest_model.r"),
   file.path("R", "random_forest", "make_RF_predictions.r"),
-  file.path("R", "random_forest", "calculate_sum_squared_errors.r"),
   file.path("R", "random_forest", "Exp_Max_algorithm.r"),
   file.path("R", "utility_functions.r"))
 
@@ -66,7 +64,7 @@ figure_out_path <- file.path("figures",
 # ---------------------------------------- get results 
 
 
-my_task_id <- "8cdb82063453ed338881e27c2554ffb4"
+my_task_id <- "d3238eb69235a84bd444c6bba771a5dc"
 
 EM_alg_run_t <- obj$task_get(my_task_id)
 #EM_alg_run_t <- obj$task_bundle_get(my_task_id)
@@ -82,7 +80,7 @@ for (j in seq_len(no_fits)){
   
   my_path <- figure_out_path[j]
   
-  one_data_set <- EM_alg_run[[2]] 
+  one_data_set <- EM_alg_run[[1]] 
     
   data_to_plot <- as.data.frame(one_data_set)
   
