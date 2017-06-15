@@ -18,28 +18,19 @@ exp_max_algorithm_boot <- function(
   
   no_data <- nrow(original_data)
     
+  train_point_pos <- get_training_point_positions(no_data, adm_dataset, "data_id")
   valid_point_pos <- get_validating_point_positions(no_data, adm_dataset, "data_id")
   
   my_weights <- adm_dataset$new_weight 
   
   training_dataset <- adm_dataset[, c(y_var, my_preds)]
   
-  y_data <- original_data[, "FOI"]
-  
-  x_data <- original_data[, my_preds]
-  
-  RF_fit <- spatial.cv.rf(
-    preds = my_preds, 
-    y_var = y_var, 
-    train_set = training_dataset, 
+  RF_obj <- fit_RF(
+    dependent_variable = y_var, 
+    training_dataset = training_dataset, 
     no_trees = no_trees, 
-    min_node_size = min_node_size, 
-    x_data = x_data, 
-    y_data = y_data, 
-    valid_points = valid_point_pos, 
+    min_node_size = min_node_size,
     my_weights = my_weights)
-  
-  RF_obj <- RF_fit$obj
   
   p_i <- make_predictions(
     mod_obj = RF_obj, 
@@ -73,18 +64,22 @@ exp_max_algorithm_boot <- function(
   a <- out_model_name[i]
   b <- out_pred_name[i]
   
-  exp_max_algorithm(niter = niter, 
-                    adm_dataset = adm_dataset, 
-                    pxl_dataset = pxl_dataset,
-                    pxl_dataset_full = pxl_dataset_full,
-                    no_trees = no_trees, 
-                    min_node_size = min_node_size,
-                    my_predictors = my_preds, 
-                    grp_flds = grp_flds, 
-                    out_model_name = a, 
-                    out_pred_name = b, 
-                    model_out_path = model_out_path, 
-                    pred_out_path = pred_out_path)
+  run_EM <- exp_max_algorithm(
+    niter = niter, 
+    adm_dataset = adm_dataset, 
+    pxl_dataset = pxl_dataset,
+    pxl_dataset_full = pxl_dataset_full,
+    no_trees = no_trees, 
+    min_node_size = min_node_size,
+    my_predictors = my_preds, 
+    grp_flds = grp_flds, 
+    out_model_name = a, 
+    out_pred_name = b, 
+    model_out_path = model_out_path, 
+    pred_out_path = pred_out_path)
   
+  RF_obj <- run_EM[[1]]
+  EM_diagnos <- run_EM[[2]]
   
+  list(EM_diagnos, RF_obj, train_point_pos, valid_point_pos)
 }
