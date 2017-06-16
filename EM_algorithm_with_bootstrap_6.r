@@ -39,7 +39,7 @@ if (CLUSTER) {
 # ---------------------------------------- define parameters
 
 
-no_fits <- 200
+no_fits <- 1
 
 dependent_variable <- "o_j"
 
@@ -111,9 +111,33 @@ foi_data <- foi_data[, c(grp_flds, dependent_variable, "new_weight")]
 # ---------------------------------------- submit one job 
 
 
-one_EM_run <- obj$enqueue(
-  exp_max_algorithm_boot(
-    seq_len(no_fits)[1],
+# t <- obj$enqueue(
+#   exp_max_algorithm_boot(
+#     seq_len(no_fits)[1],
+#     pxl_dts_path = boot_pxl_df_path,
+#     adm_dts_orig = foi_data,
+#     pxl_dataset_orig = full_pxl_df,
+#     y_var = dependent_variable,
+#     my_preds = my_predictors,
+#     no_trees = no_trees,
+#     min_node_size = min_node_size,
+#     grp_flds = grp_flds,
+#     niter = niter,
+#     all_wgt = all_wgt,
+#     pAbs_wgt = pAbs_wgt,
+#     out_pred_name = out_prd_nm_all,
+#     pred_out_path = prd_out_pth))
+
+
+# ---------------------------------------- submit all jobs
+
+
+if (CLUSTER) {
+
+  EM_alg_run <- queuer::qlapply(
+    seq_len(no_fits),
+    exp_max_algorithm_boot,
+    obj,
     pxl_dts_path = boot_pxl_df_path,
     adm_dts_orig = foi_data,
     pxl_dataset_orig = full_pxl_df,
@@ -126,52 +150,28 @@ one_EM_run <- obj$enqueue(
     all_wgt = all_wgt,
     pAbs_wgt = pAbs_wgt,
     out_pred_name = out_prd_nm_all,
-    pred_out_path = prd_out_pth))
+    pred_out_path = prd_out_pth)
 
+}else{
 
-# ---------------------------------------- submit all jobs
+  EM_alg_run <- lapply(
+    seq_len(no_fits),
+    exp_max_algorithm_boot,
+    pxl_dts_path = boot_pxl_df_path,
+    adm_dts_orig = foi_data,
+    pxl_dataset_orig = full_pxl_df,
+    y_var = dependent_variable,
+    my_preds = my_predictors,
+    no_trees = no_trees,
+    min_node_size = min_node_size,
+    grp_flds = grp_flds,
+    niter = niter,
+    all_wgt = all_wgt,
+    pAbs_wgt = pAbs_wgt,
+    out_pred_name = out_prd_nm_all,
+    pred_out_path = prd_out_pth)
 
-
-# if (CLUSTER) {
-# 
-#   EM_alg_run <- queuer::qlapply(
-#     seq_len(no_fits),
-#     exp_max_algorithm_boot,
-#     obj,
-#     pxl_dts_path = boot_pxl_df_path,
-#     adm_dts_orig = foi_data,
-#     pxl_dataset_orig = full_pxl_df,
-#     y_var = dependent_variable,
-#     my_preds = my_predictors,
-#     no_trees = no_trees,
-#     min_node_size = min_node_size,
-#     grp_flds = grp_flds,
-#     niter = niter,
-#     all_wgt = all_wgt,
-#     pAbs_wgt = pAbs_wgt,
-#     out_pred_name = out_prd_nm_all,
-#     pred_out_path = prd_out_pth)
-# 
-# }else{
-# 
-#   EM_alg_run <- lapply(
-#     seq_len(no_fits)[1],
-#     exp_max_algorithm_boot,
-#     pxl_dts_path = boot_pxl_df_path,
-#     adm_dts_orig = foi_data,
-#     pxl_dataset_orig = full_pxl_df,
-#     y_var = dependent_variable,
-#     my_preds = my_predictors,
-#     no_trees = no_trees,
-#     min_node_size = min_node_size,
-#     grp_flds = grp_flds,
-#     niter = niter,
-#     all_wgt = all_wgt,
-#     pAbs_wgt = pAbs_wgt,
-#     out_pred_name = out_prd_nm_all,
-#     pred_out_path = prd_out_pth)
-# 
-# }
+}
 
 if (!CLUSTER) {
   context::parallel_cluster_stop()
