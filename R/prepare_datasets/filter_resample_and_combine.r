@@ -3,6 +3,8 @@ filter_resample_and_combine <- function(
   var_names, grp_flds, new_res, 
   my_preds, out_file_path, out_file_name){
   
+  #browser()
+  
   foi_data <- boot_samples[[i]]
   
   pxl_job <- loop(
