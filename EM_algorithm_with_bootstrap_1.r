@@ -75,7 +75,7 @@ names(foi_data)[names(foi_data) == "ID_1"] <- "ADM_1"
 # ---------------------------------------- submit one test job
 
 
-# get_boot_samples <- obj$enqueue(
+# t <- obj$enqueue(
 #   grid_and_boot(
 #     seq_along(boot_samples)[1],
 #     a = foi_data,
