@@ -1,22 +1,15 @@
-# For each bootstrap sample, creates and saves one plot 
-# for each of three diagnostics of the EM algorithm output:
-# 1) pixel level sum of squares
-# 2) admin unit levele sum of square
-# 3) mean square error of the RF object
+# Estimates foi for each resampled square, of each 20km resolution bootstrap sample
 
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "wrapper_to_Exp_Max_algorithm.r"),
-  file.path("R", "random_forest", "get_1_0_point_position.r"),
-  file.path("R", "random_forest", "fit_random_forest_model.r"),
+  file.path("R", "random_forest", "load_predict_and_save.r"),
   file.path("R", "random_forest", "make_RF_predictions.r"),
-  file.path("R", "random_forest", "Exp_Max_algorithm.r"),
   file.path("R", "utility_functions.r"))
 
-my_pkgs <- c("ranger", "dplyr", "ggplot2")
+my_pkgs <- "ranger"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -24,14 +17,14 @@ ctx <- context::context_save(path = "context",
                              packages = my_pkgs)
 
 
-# ---------------------------------------- rebuild the queue object?
+# ---------------------------------------- are you using the cluster? 
 
 
 if (CLUSTER) {
   
   obj <- didehpc::queue_didehpc(ctx)
   
-}else{
+} else {
   
   context::context_load(ctx)
   
@@ -41,70 +34,72 @@ if (CLUSTER) {
 # ---------------------------------------- define parameters
 
 
-no_fits <- 1
-  
-diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j")
+no_fits <- 200
 
-strip_labs <- c(
-  "internal RF mean square error", 
-  "pixel level sum of square", 
-  "admin unit level sum of square") 
+boot_pxl_df_path <- file.path("output", "EM_algorithm", "env_variables", "boot_samples")
 
-strip_labs <- gsub('([[:punct:]])|\\s+','_', strip_labs)
+RF_obj_path <- file.path("output", "model_objects", "boot_samples")
 
-fig_file_tag <- paste0(strip_labs, ".png")
+out_pt <- file.path("output", "EM_algorithm", "env_variables_foi", "boot_samples")
 
-figure_out_path <- file.path("figures", 
-                             "EM_algorithm", 
-                             "boot_model_20km_cw", 
-                             "boot_samples",
-                             paste0("sample_", seq_len(no_fits)))
+out_fl_nm_all <- paste0("All_FOI_estimates_disaggreg_20km_sample_", seq_len(no_fits), ".rds")
 
 
-# ---------------------------------------- get results 
+# ---------------------------------------- load data
 
 
-my_task_id <- "d3238eb69235a84bd444c6bba771a5dc"
-
-EM_alg_run_t <- obj$task_get(my_task_id)
-#EM_alg_run_t <- obj$task_bundle_get(my_task_id)
-
-EM_alg_run <- EM_alg_run_t$result()
-#EM_alg_run <- EM_alg_run_t$results()
-
-
-# ---------------------------------------- plot 
+predictor_rank <- read.csv(
+  file.path("output", 
+            "variable_selection", 
+            "metropolis_hastings", 
+            "exp_1", 
+            "variable_rank_final_fits_exp_1.csv"),
+  stringsAsFactors = FALSE)
 
 
-for (j in seq_len(no_fits)){
-  
-  my_path <- figure_out_path[j]
-  
-  one_data_set <- EM_alg_run[[1]] 
-    
-  data_to_plot <- as.data.frame(one_data_set)
-  
-  data_to_plot$iter <- seq_len(nrow(data_to_plot))
-  
-  dir.create(my_path, FALSE, TRUE)
-  
-  for (i in seq_along(strip_labs)){
-    
-    png(file.path(my_path, fig_file_tag[i]), 
-        width = 5, height = 4.5, units = "in",
-        res = 300)
-    
-    print(ggplot(data_to_plot, aes(iter, get(diagnostic_vars[i]))) +
-          geom_line() +
-          scale_x_continuous("Iterations") +
-          scale_y_continuous(strip_labs[i]) +
-          theme(axis.title.x = element_text(size = 12),
-                axis.title.y = element_text(size = 12),
-                axis.text.x = element_text(size = 12),
-                axis.text.y = element_text(size = 12)))
-    
-    dev.off()
-    
-  }
+# ---------------------------------------- pre processing
 
-}
+
+my_predictors <- predictor_rank$variable[1:9]
+
+
+# ---------------------------------------- submit one job 
+
+
+initial_square_preds <- obj$enqueue(
+  load_predict_and_save(
+    seq_len(no_fits)[1],
+    pxl_dts_path = boot_pxl_df_path, 
+    RF_obj_path = RF_obj_path, 
+    my_preds = my_predictors, 
+    out_file_path = out_pt, 
+    out_file_name = out_fl_nm_all))
+
+
+# ---------------------------------------- submit all jobs
+
+
+# if (CLUSTER) {
+#   
+#   initial_square_preds <- queuer::qlapply(
+#     seq_len(no_fits),
+#     load_predict_and_save,
+#     obj,
+#     pxl_dts_path = boot_pxl_df_path, 
+#     RF_obj_path = RF_obj_path, 
+#     my_preds = my_predictors, 
+#     out_file_path = out_pt, 
+#     out_file_name = out_fl_nm_all)
+#   
+# }else{
+#   
+#   initial_square_preds <- lapply(
+#     seq_len(no_fits)[1],
+#     load_predict_and_save,
+#     pxl_dts_path = boot_pxl_df_path, 
+#     RF_obj_path = RF_obj_path, 
+#     my_preds = my_predictors, 
+#     out_file_path = out_pt, 
+#     out_file_name = out_fl_nm_all)
+#   
+# }
