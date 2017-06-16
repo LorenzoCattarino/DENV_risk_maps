@@ -1,81 +1,73 @@
 exp_max_algorithm_boot <- function(
-  i, pxl_dts_nm_root, pxl_dts_path,
-  boot_ls, original_data, 
-  y_var, my_preds, no_trees, 
-  min_node_size, grp_flds, niter, 
-  all_wgt, pAbs_wgt, out_model_name, 
-  out_pred_name, pxl_dataset_full, 
-  model_out_path, pred_out_path){
+  i, pxl_dts_path, adm_dts_orig, 
+  pxl_dataset_orig, y_var, my_preds, 
+  no_trees, min_node_size, grp_flds, niter, 
+  all_wgt, pAbs_wgt,
+  out_pred_name, pred_out_path){
   
   
   #browser()
   
-  pxl_dts_nm <- paste0(pxl_dts_nm_root, i, ".rds")
   
-  pxl_dataset <- readRDS(file.path(pxl_dts_path, pxl_dts_nm))
+  # ---------------------------------------- load pxl level dataset 
   
-  adm_dataset <- boot_ls[[i]]
   
-  no_data <- nrow(original_data)
-    
-  train_point_pos <- get_training_point_positions(no_data, adm_dataset, "data_id")
-  valid_point_pos <- get_validating_point_positions(no_data, adm_dataset, "data_id")
+  pxl_dts_nm <- paste0("All_FOI_estimates_disaggreg_20km_sample_", i, ".rds")
+  pxl_dts_boot <- readRDS(file.path(pxl_dts_path, pxl_dts_nm))
   
-  my_weights <- adm_dataset$new_weight 
   
-  training_dataset <- adm_dataset[, c(y_var, my_preds)]
+  # ---------------------------------------- get output name 
   
-  RF_obj <- fit_RF(
-    dependent_variable = y_var, 
-    training_dataset = training_dataset, 
-    no_trees = no_trees, 
-    min_node_size = min_node_size,
-    my_weights = my_weights)
   
-  p_i <- make_predictions(
-    mod_obj = RF_obj, 
-    dataset = pxl_dataset, 
-    sel_preds = my_preds)
+  a <- out_pred_name[i]
   
-  pxl_dataset$p_i <- p_i
   
-  adm_dataset <- adm_dataset[, c(grp_flds, y_var, "new_weight")]
+  # ---------------------------------------- for tracking training and validating set points 
   
-  names(pxl_dataset_full)[names(pxl_dataset_full) == "ADM_0"] <- grp_flds[1]
-  names(pxl_dataset_full)[names(pxl_dataset_full) == "ADM_1"] <- grp_flds[2]
-
-  names(pxl_dataset)[names(pxl_dataset) == "ADM_0"] <- grp_flds[1]
-  names(pxl_dataset)[names(pxl_dataset) == "ADM_1"] <- grp_flds[2]
-
-  px_adm <- pxl_dataset %>% group_by_(.dots = grp_flds)
+  
+  no_data <- nrow(pxl_dataset_orig)
+  train_point_pos <- get_training_point_positions(no_data, pxl_dts_boot, "data_id")
+  valid_point_pos <- get_validating_point_positions(no_data, pxl_dts_boot, "data_id")
+  
+  
+  # ---------------------------------------- pre process pxl level dataset
+  
+  
+  names(pxl_dts_boot)[names(pxl_dts_boot) == "ADM_0"] <- grp_flds[1]
+  names(pxl_dts_boot)[names(pxl_dts_boot) == "ADM_1"] <- grp_flds[2]
+  
+  px_adm <- pxl_dts_boot %>% group_by_(.dots = grp_flds)
   
   adm_pop <- px_adm %>% summarise(adm_pop = sum(population))
   
-  pxl_dataset <- left_join(pxl_dataset, adm_pop)
+  pxl_dts_boot <- left_join(pxl_dts_boot, adm_pop)
   
-  pxl_dataset$pop_weight <- pxl_dataset$population / pxl_dataset$adm_pop
+  pxl_dts_boot$pop_weight <- pxl_dts_boot$population / pxl_dts_boot$adm_pop
   
-  pxl_dataset$new_weight <- all_wgt
+  pxl_dts_boot$new_weight <- all_wgt
   
-  pxl_dataset[pxl_dataset$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
+  pxl_dts_boot[pxl_dts_boot$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
   
-  pxl_dataset <- inner_join(pxl_dataset, adm_dataset[, c(grp_flds, y_var)])
   
-  a <- out_model_name[i]
-  b <- out_pred_name[i]
+  # ---------------------------------------- attach adm level prediction to pxl level dataset
+  
+  
+  pxl_dts_boot <- inner_join(pxl_dts_boot, adm_dts_orig[, c(grp_flds, y_var)])
+  
+  
+  # ---------------------------------------- run the EM 
+  
   
   run_EM <- exp_max_algorithm(
     niter = niter, 
-    adm_dataset = adm_dataset, 
-    pxl_dataset = pxl_dataset,
-    pxl_dataset_full = pxl_dataset_full,
+    adm_dataset = adm_dts_orig, 
+    pxl_dataset = pxl_dts_boot,
+    pxl_dataset_full = pxl_dataset_orig,
     no_trees = no_trees, 
     min_node_size = min_node_size,
     my_predictors = my_preds, 
     grp_flds = grp_flds, 
-    out_model_name = a, 
-    out_pred_name = b, 
-    model_out_path = model_out_path, 
+    out_pred_name = a, 
     pred_out_path = pred_out_path)
   
   RF_obj <- run_EM[[1]]
