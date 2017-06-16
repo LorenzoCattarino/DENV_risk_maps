@@ -1,6 +1,6 @@
 # Filters each 1km tile based on each bootstrap sample 
 # and resamples each tile to 20km resolution
-# Also combined all the tiles together and save the output
+# Also combines all the tiles together and save the output
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -25,7 +25,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-no_fits <- 200
+no_fits <- 1
   
 in_pt <- file.path("data", "gadm_codes")
 
@@ -35,7 +35,7 @@ gr_size <- 20
 
 new_res <- (1 / 120) * gr_size
 
-out_pt <- file.path("output", "env_variables", "boot_samples")
+out_pt <- file.path("output", "EM_algorithm", "env_variables", "boot_samples")
 
 out_fl_nm_all <- paste0("aggreg_pixel_level_env_vars_20km_sample_", seq_len(no_fits), ".rds")
 
@@ -58,6 +58,11 @@ if (CLUSTER) {
 # ---------------------------------------- load data
 
 
+boot_samples <- readRDS(
+  file.path("output",
+            "EM_algorithm",
+            "bootstrap_samples.rds"))
+
 all_predictors <- read.table(
   file.path("output", 
             "datasets", 
@@ -72,11 +77,6 @@ predictor_rank <- read.csv(
             "exp_1", 
             "variable_rank_final_fits_exp_1.csv"),
   stringsAsFactors = FALSE)
-
-boot_samples <- readRDS(
-  file.path("output",
-            "foi",
-            "bootstrap_samples.rds"))
 
 
 # ---------------------------------------- pre processing
@@ -96,13 +96,14 @@ fi <- list.files(in_pt,
 
 # t <- obj$enqueue(
 #   filter_resample_and_combine(
-#     seq_along(boot_samples)[1],
-#     boot_samples = boot_samples, 
+#     seq_along(boot_samples),
+#     boot_samples = boot_samples,
 #     tile_ls = fi,
-#     var_names = var_names, 
-#     new_res = new_res, 
-#     my_preds = my_predictors, 
-#     out_file_path = out_pt, 
+#     var_names = var_names,
+#     grp_flds = group_fields,
+#     new_res = new_res,
+#     my_preds = my_predictors,
+#     out_file_path = out_pt,
 #     out_file_name = out_fl_nm_all))
 
 
@@ -118,6 +119,7 @@ if (CLUSTER) {
     boot_samples = boot_samples,
     tile_ls = fi,
     var_names = var_names,
+    grp_flds = group_fields,
     new_res = new_res,
     my_preds = my_predictors,
     out_file_path = out_pt,
@@ -126,11 +128,12 @@ if (CLUSTER) {
 } else {
 
   pxl_jobs <- lapply(
-    seq_along(boot_samples)[1],
+    seq_along(boot_samples),
     filter_resample_and_combine,
     boot_samples = boot_samples,
     tile_ls = fi,
     var_names = var_names,
+    grp_flds = group_fields,
     new_res = new_res,
     my_preds = my_predictors,
     out_file_path = out_pt,
