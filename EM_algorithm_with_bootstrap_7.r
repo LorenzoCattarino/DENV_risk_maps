@@ -64,13 +64,13 @@ figure_out_path <- file.path("figures",
 # ---------------------------------------- get results 
 
 
-my_task_id <- "e933b17d3f4a2c2ab65114b56dd4c142"
+my_task_id <- "palaeozoologic_duckling"
 
-EM_alg_run_t <- obj$task_get(my_task_id)
-#EM_alg_run_t <- obj$task_bundle_get(my_task_id)
+#EM_alg_run_t <- obj$task_get(my_task_id)
+EM_alg_run_t <- obj$task_bundle_get(my_task_id)
 
-EM_alg_run <- EM_alg_run_t$result()
-#EM_alg_run <- EM_alg_run_t$results()
+#EM_alg_run <- EM_alg_run_t$result()
+EM_alg_run <- EM_alg_run_t$results()
 
 
 # ---------------------------------------- plot 
@@ -80,7 +80,7 @@ for (j in seq_len(no_fits)){
   
   my_path <- figure_out_path[j]
   
-  one_data_set <- EM_alg_run[[1]] 
+  one_data_set <- EM_alg_run[[1]][[1]] 
     
   data_to_plot <- as.data.frame(one_data_set)
   
