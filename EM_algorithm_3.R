@@ -1,4 +1,4 @@
-# Fit RF to all original foi data (using fixed RF parameters) 
+# Fits RF to all original foi data (using fixed RF parameters) 
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -37,7 +37,7 @@ pAbs_wgt <- 0.25
 
 out_path <- file.path("output", "model_objects")
 
-out_name <- "best_model_admin.rds"   
+out_name <- "all_data.rds"   
 
 
 # ---------------------------------------- Are you using the cluster?
