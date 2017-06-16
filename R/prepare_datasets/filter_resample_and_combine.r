@@ -4,9 +4,6 @@ filter_resample_and_combine <- function(
   
   foi_data <- boot_samples[[i]]
   
-  names(foi_data)[names(foi_data) == "ID_0"] <- "ADM_0"
-  names(foi_data)[names(foi_data) == "ID_1"] <- "ADM_1"
-
   pxl_job <- loop(
     tile_ls,
     filter_and_resample,
