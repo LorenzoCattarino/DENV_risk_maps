@@ -2,8 +2,7 @@ exp_max_algorithm <- function(
   niter, adm_dataset, pxl_dataset,
   pxl_dataset_full, no_trees, min_node_size,
   my_predictors, grp_flds, 
-  out_model_name, out_pred_name,
-  model_out_path, pred_out_path){
+  out_pred_name, pred_out_path){
   
   diagnostics <- c("RF_ms_i", "ss_i", "ss_j", "min_wgt", "max_wgt", "n_NA_pred")
   
@@ -13,7 +12,7 @@ exp_max_algorithm <- function(
   
   for (i in seq_len(niter)){
     
-    #browser()
+    browser()
     
     cat("iteration =", i, "\n")
     
@@ -108,8 +107,6 @@ exp_max_algorithm <- function(
   }
   
   pxl_dataset_full$p_i <- make_predictions(RF_obj, pxl_dataset_full, my_predictors)
-  
-  #write_out_rds(RF_obj, model_out_path, out_model_name)  
   
   write_out_rds(pxl_dataset_full, pred_out_path, out_pred_name)
 
