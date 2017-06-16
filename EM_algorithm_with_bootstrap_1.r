@@ -5,7 +5,7 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "grid_and_bootstrap_multi_fits.r"),
+  file.path("R", "random_forest", "grid_and_bootstrap.r"),
   file.path("R", "random_forest", "grid_up_foi_dataset.r"),
   file.path("R", "random_forest", "bootstrap_foi_dataset.r"),
   file.path("R", "utility_functions.r"))
@@ -21,7 +21,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-no_fits <- 200
+no_fits <- 1
 
 dependent_variable <- "FOI"
 
@@ -68,24 +68,34 @@ foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 names(foi_data)[names(foi_data) == dependent_variable] <- "o_j"
 
 
+# ---------------------------------------- submit one test job
+
+
+# get_boot_samples <- obj$enqueue(
+#   grid_and_boot(
+#     seq_along(boot_samples)[1],
+#     a = foi_data,
+#     b = grid_size))
+
+
 # ---------------------------------------- submit job
 
 
 if (CLUSTER) {
-  
+
   get_boot_samples <- queuer::qlapply(
     seq_len(no_fits),
-    grid_and_boot_multi,
+    grid_and_boot,
     obj,
-    a = foi_data, 
-    b = grid_size) 
-  
-} else {
-  
-  get_boot_samples <- lapply(
-    seq_len(no_fits)[1:2],
-    grid_and_boot_multi,
-    a = foi_data, 
+    a = foi_data,
     b = grid_size)
-  
-}   
+
+} else {
+
+  get_boot_samples <- lapply(
+    seq_len(no_fits),
+    grid_and_boot,
+    a = foi_data,
+    b = grid_size)
+
+}

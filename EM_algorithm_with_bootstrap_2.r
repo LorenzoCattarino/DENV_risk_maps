@@ -5,7 +5,7 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "grid_and_bootstrap_multi_fits.r"),
+  file.path("R", "random_forest", "grid_and_bootstrap.r"),
   file.path("R", "random_forest", "grid_up_foi_dataset.r"),
   file.path("R", "random_forest", "bootstrap_foi_dataset.r"),
   file.path("R", "utility_functions.r"))
@@ -23,7 +23,7 @@ ctx <- context::context_save(path = "context",
 
 out_fl_nm <- "bootstrap_samples.rds"
 
-out_pt <- file.path("output", "foi")
+out_pt <- file.path("output", "EM_algorithm")
 
 
 # ---------------------------------------- rebuild the queue obj
@@ -39,7 +39,7 @@ if (CLUSTER) {
   
 }
 
-task_b_name <- "retiring_uromastyxmaliensis"
+task_b_name <- "spendthrift_stickleback"
 
 get_boot_samples_t <- obj$task_bundle_get(task_b_name)
 
