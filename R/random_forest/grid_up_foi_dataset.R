@@ -3,7 +3,7 @@ grid_up <- function(dataset, grid_size, rnd_dist){
   rd <- 0
   rd2 <- 0
   
-  if(rnd_dist){
+  if (rnd_dist) {
     
     # draw random distance values 
     rd <- runif(n = 1, min = 0, max = grid_size)
