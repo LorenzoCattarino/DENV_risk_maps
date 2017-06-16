@@ -12,7 +12,7 @@ exp_max_algorithm <- function(
   
   for (i in seq_len(niter)){
     
-    browser()
+    #browser()
     
     cat("iteration =", i, "\n")
     
