@@ -35,7 +35,7 @@ if (CLUSTER) {
 # ---------------------------------------- define parameters
 
 
-no_fits <- 200
+no_fits <- 1
 
 dependent_variable <- "o_j"
 
@@ -43,7 +43,7 @@ no_trees <- 500
 
 min_node_size <- 20
 
-out_pt <- file.path("output", "model_objects", "boot_samples")
+out_pt <- file.path("output", "EM_algorithm", "model_objects", "boot_samples")
 
 
 # ---------------------------------------- load data
@@ -51,7 +51,7 @@ out_pt <- file.path("output", "model_objects", "boot_samples")
 
 boot_samples <- readRDS(
   file.path("output",
-            "foi",
+            "EM_algorithm",
             "bootstrap_samples.rds"))
   
 predictor_rank <- read.csv(
@@ -72,43 +72,43 @@ my_predictors <- predictor_rank$variable[1:9]
 # ---------------------------------------- submit one job 
 
 
-RF_obj <- obj$enqueue(
-  get_boot_sample_and_fit_RF(
-    seq_len(no_fits)[1],
-    boot_ls = boot_samples,
-    my_preds = my_predictors,
-    y_var = dependent_variable,
-    no_trees = no_trees,
-    min_node_size = min_node_size,
-    out_path = out_pt))
-
-
-# ---------------------------------------- submit all jobs
-
-
-# if (CLUSTER) {
-# 
-#   RF_obj <- queuer::qlapply(
+# RF_obj <- obj$enqueue(
+#   get_boot_sample_and_fit_RF(
 #     seq_len(no_fits),
-#     get_boot_sample_and_fit_RF,
-#     obj,
-#     boot_ls = boot_samples,
-#     my_preds = my_predictors, 
-#     y_var = dependent_variable,
-#     no_trees = no_trees,
-#     min_node_size = min_node_size,
-#     out_path = out_pt)
-# 
-# }else{
-# 
-#   RF_obj <- lapply(
-#     seq_len(no_fits)[1],
-#     get_boot_sample_and_fit_RF,
 #     boot_ls = boot_samples,
 #     my_preds = my_predictors,
 #     y_var = dependent_variable,
 #     no_trees = no_trees,
 #     min_node_size = min_node_size,
-#     out_path = out_pt)
-# 
-# }
+#     out_path = out_pt))
+
+
+# ---------------------------------------- submit all jobs
+
+
+if (CLUSTER) {
+
+  RF_obj <- queuer::qlapply(
+    seq_len(no_fits),
+    get_boot_sample_and_fit_RF,
+    obj,
+    boot_ls = boot_samples,
+    my_preds = my_predictors,
+    y_var = dependent_variable,
+    no_trees = no_trees,
+    min_node_size = min_node_size,
+    out_path = out_pt)
+
+} else {
+
+  RF_obj <- lapply(
+    seq_len(no_fits),
+    get_boot_sample_and_fit_RF,
+    boot_ls = boot_samples,
+    my_preds = my_predictors,
+    y_var = dependent_variable,
+    no_trees = no_trees,
+    min_node_size = min_node_size,
+    out_path = out_pt)
+
+}
