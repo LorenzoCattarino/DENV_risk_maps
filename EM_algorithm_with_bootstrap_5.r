@@ -34,11 +34,11 @@ if (CLUSTER) {
 # ---------------------------------------- define parameters
 
 
-no_fits <- 200
+no_fits <- 1
 
 boot_pxl_df_path <- file.path("output", "EM_algorithm", "env_variables", "boot_samples")
 
-RF_obj_path <- file.path("output", "model_objects", "boot_samples")
+RF_obj_path <- file.path("output", "EM_algorithm", "model_objects", "boot_samples")
 
 out_pt <- file.path("output", "EM_algorithm", "env_variables_foi", "boot_samples")
 
@@ -66,40 +66,40 @@ my_predictors <- predictor_rank$variable[1:9]
 # ---------------------------------------- submit one job 
 
 
-initial_square_preds <- obj$enqueue(
-  load_predict_and_save(
-    seq_len(no_fits)[1],
-    pxl_dts_path = boot_pxl_df_path, 
-    RF_obj_path = RF_obj_path, 
-    my_preds = my_predictors, 
-    out_file_path = out_pt, 
-    out_file_name = out_fl_nm_all))
+# initial_square_preds <- obj$enqueue(
+#   load_predict_and_save(
+#     seq_len(no_fits),
+#     pxl_dts_path = boot_pxl_df_path, 
+#     RF_obj_path = RF_obj_path, 
+#     my_preds = my_predictors, 
+#     out_file_path = out_pt, 
+#     out_file_name = out_fl_nm_all))
 
 
 # ---------------------------------------- submit all jobs
 
 
-# if (CLUSTER) {
-#   
-#   initial_square_preds <- queuer::qlapply(
-#     seq_len(no_fits),
-#     load_predict_and_save,
-#     obj,
-#     pxl_dts_path = boot_pxl_df_path, 
-#     RF_obj_path = RF_obj_path, 
-#     my_preds = my_predictors, 
-#     out_file_path = out_pt, 
-#     out_file_name = out_fl_nm_all)
-#   
-# }else{
-#   
-#   initial_square_preds <- lapply(
-#     seq_len(no_fits)[1],
-#     load_predict_and_save,
-#     pxl_dts_path = boot_pxl_df_path, 
-#     RF_obj_path = RF_obj_path, 
-#     my_preds = my_predictors, 
-#     out_file_path = out_pt, 
-#     out_file_name = out_fl_nm_all)
-#   
-# }
+if (CLUSTER) {
+
+  initial_square_preds <- queuer::qlapply(
+    seq_len(no_fits),
+    load_predict_and_save,
+    obj,
+    pxl_dts_path = boot_pxl_df_path,
+    RF_obj_path = RF_obj_path,
+    my_preds = my_predictors,
+    out_file_path = out_pt,
+    out_file_name = out_fl_nm_all)
+
+}else{
+
+  initial_square_preds <- lapply(
+    seq_len(no_fits),
+    load_predict_and_save,
+    pxl_dts_path = boot_pxl_df_path,
+    RF_obj_path = RF_obj_path,
+    my_preds = my_predictors,
+    out_file_path = out_pt,
+    out_file_name = out_fl_nm_all)
+
+}
