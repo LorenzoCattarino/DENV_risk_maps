@@ -67,6 +67,10 @@ foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
 names(foi_data)[names(foi_data) == dependent_variable] <- "o_j"
 
+names(foi_data)[names(foi_data) == "ID_0"] <- "ADM_0"
+
+names(foi_data)[names(foi_data) == "ID_1"] <- "ADM_1"
+
 
 # ---------------------------------------- submit one test job
 
