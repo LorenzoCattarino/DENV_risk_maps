@@ -1,5 +1,6 @@
 filter_resample_and_combine <- function(
-  i, boot_samples, tile_ls, var_names, new_res, 
+  i, boot_samples, tile_ls, 
+  var_names, grp_flds, new_res, 
   my_preds, out_file_path, out_file_name){
   
   foi_data <- boot_samples[[i]]
@@ -9,7 +10,7 @@ filter_resample_and_combine <- function(
     filter_and_resample,
     foi_dts = foi_data, 
     env_var_names = var_names, 
-    grp_flds = c("data_id", "ADM_0", "ADM_1", "cell", "lat.grid", "long.grid"), 
+    grp_flds = grp_flds, 
     grid_size = new_res,
     parallel = TRUE)
   
