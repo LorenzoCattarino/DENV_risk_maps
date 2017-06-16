@@ -1,4 +1,4 @@
-# Binds different bootstrap sample together in a list and save the list 
+# Binds different bootstrap samples together in a list and save the list 
 
 options(didehpc.cluster = "fi--didemrchnb")
 
