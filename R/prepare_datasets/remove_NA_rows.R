@@ -6,9 +6,7 @@ remove_NA_rows <- function(dataset, predictors){
   
   row.has.na <- apply(xx, 1, anyNA)
   
-  xxx <- dataset[!row.has.na, , drop = FALSE]
-
-  xxx
+  dataset[!row.has.na, , drop = FALSE]
   
 }
   
