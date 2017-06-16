@@ -4,7 +4,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "prepare_datasets", "filter_resample_and_combine.r"),
@@ -51,6 +51,7 @@ if (CLUSTER) {
 } else {
   
   context::context_load(ctx)
+  context::parallel_cluster_start(8, ctx)
   
 }
 
@@ -139,4 +140,8 @@ if (CLUSTER) {
     out_file_path = out_pt,
     out_file_name = out_fl_nm_all)
 
+}
+
+if (!CLUSTER) {
+  context::parallel_cluster_stop()
 }
