@@ -72,7 +72,7 @@ my_predictors <- predictor_rank$variable[1:9]
 # ---------------------------------------- submit one job 
 
 
-# RF_obj <- obj$enqueue(
+# t <- obj$enqueue(
 #   get_boot_sample_and_fit_RF(
 #     seq_len(no_fits),
 #     boot_ls = boot_samples,

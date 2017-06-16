@@ -66,7 +66,7 @@ my_predictors <- predictor_rank$variable[1:9]
 # ---------------------------------------- submit one job 
 
 
-# initial_square_preds <- obj$enqueue(
+# t <- obj$enqueue(
 #   load_predict_and_save(
 #     seq_len(no_fits),
 #     pxl_dts_path = boot_pxl_df_path, 
