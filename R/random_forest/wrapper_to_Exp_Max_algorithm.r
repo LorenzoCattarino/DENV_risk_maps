@@ -36,11 +36,11 @@ exp_max_algorithm_boot <- function(
   names(pxl_dts_boot)[names(pxl_dts_boot) == "ADM_0"] <- grp_flds[1]
   names(pxl_dts_boot)[names(pxl_dts_boot) == "ADM_1"] <- grp_flds[2]
   
-  px_adm <- pxl_dts_boot %>% group_by_(.dots = grp_flds)
+  #px_adm <- pxl_dts_boot %>% group_by_(.dots = grp_flds)
   
-  adm_pop <- px_adm %>% summarise(adm_pop = sum(population))
+  #adm_pop <- px_adm %>% summarise(adm_pop = sum(population))
   
-  pxl_dts_boot <- left_join(pxl_dts_boot, adm_pop)
+  #pxl_dts_boot <- left_join(pxl_dts_boot, adm_pop)
   
   pxl_dts_boot$pop_weight <- pxl_dts_boot$population / pxl_dts_boot$adm_pop
   
