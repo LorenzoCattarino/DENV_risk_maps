@@ -7,6 +7,8 @@ filter_resample_and_combine <- function(
   
   foi_data <- boot_samples[[i]]
   
+  names(foi_data)[names(foi_data) == "population"] <- "adm_pop" # this could go out! 
+  
   pxl_job <- loop(
     tile_ls,
     filter_and_resample,
