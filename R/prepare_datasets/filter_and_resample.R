@@ -30,7 +30,7 @@ filter_and_resample <- function(x, foi_dts, env_var_names, grp_flds, grid_size){
   
   dd <- inner_join(
     cc,
-    foi_dts[, c("data_id", "ADM_0", "ADM_1", "type")])
+    foi_dts[, c("data_id", "ADM_0", "ADM_1", "type", "adm_pop")])
   
   dd$lat.grid <- dd$lat.grid * grid_size
   
