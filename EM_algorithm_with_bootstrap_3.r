@@ -25,7 +25,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-no_fits <- 1
+no_fits <- 200
   
 in_pt <- file.path("data", "gadm_codes")
 

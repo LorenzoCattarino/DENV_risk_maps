@@ -39,7 +39,7 @@ if (CLUSTER) {
   
 }
 
-task_b_name <- "illuminating_yapok"
+task_b_name <- "chiroptophobic_auklet"
 
 get_boot_samples_t <- obj$task_bundle_get(task_b_name)
 

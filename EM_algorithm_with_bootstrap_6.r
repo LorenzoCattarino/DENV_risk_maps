@@ -20,26 +20,10 @@ ctx <- context::context_save(path = "context",
                              packages = my_pkgs)
 
 
-# ---------------------------------------- are you using the cluster? 
-
-
-if (CLUSTER) {
-  
-  config <- didehpc::didehpc_config(template = "24Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
-  
-} else {
-  
-  context::context_load(ctx)
-  context::parallel_cluster_start(8, ctx)
-
-}
-
-
 # ---------------------------------------- define parameters
 
 
-no_fits <- 1
+no_fits <- 200
 
 dependent_variable <- "o_j"
 
@@ -64,6 +48,22 @@ full_pxl_df_name <- "aggreg_pixel_level_env_vars_20km.rds"
 prd_out_pth <- file.path("output", "predictions", "boot_model_20km_cw", "boot_samples")
 
 out_prd_nm_all <- paste0("square_predictions_boot_model_20km_cw_sample_", seq_len(no_fits), ".rds")
+
+
+# ---------------------------------------- are you using the cluster? 
+
+
+if (CLUSTER) {
+  
+  config <- didehpc::didehpc_config(template = "12and16Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
+  
+} else {
+  
+  context::context_load(ctx)
+  context::parallel_cluster_start(8, ctx)
+  
+}
 
 
 # ---------------------------------------- load data

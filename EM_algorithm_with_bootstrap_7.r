@@ -41,7 +41,7 @@ if (CLUSTER) {
 # ---------------------------------------- define parameters
 
 
-no_fits <- 1
+no_fits <- 200
   
 diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j")
 
@@ -64,7 +64,7 @@ figure_out_path <- file.path("figures",
 # ---------------------------------------- get results 
 
 
-my_task_id <- "palaeozoologic_duckling"
+my_task_id <- "evolutive_sparrow"
 
 #EM_alg_run_t <- obj$task_get(my_task_id)
 EM_alg_run_t <- obj$task_bundle_get(my_task_id)

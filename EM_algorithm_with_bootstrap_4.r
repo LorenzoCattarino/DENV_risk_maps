@@ -18,6 +18,20 @@ ctx <- context::context_save(path = "context",
                              packages = my_pkgs)
 
 
+# ---------------------------------------- define parameters
+
+
+no_fits <- 200
+
+dependent_variable <- "o_j"
+
+no_trees <- 500
+
+min_node_size <- 20
+
+out_pt <- file.path("output", "EM_algorithm", "model_objects", "boot_samples")
+
+
 # ---------------------------------------- are you using the cluster? 
 
 
@@ -30,20 +44,6 @@ if (CLUSTER) {
   context::context_load(ctx)
 
 }
-
-
-# ---------------------------------------- define parameters
-
-
-no_fits <- 1
-
-dependent_variable <- "o_j"
-
-no_trees <- 500
-
-min_node_size <- 20
-
-out_pt <- file.path("output", "EM_algorithm", "model_objects", "boot_samples")
 
 
 # ---------------------------------------- load data
