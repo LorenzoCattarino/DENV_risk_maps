@@ -62,6 +62,7 @@ if (CLUSTER) {
 boot_samples <- readRDS(
   file.path("output",
             "EM_algorithm",
+            "boot_samples",
             "bootstrap_samples.rds"))
 
 all_predictors <- read.table(
