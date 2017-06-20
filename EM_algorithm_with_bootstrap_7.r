@@ -29,7 +29,8 @@ ctx <- context::context_save(path = "context",
 
 if (CLUSTER) {
   
-  obj <- didehpc::queue_didehpc(ctx)
+  config <- didehpc::didehpc_config(template = "12and16Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
   
@@ -64,12 +65,10 @@ figure_out_path <- file.path("figures",
 # ---------------------------------------- get results 
 
 
-my_task_id <- "evolutive_sparrow"
+my_task_id <- "sleepy_imperialeagle"
 
-#EM_alg_run_t <- obj$task_get(my_task_id)
 EM_alg_run_t <- obj$task_bundle_get(my_task_id)
 
-#EM_alg_run <- EM_alg_run_t$result()
 EM_alg_run <- EM_alg_run_t$results()
 
 
@@ -80,7 +79,7 @@ for (j in seq_len(no_fits)){
   
   my_path <- figure_out_path[j]
   
-  one_data_set <- EM_alg_run[[1]][[1]] 
+  one_data_set <- EM_alg_run[[j]][[1]] 
     
   data_to_plot <- as.data.frame(one_data_set)
   
