@@ -2,7 +2,8 @@ exp_max_algorithm <- function(
   niter, adm_dataset, pxl_dataset,
   pxl_dataset_full, no_trees, min_node_size,
   my_predictors, grp_flds, 
-  out_pred_name, pred_out_path){
+  RF_obj_path, RF_obj_name,
+  diagn_tab_path, diagn_tab_name){
   
   diagnostics <- c("RF_ms_i", "ss_i", "ss_j", "min_wgt", "max_wgt", "n_NA_pred")
   
@@ -76,7 +77,7 @@ exp_max_algorithm <- function(
     n_NA_pred <- sum(is.na(p_i))
     
     dd$p_i <- ifelse(is.na(p_i), 0, p_i)
-    
+    #write.csv(dd, paste0("dd_debug_iter_", i, ".csv"))
 	
     if(sum(is.na(dd$p_i)) > 0) browser(text="pred NA")
 
@@ -93,7 +94,7 @@ exp_max_algorithm <- function(
     mean_p_i <- p_i_by_adm %>% summarise(mean_p_i = sum(p_i * pop_weight))
     
     aa <- inner_join(adm_dataset, mean_p_i)
-    
+    #write.csv(aa, paste0("aa_debug_iter_", i, ".csv"))
     
     ### 8. calculate admin unit level sum of square
     
@@ -106,9 +107,8 @@ exp_max_algorithm <- function(
     
   }
   
-  pxl_dataset_full$p_i <- make_predictions(RF_obj, pxl_dataset_full, my_predictors)
+  write_out_rds(RF_obj, RF_obj_path, RF_obj_name)
+  write_out_rds(out_mat, diagn_tab_path, diagn_tab_name)
   
-  write_out_rds(pxl_dataset_full, pred_out_path, out_pred_name)
-
-  list(RF_obj, out_mat)
+  make_predictions(RF_obj, pxl_dataset_full, my_predictors)
 }
