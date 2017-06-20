@@ -3,7 +3,8 @@ exp_max_algorithm_boot <- function(
   pxl_dataset_orig, y_var, my_preds, 
   no_trees, min_node_size, grp_flds, niter, 
   all_wgt, pAbs_wgt,
-  out_pred_name, pred_out_path){
+  RF_obj_path, RF_obj_name,
+  diagn_tab_path, diagn_tab_name){
   
   
   #browser()
@@ -19,8 +20,8 @@ exp_max_algorithm_boot <- function(
   # ---------------------------------------- get output name 
   
   
-  a <- out_pred_name[i]
-  
+  a <- RF_obj_name[i]
+  b <- diagn_tab_name[i]
   
   # ---------------------------------------- for tracking training and validating set points 
   
@@ -58,7 +59,7 @@ exp_max_algorithm_boot <- function(
   # ---------------------------------------- run the EM 
   
   
-  run_EM <- exp_max_algorithm(
+  square_preds <- exp_max_algorithm(
     niter = niter, 
     adm_dataset = adm_dts_orig, 
     pxl_dataset = pxl_dts_boot,
@@ -67,11 +68,10 @@ exp_max_algorithm_boot <- function(
     min_node_size = min_node_size,
     my_predictors = my_preds, 
     grp_flds = grp_flds, 
-    out_pred_name = a, 
-    pred_out_path = pred_out_path)
+    RF_obj_path = RF_obj_path,
+    RF_obj_name = a,
+    diagn_tab_path = diagn_tab_path, 
+    diagn_tab_name = b)
   
-  RF_obj <- run_EM[[1]]
-  EM_diagnos <- run_EM[[2]]
-  
-  list(EM_diagnos, RF_obj, train_point_pos, valid_point_pos)
+  list(square_preds, train_point_pos, valid_point_pos)
 }
