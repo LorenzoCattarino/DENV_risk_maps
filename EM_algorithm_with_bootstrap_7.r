@@ -28,7 +28,7 @@ fig_file_tag <- paste0(strip_labs, ".png")
 figure_out_path <- file.path("figures", 
                              "EM_algorithm", 
                              "boot_model_20km_cw", 
-                             "boot_samples",
+                             "diagnostics",
                              paste0("sample_", seq_len(no_fits)))
 
 
