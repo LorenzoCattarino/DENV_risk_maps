@@ -45,9 +45,13 @@ boot_pxl_df_path <- file.path("output", "EM_algorithm", "env_variables_foi", "bo
 
 full_pxl_df_name <- "aggreg_pixel_level_env_vars_20km.rds"
 
-prd_out_pth <- file.path("output", "predictions", "boot_model_20km_cw", "boot_samples")
+RF_out_pth <- file.path("output", "EM_algorithm", "optimized_model_objects", "boot_samples")
 
-out_prd_nm_all <- paste0("square_predictions_boot_model_20km_cw_sample_", seq_len(no_fits), ".rds")
+RF_nm_all <- paste0("RF_obj_sample_", seq_len(no_fits), ".rds")
+
+diag_t_pth <- file.path("output", "EM_algorithm", "diagnostics", "boot_samples")
+
+diag_t_nm_all <- paste0("diagno_table_", seq_len(no_fits), ".rds")
 
 
 # ---------------------------------------- are you using the cluster? 
@@ -125,8 +129,10 @@ foi_data <- foi_data[, c(grp_flds, dependent_variable, "new_weight")]
 #     niter = niter,
 #     all_wgt = all_wgt,
 #     pAbs_wgt = pAbs_wgt,
-#     out_pred_name = out_prd_nm_all,
-#     pred_out_path = prd_out_pth))
+#     RF_obj_path = RF_out_pth, 
+#     RF_obj_name = RF_nm_all,
+#     diagn_tab_path = diag_t_pth, 
+#     diagn_tab_name = diag_t_nm_all))
 
 
 # ---------------------------------------- submit all jobs
@@ -149,8 +155,10 @@ if (CLUSTER) {
     niter = niter,
     all_wgt = all_wgt,
     pAbs_wgt = pAbs_wgt,
-    out_pred_name = out_prd_nm_all,
-    pred_out_path = prd_out_pth)
+    RF_obj_path = RF_out_pth, 
+    RF_obj_name = RF_nm_all,
+    diagn_tab_path = diag_t_pth, 
+    diagn_tab_name = diag_t_nm_all)
 
 }else{
 
@@ -168,8 +176,10 @@ if (CLUSTER) {
     niter = niter,
     all_wgt = all_wgt,
     pAbs_wgt = pAbs_wgt,
-    out_pred_name = out_prd_nm_all,
-    pred_out_path = prd_out_pth)
+    RF_obj_path = RF_out_pth, 
+    RF_obj_name = RF_nm_all,
+    diagn_tab_path = diag_t_pth, 
+    diagn_tab_name = diag_t_nm_all)
 
 }
 
