@@ -4,39 +4,7 @@
 # 2) admin unit levele sum of square
 # 3) mean square error of the RF object
 
-options(didehpc.cluster = "fi--didemrchnb")
-
-CLUSTER <- TRUE
-
-my_resources <- c(
-  file.path("R", "random_forest", "wrapper_to_Exp_Max_algorithm.r"),
-  file.path("R", "random_forest", "get_1_0_point_position.r"),
-  file.path("R", "random_forest", "fit_random_forest_model.r"),
-  file.path("R", "random_forest", "make_RF_predictions.r"),
-  file.path("R", "random_forest", "Exp_Max_algorithm.r"),
-  file.path("R", "utility_functions.r"))
-
-my_pkgs <- c("ranger", "dplyr", "ggplot2")
-
-context::context_log_start()
-ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
-
-
-# ---------------------------------------- rebuild the queue object?
-
-
-if (CLUSTER) {
-  
-  config <- didehpc::didehpc_config(template = "12and16Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
-  
-} else {
-  
-  context::context_load(ctx)
-  
-}
+library(ggplot2)
 
 
 # ---------------------------------------- define parameters
@@ -53,6 +21,8 @@ strip_labs <- c(
 
 strip_labs <- gsub('([[:punct:]])|\\s+','_', strip_labs)
 
+diag_t_pth <- file.path("output", "EM_algorithm", "diagnostics", "boot_samples")
+
 fig_file_tag <- paste0(strip_labs, ".png")
 
 figure_out_path <- file.path("figures", 
@@ -65,11 +35,12 @@ figure_out_path <- file.path("figures",
 # ---------------------------------------- get results 
 
 
-my_task_id <- "sleepy_imperialeagle"
+fi <- list.files(diag_t_pth, 
+                 pattern = ".*.rds",
+                 full.names = TRUE)
 
-EM_alg_run_t <- obj$task_bundle_get(my_task_id)
 
-EM_alg_run <- EM_alg_run_t$results()
+EM_alg_run <- lapply(fi, readRDS) 
 
 
 # ---------------------------------------- plot 
@@ -79,7 +50,7 @@ for (j in seq_len(no_fits)){
   
   my_path <- figure_out_path[j]
   
-  one_data_set <- EM_alg_run[[j]][[1]] 
+  one_data_set <- EM_alg_run[[j]]
     
   data_to_plot <- as.data.frame(one_data_set)
   
