@@ -10,6 +10,8 @@ map_data_pixel <- function(
   
   #browser()
   
+  dir.create(output_path, FALSE, TRUE)
+  
   png(file.path(output_path, file_name),
       width = plot_width, 
       height = plot_height,
