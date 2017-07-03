@@ -3,9 +3,10 @@ library(colorRamps)
 library(grid)
 library(lattice)
 library(data.table)
+library(rgdal)
 
 # load functions 
-source(file.path("R", "prepare_datasets", "plot_map_pixel_level.R"))
+source(file.path("R", "random_forest", "plot_map_pixel_level.r"))
 
 
 # ---------------------------------------- define parameters
@@ -14,17 +15,18 @@ source(file.path("R", "prepare_datasets", "plot_map_pixel_level.R"))
 input_path <- file.path(
   "output", 
   "predictions", 
-  "best_model_30km_cw",
-  "world_0_05_deg")
+  "best_model_20km_cw",
+  "world_0_1667_deg")
 
 input_file_names <- list.files(input_path, 
-                               pattern = "wide.*.txt",
+                               pattern = "wide*.txt",
                                full.names = FALSE)
 
 out_path <- file.path(
   "figures", 
   "predictions",
-  "best_model_30km_cw")
+  "best_model_20km_cw",
+  "world_0_1667_deg")
 
 key_ttls <- c("FOI", "sd FOI")
 
@@ -39,9 +41,12 @@ col_breaks <- c(6, 4)
 
 key_ttl_xs <- c(0.18, 0.18)
 
-res <- 1/20
-lats <- seq(-90+res, 90, by = res) # dodgy but effective, as length(row.values) == nrow(x)  in levelplot must be TRUE
-lons <- seq(-180+res, 180, by = res)
+gr_size <- 20
+
+res <- (1 / 120) * gr_size
+
+lats <- seq(-90, 90, by = res)
+lons <- seq(-180, 180, by = res)
 
 plt_wd <- 7
 plt_hg <- 3
@@ -69,7 +74,7 @@ input_data <- lapply(input_file_names,
                          fill = TRUE, 
                          data.table = FALSE))})
 
-country_border_shp_fl <- rgdal::readOGR(
+country_border_shp_fl <- readOGR(
   file.path("data",
             "shapefiles",
             "gadm28_levels.shp"),
@@ -104,10 +109,7 @@ for (i in seq_along(input_data)){
   
   my_mat <- input_data[[i]]
   
-  nr <- nrow(my_mat)
-  
-  my_mat_2 <- t(my_mat[nr:1,])
-  
+  my_mat_2 <- my_mat
   at_labs <- pretty(my_mat_2, n = n_brk)
   
   max_at_val <- max(at_labs)
