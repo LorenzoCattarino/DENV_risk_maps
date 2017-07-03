@@ -4,7 +4,9 @@ exp_max_algorithm_boot <- function(
   no_trees, min_node_size, grp_flds, niter, 
   all_wgt, pAbs_wgt,
   RF_obj_path, RF_obj_name,
-  diagn_tab_path, diagn_tab_name){
+  diagn_tab_path, diagn_tab_name,
+  map_path, map_name, 
+  sq_pr_path, sq_pr_name, wgt_factor){
   
   
   #browser()
@@ -22,8 +24,10 @@ exp_max_algorithm_boot <- function(
   
   a <- RF_obj_name[i]
   b <- diagn_tab_name[i]
-  
-  
+  cc <- map_path[i]  
+  d <- sq_pr_name[i]
+    
+    
   # ---------------------------------------- for tracking training and validating set points 
   
   
@@ -72,7 +76,12 @@ exp_max_algorithm_boot <- function(
     RF_obj_path = RF_obj_path,
     RF_obj_name = a,
     diagn_tab_path = diagn_tab_path, 
-    diagn_tab_name = b)
+    diagn_tab_name = b,
+    map_path = cc, 
+    map_name = map_name,
+    sq_pr_path = sq_pr_path, 
+    sq_pr_name = d,
+    wgt_factor = wgt_factor)
   
   list(square_preds, train_point_pos, valid_point_pos)
 }
