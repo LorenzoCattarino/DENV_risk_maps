@@ -44,7 +44,7 @@ all_preds$foi=ifelse(all_preds$mean_pred<0.01,0,all_preds$mean_pred)
 lats.int=lats*6
 lons.int=lons*6
 
-mat <- matrix(NA, nrow = length(lons) - 1, ncol = length(lats) - 1)
+mat <- matrix(NA, nrow = length(lons), ncol = length(lats)) # subtract 1 from nrow and ncol if using image.plot
 
 i.lat <- findInterval(all_preds$lat.int, lats.int)
 i.lon <- findInterval(all_preds$long.int, lons.int)
@@ -56,8 +56,8 @@ write.table(mat,
             row.names = FALSE,
             sep = ",")
 
-png(file.path(out_pt, "map.png"), type = "cairo", antialias = "none",width = 3000, height = 1500)
-
-image.plot(lons, lats, mat, zlim=c(0,0.072))
-
-dev.off()
+# png(file.path(out_pt, "map.png"), type = "cairo", antialias = "none", width = 7, height = 3, units = "in", res = 300)
+# 
+# image.plot(lons, lats, mat, asp = 1)
+# 
+# dev.off()
