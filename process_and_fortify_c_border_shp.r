@@ -3,10 +3,10 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "prepare_datasets", "fortify_and_save_shp.r"),
+  file.path("R", "prepare_datasets", "process_and_fortify.r"),
   file.path("R", "utility_functions.r"))
 
-my_pkgs <- c("rgdal", "ggplot2")
+my_pkgs <- c("rgdal", "ggplot2", "raster")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -19,7 +19,8 @@ ctx <- context::context_save(path = "context",
 
 if (CLUSTER) {
   
-  obj <- didehpc::queue_didehpc(ctx)
+  config <- didehpc::didehpc_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
   
@@ -37,32 +38,29 @@ country_shp <- readOGR(
             "gadm28_levels.shp"),
   "gadm28_adm0")
 
+lake_shp <- readOGR(
+  file.path("output",
+            "shapefiles"),
+  "lakes_diss")
+
 
 # ---------------------------------------- define parameters
 
 
-world_CRS <- CRS("+init=EPSG:4760")
-
 out_pt <- file.path("output", "datasets")
   
-out_nm <- "country_shp_prj_fort.rds"
+out_nm <- "country_shp_fort.rds"
   
-  
-# ---------------------------------------- pre processing
-
-
-country_shp_prj <- spTransform(country_shp, world_CRS)
-
 
 # ---------------------------------------- submit the job
 
 
 if (CLUSTER) {
 
-  shp_f <- obj$enqueue(fortify_and_save(country_shp_prj, out_pt, out_nm))
+  shp_f <- obj$enqueue(process_and_fortify(country_shp, lake_shp, out_pt, out_nm))
 
 } else {
 
-  shp_f <- fortify(country_shp_prj, region = "ID_0") 
+  shp_f <- process_and_fortify(country_shp, lake_shp, out_pt, out_nm) 
   
 }
