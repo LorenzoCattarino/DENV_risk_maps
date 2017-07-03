@@ -3,7 +3,7 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "prepare_datasets", "process_and_fortify.r"),
+  file.path("R", "prepare_datasets", "fortify_and_save.r"),
   file.path("R", "utility_functions.r"))
 
 my_pkgs <- c("rgdal", "ggplot2", "raster")
@@ -36,12 +36,7 @@ country_shp <- readOGR(
   file.path("data",
             "shapefiles",
             "gadm28_levels.shp"),
-  "gadm28_adm0")
-
-lake_shp <- readOGR(
-  file.path("output",
-            "shapefiles"),
-  "lakes_diss")
+  "gadm28_adm0_eras")
 
 
 # ---------------------------------------- define parameters
@@ -57,10 +52,10 @@ out_nm <- "country_shp_fort.rds"
 
 if (CLUSTER) {
 
-  shp_f <- obj$enqueue(process_and_fortify(country_shp, lake_shp, out_pt, out_nm))
+  shp_f <- obj$enqueue(fortify_and_save(country_shp, out_pt, out_nm))
 
 } else {
 
-  shp_f <- process_and_fortify(country_shp, lake_shp, out_pt, out_nm) 
+  shp_f <- fortify_and_save(country_shp, out_pt, out_nm) 
   
 }
