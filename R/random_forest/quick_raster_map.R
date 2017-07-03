@@ -1,5 +1,9 @@
 quick_raster_map <- function(pred_df, out_pt, out_name) {
   
+  dir.create(out_pt, FALSE, TRUE)
+  
+  browser()
+  
   gr_size <- 20
   
   res <- (1 / 120) * gr_size
@@ -11,8 +15,8 @@ quick_raster_map <- function(pred_df, out_pt, out_name) {
   # ---------------------------------------- load data 
   
   
-  pred_df$lat.int <- floor(pred_df$lat.grid*6+0.5)
-  pred_df$long.int <- floor(pred_df$long.grid*6+0.5)
+  pred_df$lat.int <- floor(pred_df$latitude*6+0.5)
+  pred_df$long.int <- floor(pred_df$longitude*6+0.5)
   
   lats.int <- lats*6
   lons.int <- lons*6
@@ -33,7 +37,9 @@ quick_raster_map <- function(pred_df, out_pt, out_name) {
       pointsize = 12,
       res = 300)
   
-  image.plot(lons, lats, mat)
+  par(mar = c(0,0,0,0), oma = c(0,0,0,0))
+  
+  image.plot(lons, lats, mat, asp = 1)
   
   dev.off()
 
