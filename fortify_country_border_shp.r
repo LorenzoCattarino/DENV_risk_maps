@@ -6,7 +6,7 @@ my_resources <- c(
   file.path("R", "prepare_datasets", "fortify_and_save.r"),
   file.path("R", "utility_functions.r"))
 
-my_pkgs <- c("rgdal", "ggplot2", "raster")
+my_pkgs <- c("rgdal", "ggplot2")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
