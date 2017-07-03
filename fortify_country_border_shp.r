@@ -33,9 +33,8 @@ if (CLUSTER) {
 
 
 country_shp <- readOGR(
-  file.path("data",
-            "shapefiles",
-            "gadm28_levels.shp"),
+  file.path("output",
+            "shapefiles"),
   "gadm28_adm0_eras")
 
 
