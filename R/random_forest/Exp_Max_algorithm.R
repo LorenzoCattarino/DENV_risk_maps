@@ -3,7 +3,9 @@ exp_max_algorithm <- function(
   pxl_dataset_full, no_trees, min_node_size,
   my_predictors, grp_flds, 
   RF_obj_path, RF_obj_name,
-  diagn_tab_path, diagn_tab_name){
+  diagn_tab_path, diagn_tab_name,
+  map_path, map_name, 
+  sq_pr_path, sq_pr_name, wgt_factor){
   
   diagnostics <- c("RF_ms_i", "ss_i", "ss_j", "min_wgt", "max_wgt", "n_NA_pred")
   
@@ -18,7 +20,7 @@ exp_max_algorithm <- function(
     cat("iteration =", i, "\n")
     
     
-    ### 1. calculate scaling factors (these ones are not constant - they change at i)
+    ### 1. calculate scaling factors
     
     p_i_by_adm <- pxl_dataset %>% group_by_(.dots = grp_flds)
     
@@ -28,7 +30,7 @@ exp_max_algorithm <- function(
     
     #dd$wgt_prime <- (dd$pop_weight / dd$p_i) * dd$a_sum
     dd$wgt_prime <- dd$pop_weight 
-    
+    #dd$wgt_prime <- 1
     
     ### 2. modify the scaling factors to account for background data
     
@@ -50,10 +52,16 @@ exp_max_algorithm <- function(
     
     ### 4. fit RF model
     
+    max_wgt <- max(dd$wgt_prime)
+    
+    cut_off <- max_wgt * wgt_factor
+    
+    dd$wgt_prime <- ifelse(dd$wgt_prime <= cut_off, cut_off, dd$wgt_prime)
+    
+    min_wgt <- min(dd$wgt_prime)
+    max_wgt <- max(dd$wgt_prime)
+    
     case_weights <- dd$wgt_prime
-
-    min_wgt <- min(case_weights)
-    max_wgt <- max(case_weights)
     
     training_dataset <- dd[, c("u_i", my_predictors)]
 	  #write.csv(training_dataset,"debug.csv")
@@ -81,6 +89,10 @@ exp_max_algorithm <- function(
 	
     if(sum(is.na(dd$p_i)) > 0) browser(text="pred NA")
 
+    mp_nm <- sprintf("%s_iter_%s%s", map_name, i, ".png")
+    
+    quick_raster_map(dd, map_path, mp_nm) 
+      
     
     ### 6. calculate pixel level sum of square
     
@@ -96,6 +108,7 @@ exp_max_algorithm <- function(
     aa <- inner_join(adm_dataset, mean_p_i)
     #write.csv(aa, paste0("aa_debug_iter_", i, ".csv"))
     
+    
     ### 8. calculate admin unit level sum of square
     
     ss_j <- sum(aa$new_weight * (aa$mean_p_i - aa$o_j)^2)
@@ -107,6 +120,7 @@ exp_max_algorithm <- function(
     
   }
   
+  write_out_rds(dd, sq_pr_path, sq_pr_name)
   write_out_rds(RF_obj, RF_obj_path, RF_obj_name)
   write_out_rds(out_mat, diagn_tab_path, diagn_tab_name)
   
