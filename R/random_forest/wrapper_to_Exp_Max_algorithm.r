@@ -9,7 +9,7 @@ exp_max_algorithm_boot <- function(
   sq_pr_path, sq_pr_name, wgt_factor){
   
   
-  #browser()
+  browser()
   
   
   # ---------------------------------------- load pxl level dataset 
@@ -64,6 +64,8 @@ exp_max_algorithm_boot <- function(
   # ---------------------------------------- run the EM 
   
   
+  h2o.init()
+  
   square_preds <- exp_max_algorithm(
     niter = niter, 
     adm_dataset = adm_dts_orig, 
@@ -82,6 +84,8 @@ exp_max_algorithm_boot <- function(
     sq_pr_path = sq_pr_path, 
     sq_pr_name = d,
     wgt_factor = wgt_factor)
+  
+  h2o.shutdown(prompt = FALSE)
   
   list(square_preds, train_point_pos, valid_point_pos)
 }

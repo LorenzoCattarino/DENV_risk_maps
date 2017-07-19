@@ -15,7 +15,7 @@ exp_max_algorithm <- function(
   
   for (i in seq_len(niter)){
     
-    #browser()
+    browser()
     
     cat("iteration =", i, "\n")
     
@@ -56,32 +56,45 @@ exp_max_algorithm <- function(
     
     cut_off <- max_wgt * wgt_factor
     
-    dd$wgt_prime <- ifelse(dd$wgt_prime <= cut_off, cut_off, dd$wgt_prime)
+    #dd$wgt_prime <- ifelse(dd$wgt_prime <= cut_off, cut_off, dd$wgt_prime)
     
     min_wgt <- min(dd$wgt_prime)
     max_wgt <- max(dd$wgt_prime)
     
     case_weights <- dd$wgt_prime
     
-    training_dataset <- dd[, c("u_i", my_predictors)]
-	  #write.csv(training_dataset,"debug.csv")
+    # training_dataset <- dd[, c("u_i", my_predictors)]
+    training_dataset <- dd[, c("u_i", my_predictors, "wgt_prime")]
+    #write.csv(training_dataset,"debug.csv")
     
-    RF_obj <- ranger(
-      formula = u_i ~ ., 
-      data = training_dataset, 
-      num.trees = no_trees, 
-      case.weights = case_weights, 
-      write.forest = TRUE, 
-      min.node.size = min_node_size,
-      verbose = TRUE)
+    # RF_obj <- ranger(
+    #   formula = u_i ~ ., 
+    #   data = training_dataset, 
+    #   num.trees = no_trees, 
+    #   case.weights = case_weights, 
+    #   write.forest = TRUE, 
+    #   min.node.size = min_node_size,
+    #   verbose = TRUE)
     
-    RF_ms_i <- RF_obj$prediction.error
+    train <- as.h2o(training_dataset)
+    
+    RF_obj <- h2o.randomForest(x = my_predictors,
+                               y = "u_i", 
+                               training_frame = train, 
+                               model_id = RF_obj_name,
+                               ntrees = no_trees, 
+                               weights_column = "wgt_prime", 
+                               max_depth = min_node_size)
+    
+    # RF_ms_i <- RF_obj$prediction.error
+    RF_ms_i <- h2o.mse(RF_obj)
     
     
     ### 5. make new pixel level predictions
     
-    p_i <- make_predictions(RF_obj, dd, my_predictors)
-      
+    # p_i <- make_predictions(RF_obj, dd, my_predictors)
+    p_i <- make_h2o_predictions(RF_obj, dd, my_predictors)
+    
     n_NA_pred <- sum(is.na(p_i))
     
     dd$p_i <- ifelse(is.na(p_i), 0, p_i)
@@ -121,8 +134,10 @@ exp_max_algorithm <- function(
   }
   
   write_out_rds(dd, sq_pr_path, sq_pr_name)
-  write_out_rds(RF_obj, RF_obj_path, RF_obj_name)
+  # write_out_rds(RF_obj, RF_obj_path, RF_obj_name)
+  h2o.saveModel(RF_obj, RF_obj_path, force = TRUE)
   write_out_rds(out_mat, diagn_tab_path, diagn_tab_name)
   
-  make_predictions(RF_obj, pxl_dataset_full, my_predictors)
+  # make_predictions(RF_obj, pxl_dataset_full, my_predictors)
+  make_h2o_predictions(RF_obj, pxl_dataset_full, my_predictors)
 }
