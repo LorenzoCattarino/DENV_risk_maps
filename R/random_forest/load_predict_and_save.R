@@ -8,9 +8,12 @@ load_predict_and_save <- function(
   
   pxl_dts_boot <- readRDS(file.path(pxl_dts_path, pxl_dts_nm))
   
-  RF_obj <- readRDS(file.path(RF_obj_path, RF_obj_nm))
-  
-  p_i <- make_predictions(
+  h2o.init()
+
+  # RF_obj <- readRDS(file.path(RF_obj_path, RF_obj_nm))
+  RF_obj <- h2o.loadModel(file.path(RF_obj_path, RF_obj_nm))
+    
+  p_i <- make_h2o_predictions(
     mod_obj = RF_obj, 
     dataset = pxl_dts_boot, 
     sel_preds = my_preds)
@@ -20,5 +23,7 @@ load_predict_and_save <- function(
   a <- out_file_name[i]
   
   write_out_rds(pxl_dts_boot, out_file_path, a)
+  
+  h2o.shutdown(prompt = FALSE)
   
 }
