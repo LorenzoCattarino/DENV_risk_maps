@@ -8,12 +8,12 @@ my_resources <- c(
   file.path("R", "random_forest", "wrapper_to_Exp_Max_algorithm.r"),
   file.path("R", "random_forest", "get_1_0_point_position.r"),
   file.path("R", "random_forest", "fit_random_forest_model.r"),
-  file.path("R", "random_forest", "make_RF_predictions.r"),
+  file.path("R", "random_forest", "make_h2o_RF_predictions.r"),
   file.path("R", "random_forest", "Exp_Max_algorithm.r"),
   file.path("R", "random_forest", "quick_raster_map.r"),
   file.path("R", "utility_functions.r"))
 
-my_pkgs <- c("ranger", "dplyr", "fields")
+my_pkgs <- c("h2o", "dplyr", "fields")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -62,7 +62,8 @@ sq_pred_pth <- file.path("output", "EM_algorithm", "square_predictions", "boot_s
 
 sq_pred_nm_all <- paste0("dd_debug_", seq_len(no_fits), ".rds")
 
-wgt_ftcr <- 1 / 10000
+wgt_ftcr <- 1
+#wgt_ftcr <- 1 / 10000
   
   
 # ---------------------------------------- are you using the cluster? 
@@ -76,7 +77,7 @@ if (CLUSTER) {
 } else {
   
   context::context_load(ctx)
-  context::parallel_cluster_start(8, ctx)
+  #context::parallel_cluster_start(8, ctx)
   
 }
 
@@ -126,29 +127,29 @@ foi_data <- foi_data[, c(grp_flds, dependent_variable, "new_weight")]
 # ---------------------------------------- submit one job 
 
 
-# t <- obj$enqueue(
-#   exp_max_algorithm_boot(
-#     seq_len(no_fits)[25],
-#     pxl_dts_path = boot_pxl_df_path,
-#     adm_dts_orig = foi_data,
-#     pxl_dataset_orig = full_pxl_df,
-#     y_var = dependent_variable,
-#     my_preds = my_predictors,
-#     no_trees = no_trees,
-#     min_node_size = min_node_size,
-#     grp_flds = grp_flds,
-#     niter = niter,
-#     all_wgt = all_wgt,
-#     pAbs_wgt = pAbs_wgt,
-#     RF_obj_path = RF_out_pth,
-#     RF_obj_name = RF_nm_all,
-#     diagn_tab_path = diag_t_pth,
-#     diagn_tab_name = diag_t_nm_all,
-#     map_path = map_pth,
-#     map_name = map_nm_all,
-#     sq_pr_path = sq_pred_pth,
-#     sq_pr_name = sq_pred_nm_all,
-#     wgt_factor = wgt_ftcr))
+t <- obj$enqueue(
+  exp_max_algorithm_boot(
+    seq_len(no_fits)[1],
+    pxl_dts_path = boot_pxl_df_path,
+    adm_dts_orig = foi_data,
+    pxl_dataset_orig = full_pxl_df,
+    y_var = dependent_variable,
+    my_preds = my_predictors,
+    no_trees = no_trees,
+    min_node_size = min_node_size,
+    grp_flds = grp_flds,
+    niter = niter,
+    all_wgt = all_wgt,
+    pAbs_wgt = pAbs_wgt,
+    RF_obj_path = RF_out_pth,
+    RF_obj_name = RF_nm_all,
+    diagn_tab_path = diag_t_pth,
+    diagn_tab_name = diag_t_nm_all,
+    map_path = map_pth,
+    map_name = map_nm_all,
+    sq_pr_path = sq_pred_pth,
+    sq_pr_name = sq_pred_nm_all,
+    wgt_factor = wgt_ftcr))
 
 
 # ---------------------------------------- submit all jobs
@@ -157,7 +158,7 @@ foi_data <- foi_data[, c(grp_flds, dependent_variable, "new_weight")]
 if (CLUSTER) {
 
   EM_alg_run_exp <- queuer::qlapply(
-    seq_len(no_fits)[1:30],
+    seq_len(no_fits)[1],
     exp_max_algorithm_boot,
     obj,
     pxl_dts_path = boot_pxl_df_path,
@@ -184,7 +185,7 @@ if (CLUSTER) {
 } else {
 
   EM_alg_run <- lapply(
-    seq_len(no_fits)[8],
+    seq_len(no_fits)[1],
     exp_max_algorithm_boot,
     pxl_dts_path = boot_pxl_df_path,
     adm_dts_orig = foi_data,
