@@ -7,10 +7,10 @@ CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "random_forest", "get_boot_sample_and_fit_RF.r"),
-  file.path("R", "random_forest", "fit_random_forest_model.r"),
+  file.path("R", "random_forest", "fit_h2o_random_forest_model.r"),
   file.path("R", "utility_functions.r"))
 
-my_pkgs <- "ranger"
+my_pkgs <- "h2o"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -52,6 +52,7 @@ if (CLUSTER) {
 boot_samples <- readRDS(
   file.path("output",
             "EM_algorithm",
+            "boot_samples",
             "bootstrap_samples.rds"))
   
 predictor_rank <- read.csv(
@@ -74,7 +75,7 @@ my_predictors <- predictor_rank$variable[1:9]
 
 # t <- obj$enqueue(
 #   get_boot_sample_and_fit_RF(
-#     seq_len(no_fits),
+#     seq_len(no_fits)[1],
 #     boot_ls = boot_samples,
 #     my_preds = my_predictors,
 #     y_var = dependent_variable,
@@ -89,7 +90,7 @@ my_predictors <- predictor_rank$variable[1:9]
 if (CLUSTER) {
 
   RF_obj <- queuer::qlapply(
-    seq_len(no_fits),
+    seq_len(no_fits)[1:2],
     get_boot_sample_and_fit_RF,
     obj,
     boot_ls = boot_samples,
@@ -98,11 +99,11 @@ if (CLUSTER) {
     no_trees = no_trees,
     min_node_size = min_node_size,
     out_path = out_pt)
-
+  
 } else {
 
   RF_obj <- lapply(
-    seq_len(no_fits),
+    seq_len(no_fits)[1],
     get_boot_sample_and_fit_RF,
     boot_ls = boot_samples,
     my_preds = my_predictors,
