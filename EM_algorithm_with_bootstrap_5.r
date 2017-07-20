@@ -2,7 +2,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "random_forest", "load_predict_and_save.r"),
@@ -36,7 +36,8 @@ out_fl_nm_all <- paste0("All_FOI_estimates_disaggreg_20km_sample_", seq_len(no_f
 
 if (CLUSTER) {
   
-  obj <- didehpc::queue_didehpc(ctx)
+  config <- didehpc::didehpc_config(template = "12and16Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
   
