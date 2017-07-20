@@ -127,29 +127,29 @@ foi_data <- foi_data[, c(grp_flds, dependent_variable, "new_weight")]
 # ---------------------------------------- submit one job 
 
 
-t <- obj$enqueue(
-  exp_max_algorithm_boot(
-    seq_len(no_fits)[1],
-    pxl_dts_path = boot_pxl_df_path,
-    adm_dts_orig = foi_data,
-    pxl_dataset_orig = full_pxl_df,
-    y_var = dependent_variable,
-    my_preds = my_predictors,
-    no_trees = no_trees,
-    min_node_size = min_node_size,
-    grp_flds = grp_flds,
-    niter = niter,
-    all_wgt = all_wgt,
-    pAbs_wgt = pAbs_wgt,
-    RF_obj_path = RF_out_pth,
-    RF_obj_name = RF_nm_all,
-    diagn_tab_path = diag_t_pth,
-    diagn_tab_name = diag_t_nm_all,
-    map_path = map_pth,
-    map_name = map_nm_all,
-    sq_pr_path = sq_pred_pth,
-    sq_pr_name = sq_pred_nm_all,
-    wgt_factor = wgt_ftcr))
+# t <- obj$enqueue(
+#   exp_max_algorithm_boot(
+#     seq_len(no_fits)[1],
+#     pxl_dts_path = boot_pxl_df_path,
+#     adm_dts_orig = foi_data,
+#     pxl_dataset_orig = full_pxl_df,
+#     y_var = dependent_variable,
+#     my_preds = my_predictors,
+#     no_trees = no_trees,
+#     min_node_size = min_node_size,
+#     grp_flds = grp_flds,
+#     niter = niter,
+#     all_wgt = all_wgt,
+#     pAbs_wgt = pAbs_wgt,
+#     RF_obj_path = RF_out_pth,
+#     RF_obj_name = RF_nm_all,
+#     diagn_tab_path = diag_t_pth,
+#     diagn_tab_name = diag_t_nm_all,
+#     map_path = map_pth,
+#     map_name = map_nm_all,
+#     sq_pr_path = sq_pred_pth,
+#     sq_pr_name = sq_pred_nm_all,
+#     wgt_factor = wgt_ftcr))
 
 
 # ---------------------------------------- submit all jobs
@@ -158,7 +158,7 @@ t <- obj$enqueue(
 if (CLUSTER) {
 
   EM_alg_run_exp <- queuer::qlapply(
-    seq_len(no_fits)[1],
+    seq_len(no_fits),
     exp_max_algorithm_boot,
     obj,
     pxl_dts_path = boot_pxl_df_path,
