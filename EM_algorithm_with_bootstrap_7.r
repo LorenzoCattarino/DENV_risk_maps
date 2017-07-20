@@ -10,7 +10,7 @@ library(ggplot2)
 # ---------------------------------------- define parameters
 
 
-no_fits <- 30
+no_fits <- 1
   
 diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j")
 
