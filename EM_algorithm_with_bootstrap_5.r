@@ -2,14 +2,14 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "random_forest", "load_predict_and_save.r"),
-  file.path("R", "random_forest", "make_RF_predictions.r"),
+  file.path("R", "random_forest", "make_h2o_RF_predictions.r"),
   file.path("R", "utility_functions.r"))
 
-my_pkgs <- "ranger"
+my_pkgs <- "h2o"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -93,7 +93,7 @@ if (CLUSTER) {
 }else{
 
   initial_square_preds <- lapply(
-    seq_len(no_fits),
+    seq_len(no_fits)[1],
     load_predict_and_save,
     pxl_dts_path = boot_pxl_df_path,
     RF_obj_path = RF_obj_path,
