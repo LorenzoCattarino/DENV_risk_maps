@@ -37,7 +37,8 @@ out_pt <- file.path("output", "EM_algorithm", "model_objects", "boot_samples")
 
 if (CLUSTER) {
   
-  obj <- didehpc::queue_didehpc(ctx)
+  config <- didehpc::didehpc_config(template = "12and16Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
   
@@ -90,7 +91,7 @@ my_predictors <- predictor_rank$variable[1:9]
 if (CLUSTER) {
 
   RF_obj <- queuer::qlapply(
-    seq_len(no_fits)[1:2],
+    seq_len(no_fits),
     get_boot_sample_and_fit_RF,
     obj,
     boot_ls = boot_samples,
@@ -103,7 +104,7 @@ if (CLUSTER) {
 } else {
 
   RF_obj <- lapply(
-    seq_len(no_fits)[1],
+    seq_len(no_fits),
     get_boot_sample_and_fit_RF,
     boot_ls = boot_samples,
     my_preds = my_predictors,
