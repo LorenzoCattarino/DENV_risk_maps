@@ -19,7 +19,7 @@ strip_labs <- c(
   "pixel level sum of square", 
   "admin unit level sum of square") 
 
-strip_labs <- gsub('([[:punct:]])|\\s+','_', strip_labs)
+strip_labs <- gsub("([[:punct:]])|\\s+", "_", strip_labs)
 
 diag_t_pth <- file.path("output", "EM_algorithm", "diagnostics", "boot_samples")
 
