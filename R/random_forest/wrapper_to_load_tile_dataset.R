@@ -2,7 +2,7 @@ wrapper_to_load_tile_dataset <- function(
   i, ids_vec, sel_preds, 
   in_path, model_in_path, out_path, 
   cut_off, var_names, base_info, 
-  parallel){
+  parallel, no_fits){
   
   #browser()
   
@@ -18,6 +18,8 @@ wrapper_to_load_tile_dataset <- function(
                 fill = TRUE,
                 data.table = FALSE)
   
+  h2o.init()
+  
   out <- wrapper_to_make_preds(
     dataset = tile, 
     predictors = sel_preds, 
@@ -25,7 +27,8 @@ wrapper_to_load_tile_dataset <- function(
     parallel = parallel,
     cut_off = cut_off, 
     base_info = base_info, 
-    var_names = var_names)  
+    var_names = var_names,
+    no_fits = no_fits)  
   
   dir.create(out_path, FALSE, TRUE)
   
@@ -33,5 +36,7 @@ wrapper_to_load_tile_dataset <- function(
               file.path(out_path, file_name),
               row.names = FALSE,
               sep = ",")
+  
+  h2o.shutdown(prompt = FALSE)
   
 }  
