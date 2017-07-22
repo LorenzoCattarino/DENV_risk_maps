@@ -43,7 +43,7 @@ if (CLUSTER) {
 # ---------------------------------------- define parameters
 
 
-out_fl_nm <- "square_predictions_boot_model_20km_cw.rds"
+out_fl_nm <- "square_predictions.rds"
 out_pt <- file.path("output", "predictions", "boot_model_20km_cw")
   
   
