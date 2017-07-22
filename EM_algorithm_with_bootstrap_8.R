@@ -43,7 +43,10 @@ if (CLUSTER) {
 # ---------------------------------------- define parameters
 
 
-
+out_fl_nm <- "square_predictions_boot_model_20km_cw.rds"
+out_pt <- file.path("output", "predictions", "boot_model_20km_cw")
+  
+  
 # ---------------------------------------- get results 
 
 
@@ -77,7 +80,7 @@ no_squares <- nrow(full_pxl_dts)
 
 no_fits <- 200
 
-out_mat <- matrix(0, nrow = no_squares, ncol = no_fits)
+train_sets <- matrix(0, nrow = no_squares, ncol = no_fits)
 
 for (i in seq_len(no_fits)){
   
@@ -89,13 +92,11 @@ for (i in seq_len(no_fits)){
   
   ids <- test$square[order(test$square)]
   
-  train_sets <-  rep(0, no_squares)
-  
-  train_sets[ids] <- 1  
-  
-  test_sets <- 1 - train_sets
+  train_sets[ids, i] <- 1  
   
 }
+
+test_sets <- 1 - train_sets
 
 # ===================================================================
 # ===================================================================
@@ -105,8 +106,17 @@ for (i in seq_len(no_fits)){
 train_sets_n <- rowSums(train_sets)
 test_sets_n <- rowSums(test_sets)
 
-mean_prediction_train <- rowSums(prediction_sets * train_sets) / train_sets_n
-mean_prediction_test <- rowSums(prediction_sets * test_sets) / test_sets_n
+produc_train <- prediction_sets * train_sets
+produc_test <- prediction_sets * test_sets
+  
+mean_prediction_train <- rowSums(produc_train) / train_sets_n
+mean_prediction_test <- rowSums(produc_test) / test_sets_n
 
-corr.coeff.train <- wtd.cors(y.data, mean.prediction.train, my_weights)
-corr.coeff.valid <- wtd.cors(y.data, mean.prediction.valid, my_weights)  
+percentiles_train <- t(apply(produc_train, 1, quantile, probs = c(0.025, 0.975)))
+percentiles_test <- t(apply(produc_test, 1, quantile, probs = c(0.025, 0.975)))
+colnames(percentiles_train) <- c("low_perc_train", "up_perc_train")
+colnames(percentiles_test) <- c("low_perc_test", "up_perc_test")
+
+out <- data.frame(mean_train = mean_prediction_train, percentiles_train, mean_test = mean_prediction_test, percentiles_test)
+
+write_out_rds(out, out_pt, out_fl_nm)
