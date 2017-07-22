@@ -67,7 +67,18 @@ fi <- list.files(in_pt,
                  full.names = TRUE)
 
 
-# ---------------------------------------- submit jobs
+# ---------------------------------------- submit one job
+
+
+t <- obj$enqueue(
+  resample(fi[1],
+  grp_flds = group_fields, 
+  grid_size = new_res,
+  env_var_names = var_names, 
+  out_path = out_pt))
+
+
+# ---------------------------------------- submit all jobs
 
 
 if (CLUSTER) {
@@ -92,11 +103,3 @@ if (CLUSTER) {
     out_path = out_pt)
   
 }
-
-# t <- obj$enqueue(
-#   wrapper_to_tiles_to_dts(
-#     fi[1],
-#     foi_dts = foi_data,
-#     env_var_names = var_names,
-#     grp_flds = group_fields,
-#     grid_size = gr_size))
