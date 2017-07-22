@@ -1,20 +1,20 @@
-options(didewin.cluster = "fi--didemrchnb")
+options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.R"),
-  file.path("R", "random_forest", "make_RF_predictions.R"),
+  file.path("R", "random_forest", "make_h2o_RF_predictions.R"),
   file.path("R", "random_forest", "wrapper_to_load_admin_dataset.R"),
   file.path("R", "random_forest", "wrapper_to_make_predictions.R"),
   file.path("R", "prepare_datasets", "remove_NA_rows.R"))
 
-my_pkgs <- c("ranger")
+my_pkgs <- c("h2o")
 
 context::context_log_start()
-ctx <- context::context_save(packages = my_pkgs,
+ctx <- context::context_save(path = "context",
                              sources = my_resources,
-                             root = "context")
+                             packages = my_pkgs)
 
 
 # ---------------------------------------- are you using the cluster?
@@ -22,8 +22,8 @@ ctx <- context::context_save(packages = my_pkgs,
 
 if (CLUSTER) {
   
-  config <- didewin::didewin_config(template = "24Core")
-  obj <- didewin::queue_didewin(ctx, config = config)
+  config <- didehpc::didehpc_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
 
 } else {
   
@@ -43,17 +43,20 @@ adm_levels <- c(1, 2)
 bse_inf_1 <- c("OBJECTID", "ID_0", "country", "ID_1", "name1", "population")
 bse_inf_2 <- c("OBJECTID", "ID_0", "country", "ID_1", "name1", "ID_2", "name2", "population")
 
-var_names <- "mean_pred" #, "sd_pred", "low_perc", "up_perc")
+var_names <- c("mean_pred" ,"low_perc", "up_perc")
 
 RF_obj_path <- file.path(
   "output",
-  "model_objects",
-  "best_model_20km_cw.RDS")
+  "EM_algorithm",
+  "optimized_model_objects",
+  "boot_samples")
 
 out_pth <- file.path(
   "output", 
   "predictions", 
-  "best_model_20km_cw")
+  "boot_model_20km_cw")
+
+no_fits <- 200
 
 
 # ---------------------------------------- load data
@@ -101,7 +104,8 @@ if (CLUSTER) {
     cut_off = cut_off,
     var_names = var_names, 
     model_in_path = RF_obj_path,
-    out_path = out_pth)
+    out_path = out_pth,
+    no_fits = no_fits)
   
 } else {
   
@@ -112,11 +116,12 @@ if (CLUSTER) {
     adm_levels = adm_levels, 
     bse_infs = bse_infs, 
     sel_preds = best_predictors, 
-    parallel = TRUE,
+    parallel = FALSE,
     cut_off = cut_off,
     var_names = var_names, 
     model_in_path = RF_obj_path,
-    out_path = out_pth)
+    out_path = out_pth,
+    no_fits = no_fits)
   
 }
 
