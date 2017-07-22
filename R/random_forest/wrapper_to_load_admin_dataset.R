@@ -2,7 +2,7 @@ wrapper_to_load_admin_dataset <- function(
   i, prediction_datasets, adm_levels, 
   bse_infs, sel_preds, parallel, 
   cut_off, var_names, model_in_path, 
-  out_path){
+  out_path, no_fits){
   
   pred_dts <- prediction_datasets[[i]]
   
@@ -10,7 +10,9 @@ wrapper_to_load_admin_dataset <- function(
   
   base_info <- bse_infs[[i]]
   
-  file_name <- paste0("adm_", adm_lvl, "_predictions" , ".RDS")
+  file_name <- paste0("adm_", adm_lvl, "_predictions" , ".rds")
+  
+  h2o.init()
   
   out <- wrapper_to_make_preds(
     dataset = pred_dts, 
@@ -19,10 +21,13 @@ wrapper_to_load_admin_dataset <- function(
     parallel = parallel,
     cut_off = cut_off, 
     base_info = base_info, 
-    var_names = var_names)  
+    var_names = var_names,
+    no_fits = no_fits)  
   
   dir.create(out_path, FALSE, TRUE)
   
   saveRDS(out, file.path(out_path, file_name))
+  
+  h2o.shutdown(prompt = FALSE)
 
 }
