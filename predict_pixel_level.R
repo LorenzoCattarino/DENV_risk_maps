@@ -3,7 +3,7 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "utility_functions.R"),
+  file.path("R", "utility_functions.r"),
   file.path("R", "random_forest", "wrapper_to_load_tile_dataset.R"),
   file.path("R", "random_forest", "wrapper_to_make_predictions.R"),
   file.path("R", "random_forest", "make_h2o_RF_predictions.R"),
