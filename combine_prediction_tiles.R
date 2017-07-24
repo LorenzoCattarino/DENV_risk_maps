@@ -1,9 +1,10 @@
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "utility_functions.R"))
+  file.path("R", "prepare_datasets", "load_and_bind.r"),
+  file.path("R", "utility_functions.r"))
 
 my_pkgs <- "data.table"
 
@@ -27,7 +28,7 @@ out_pt <- file.path(
   "predictions",
   "boot_model_20km_cw")
 
-out_fl_nm <- "pred_0_0083_deg_long.txt"
+out_fl_nm <- "pred_0_0083_deg_long.rds"
 
 
 # ---------------------------------------- rebuild the queue
@@ -53,28 +54,32 @@ fi <- list.files(in_pt,
                  full.names = TRUE)
 
 
-# ---------------------------------------- run
+# ---------------------------------------- submit one job
 
 
-all_tiles <- lapply(fi, function(x) {
-  fread(x,
-        header = TRUE,
-        sep = ",",
-        na.strings = c("NA", "-1.#IND", "Peipsi", "Moskva", "IJsselmeer", "Zeeuwse meren"),
-        fill = TRUE,
-        data.table = FALSE)
-  }
-)
+if (CLUSTER) {
+  
+  all_tiles <- obj$enqueue(all_tiles <- load_and_bind(fi, out_pt, out_fl_nm))
 
-all_preds <- do.call("rbind", all_tiles)
+} else {
+  
+  all_tiles <- load_and_bind(fi, out_pt, out_fl_nm)
 
-sum(is.na(all_preds$mean_pred))
+}
 
-all_preds <- all_preds[!is.na(all_preds$mean_pred),]
 
-dir.create(out_pt, FALSE, TRUE)
-
-write.table(all_preds, 
-            file.path(out_pt, out_fl_nm),
-            row.names = FALSE,
-            sep = ",")
+# # ---------------------------------------- combine and save
+# 
+# 
+# all_preds <- do.call("rbind", all_tiles)
+# 
+# sum(is.na(all_preds$mean_pred))
+# 
+# all_preds <- all_preds[!is.na(all_preds$mean_pred),]
+# 
+# dir.create(out_pt, FALSE, TRUE)
+# 
+# write.table(all_preds, 
+#             file.path(out_pt, out_fl_nm),
+#             row.names = FALSE,
+#             sep = ",")
