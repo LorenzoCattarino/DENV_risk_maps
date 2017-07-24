@@ -21,7 +21,7 @@ in_pt <- file.path(
   "output", 
   "predictions",
   "boot_model_20km_cw",
-  "tile_sets_0_0083_deg")
+  "tile_sets_0_0083_deg_sub")
 
 out_pt <- file.path(
   "output", 
@@ -54,32 +54,15 @@ fi <- list.files(in_pt,
                  full.names = TRUE)
 
 
-# ---------------------------------------- submit one job
+# ---------------------------------------- submit job
 
 
 if (CLUSTER) {
   
-  all_tiles <- obj$enqueue(all_tiles <- load_and_bind(fi, out_pt, out_fl_nm))
+  all_tiles <- obj$enqueue(load_and_bind(fi, out_pt, out_fl_nm))
 
 } else {
   
   all_tiles <- load_and_bind(fi, out_pt, out_fl_nm)
 
 }
-
-
-# # ---------------------------------------- combine and save
-# 
-# 
-# all_preds <- do.call("rbind", all_tiles)
-# 
-# sum(is.na(all_preds$mean_pred))
-# 
-# all_preds <- all_preds[!is.na(all_preds$mean_pred),]
-# 
-# dir.create(out_pt, FALSE, TRUE)
-# 
-# write.table(all_preds, 
-#             file.path(out_pt, out_fl_nm),
-#             row.names = FALSE,
-#             sep = ",")
