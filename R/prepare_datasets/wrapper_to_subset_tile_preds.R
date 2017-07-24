@@ -1,4 +1,4 @@
-wrapper_to_subset_prediction_tiles <- function(x, foi_dts, grp_flds, out_path){
+wrapper_to_subset_tile_predictions <- function(x, foi_dts, grp_flds, out_path){
   
   xx <- fread(x,
               header = TRUE, 
@@ -15,12 +15,9 @@ wrapper_to_subset_prediction_tiles <- function(x, foi_dts, grp_flds, out_path){
   
   zz <- subset(xx, xx[[a]] != -1)
   
-  aa <- merge(
+  aa <- inner_join(
     zz, 
-    foi_dts[, c("ADM_0", "ADM_1")], 
-    by = grp_flds,
-    all.x = FALSE, 
-    all.y = FALSE)
+    foi_dts[, c("data_id", "ADM_0", "ADM_1")])
   
   bb <- subset(aa, population != 0)
 
