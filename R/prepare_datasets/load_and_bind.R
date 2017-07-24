@@ -14,6 +14,22 @@ load_and_bind <- function(x, out_path, out_name){
   
   bb <- do.call("rbind", all_tiles)
   
-  write_out_rds(bb, out_path, out_name)
+  out_type <- sub(".*(?=.{3}$)", "", out_name, perl = T)
+  
+  if (out_type == "rds"){
+    
+    write_out_rds(bb, out_path, out_name)
+  
+  }
+  
+  if (out_type == "txt"){
+    
+    dir.create(out_path, FALSE, TRUE)
+  
+    write.table(all_preds, 
+                file.path(out_path, out_name),
+                row.names = FALSE,
+                sep = ",")
+  }
   
 }
