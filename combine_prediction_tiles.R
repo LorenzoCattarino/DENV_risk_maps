@@ -1,4 +1,4 @@
-options(didewin.cluster = "fi--didemrchnb")
+options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- FALSE
 
@@ -8,9 +8,9 @@ my_resources <- c(
 my_pkgs <- "data.table"
 
 context::context_log_start()
-ctx <- context::context_save(packages = my_pkgs,
+ctx <- context::context_save(path = "context",
                              sources = my_resources,
-                             root = "context")
+                             packages = my_pkgs)
 
 
 # ---------------------------------------- define parameters 
@@ -19,16 +19,15 @@ ctx <- context::context_save(packages = my_pkgs,
 in_pt <- file.path(
   "output", 
   "predictions",
-  "best_model_20km_cw",
-  "tile_sets_0_1667_deg")
+  "boot_model_20km_cw",
+  "tile_sets_0_0083_deg")
 
 out_pt <- file.path(
   "output", 
   "predictions",
-  "best_model_20km_cw",
-  "world_0_1667_deg")
+  "boot_model_20km_cw")
 
-out_fl_nm <- "pred_0_1667_deg_long.txt"
+out_fl_nm <- "pred_0_0083_deg_long.txt"
 
 
 # ---------------------------------------- rebuild the queue
@@ -36,7 +35,8 @@ out_fl_nm <- "pred_0_1667_deg_long.txt"
 
 if (CLUSTER) {
   
-  obj <- didewin::queue_didewin(ctx)
+  config <- didehpc::didehpc_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
   
 }else{
   
