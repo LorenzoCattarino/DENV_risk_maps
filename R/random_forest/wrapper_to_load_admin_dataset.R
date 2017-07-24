@@ -14,6 +14,8 @@ wrapper_to_load_admin_dataset <- function(
   
   h2o.init()
   
+  print(packageVersion("h2o"))
+  
   out <- wrapper_to_make_preds(
     dataset = pred_dts, 
     predictors = sel_preds, 
