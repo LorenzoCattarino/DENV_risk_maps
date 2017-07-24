@@ -19,8 +19,8 @@ ctx <- context::context_save(path = "context",
 
 if (CLUSTER) {
   
-  #config <- didewin::didewin_config(template = "24Core")
-  obj <- didewin::queue_didewin(ctx)
+  #config <- didehpc::didehpc_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx)
   
 } else {
   
@@ -75,7 +75,18 @@ names(foi_data)[names(foi_data) == "ID_0"] <- group_fields[1]
 names(foi_data)[names(foi_data) == "ID_1"] <- group_fields[2]
 
 
-# ---------------------------------------- submit jobs
+# ---------------------------------------- submit one job 
+
+
+# t <- obj$enqueue(
+#   wrapper_to_subset_tile_predictions(
+#     fi[1],
+#     foi_dts = foi_data, 
+#     grp_flds = group_fields,
+#     out_path = sub_tls_path))
+
+
+# ---------------------------------------- submit all jobs
 
 
 if (CLUSTER) {
