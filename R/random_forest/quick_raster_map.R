@@ -2,7 +2,7 @@ quick_raster_map <- function(pred_df, out_pt, out_name) {
   
   dir.create(out_pt, FALSE, TRUE)
   
-  browser()
+  #browser()
   
   gr_size <- 20
   
