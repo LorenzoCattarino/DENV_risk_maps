@@ -105,7 +105,8 @@ if (CLUSTER) {
     var_names = var_names, 
     model_in_path = RF_obj_path,
     out_path = out_pth,
-    no_fits = no_fits)
+    no_fits = no_fits,
+    average = FALSE)
   
 } else {
   
@@ -121,7 +122,8 @@ if (CLUSTER) {
     var_names = var_names, 
     model_in_path = RF_obj_path,
     out_path = out_pth,
-    no_fits = no_fits)
+    no_fits = no_fits,
+    average = FALSE)
   
 }
 

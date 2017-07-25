@@ -159,7 +159,8 @@ if (CLUSTER) {
     var_names = var_names,
     base_info = bs_inf,
     parallel = FALSE,
-    no_fits = no_fits)
+    no_fits = no_fits,
+    average = FALSE)
   
 } else {
   
@@ -175,7 +176,8 @@ if (CLUSTER) {
     var_names = var_names,
     base_info = bs_inf,
     parallel = FALSE,
-    no_fits = no_fits)
+    no_fits = no_fits,
+    average = FALSE)
   
 }
 
