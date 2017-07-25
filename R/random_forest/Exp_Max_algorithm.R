@@ -7,6 +7,8 @@ exp_max_algorithm <- function(
   map_path, map_name, 
   sq_pr_path, sq_pr_name, wgt_factor){
   
+  h2o.init()
+  
   diagnostics <- c("RF_ms_i", "ss_i", "ss_j", "min_wgt", "max_wgt", "n_NA_pred")
   
   out_mat <- matrix(0, nrow = niter, ncol = length(diagnostics))
@@ -139,5 +141,9 @@ exp_max_algorithm <- function(
   write_out_rds(out_mat, diagn_tab_path, diagn_tab_name)
   
   # make_predictions(RF_obj, pxl_dataset_full, my_predictors)
-  make_h2o_predictions(RF_obj, pxl_dataset_full, my_predictors)
+  out <- make_h2o_predictions(RF_obj, pxl_dataset_full, my_predictors)
+  
+  h2o.shutdown(prompt = FALSE)
+  
+  out
 }
