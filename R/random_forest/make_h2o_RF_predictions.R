@@ -8,9 +8,8 @@ make_h2o_predictions <- function(mod_obj, dataset, sel_preds){
   
   preds <- predict(mod_obj, x_data)
   
-  preds <- as.vector(preds)
+  as.vector(preds)
   
-  preds [preds < 0] <- 0
+  #preds [preds < 0] <- 0
   
-  preds
 }
