@@ -24,7 +24,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-out_pt <- file.path("output", "env_variables")
+out_pt <- file.path("output", "EM_algorithm", "env_variables")
 
 out_fl_nm <- "aggreg_pixel_level_env_vars_20km.rds"
 
