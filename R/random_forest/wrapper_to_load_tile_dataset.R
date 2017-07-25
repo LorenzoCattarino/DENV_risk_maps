@@ -2,7 +2,7 @@ wrapper_to_load_tile_dataset <- function(
   i, ids_vec, sel_preds, 
   in_path, model_in_path, out_path, 
   cut_off, var_names, base_info, 
-  parallel, no_fits){
+  parallel, no_fits, average){
   
   #browser()
   
@@ -28,7 +28,8 @@ wrapper_to_load_tile_dataset <- function(
     cut_off = cut_off, 
     base_info = base_info, 
     var_names = var_names,
-    no_fits = no_fits)  
+    no_fits = no_fits,
+    average = average)  
   
   dir.create(out_path, FALSE, TRUE)
   
