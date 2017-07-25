@@ -1,7 +1,9 @@
 spatial.cv.rf <- function(
   preds, y_var, train_set, 
   no_trees, min_node_size, my_weights, 
-  model_name){
+  model_name, model_path){
+  
+  #browser()
   
   h2o.init()
   
@@ -26,6 +28,8 @@ spatial.cv.rf <- function(
   #   y.data = y_data,
   #   valid.set = valid_points,
   #   predictions = predictions)
+  
+  h2o.saveModel(RF_obj, model_path, force = TRUE)
   
   h2o.shutdown(prompt = FALSE)
   
