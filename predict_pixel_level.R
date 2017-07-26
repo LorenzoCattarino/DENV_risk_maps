@@ -20,17 +20,9 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-var_names <- c("mean_pred" , "low_perc", "up_perc")
-
-RF_obj_path <- file.path(
-  "output",
-  "EM_algorithm",
-  "optimized_model_objects",
-  "boot_samples")
-
-no_fits <- 200
-
 cut_off <- 0
+
+model_tp <- "best_model_20km_cw"
 
 gr_size <- 1 # km 
 
@@ -39,7 +31,7 @@ if (gr_size == 1) {
   in_path <- file.path("data", "env_variables", "all_sets_gadm_codes")
   out_pth <- file.path("output", 
                        "predictions", 
-                       "boot_model_20km_cw",
+                       model_tp,
                        "tile_sets_0_0083_deg")
 } 
 
@@ -48,9 +40,19 @@ if (gr_size == 20) {
   in_path <- file.path("output", "env_variables", "all_sets_0_1667_deg")
   out_pth <- file.path("output", 
                        "predictions", 
-                       "boot_model_20km_cw",
+                       model_tp,
                        "tile_sets_0_1667_deg")
 }
+
+var_names <- "mean_pred"
+# var_names <- c("mean_pred" , "low_perc", "up_perc")
+
+RF_obj_path <- file.path(
+  "output",
+  "EM_algorithm",
+  "optimized_model_objects")
+
+no_fits <- 200
 
 
 # ---------------------------------------- are you using the cluster?
@@ -138,7 +140,9 @@ tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]
 #     var_names = var_names,
 #     base_info = bs_inf,
 #     parallel = FALSE,
-#     no_fits = no_fits))
+#     no_fits = no_fits,
+#     average = FALSE,
+#     model_type = model_tp))
 
 
 # ---------------------------------------- submit all jobs
@@ -160,7 +164,8 @@ if (CLUSTER) {
     base_info = bs_inf,
     parallel = FALSE,
     no_fits = no_fits,
-    average = FALSE)
+    average = FALSE,
+    model_type = model_tp)
   
 } else {
   
@@ -177,7 +182,8 @@ if (CLUSTER) {
     base_info = bs_inf,
     parallel = FALSE,
     no_fits = no_fits,
-    average = FALSE)
+    average = FALSE,
+    model_type = model_tp)
   
 }
 
