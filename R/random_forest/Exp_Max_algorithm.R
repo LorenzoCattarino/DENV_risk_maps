@@ -54,16 +54,10 @@ exp_max_algorithm <- function(
     
     ### 4. fit RF model
     
-    max_wgt <- max(dd$wgt_prime)
-    
-    cut_off <- max_wgt * wgt_factor
-    
-    #dd$wgt_prime <- ifelse(dd$wgt_prime <= cut_off, cut_off, dd$wgt_prime)
-    
     min_wgt <- min(dd$wgt_prime)
     max_wgt <- max(dd$wgt_prime)
     
-    case_weights <- dd$wgt_prime
+    # case_weights <- dd$wgt_prime
     
     # training_dataset <- dd[, c("u_i", my_predictors)]
     training_dataset <- dd[, c("u_i", my_predictors, "wgt_prime")]
