@@ -1,7 +1,7 @@
 wrapper_to_make_preds <- function(
   dataset, predictors, model_in_path,
   parallel, cut_off, base_info, 
-  var_names, no_fits, average){
+  var_names, no_fits, average, model_type){
   
   #browser()
   
@@ -22,7 +22,7 @@ wrapper_to_make_preds <- function(
   
   } else {
 
-    RF_obj_nm <- "best_model_20km_cw.rds"
+    RF_obj_nm <- paste0(model_type, ".rds")
     RF_obj <- h2o.loadModel(file.path(model_in_path, RF_obj_nm))
     preds_all_models <- make_h2o_predictions(RF_obj, dataset_2, predictors)
       
