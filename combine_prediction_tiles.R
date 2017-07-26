@@ -20,18 +20,18 @@ ctx <- context::context_save(path = "context",
 in_pt <- file.path(
   "output", 
   "predictions",
-  "boot_model_20km_cw",
+  "best_model_20km_cw",
   "tile_sets_0_0083_deg_sub")
 
 out_pt <- file.path(
   "output", 
   "predictions",
-  "boot_model_20km_cw")
+  "best_model_20km_cw")
 
 out_fl_nm <- "pred_0_0083_deg_long.rds"
 
 
-# ---------------------------------------- rebuild the queue
+# ---------------------------------------- are you using the cluster?
 
 
 if (CLUSTER) {
