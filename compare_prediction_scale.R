@@ -7,23 +7,29 @@ source(file.path("R", "prepare_datasets", "average_up.R"))
 # ---------------------------------------- define parameters 
 
 
-res <- 20 
-
-mod_type <- "boot"
+model_type <- "best_model_20km_cw"
   
-out_name <- paste0("prediction_scale_comparison_", mod_type, "_", res, "km_cw.csv")
+mod_tp <- substr(model_type, 1, 4)
+
+out_name <- paste0("prediction_scale_comparison_", model_type, ".csv")
 
 var_names_pxl_dts <- "mean_pred" #, "sd_pred", "low_perc", "up_perc")
-
-var_names_sqr_dts_train <- "mean_train" 
-var_names_sqr_dts_test <- "mean_test" 
-
-tgt_dir_name <- paste0(mod_type, "_model_", res, "km_cw")
 
 out_path <- file.path(
   "output",
   "predictions",
-  tgt_dir_name)
+  model_type)
+
+if (mod_tp == "boot") {
+  
+  var_names_sqr_dts_train <- "mean_train" 
+  var_names_sqr_dts_test <- "mean_test" 
+  
+} else {
+  
+  var_names_sqr_dts <- "pred" 
+  
+}
 
 
 # ---------------------------------------- load data 
@@ -36,19 +42,19 @@ foi_data <- read.csv(
 adm_preds <- readRDS(  
   file.path("output",
             "predictions",
-            tgt_dir_name,
+            model_type,
             "adm_1_predictions.rds"))
 
 square_preds <- readRDS(
   file.path("output",
             "predictions",
-            tgt_dir_name,
+            model_type,
             "square_predictions.rds"))
 
 pxl_preds <- readRDS(
   file.path("output",
             "predictions",
-            tgt_dir_name,
+            model_type,
             "pred_0_0083_deg_long.rds"))
   
 full_square_dts <- readRDS(
@@ -79,9 +85,17 @@ names(adm_df)[names(adm_df) == "mean_pred"] <- "adm_pred"#, "adm_sd", "adm_low_p
 # ---------------------------------------- pre process square predictions 
 
 
-square_preds_train <- cbind(full_square_dts, square_preds[, 1:3])
+if (mod_tp == "boot"){
+  
+  square_preds_train <- cbind(full_square_dts, square_preds[, 1:3])
 
-square_preds_test <- cbind(full_square_dts, square_preds[, 4:6])
+  square_preds_test <- cbind(full_square_dts, square_preds[, 4:6])
+
+} else {
+  
+  square_preds <- cbind(full_square_dts, square_preds)
+
+}
 
 
 # ---------------------------------------- average up 
@@ -97,31 +111,44 @@ names(average_pxl)[names(average_pxl) == "ADM_1"] <- "ID_1"
 names(average_pxl)[names(average_pxl) == "mean_pred"] <- "mean_pxl_pred" 
 # "mean_pxl_sd", "mean_pxl_lp", "mean_pxl_up"
 
-average_sqr_train <- average_up(
-  pxl_df = square_preds_train,
-  grp_flds = c("data_id", "ADM_0", "ADM_1"),
-  var_names = var_names_sqr_dts_train)
+if (mod_tp == "boot") {
+  
+  average_sqr_train <- average_up(
+    pxl_df = square_preds_train,
+    grp_flds = c("data_id", "ADM_0", "ADM_1"),
+    var_names = var_names_sqr_dts_train)
+  
+  names(average_sqr_train)[names(average_sqr_train) == "ADM_0"] <- "ID_0"
+  names(average_sqr_train)[names(average_sqr_train) == "ADM_1"] <- "ID_1" 
+  
+  average_sqr_test <- average_up(
+    pxl_df = square_preds_test,
+    grp_flds = c("data_id", "ADM_0", "ADM_1"),
+    var_names = var_names_sqr_dts_test)
+  
+  names(average_sqr_test)[names(average_sqr_test) == "ADM_0"] <- "ID_0"
+  names(average_sqr_test)[names(average_sqr_test) == "ADM_1"] <- "ID_1" 
+  
+} else {
+  
+  average_sqr <- average_up(
+    pxl_df = square_preds,
+    grp_flds = c("data_id", "ADM_0", "ADM_1"),
+    var_names = var_names_sqr_dts)
+  
+  names(average_sqr)[names(average_sqr) == "ADM_0"] <- "ID_0"
+  names(average_sqr)[names(average_sqr) == "ADM_1"] <- "ID_1" 
+  names(average_sqr)[names(average_sqr) == var_names_sqr_dts] <- "mean_square_pred" 
 
-names(average_sqr_train)[names(average_sqr_train) == "ADM_0"] <- "ID_0"
-names(average_sqr_train)[names(average_sqr_train) == "ADM_1"] <- "ID_1" 
-
-average_sqr_test <- average_up(
-  pxl_df = square_preds_test,
-  grp_flds = c("data_id", "ADM_0", "ADM_1"),
-  var_names = var_names_sqr_dts_test)
-
-names(average_sqr_test)[names(average_sqr_test) == "ADM_0"] <- "ID_0"
-names(average_sqr_test)[names(average_sqr_test) == "ADM_1"] <- "ID_1" 
-
-#names(average_sqr)[names(average_sqr) == "p_i"] <- "mean_square_pred" 
-
+}
+  
 
 # ---------------------------------------- join 
 
 
 m_1 <- merge(
   foi_data[, c("data_id", "ID_0", "ID_1", "o_j")],
-  adm_df[, c("ID_0", "ID_1", "mean_pred")],
+  adm_df[, c("ID_0", "ID_1", "adm_pred")],
   by = c("ID_0", "ID_1"),
   all.y = FALSE)
 
@@ -131,19 +158,31 @@ m_2 <- merge(
   by = c("data_id", "ID_0", "ID_1"),
   all.y = FALSE)
 
-m_3 <- merge(
-  m_2,
-  average_sqr_train[, c("data_id", "ID_0", "ID_1", "mean_train")],
-  by = c("data_id", "ID_0", "ID_1"),
-  all.y = FALSE)
+if (mod_tp == "boot") {
   
-m_4 <- merge(
-  m_3,
-  average_sqr_test[, c("data_id", "ID_0", "ID_1", "mean_test")],
-  by = c("data_id", "ID_0", "ID_1"),
-  all.y = FALSE)
+  m_3 <- merge(
+    m_2,
+    average_sqr_train[, c("data_id", "ID_0", "ID_1", "mean_train")],
+    by = c("data_id", "ID_0", "ID_1"),
+    all.y = FALSE)
+  
+  m_final <- merge(
+    m_3,
+    average_sqr_test[, c("data_id", "ID_0", "ID_1", "mean_test")],
+    by = c("data_id", "ID_0", "ID_1"),
+    all.y = FALSE)
+  
+} else {
 
-write_out_csv(m_4, out_path, out_name)
+  m_final <- merge(
+    m_2,
+    average_sqr[, c("data_id", "ID_0", "ID_1", "mean_square_pred")],
+    by = c("data_id", "ID_0", "ID_1"),
+    all.y = FALSE)
+    
+}
+
+write_out_csv(m_final, out_path, out_name)
 
 
 # ---------------------------------------- write out dataframe
