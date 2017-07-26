@@ -78,16 +78,14 @@ exp_max_algorithm <- function(
     #   min.node.size = min_node_size,
     #   verbose = TRUE)
     
-    train <- as.h2o(training_dataset)
-    
-    RF_obj <- h2o.randomForest(x = my_predictors,
-                               y = "u_i", 
-                               training_frame = train, 
-                               model_id = RF_obj_name,
-                               ntrees = no_trees, 
-                               weights_column = "wgt_prime", 
-                               max_depth = min_node_size)
-    
+    RF_obj <- fit_h2o_RF(dependent_variable = "u_i", 
+                         predictors = my_predictors, 
+                         training_dataset = training_dataset, 
+                         no_trees = no_trees, 
+                         min_node_size = min_node_size, 
+                         my_weights = "wgt_prime", 
+                         model_nm = RF_obj_name)
+      
     # RF_ms_i <- RF_obj$prediction.error
     RF_ms_i <- h2o.mse(RF_obj)
     
