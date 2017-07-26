@@ -9,6 +9,6 @@ fit_h2o_RF <- function(
                    model_id = model_nm,
                    ntrees = no_trees, 
                    weights_column = my_weights, 
-                   min_rows = min_node_size)
+                   max_depth = min_node_size)
 
 }
