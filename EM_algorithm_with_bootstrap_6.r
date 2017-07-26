@@ -7,7 +7,7 @@ CLUSTER <- TRUE
 my_resources <- c(
   file.path("R", "random_forest", "wrapper_to_Exp_Max_algorithm.r"),
   file.path("R", "random_forest", "get_1_0_point_position.r"),
-  file.path("R", "random_forest", "fit_random_forest_model.r"),
+  file.path("R", "random_forest", "fit_h2o_random_forest_model.r"),
   file.path("R", "random_forest", "make_h2o_RF_predictions.r"),
   file.path("R", "random_forest", "Exp_Max_algorithm.r"),
   file.path("R", "random_forest", "quick_raster_map.r"),
@@ -38,7 +38,7 @@ all_wgt <- 1
 
 pAbs_wgt <- 0.25
 
-niter <- 200
+niter <- 50
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
