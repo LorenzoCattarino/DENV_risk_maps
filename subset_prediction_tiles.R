@@ -19,13 +19,11 @@ ctx <- context::context_save(path = "context",
 
 if (CLUSTER) {
   
-  #config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx)
   
 } else {
   
   context::context_load(ctx)
-  #context::start_parallel_cluster(8, ctx)
   
 }
 
@@ -38,13 +36,13 @@ group_fields <- c("ADM_0", "ADM_1")
 in_pred_path <- file.path(
   "output", 
   "predictions", 
-  "boot_model_20km_cw",
+  "best_model_20km_cw",
   "tile_sets_0_0083_deg")
 
 sub_tls_path <- file.path(
   "output",
   "predictions",
-  "boot_model_20km_cw",
+  "best_model_20km_cw",
   "tile_sets_0_0083_deg_sub")
 
 
@@ -81,7 +79,7 @@ names(foi_data)[names(foi_data) == "ID_1"] <- group_fields[2]
 # t <- obj$enqueue(
 #   wrapper_to_subset_tile_predictions(
 #     fi[1],
-#     foi_dts = foi_data, 
+#     foi_dts = foi_data,
 #     grp_flds = group_fields,
 #     out_path = sub_tls_path))
 
