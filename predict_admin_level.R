@@ -43,18 +43,18 @@ adm_levels <- c(1, 2)
 bse_inf_1 <- c("OBJECTID", "ID_0", "country", "ID_1", "name1", "population")
 bse_inf_2 <- c("OBJECTID", "ID_0", "country", "ID_1", "name1", "ID_2", "name2", "population")
 
-var_names <- c("mean_pred" ,"low_perc", "up_perc")
+var_names <- "mean_pred"
+# var_names <- c("mean_pred" ,"low_perc", "up_perc")
 
 RF_obj_path <- file.path(
   "output",
   "EM_algorithm",
-  "optimized_model_objects",
-  "boot_samples")
+  "optimized_model_objects")
 
 out_pth <- file.path(
   "output", 
   "predictions", 
-  "boot_model_20km_cw")
+  "best_model_20km_cw")
 
 no_fits <- 200
 
