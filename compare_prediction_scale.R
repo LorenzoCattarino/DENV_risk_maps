@@ -1,7 +1,7 @@
 library(dplyr)
 
-source(file.path("R", "utility_functions.R"))
-source(file.path("R", "prepare_datasets", "average_up.R"))
+source(file.path("R", "utility_functions.r"))
+source(file.path("R", "prepare_datasets", "average_up.r"))
 
 
 # ---------------------------------------- define parameters 
