@@ -9,7 +9,7 @@ exp_max_algorithm_boot <- function(
   sq_pr_path, sq_pr_name, wgt_factor){
   
   
-  browser()
+  #browser()
   
   
   # ---------------------------------------- load pxl level dataset 
