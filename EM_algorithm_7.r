@@ -1,8 +1,6 @@
-# Load back in the results of the EM algorithm.
-# Get:
-# 1) Vector of square-level predictions for the entire 20km dataset
-# 2) Vector of positional binary indices indicating whether each square point was in the train set 
-# 3) Vector of positional binary indices indicating whether each square point was in the test set
+# Load back in the results of the EM algorithm:
+# a vector of square-level predictions for the entire 20km dataset
+
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -47,20 +45,32 @@ out_pt <- file.path("output", "predictions", "best_model_20km_cw")
 # ---------------------------------------- get results 
 
 
-my_task_id <- "odourless_gull"
+### searching for a specific task id
 
-EM_alg_run_t <- obj$task_bundle_get(my_task_id)
+# all_times <- obj$task_times()
+# trg_jobs_log <- grepl("2017-07-25", all_times$finished)
+# trg_jobs <- all_times[trg_jobs_log, ]
 
-EM_alg_run <- EM_alg_run_t$results()
+###
 
+# my_task_id <- "e9aa718dfcc8a48f215f50a4d99961bb"
+# 
+# EM_alg_run_t <- obj$task_get(my_task_id)
+# 
+# EM_alg_run <- EM_alg_run_t$result()
+# 
+# 
+# # ---------------------------------------- get predictions 
+# 
+# 
+# len <- length(EM_alg_run[[1]][[1]])
+# 
+# prediction_sets <- vapply(EM_alg_run, "[[", numeric(len), 1)
+# 
+# out <- data.frame(pred = prediction_sets)
 
-# ---------------------------------------- get predictions 
+dd_debug <- readRDS(file.path("output", "EM_algorithm", "square_predictions", "best_model_20km_cw", "dd_debug.rds"))
 
-
-len <- length(EM_alg_run[[1]][[1]])
-
-prediction_sets <- vapply(EM_alg_run, "[[", numeric(len), 1)
-
-out <- data.frame(pred = prediction_sets)
+out <- data.frame(pred = dd_debug$p_i)
 
 write_out_rds(out, out_pt, out_fl_nm)
