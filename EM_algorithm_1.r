@@ -21,7 +21,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-in_pt <- file.path("data", "gadm_codes")
+in_pt <- file.path("data", "env_variables", "all_sets_gadm_codes")
 
 group_fields <- c("data_id", "ADM_0", "ADM_1", "cell", "lat.grid", "long.grid")
 
@@ -64,6 +64,7 @@ foi_data <- read.csv(
 
 names(foi_data)[names(foi_data) == "ID_0"] <- "ADM_0"
 names(foi_data)[names(foi_data) == "ID_1"] <- "ADM_1"
+names(foi_data)[names(foi_data) == "population"] <- "adm_pop"
 
 var_names <- all_predictors$variable
 
