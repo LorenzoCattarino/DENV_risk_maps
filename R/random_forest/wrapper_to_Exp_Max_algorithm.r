@@ -26,7 +26,8 @@ exp_max_algorithm_boot <- function(
   b <- diagn_tab_name[i]
   cc <- map_path[i]  
   d <- sq_pr_name[i]
-    
+  ee <- map_name[i]  
+  
   
   # ---------------------------------------- pre process pxl level dataset
   
@@ -63,7 +64,7 @@ exp_max_algorithm_boot <- function(
                     diagn_tab_path = diagn_tab_path, 
                     diagn_tab_name = b,
                     map_path = cc, 
-                    map_name = map_name,
+                    map_name = ee,
                     sq_pr_path = sq_pr_path, 
                     sq_pr_name = d,
                     wgt_factor = wgt_factor)
