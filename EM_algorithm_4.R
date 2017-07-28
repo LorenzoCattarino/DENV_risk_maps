@@ -6,9 +6,9 @@ CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "make_RF_predictions.r"))  
+  file.path("R", "random_forest", "make_h2o_RF_predictions.r"))  
 
-my_pkgs <- "ranger"
+my_pkgs <- "h2o"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -23,7 +23,7 @@ aggr_dts_name <- "aggreg_pixel_level_env_vars_20km.rds"
 
 out_fl_nm <- "All_FOI_estimates_disaggreg_20km.rds"
 
-out_pth <- file.path("output", "foi")
+out_pth <- file.path("output", "EM_algorithm", "env_variables_foi")
   
   
 # ---------------------------------------- are you using the cluster? 
@@ -31,7 +31,7 @@ out_pth <- file.path("output", "foi")
 
 if (CLUSTER) {
   
-  obj <- didewin::queue_didehpc(ctx)
+  obj <- didehpc::queue_didehpc(ctx)
   
 } else {
   
@@ -43,13 +43,17 @@ if (CLUSTER) {
 # ---------------------------------------- load data
 
 
-RF_obj <- readRDS(
+h2o.init()
+
+RF_obj <- h2o.loadModel(
   file.path("output",
+            "EM_algorithm",
             "model_objects",
-            "best_model_admin.rds"))
+            "all_data.rds"))
 
 aggreg_pxl_env_var <- readRDS(
   file.path("output", 
+            "EM_algorithm",
             "env_variables", 
             aggr_dts_name))
 
@@ -80,12 +84,12 @@ if (CLUSTER) {
       sel_preds = my_predictors))
   
 } else {
-  
-  p_i <- make_predictions(
+
+  p_i <- make_h2o_predictions(
       mod_obj = RF_obj, 
       dataset = aggreg_pxl_env_var, 
       sel_preds = my_predictors)
-  
+  h2o.shutdown(prompt = FALSE)
 }
 
 aggreg_pxl_env_var$p_i <- p_i
