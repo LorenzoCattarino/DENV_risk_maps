@@ -6,13 +6,11 @@ CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "fit_random_forest_model.r"),
-  file.path("R", "random_forest", "make_RF_predictions.r"),
-  file.path("R", "random_forest", "get_1_0_point_position.r"),
-  file.path("R", "random_forest", "calculate_sum_squared_errors.r"),
+  file.path("R", "random_forest", "fit_h2o_random_forest_model.r"),
+  file.path("R", "random_forest", "make_h2o_RF_predictions.r"),
   file.path("R", "random_forest", "spatial_sampK_cv_rng3.r"))
 
-my_pkgs <- "ranger"
+my_pkgs <- c("h2o")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -35,7 +33,7 @@ all_wgt <- 1
 
 pAbs_wgt <- 0.25
 
-out_path <- file.path("output", "model_objects")
+out_path <- file.path("output", "EM_algorithm", "model_objects")
 
 out_name <- "all_data.rds"   
 
@@ -89,46 +87,29 @@ foi_data[foi_data$type == "pseudoAbsence", y_var] <- pseudoAbs_value
 foi_data$new_weight <- all_wgt
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
-# add an ID for each data point (used by get_training_point_positions() and get_validating_point_positions())
-training_dataset <- cbind(id = seq_len(nrow(foi_data)), foi_data)
-
 
 # ---------------------------------------- create objects needed for run
 
 
-no_data <- nrow(foi_data)
-
-# get the position (1/0) of the points in the validating dataset
-valid_point_pos <- get_validating_point_positions(no_data, training_dataset)
-
-# get weights 
-my_weights <- training_dataset$new_weight 
-
 # get training dataset (full dataset - no bootstrap)
-training_dataset <- foi_data[, c(y_var, my_predictors)]
-
-y_data <- foi_data[, y_var]
-
-x_data <- foi_data[, my_predictors]
+training_dataset <- foi_data[, c(y_var, my_predictors, "new_weight")]
 
 
-# ------------------------------------- Run RF fits
+# ------------------------------------- # run job
 
-
-# run one job
 
 if (CLUSTER) {
   
   RF_fit <- obj$enqueue(
-    spatial.cv.rf(preds = my_predictors, 
-                  y_var = y_var, 
-                  train_set = training_dataset, 
-                  no_trees = no_trees, 
-                  min_node_size = min_node_size, 
-                  x_data = x_data, 
-                  y_data = y_data, 
-                  valid_points = valid_point_pos, 
-                  my_weights = my_weights))
+    spatial.cv.rf(
+      preds = my_predictors, 
+      y_var = y_var, 
+      train_set = training_dataset, 
+      no_trees = no_trees, 
+      min_node_size = min_node_size, 
+      my_weights = "new_weight",
+      model_name = out_name,
+      model_path = out_path))
   
 } else {
   
@@ -138,15 +119,8 @@ if (CLUSTER) {
     train_set = training_dataset, 
     no_trees = no_trees, 
     min_node_size = min_node_size, 
-    x_data = x_data, 
-    y_data = y_data, 
-    valid_points = valid_point_pos, 
-    my_weights = my_weights)
+    my_weights = "new_weight",
+    model_name = out_name,
+    model_path = out_path)
   
 }
-
-
-# ---------------------------------------- save model
-
-
-write_out_rds(RF_fit$obj, out_path, out_name)
