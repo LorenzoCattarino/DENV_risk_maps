@@ -2,8 +2,8 @@
 #
 # 1) admin unit observation
 # 2) admin unit prediction 
-# 3) population weighted average of the 1 km pixel predictions, within the observation's admin unit
-# 4) population weighted average of the square predictions, within the observation's admin unit
+# 3) population weighted average of the square predictions, within the observation's admin unit
+# 4) population weighted average of the 1 km pixel predictions, within the observation's admin unit
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -55,7 +55,15 @@ tile_sets_path <- file.path(
   "env_variables", 
   "all_sets_gadm_codes")
 
-
+out_pt <- file.path(
+  "output",
+  "EM_algorithm",
+  "predictions",
+  model_type,
+  "all_scale_predictions",
+  "boot_samples")
+  
+  
 # ---------------------------------------- are you using the cluster? 
 
 
@@ -73,6 +81,17 @@ if (CLUSTER) {
 
 # ---------------------------------------- load data 
 
+
+foi_data <- read.csv(
+  file.path("output", "foi", "All_FOI_estimates_linear_env_var.csv"),
+  stringsAsFactors = FALSE) 
+
+all_sqr_preds <- readRDS(
+  file.path("output",
+            "EM_algorithm",
+            "predictions",
+            model_type,
+            "bootstrap_samples.rds"))
 
 # predicting variable rank
 predictor_rank <- read.csv(
@@ -108,12 +127,6 @@ adm_dataset <- read.csv(
   sep = ",", 
   stringsAsFactors = FALSE)
 
-boot_samples <- readRDS(
-  file.path("output",
-            "EM_algorithm",
-            "boot_samples",
-            "bootstrap_samples.rds"))
-
 
 # ---------------------------------------- pre process admin predictions
 
@@ -136,52 +149,52 @@ best_predictors <- predictor_rank$variable[1:9]
 # ---------------------------------------- submit one job 
 
 
-# t <- obj$enqueue(
-#   attach_pred_different_scale_to_data(
-#     seq_len(no_fits)[1],
-#     model_path = RF_obj_path,
-#     sqr_dts_path = sqr_dts_path,
-#     bt_sqr_preds_path = bt_sqr_preds_path,
-#     bt_samples = boot_samples,
-#     adm_dts = adm_dataset,
-#     predictors = best_predictors,
-#     all_sqr_preds = all_square_preds,
-#     tile_ids = tile_ids_2,
-#     in_path = tile_sets_path))
+t <- obj$enqueue(
+  attach_pred_different_scale_to_data(
+    seq_len(no_fits)[1],
+    model_path = RF_obj_path,
+    sqr_dts_path = sqr_dts_path,
+    bt_sqr_preds_path = bt_sqr_preds_path,
+    bt_samples = boot_samples,
+    adm_dts = adm_dataset,
+    predictors = best_predictors,
+    tile_ids = tile_ids_2,
+    in_path = tile_sets_path,
+    out_path = out_pt))
 
 
 # ---------------------------------------- submit all jobs
 
 
-if (CLUSTER) {
-  
-  bsamples_preds <- queuer::qlapply(
-    seq_len(no_fits),
-    attach_pred_different_scale_to_data,
-    obj,
-    model_path = RF_obj_path, 
-    sqr_dts_path = sqr_dts_path, 
-    bt_sqr_preds_path = bt_sqr_preds_path,
-    bt_samples = boot_samples,
-    adm_dts = adm_dataset, 
-    predictors = best_predictors, 
-    all_sqr_preds = all_square_preds, 
-    tile_ids = tile_ids_2, 
-    in_path = tile_sets_path)
-  
-} else {
-  
-  bsamples_preds <- lapply(
-    seq_len(no_fits)[1],
-    attach_pred_different_scale_to_data,
-    model_path = RF_obj_path, 
-    sqr_dts_path = sqr_dts_path, 
-    bt_sqr_preds_path = bt_sqr_preds_path,
-    bt_samples = boot_samples,
-    adm_dts = adm_dataset, 
-    predictors = best_predictors, 
-    all_sqr_preds = all_square_preds, 
-    tile_ids = tile_ids_2, 
-    in_path = tile_sets_path)
-  
-}
+# if (CLUSTER) {
+#   
+#   bsamples_preds <- queuer::qlapply(
+#     seq_len(no_fits),
+#     attach_pred_different_scale_to_data,
+#     obj,
+#     model_path = RF_obj_path, 
+#     sqr_dts_path = sqr_dts_path, 
+#     bt_sqr_preds_path = bt_sqr_preds_path,
+#     bt_samples = boot_samples,
+#     adm_dts = adm_dataset, 
+#     predictors = best_predictors, 
+#     tile_ids = tile_ids_2, 
+#     in_path = tile_sets_path,
+#     out_path = out_pt)
+#   
+# } else {
+#   
+#   bsamples_preds <- lapply(
+#     seq_len(no_fits)[1],
+#     attach_pred_different_scale_to_data,
+#     model_path = RF_obj_path, 
+#     sqr_dts_path = sqr_dts_path, 
+#     bt_sqr_preds_path = bt_sqr_preds_path,
+#     bt_samples = boot_samples,
+#     adm_dts = adm_dataset, 
+#     predictors = best_predictors, 
+#     tile_ids = tile_ids_2, 
+#     in_path = tile_sets_path,
+#     out_path = out_pt)
+#   
+# }
