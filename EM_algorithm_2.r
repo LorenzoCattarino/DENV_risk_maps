@@ -9,7 +9,6 @@ my_resources <- c(
   file.path("R", "prepare_datasets", "filter_and_resample.r"),
   file.path("R", "prepare_datasets", "grid_up_foi_dataset.r"),
   file.path("R", "prepare_datasets", "average_up.r"),
-  file.path("R", "prepare_datasets", "sub_n_sample.r"),
   file.path("R", "prepare_datasets", "remove_NA_rows.r"),
   file.path("R", "utility_functions.r"))
 
@@ -60,7 +59,7 @@ if (CLUSTER) {
 
 }
 
-task_b_name <- "intoxicated_amurstarfish"
+task_b_name <- "cubiform_noddy"
 
 pxl_job_t <- obj$task_bundle_get(task_b_name)
 
