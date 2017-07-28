@@ -1,3 +1,10 @@
+# For each bootstrap sample of the original dataset, it creates a data frame with:  
+#
+# 1) admin unit observation
+# 2) admin unit prediction 
+# 3) population weighted average of the 1 km pixel predictions, within the observation's admin unit
+# 4) population weighted average of the square predictions, within the observation's admin unit
+
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- FALSE
