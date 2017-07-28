@@ -1,8 +1,7 @@
 # Load back in the results of the EM algorithm.
 # Specifically, for each bootstrap sample, get:
 # 1) Vector of square-level predictions for the entire 20km dataset
-# 2) Vector of positional binary indices indicating whether each square point was in the train set
-# 3) Vector of positional binary indices indicating whether each square point was in the test set
+
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -10,8 +9,7 @@ CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "random_forest", "wrapper_to_Exp_Max_algorithm.r"),
-  file.path("R", "random_forest", "get_1_0_point_position.r"),
-  file.path("R", "random_forest", "fit_random_forest_model.r"),
+  file.path("R", "random_forest", "fit_h2o_random_forest_model.r"),
   file.path("R", "random_forest", "make_h2o_RF_predictions.r"),
   file.path("R", "random_forest", "Exp_Max_algorithm.r"),
   file.path("R", "random_forest", "quick_raster_map.r"),
@@ -43,14 +41,14 @@ if (CLUSTER) {
 # ---------------------------------------- define parameters
 
 
-out_fl_nm <- "square_predictions.rds"
+out_fl_nm <- "square_predictions_all_data.rds"
 out_pt <- file.path("output", "predictions", "boot_model_20km_cw")
 
 
 # ---------------------------------------- get results
 
 
-my_task_id <- "triliteral_drake"
+my_task_id <- "clumsy_mosasaur"
 
 EM_alg_run_t <- obj$task_bundle_get(my_task_id)
 
@@ -60,9 +58,7 @@ EM_alg_run <- EM_alg_run_t$results()
 # ---------------------------------------- get mean predictions for train and test set
 
 
-len <- length(EM_alg_run[[1]][[1]])
-
-prediction_sets <- vapply(EM_alg_run, "[[", numeric(len), 1)
+prediction_sets <- do.call("cbind", EM_alg_run)
 
 write_out_rds(prediction_sets, out_pt, out_fl_nm)
 
