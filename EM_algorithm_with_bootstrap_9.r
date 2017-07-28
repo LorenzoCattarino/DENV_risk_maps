@@ -7,7 +7,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
@@ -38,18 +38,6 @@ RF_obj_path <- file.path(
   "optimized_model_objects",
   "boot_samples")
 
-sqr_dts_path <- file.path(
-  "output", 
-  "EM_algorithm", 
-  "env_variables", 
-  "boot_samples")  
-
-bt_sqr_preds_path <- file.path(
-  "output",
-  "EM_algorithm",
-  "square_predictions",
-  "boot_samples")
-  
 tile_sets_path <- file.path(
   "data", 
   "env_variables", 
@@ -57,7 +45,6 @@ tile_sets_path <- file.path(
 
 out_pt <- file.path(
   "output",
-  "EM_algorithm",
   "predictions",
   model_type,
   "all_scale_predictions",
@@ -82,16 +69,29 @@ if (CLUSTER) {
 # ---------------------------------------- load data 
 
 
-foi_data <- read.csv(
+foi_dataset <- read.csv(
   file.path("output", "foi", "All_FOI_estimates_linear_env_var.csv"),
   stringsAsFactors = FALSE) 
 
-all_sqr_preds <- readRDS(
+boot_samples <- readRDS(
   file.path("output",
             "EM_algorithm",
-            "predictions",
-            model_type,
+            "boot_samples",
             "bootstrap_samples.rds"))
+  
+sqr_dataset <- readRDS(
+  file.path("output",
+  "EM_algorithm",
+  "env_variables",
+  "aggreg_pixel_level_env_vars_20km.rds"))
+  
+adm_dataset <- read.csv(  
+  file.path("output",
+            "env_variables",
+            "All_adm1_env_var.csv"),
+  header = TRUE,
+  sep = ",", 
+  stringsAsFactors = FALSE)
 
 # predicting variable rank
 predictor_rank <- read.csv(
@@ -119,13 +119,11 @@ NA_pixel_tiles <- read.table(
   sep = ",", 
   header = TRUE)
 
-adm_dataset <- read.csv(  
+all_sqr_predictions <- readRDS(
   file.path("output",
-            "env_variables",
-            "All_adm1_env_var.csv"),
-  header = TRUE,
-  sep = ",", 
-  stringsAsFactors = FALSE)
+            "predictions",
+            model_type,
+            "square_predictions_all_data.rds"))
 
 
 # ---------------------------------------- pre process admin predictions
@@ -153,13 +151,14 @@ t <- obj$enqueue(
   attach_pred_different_scale_to_data(
     seq_len(no_fits)[1],
     model_path = RF_obj_path,
-    sqr_dts_path = sqr_dts_path,
-    bt_sqr_preds_path = bt_sqr_preds_path,
-    bt_samples = boot_samples,
+    foi_data = foi_dataset,
     adm_dts = adm_dataset,
     predictors = best_predictors,
+    all_sqr_preds = all_sqr_predictions,
+    sqr_dts = sqr_dataset,
     tile_ids = tile_ids_2,
     in_path = tile_sets_path,
+    bt_samples = boot_samples,
     out_path = out_pt))
 
 
@@ -167,34 +166,36 @@ t <- obj$enqueue(
 
 
 # if (CLUSTER) {
-#   
+# 
 #   bsamples_preds <- queuer::qlapply(
 #     seq_len(no_fits),
 #     attach_pred_different_scale_to_data,
 #     obj,
-#     model_path = RF_obj_path, 
-#     sqr_dts_path = sqr_dts_path, 
-#     bt_sqr_preds_path = bt_sqr_preds_path,
-#     bt_samples = boot_samples,
-#     adm_dts = adm_dataset, 
-#     predictors = best_predictors, 
-#     tile_ids = tile_ids_2, 
+#     model_path = RF_obj_path,
+#     foi_data = foi_dataset,
+#     adm_dts = adm_dataset,
+#     predictors = best_predictors,
+#     all_sqr_preds = all_sqr_predictions,
+#     sqr_dts = sqr_dataset,
+#     tile_ids = tile_ids_2,
 #     in_path = tile_sets_path,
+#     bt_samples = boot_samples,
 #     out_path = out_pt)
-#   
+# 
 # } else {
-#   
+# 
 #   bsamples_preds <- lapply(
 #     seq_len(no_fits)[1],
 #     attach_pred_different_scale_to_data,
-#     model_path = RF_obj_path, 
-#     sqr_dts_path = sqr_dts_path, 
-#     bt_sqr_preds_path = bt_sqr_preds_path,
-#     bt_samples = boot_samples,
-#     adm_dts = adm_dataset, 
-#     predictors = best_predictors, 
-#     tile_ids = tile_ids_2, 
+#     model_path = RF_obj_path,
+#     foi_data = foi_dataset,
+#     adm_dts = adm_dataset,
+#     predictors = best_predictors,
+#     all_sqr_preds = all_sqr_predictions,
+#     sqr_dts = sqr_dataset,
+#     tile_ids = tile_ids_2,
 #     in_path = tile_sets_path,
+#     bt_samples = boot_samples,
 #     out_path = out_pt)
-#   
+# 
 # }
