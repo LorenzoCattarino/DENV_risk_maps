@@ -27,9 +27,9 @@ ctx <- context::context_save(path = "context",
 
 no_fits <- 200
   
-in_pt <- file.path("data", "gadm_codes")
+in_pt <- file.path("data", "env_variables", "all_sets_gadm_codes")
 
-group_fields <- c("data_id", "ADM_0", "ADM_1", "cell", "lat.grid", "long.grid")
+group_fields <- c("unique_id", "data_id", "ADM_0", "ADM_1", "cell", "lat.grid", "long.grid")
 
 gr_size <- 20
 
@@ -98,7 +98,7 @@ fi <- list.files(in_pt,
 
 # t <- obj$enqueue(
 #   filter_resample_and_combine(
-#     seq_along(boot_samples),
+#     seq_along(boot_samples)[1],
 #     boot_samples = boot_samples,
 #     tile_ls = fi,
 #     var_names = var_names,
@@ -130,7 +130,7 @@ if (CLUSTER) {
 } else {
 
   pxl_jobs <- lapply(
-    seq_along(boot_samples),
+    seq_along(boot_samples)[1],
     filter_resample_and_combine,
     boot_samples = boot_samples,
     tile_ls = fi,
