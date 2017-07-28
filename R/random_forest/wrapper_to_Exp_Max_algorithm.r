@@ -27,26 +27,12 @@ exp_max_algorithm_boot <- function(
   cc <- map_path[i]  
   d <- sq_pr_name[i]
     
-    
-  # ---------------------------------------- for tracking training and validating set points 
-  
-  
-  no_data <- nrow(pxl_dataset_orig)
-  train_point_pos <- get_training_point_positions(no_data, pxl_dts_boot, "data_id")
-  valid_point_pos <- get_validating_point_positions(no_data, pxl_dts_boot, "data_id")
-  
   
   # ---------------------------------------- pre process pxl level dataset
   
   
   names(pxl_dts_boot)[names(pxl_dts_boot) == "ADM_0"] <- grp_flds[1]
   names(pxl_dts_boot)[names(pxl_dts_boot) == "ADM_1"] <- grp_flds[2]
-  
-  #px_adm <- pxl_dts_boot %>% group_by_(.dots = grp_flds)
-  
-  #adm_pop <- px_adm %>% summarise(adm_pop = sum(population))
-  
-  #pxl_dts_boot <- left_join(pxl_dts_boot, adm_pop)
   
   pxl_dts_boot$pop_weight <- pxl_dts_boot$population / pxl_dts_boot$adm_pop
   
@@ -64,24 +50,22 @@ exp_max_algorithm_boot <- function(
   # ---------------------------------------- run the EM 
   
   
-  square_preds <- exp_max_algorithm(
-    niter = niter, 
-    adm_dataset = adm_dts_orig, 
-    pxl_dataset = pxl_dts_boot,
-    pxl_dataset_full = pxl_dataset_orig,
-    no_trees = no_trees, 
-    min_node_size = min_node_size,
-    my_predictors = my_preds, 
-    grp_flds = grp_flds, 
-    RF_obj_path = RF_obj_path,
-    RF_obj_name = a,
-    diagn_tab_path = diagn_tab_path, 
-    diagn_tab_name = b,
-    map_path = cc, 
-    map_name = map_name,
-    sq_pr_path = sq_pr_path, 
-    sq_pr_name = d,
-    wgt_factor = wgt_factor)
+  exp_max_algorithm(niter = niter, 
+                    adm_dataset = adm_dts_orig, 
+                    pxl_dataset = pxl_dts_boot,
+                    pxl_dataset_full = pxl_dataset_orig,
+                    no_trees = no_trees, 
+                    min_node_size = min_node_size,
+                    my_predictors = my_preds, 
+                    grp_flds = grp_flds, 
+                    RF_obj_path = RF_obj_path,
+                    RF_obj_name = a,
+                    diagn_tab_path = diagn_tab_path, 
+                    diagn_tab_name = b,
+                    map_path = cc, 
+                    map_name = map_name,
+                    sq_pr_path = sq_pr_path, 
+                    sq_pr_name = d,
+                    wgt_factor = wgt_factor)
   
-  list(square_preds, train_point_pos, valid_point_pos)
 }
