@@ -4,39 +4,7 @@
 # 2) admin unit levele sum of square
 # 3) mean square error of the RF object
 
-options(didehpc.cluster = "fi--didemrchnb")
-
-CLUSTER <- TRUE
-
-my_resources <- c(
-  file.path("R", "random_forest", "grid_up_foi_dataset.r"),
-  file.path("R", "random_forest", "bootstrap_foi_dataset.r"),
-  file.path("R", "random_forest", "make_RF_predictions.r"),
-  file.path("R", "random_forest", "Exp_Max_algorithm.r"),
-  file.path("R", "random_forest", "wrapper_to_Exp_Max_algorithm.r"),
-  file.path("R", "utility_functions.r"))
-
-my_pkgs <- c("ranger", "dplyr", "ggplot2")
-
-context::context_log_start()
-ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
-
-
-# ---------------------------------------- rebuild the queue object?
-
-
-if (CLUSTER) {
-  
-  config <- didehpc::didehpc_config(template = "24Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
-
-}else{
-  
-  context::context_load(ctx)
-
-}
+library(ggplot2)
 
 
 # ---------------------------------------- define parameters
@@ -51,28 +19,28 @@ strip_labs <- c(
 
 strip_labs <- gsub('([[:punct:]])|\\s+','_', strip_labs)
 
+diag_t_pth <- file.path("output", "EM_algorithm", "diagnostics", "best_model_20km_cw")
+
 fig_file_tag <- paste0(strip_labs, ".png")
   
-figure_out_path <- file.path("figures", "EM_algorithm", "boot_model_20km_cw")
-
+figure_out_path <- file.path("figures", "EM_algorithm", "best_model_20km_cw", "diagnostics")
 
 
 # ---------------------------------------- get results 
 
 
-my_task_id <- "discophilic_honeycreeper"
+fi <- list.files(diag_t_pth, 
+                 pattern = ".*.rds",
+                 full.names = TRUE)
 
-#EM_alg_run_t <- obj$task_get(my_task_id)
-EM_alg_run_t <- obj$task_bundle_get(my_task_id)
 
-#EM_alg_run <- EM_alg_run_t$result()
-EM_alg_run <- EM_alg_run_t$results()
-  
+EM_alg_run <- lapply(fi, readRDS) 
+
 
 # ---------------------------------------- plot 
 
 
-data_to_plot <- as.data.frame(EM_alg_run[[2]])
+data_to_plot <- as.data.frame(EM_alg_run[[1]])
 
 data_to_plot$iter <- seq_len(nrow(data_to_plot))
 
