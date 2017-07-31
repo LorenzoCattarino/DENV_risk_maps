@@ -114,7 +114,7 @@ attach_pred_different_scale_to_data <- function(
   # --------------------------------------
   
   
-   vbt_dts <- bt_samples[[i]]
+  bt_dts <- bt_samples[[i]]
   
   ids <- unique(bt_dts$data_id)
   
