@@ -1,3 +1,5 @@
+# Binds all square tiles together 
+
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
