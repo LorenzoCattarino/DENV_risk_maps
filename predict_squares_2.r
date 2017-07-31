@@ -1,3 +1,5 @@
+# Makes predictions for all squares in each tile 
+
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
