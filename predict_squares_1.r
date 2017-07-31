@@ -1,6 +1,8 @@
+# Resamples all the 1 km pixels, in each tile, to squares with a coarser resolution
+
 options(didewin.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "prepare_datasets", "resample.R"),
@@ -70,12 +72,12 @@ fi <- list.files(in_pt,
 # ---------------------------------------- submit one job
 
 
-t <- obj$enqueue(
-  resample(fi[1],
-  grp_flds = group_fields, 
-  grid_size = new_res,
-  env_var_names = var_names, 
-  out_path = out_pt))
+# t <- obj$enqueue(
+#   resample(fi[1],
+#   grp_flds = group_fields, 
+#   grid_size = new_res,
+#   env_var_names = var_names, 
+#   out_path = out_pt))
 
 
 # ---------------------------------------- submit all jobs
