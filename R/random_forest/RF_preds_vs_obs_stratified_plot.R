@@ -1,15 +1,21 @@
 RF_preds_vs_obs_plot_stratif <- function (
   df, x, y, facet_var, file_name, file_path) {
   
-  y_values <- pretty(df[, y])
-  max_y_value <- max(y_values)
-  min_y_value <- min(y_values) 
-  
-  x_values <- pretty(df[, x])
-  max_x_value <- max(x_values)
-  min_x_value <- min(x_values)
+  # y_values <- pretty(df[, y])
+  # max_y_value <- max(y_values)
+  # min_y_value <- min(y_values) 
+  # 
+  # x_values <- pretty(df[, x])
+  # max_x_value <- max(x_values)
+  # min_x_value <- min(x_values)
   
   #browser()
+  
+  min_x_value <- 0
+  max_x_value <- 0.07
+  res <- 0.01
+  
+  x_values <- seq(min_x_value, max_x_value, res)
   
   p <- ggplot(df, aes_string(x = x, y = y)) +
     facet_grid(as.formula(paste0("dataset ~", facet_var))) + 
@@ -20,8 +26,9 @@ RF_preds_vs_obs_plot_stratif <- function (
                        breaks = x_values,
                        labels = x_values) +
     scale_y_continuous("Predictions", 
-                       limits = c(min_y_value, max_y_value), 
-                       breaks = y_values) +
+                       limits = c(min_x_value, max_x_value), 
+                       breaks = x_values,
+                       labels = x_values) +
     theme(axis.title.x = element_text(size = 15, margin = margin(t = 20)),
           axis.title.y = element_text(size = 15, margin = margin(r = 20)),
           axis.text.x = element_text(size = 11),
@@ -40,7 +47,7 @@ RF_preds_vs_obs_plot_stratif <- function (
   eq <- ddply(df, as.formula(paste0("dataset ~", facet_var)), lm_eqn, y = y, x = x)
   
   p3 <- p2 + 
-    geom_text(data = eq, aes(x = 0.04, y = max_y_value, label = V1), 
+    geom_text(data = eq, aes(x = 0.04, y = max_x_value, label = V1), 
               parse = TRUE, 
               inherit.aes = FALSE) +
     facet_grid(as.formula(paste0("dataset ~", facet_var)))
