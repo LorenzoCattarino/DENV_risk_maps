@@ -1,3 +1,5 @@
+# Makes a pretty map of the square predictions  
+
 library(data.table)
 library(ggplot2)
 library(colorRamps)
