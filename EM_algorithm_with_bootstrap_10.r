@@ -1,3 +1,11 @@
+# For each bootstrap sample of the original dataset, it creates a scatter plot of:  
+#
+# 1) admin unit observation vs admin unit prediction 
+# 2) admin unit observation vs population weighted average of the square predictions (within admin unit)
+# 3) admin unit observation vs population weighted average of the 1 km pixel predictions (within admin unit)
+#
+# NOTE: 1, 2 and 3 are for train and test sets separately (total of 6 plots)
+
 library(reshape2)
 library(ggplot2)
 library(plyr)
