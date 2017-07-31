@@ -1,19 +1,17 @@
 RF_preds_vs_obs_plot_stratif <- function (
-  x, y, facet_var, file_name, predictions, my_path) {
+  df, x, y, facet_var, file_name, file_path) {
   
-  dir.create(my_path, FALSE, TRUE)
-  
-  y_values <- pretty(predictions[, y])
+  y_values <- pretty(df[, y])
   max_y_value <- max(y_values)
   min_y_value <- min(y_values) 
   
-  x_values <- pretty(predictions[, x])
+  x_values <- pretty(df[, x])
   max_x_value <- max(x_values)
   min_x_value <- min(x_values)
   
   #browser()
   
-  p <- ggplot(predictions, aes_string(x = x, y = y)) +
+  p <- ggplot(df, aes_string(x = x, y = y)) +
     facet_grid(as.formula(paste0("dataset ~", facet_var))) + 
     geom_point(aes_string(x = x, y = y), size = 1) +
     #geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
@@ -39,7 +37,7 @@ RF_preds_vs_obs_plot_stratif <- function (
   
   p2 <- p + geom_smooth(method = "lm", formula = y ~ x - 1, se = FALSE)
   
-  eq <- ddply(predictions, as.formula(paste0("dataset ~", facet_var)), lm_eqn, y = y, x = x)
+  eq <- ddply(df, as.formula(paste0("dataset ~", facet_var)), lm_eqn, y = y, x = x)
   
   p3 <- p2 + 
     geom_text(data = eq, aes(x = 0.04, y = max_y_value, label = V1), 
@@ -47,7 +45,9 @@ RF_preds_vs_obs_plot_stratif <- function (
               inherit.aes = FALSE) +
     facet_grid(as.formula(paste0("dataset ~", facet_var)))
   
-  jpeg(filename = file.path(my_path, file_name), 
+  dir.create(file_path, FALSE, TRUE)
+  
+  jpeg(filename = file.path(file_path, file_name), 
        width = 10, 
        height = 6, 
        units = "in", 
