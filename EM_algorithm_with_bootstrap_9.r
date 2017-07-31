@@ -147,9 +147,30 @@ best_predictors <- predictor_rank$variable[1:9]
 # ---------------------------------------- submit one job 
 
 
-t <- obj$enqueue(
-  attach_pred_different_scale_to_data(
-    seq_len(no_fits)[1],
+# t <- obj$enqueue(
+#   attach_pred_different_scale_to_data(
+#     seq_len(no_fits)[1],
+#     model_path = RF_obj_path,
+#     foi_data = foi_dataset,
+#     adm_dts = adm_dataset,
+#     predictors = best_predictors,
+#     all_sqr_preds = all_sqr_predictions,
+#     sqr_dts = sqr_dataset,
+#     tile_ids = tile_ids_2,
+#     in_path = tile_sets_path,
+#     bt_samples = boot_samples,
+#     out_path = out_pt))
+
+
+# ---------------------------------------- submit all jobs
+
+
+if (CLUSTER) {
+
+  bsamples_preds <- queuer::qlapply(
+    seq_len(no_fits),
+    attach_pred_different_scale_to_data,
+    obj,
     model_path = RF_obj_path,
     foi_data = foi_dataset,
     adm_dts = adm_dataset,
@@ -159,43 +180,22 @@ t <- obj$enqueue(
     tile_ids = tile_ids_2,
     in_path = tile_sets_path,
     bt_samples = boot_samples,
-    out_path = out_pt))
+    out_path = out_pt)
 
+} else {
 
-# ---------------------------------------- submit all jobs
+  bsamples_preds <- lapply(
+    seq_len(no_fits)[1],
+    attach_pred_different_scale_to_data,
+    model_path = RF_obj_path,
+    foi_data = foi_dataset,
+    adm_dts = adm_dataset,
+    predictors = best_predictors,
+    all_sqr_preds = all_sqr_predictions,
+    sqr_dts = sqr_dataset,
+    tile_ids = tile_ids_2,
+    in_path = tile_sets_path,
+    bt_samples = boot_samples,
+    out_path = out_pt)
 
-
-# if (CLUSTER) {
-# 
-#   bsamples_preds <- queuer::qlapply(
-#     seq_len(no_fits),
-#     attach_pred_different_scale_to_data,
-#     obj,
-#     model_path = RF_obj_path,
-#     foi_data = foi_dataset,
-#     adm_dts = adm_dataset,
-#     predictors = best_predictors,
-#     all_sqr_preds = all_sqr_predictions,
-#     sqr_dts = sqr_dataset,
-#     tile_ids = tile_ids_2,
-#     in_path = tile_sets_path,
-#     bt_samples = boot_samples,
-#     out_path = out_pt)
-# 
-# } else {
-# 
-#   bsamples_preds <- lapply(
-#     seq_len(no_fits)[1],
-#     attach_pred_different_scale_to_data,
-#     model_path = RF_obj_path,
-#     foi_data = foi_dataset,
-#     adm_dts = adm_dataset,
-#     predictors = best_predictors,
-#     all_sqr_preds = all_sqr_predictions,
-#     sqr_dts = sqr_dataset,
-#     tile_ids = tile_ids_2,
-#     in_path = tile_sets_path,
-#     bt_samples = boot_samples,
-#     out_path = out_pt)
-# 
-# }
+}
