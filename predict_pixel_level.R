@@ -24,7 +24,7 @@ cut_off <- 0
 
 model_tp <- "boot_model_20km_cw"
 
-gr_size <- 1 # km 
+gr_size <- 20 # km 
 
 if (gr_size == 1) {
   bs_inf <- c("pixel_id", "latitude", "longitude", "population", "ADM_0", "ADM_1", "ADM_2")
