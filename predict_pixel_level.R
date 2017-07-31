@@ -22,7 +22,7 @@ ctx <- context::context_save(path = "context",
 
 cut_off <- 0
 
-model_tp <- "best_model_20km_cw"
+model_tp <- "boot_model_20km_cw"
 
 gr_size <- 1 # km 
 
@@ -44,13 +44,14 @@ if (gr_size == 20) {
                        "tile_sets_0_1667_deg")
 }
 
-var_names <- "mean_pred"
-# var_names <- c("mean_pred" , "low_perc", "up_perc")
+# var_names <- "mean_pred"
+var_names <- c("mean_pred" , "low_perc", "up_perc")
 
 RF_obj_path <- file.path(
   "output",
   "EM_algorithm",
-  "optimized_model_objects")
+  "optimized_model_objects",
+  "boot_samples")
 
 no_fits <- 200
 
@@ -141,7 +142,7 @@ tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]
 #     base_info = bs_inf,
 #     parallel = FALSE,
 #     no_fits = no_fits,
-#     average = FALSE,
+#     average = TRUE,
 #     model_type = model_tp))
 
 
@@ -164,7 +165,7 @@ if (CLUSTER) {
     base_info = bs_inf,
     parallel = FALSE,
     no_fits = no_fits,
-    average = FALSE,
+    average = TRUE,
     model_type = model_tp)
   
 } else {
@@ -182,7 +183,7 @@ if (CLUSTER) {
     base_info = bs_inf,
     parallel = FALSE,
     no_fits = no_fits,
-    average = FALSE,
+    average = TRUE,
     model_type = model_tp)
   
 }
