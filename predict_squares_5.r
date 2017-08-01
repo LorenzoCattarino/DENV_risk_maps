@@ -17,6 +17,8 @@ gr_size <- 20
 
 res <- (1 / 120) * gr_size
 
+cut_off <- 0.005
+
 lats <- seq(-90, 90, by = res)
 lons <- seq(-180, 180, by = res)
 
@@ -53,8 +55,7 @@ country_shp <- country_shp[!country_shp@data$NAME_ENGLI == "Caspian Sea", ]
 
 all_preds$lat.int=floor(all_preds$lat.grid*6+0.5)
 all_preds$long.int=floor(all_preds$long.grid*6+0.5)
-all_preds$foi=ifelse(all_preds$mean_pred<0.005,0,all_preds$mean_pred)
-#all_preds$foi=all_preds$mean_pred
+all_preds$foi=ifelse(all_preds$mean_pred < cut_off, 0,all_preds$mean_pred)
 
 lats.int=lats*6
 lons.int=lons*6
