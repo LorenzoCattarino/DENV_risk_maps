@@ -1,7 +1,7 @@
 # For each bootstrap sample, creates and saves one plot 
 # for each of three diagnostics of the EM algorithm output:
 # 1) pixel level sum of squares
-# 2) admin unit levele sum of square
+# 2) admin unit level sum of square
 # 3) mean square error of the RF object
 
 library(ggplot2)
