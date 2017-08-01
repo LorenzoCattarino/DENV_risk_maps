@@ -30,7 +30,7 @@ ctx <- context::context_save(path = "context",
 
 no_fits <- 200
 
-model_type <- "boot_model_20km_cw"
+model_type <- "boot_model_20km_vw"
 
 RF_obj_path <- file.path(
   "output",
