@@ -2,7 +2,6 @@
 # Specifically, for each bootstrap sample, get:
 # 1) Vector of square-level predictions for the entire 20km dataset
 
-
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
