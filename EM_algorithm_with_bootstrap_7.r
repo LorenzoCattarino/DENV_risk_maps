@@ -53,7 +53,7 @@ for (j in seq_len(no_fits)){
   my_path <- figure_out_path[j]
   
   one_data_set <- EM_alg_run[[j]]
-    
+  
   data_to_plot <- as.data.frame(one_data_set)
   
   data_to_plot$iter <- seq_len(nrow(data_to_plot))
@@ -63,13 +63,13 @@ for (j in seq_len(no_fits)){
   for (i in seq_along(strip_labs)){
     
     p <- ggplot(data_to_plot, aes(iter, get(diagnostic_vars[i]))) +
-          geom_line() +
-          scale_x_continuous("Iterations") +
-          scale_y_continuous(strip_labs[i]) +
-          theme(axis.title.x = element_text(size = 12),
-                axis.title.y = element_text(size = 12),
-                axis.text.x = element_text(size = 12),
-                axis.text.y = element_text(size = 12))
+      geom_line() +
+      scale_x_continuous("Iterations") +
+      scale_y_continuous(strip_labs[i]) +
+      theme(axis.title.x = element_text(size = 12),
+            axis.title.y = element_text(size = 12),
+            axis.text.x = element_text(size = 12),
+            axis.text.y = element_text(size = 12))
     
     png(file.path(my_path, fig_file_tag[i]), 
         width = 5, 
@@ -82,5 +82,5 @@ for (j in seq_len(no_fits)){
     dev.off()
     
   }
-
+  
 }
