@@ -7,18 +7,18 @@ library(fields)
 # ---------------------------------------- define parameters 
 
 
+model_tp <- "boot_model_20km_cw"
+
 x <- file.path(
   "output",
   "predictions",
-  "best_model_20km_cw",
-  "world_0_1667_deg",
-  "pred_0_1667_deg_long.txt")
+  model_tp,
+  "pred_0_1667_deg_long.rds")
 
 out_pt <- file.path(
   "output", 
   "predictions",
-  "best_model_20km_cw",
-  "world_0_1667_deg")
+  model_tp)
 
 out_fl_nm <- "pred_0_1667_deg_wide.txt"
 
@@ -33,15 +33,12 @@ lons <- seq(-180, 180, by = res)
 # ---------------------------------------- load data 
 
 
-all_preds <- fread(x,
-                   header = TRUE, 
-                   sep = ",",              
-                   fill = TRUE, 
-                   data.table = FALSE)
+all_preds <- readRDS(x)
 				   
 all_preds$lat.int=floor(all_preds$lat.grid*6+0.5)
 all_preds$long.int=floor(all_preds$long.grid*6+0.5)
-all_preds$foi=ifelse(all_preds$mean_pred<0.01,0,all_preds$mean_pred)
+#all_preds$foi=ifelse(all_preds$mean_pred<0.01,0,all_preds$mean_pred)
+all_preds$foi=all_preds$mean_pred
 
 lats.int=lats*6
 lons.int=lons*6
