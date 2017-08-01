@@ -1,8 +1,8 @@
 wrapper_to_load_tile_dataset <- function(
   i, ids_vec, sel_preds, 
   in_path, model_in_path, out_path, 
-  cut_off, var_names, base_info, 
-  parallel, no_fits, average, model_type){
+  var_names, base_info, parallel, 
+  no_fits, average, model_type){
   
   #browser()
   
@@ -25,7 +25,6 @@ wrapper_to_load_tile_dataset <- function(
     predictors = sel_preds, 
     model_in_path = model_in_path,
     parallel = parallel,
-    cut_off = cut_off, 
     base_info = base_info, 
     var_names = var_names,
     no_fits = no_fits,
