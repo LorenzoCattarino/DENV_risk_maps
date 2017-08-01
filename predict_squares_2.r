@@ -22,8 +22,6 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-cut_off <- 0
-
 model_tp <- "boot_model_20km_cw"
 
 bs_inf <- c("cell", "lat.grid", "long.grid", "population")
@@ -122,7 +120,6 @@ tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]
 #     in_path = in_path,
 #     model_in_path = RF_obj_path,
 #     out_path = out_pth,
-#     cut_off = cut_off,
 #     var_names = var_names,
 #     base_info = bs_inf,
 #     parallel = FALSE,
@@ -145,7 +142,6 @@ if (CLUSTER) {
     in_path = in_path,
     model_in_path = RF_obj_path,
     out_path = out_pth,
-    cut_off = cut_off,
     var_names = var_names,
     base_info = bs_inf,
     parallel = FALSE,
@@ -163,7 +159,6 @@ if (CLUSTER) {
     in_path = in_path,
     model_in_path = RF_obj_path,
     out_path = out_pth,
-    cut_off = cut_off,
     var_names = var_names,
     base_info = bs_inf,
     parallel = FALSE,
