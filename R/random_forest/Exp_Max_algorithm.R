@@ -32,7 +32,11 @@ exp_max_algorithm <- function(
     
     dd$wgt_prime <- (dd$pop_weight / dd$p_i) * dd$a_sum
     #dd$wgt_prime <- dd$pop_weight 
-
+    
+    isfin_log <- is.finite(dd$wgt_prime)
+    
+    dd$wgt_prime[!isfin_log] <- 1000
+    
     
     ### 2. modify the scaling factors to account for background data
     
