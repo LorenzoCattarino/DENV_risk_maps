@@ -11,6 +11,8 @@ library(scales)
 # ---------------------------------------- define parameters 
 
 
+model_tp <- "boot_model_20km_cw"
+
 gr_size <- 20
 
 res <- (1 / 120) * gr_size
@@ -21,27 +23,21 @@ lons <- seq(-180, 180, by = res)
 x <- file.path(
   "output",
   "predictions",
-  "best_model_20km_cw",
-  "world_0_1667_deg",
-  "pred_0_1667_deg_long.txt")
+  model_tp,
+  "pred_0_1667_deg_long.rds")
 
 out_path <- file.path(
   "figures", 
   "predictions",
-  "best_model_20km_cw",
-  "world_0_1667_deg")
+  model_tp)
 
-out_file_name <- paste("pred_0_1667_deg", "_0_05_deg.png", sep = "")
+out_file_name <- "pred_0_1667_deg.png"
 
 
 # ---------------------------------------- load data 
 
 
-all_preds <- fread(x,
-                   header = TRUE, 
-                   sep = ",",              
-                   fill = TRUE, 
-                   data.table = FALSE)
+all_preds <- readRDS(x)
 
 country_shp <- readOGR(dsn = file.path("output", "shapefiles"), layer = "gadm28_adm0_eras")
 
@@ -57,7 +53,8 @@ country_shp <- country_shp[!country_shp@data$NAME_ENGLI == "Caspian Sea", ]
 
 all_preds$lat.int=floor(all_preds$lat.grid*6+0.5)
 all_preds$long.int=floor(all_preds$long.grid*6+0.5)
-all_preds$foi=ifelse(all_preds$mean_pred<0.01,0,all_preds$mean_pred)
+all_preds$foi=ifelse(all_preds$mean_pred<0.005,0,all_preds$mean_pred)
+#all_preds$foi=all_preds$mean_pred
 
 lats.int=lats*6
 lons.int=lons*6
@@ -140,9 +137,9 @@ p <- ggplot(data = r_df, aes(x = x, y = y)) +
         plot.margin = unit(c(0, 0, 0, -0.09), "cm"),
         legend.position = c(dev.size()[1] * 0.005, dev.size()[1] * 0.008),
         legend.text = element_text(size = 25),
-        legend.title = element_text(face = "bold", size = 30),
-        legend.background = element_rect(fill = alpha("white", 0.2), colour = "gray50"),
-        panel.background = element_rect(fill = "#A6CEE3", colour = NA)) # lightblue2
+        legend.title = element_text(face = "bold", size = 30))#,
+        #legend.background = element_rect(fill = alpha("white", 0.2), colour = "gray50"),
+        #panel.background = element_rect(fill = "#A6CEE3", colour = NA)) # lightblue2
 
 print(p)
 
