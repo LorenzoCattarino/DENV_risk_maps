@@ -1,7 +1,7 @@
 wrapper_to_load_admin_dataset <- function(
   i, prediction_datasets, adm_levels, 
   bse_infs, sel_preds, parallel, 
-  cut_off, var_names, model_in_path, 
+  var_names, model_in_path, 
   out_path, no_fits, average){
   
   pred_dts <- prediction_datasets[[i]]
@@ -21,7 +21,6 @@ wrapper_to_load_admin_dataset <- function(
     predictors = sel_preds, 
     model_in_path = model_in_path,
     parallel = parallel,
-    cut_off = cut_off, 
     base_info = base_info, 
     var_names = var_names,
     no_fits = no_fits,
