@@ -1,7 +1,7 @@
 wrapper_to_make_preds <- function(
   dataset, predictors, model_in_path,
-  parallel, cut_off, base_info, 
-  var_names, no_fits, average, model_type){
+  parallel, base_info, var_names, 
+  no_fits, average, model_type){
   
   #browser()
   
@@ -27,8 +27,6 @@ wrapper_to_make_preds <- function(
     preds_all_models <- make_h2o_predictions(RF_obj, dataset_2, predictors)
       
   }
-  
-  preds_all_models[preds_all_models < cut_off] <- 0
   
   # if there is only one pixel in the dataset
   
