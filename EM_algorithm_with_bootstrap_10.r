@@ -143,3 +143,8 @@ RF_preds_vs_obs_plot_stratif(
   facet_var = "scale",
   file_name = fl_nm_av,
   file_path = out_path_av)
+
+# percentiles_train <- t(apply(produc_train, 1, quantile, probs = c(0.025, 0.975)))
+# percentiles_test <- t(apply(produc_test, 1, quantile, probs = c(0.025, 0.975)))
+# colnames(percentiles_train) <- c("low_perc_train", "up_perc_train")
+# colnames(percentiles_test) <- c("low_perc_test", "up_perc_test")
