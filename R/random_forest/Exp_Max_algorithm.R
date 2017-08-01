@@ -57,20 +57,8 @@ exp_max_algorithm <- function(
     min_wgt <- min(dd$wgt_prime)
     max_wgt <- max(dd$wgt_prime)
     
-    # case_weights <- dd$wgt_prime
-    
-    # training_dataset <- dd[, c("u_i", my_predictors)]
     training_dataset <- dd[, c("u_i", my_predictors, "wgt_prime")]
     #write.csv(training_dataset,"debug.csv")
-    
-    # RF_obj <- ranger(
-    #   formula = u_i ~ ., 
-    #   data = training_dataset, 
-    #   num.trees = no_trees, 
-    #   case.weights = case_weights, 
-    #   write.forest = TRUE, 
-    #   min.node.size = min_node_size,
-    #   verbose = TRUE)
     
     RF_obj <- fit_h2o_RF(dependent_variable = "u_i", 
                          predictors = my_predictors, 
@@ -80,7 +68,6 @@ exp_max_algorithm <- function(
                          my_weights = "wgt_prime", 
                          model_nm = RF_obj_name)
       
-    # RF_ms_i <- RF_obj$prediction.error
     RF_ms_i <- h2o.mse(RF_obj)
     
     
@@ -128,7 +115,6 @@ exp_max_algorithm <- function(
   }
   
   write_out_rds(dd, sq_pr_path, sq_pr_name)
-  # write_out_rds(RF_obj, RF_obj_path, RF_obj_name)
   h2o.saveModel(RF_obj, RF_obj_path, force = TRUE)
   write_out_rds(out_mat, diagn_tab_path, diagn_tab_name)
   
