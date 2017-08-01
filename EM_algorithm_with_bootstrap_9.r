@@ -36,7 +36,7 @@ RF_obj_path <- file.path(
   "output",
   "EM_algorithm",
   "optimized_model_objects",
-  "boot_samples")
+  model_type)
 
 tile_sets_path <- file.path(
   "data", 
