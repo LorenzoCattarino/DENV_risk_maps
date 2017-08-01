@@ -23,6 +23,8 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
+model_type <- "boot_model_20km_vw"
+
 no_fits <- 200
 
 dependent_variable <- "o_j"
@@ -39,30 +41,54 @@ pAbs_wgt <- 0.25
 
 niter <- 50
 
+wgt_ftcr <- 1
+
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
 boot_pxl_df_path <- file.path("output", "EM_algorithm", "env_variables_foi", "boot_samples")
 
 full_pxl_df_name <- "aggreg_pixel_level_env_vars_20km.rds"
 
-RF_out_pth <- file.path("output", "EM_algorithm", "optimized_model_objects", "boot_samples")
-
 RF_nm_all <- paste0("RF_obj_sample_", seq_len(no_fits), ".rds")
-
-diag_t_pth <- file.path("output", "EM_algorithm", "diagnostics", "boot_samples")
 
 diag_t_nm_all <- paste0("diagno_table_", seq_len(no_fits), ".rds")
 
-map_pth <- file.path("figures", "EM_algorithm", "boot_model_20km_cw", "maps", paste0("sample_", seq_len(no_fits)))
-  
 map_nm_all <- paste0("map_", seq_len(no_fits))
-
-sq_pred_pth <- file.path("output", "EM_algorithm", "square_predictions", "boot_samples")
 
 sq_pred_nm_all <- paste0("dd_debug_", seq_len(no_fits), ".rds")
 
-wgt_ftcr <- 1
-#wgt_ftcr <- 1 / 10000
+
+# ========================================
+# 
+# output paths - IMPORTANT!
+# 
+# ========================================
+
+
+RF_out_pth <- file.path(
+  "output", 
+  "EM_algorithm", 
+  "optimized_model_objects", 
+  model_type)
+
+diag_t_pth <- file.path(
+  "output", 
+  "EM_algorithm", 
+  "diagnostics", 
+  model_type)
+
+sq_pred_pth <- file.path(
+  "output", 
+  "EM_algorithm", 
+  "square_predictions", 
+  model_type)
+
+map_pth <- file.path(
+  "figures", 
+  "EM_algorithm", 
+  model_type, 
+  "maps", 
+  paste0("sample_", seq_len(no_fits)))
   
   
 # ---------------------------------------- are you using the cluster? 
@@ -171,13 +197,13 @@ if (CLUSTER) {
     niter = niter,
     all_wgt = all_wgt,
     pAbs_wgt = pAbs_wgt,
-    RF_obj_path = RF_out_pth, 
+    RF_obj_path = RF_out_pth,
     RF_obj_name = RF_nm_all,
-    diagn_tab_path = diag_t_pth, 
+    diagn_tab_path = diag_t_pth,
     diagn_tab_name = diag_t_nm_all,
-    map_path = map_pth, 
+    map_path = map_pth,
     map_name = map_nm_all,
-    sq_pr_path = sq_pred_pth, 
+    sq_pr_path = sq_pred_pth,
     sq_pr_name = sq_pred_nm_all,
     wgt_factor = wgt_ftcr)
 
@@ -197,13 +223,13 @@ if (CLUSTER) {
     niter = niter,
     all_wgt = all_wgt,
     pAbs_wgt = pAbs_wgt,
-    RF_obj_path = RF_out_pth, 
+    RF_obj_path = RF_out_pth,
     RF_obj_name = RF_nm_all,
-    diagn_tab_path = diag_t_pth, 
+    diagn_tab_path = diag_t_pth,
     diagn_tab_name = diag_t_nm_all,
-    map_path = map_pth, 
+    map_path = map_pth,
     map_name = map_nm_all,
-    sq_pr_path = sq_pred_pth, 
+    sq_pr_path = sq_pred_pth,
     sq_pr_name = sq_pred_nm_all,
     wgt_factor = wgt_ftcr)
 
