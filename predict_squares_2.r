@@ -26,25 +26,14 @@ cut_off <- 0
 
 model_tp <- "boot_model_20km_cw"
 
-gr_size <- 20 # km 
+bs_inf <- c("cell", "lat.grid", "long.grid", "population")
 
-if (gr_size == 1) {
-  bs_inf <- c("pixel_id", "latitude", "longitude", "population", "ADM_0", "ADM_1", "ADM_2")
-  in_path <- file.path("data", "env_variables", "all_sets_gadm_codes")
-  out_pth <- file.path("output", 
-                       "predictions", 
-                       model_tp,
-                       "tile_sets_0_0083_deg")
-} 
+in_path <- file.path("output", "env_variables", "all_sets_0_1667_deg")
 
-if (gr_size == 20) {
-  bs_inf <- c("cell", "lat.grid", "long.grid", "population")
-  in_path <- file.path("output", "env_variables", "all_sets_0_1667_deg")
-  out_pth <- file.path("output", 
-                       "predictions", 
-                       model_tp,
-                       "tile_sets_0_1667_deg")
-}
+out_pth <- file.path("output", 
+                     "predictions", 
+                     model_tp,
+                     "tile_sets_0_1667_deg")
 
 # var_names <- "mean_pred"
 var_names <- c("mean_pred" , "low_perc", "up_perc")
@@ -113,17 +102,11 @@ best_predictors <- predictor_rank$variable[1:9]
 # get tile ids
 tile_ids <- tile_summary$tile.id
 
-if (gr_size == 1) {
-  NA_pixel_tile_ids <- NA_pixel_tiles$tile_id
-}
-
-if (gr_size == 20){
-  NA_pixel_tile_ids <- c(217, 254, 288, 321, 326, 402, 
+NA_pixel_tile_ids <- c(217, 254, 288, 321, 326, 402, 
                          442, 458, 485, 486, 492, 493, 
                          494, 519, 520, 523, 530, 539, 
                          284, 289, 290, 291, 406, 432, 
                          433, 529)
-}
 
 tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]  
 
