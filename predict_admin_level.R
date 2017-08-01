@@ -36,8 +36,6 @@ if (CLUSTER) {
 # ---------------------------------------- define parameters
 
 
-cut_off <- 0
-
 adm_levels <- c(1, 2)
 
 bse_inf_1 <- c("OBJECTID", "ID_0", "country", "ID_1", "name1", "population")
@@ -101,7 +99,6 @@ if (CLUSTER) {
     bse_infs = bse_infs, 
     sel_preds = best_predictors, 
     parallel = FALSE,
-    cut_off = cut_off,
     var_names = var_names, 
     model_in_path = RF_obj_path,
     out_path = out_pth,
@@ -118,7 +115,6 @@ if (CLUSTER) {
     bse_infs = bse_infs, 
     sel_preds = best_predictors, 
     parallel = FALSE,
-    cut_off = cut_off,
     var_names = var_names, 
     model_in_path = RF_obj_path,
     out_path = out_pth,
