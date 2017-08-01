@@ -50,7 +50,7 @@ out_pt <- file.path("output", "predictions", model_type)
 # ---------------------------------------- get results
 
 
-my_task_id <- "clumsy_mosasaur"
+my_task_id <- "hot_takin"
 
 EM_alg_run_t <- obj$task_bundle_get(my_task_id)
 
