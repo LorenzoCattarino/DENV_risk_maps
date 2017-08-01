@@ -62,18 +62,22 @@ for (j in seq_len(no_fits)){
   
   for (i in seq_along(strip_labs)){
     
-    png(file.path(my_path, fig_file_tag[i]), 
-        width = 5, height = 4.5, units = "in",
-        res = 300)
-    
-    print(ggplot(data_to_plot, aes(iter, get(diagnostic_vars[i]))) +
+    p <- ggplot(data_to_plot, aes(iter, get(diagnostic_vars[i]))) +
           geom_line() +
           scale_x_continuous("Iterations") +
           scale_y_continuous(strip_labs[i]) +
           theme(axis.title.x = element_text(size = 12),
                 axis.title.y = element_text(size = 12),
                 axis.text.x = element_text(size = 12),
-                axis.text.y = element_text(size = 12)))
+                axis.text.y = element_text(size = 12))
+    
+    png(file.path(my_path, fig_file_tag[i]), 
+        width = 5, 
+        height = 4.5, 
+        units = "in",
+        res = 200)
+    
+    print(p)
     
     dev.off()
     
