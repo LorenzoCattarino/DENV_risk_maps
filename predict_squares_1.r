@@ -1,6 +1,6 @@
 # Resamples all the 1 km pixels, in each tile, to squares with a coarser resolution
 
-options(didewin.cluster = "fi--didemrchnb")
+options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
 
@@ -12,15 +12,15 @@ my_resources <- c(
 my_pkgs <- c("data.table", "dplyr")
 
 context::context_log_start()
-ctx <- context::context_save(packages = my_pkgs,
+ctx <- context::context_save(path = "context",
                              sources = my_resources,
-                             root = "context")
+                             packages = my_pkgs)
 
 
 # ---------------------------------------- define parameters
 
 
-in_pt <- file.path("data", "gadm_codes")
+in_pt <- file.path("data", "env_variables", "all_sets_gadm_codes")
 
 group_fields <- c("cell", "lat.grid", "long.grid")
 
@@ -39,7 +39,7 @@ out_pt <- file.path(
 
 if (CLUSTER) {
   
-  obj <- didewin::queue_didewin(ctx)
+  obj <- didehpc::queue_didehpc(ctx)
   
 } else {
   
