@@ -30,9 +30,9 @@ exp_max_algorithm <- function(
     
     dd <- left_join(pxl_dataset, a_sum)
     
-    #dd$wgt_prime <- (dd$pop_weight / dd$p_i) * dd$a_sum
-    dd$wgt_prime <- dd$pop_weight 
-    #dd$wgt_prime <- 1
+    dd$wgt_prime <- (dd$pop_weight / dd$p_i) * dd$a_sum
+    #dd$wgt_prime <- dd$pop_weight 
+
     
     ### 2. modify the scaling factors to account for background data
     
