@@ -1,8 +1,18 @@
-rm(list = ls())
+# Extracts age structure information from source csv file
+# (SOURCE: World Population Prospects - Population Division - United Nations)
 
+# load packages
 library(maptools)
 
+
+# ---------------------------------------- define parameters 
+
+
 col_classes <- c("integer", rep("character", 3), rep("integer", 2), rep("numeric", 22))
+
+out_pt <- file.path("output", "datasets")
+
+out_nm <- "country_age_structure.csv"
 
 
 # ---------------------------------------- load data
@@ -133,8 +143,6 @@ final_age_struct_data <- final_age_struct_data [order(final_age_struct_data$coun
 
 # write out 
 write.table(final_age_struct_data, 
-            file.path("output", 
-                      "datasets", 
-                      "country_age_structure.csv"), 
+            file.path(out_pt, out_nm), 
             row.names = FALSE, 
             sep = ",")
