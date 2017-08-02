@@ -75,6 +75,7 @@ for (j in seq_len(no_fits)){
         width = 5, 
         height = 4.5, 
         units = "in",
+        pointsize = 12,
         res = 200)
     
     print(p)
