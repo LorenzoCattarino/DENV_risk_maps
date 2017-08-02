@@ -1,3 +1,5 @@
+# Locates pseudo absence points
+
 # load packages
 library(maptools) 
 library(raster)
