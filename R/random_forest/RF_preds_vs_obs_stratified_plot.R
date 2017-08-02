@@ -54,11 +54,12 @@ RF_preds_vs_obs_plot_stratif <- function (
   
   dir.create(file_path, FALSE, TRUE)
   
-  jpeg(filename = file.path(file_path, file_name), 
-       width = 10, 
-       height = 6, 
-       units = "in", 
-       res = 200)
+  png(filename = file.path(file_path, file_name), 
+      width = 10, 
+      height = 6, 
+      units = "in", 
+      pointsize = 12,
+      res = 200)
   
   print(p3)
   
