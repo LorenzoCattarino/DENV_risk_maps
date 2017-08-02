@@ -1,4 +1,6 @@
-# load packages
+# Assigns an adm 0, adm 1 and adm 2 gadm code to each pseudo absence point
+ 
+ # load packages
 library(maptools)
 
 
