@@ -9,7 +9,10 @@ source(file.path("R", "prepare_datasets", "get_admin_unit_names.r"))
 source(file.path("R", "prepare_datasets", "get_geocode_results.r"))
 source(file.path("R", "utility_functions.r"))
 
-# load data 
+
+# ---------------------------------------- define parameters 
+
+
 datasets <- c(
   "NonSerotypeSpecificDatasets",
   "SerotypeSpecificDatasets",
@@ -17,32 +20,33 @@ datasets <- c(
   "additional_India_sero_data",
   "All_caseReport_datasets")  
 
-dts_names <- sapply(datasets, function(x) paste(x, "csv", sep = "."), USE.NAMES = FALSE)
+fields <- c("type", "ID_0", "ISO",
+            "country", "ID_1", "adm1",
+            "FOI", "variance", "latitude",
+            "longitude", "reference", "date")
 
-dts_paths <- sapply(dts_names, function(x) file.path("data", "foi", x), USE.NAMES = FALSE)
+foi_out_pt <- file.path("output", "foi")
+foi_out_nm <- "All_FOI_estimates_linear.txt"
 
-all_dts <- lapply(dts_paths, read.csv, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+deng_count_pt <- file.path("output", "datasets") 
+deng_count_nm <- "dengue_point_countries.csv"
 
 
 # ---------------------------------------- pre processing
 
 
-fields <- c(
-  "type",
-  "ID_0",
-  "ISO",
-  "country",
-  "ID_1",
-  "adm1",
-  "FOI",
-  "variance",  
-  "latitude",
-  "longitude",
-  "reference",
-  "date")
-
 output_dts <- vector("list", length = length(datasets))
-  
+
+dts_names <- sapply(datasets, function(x) paste(x, "csv", sep = "."), USE.NAMES = FALSE)
+
+dts_paths <- sapply(dts_names, function(x) file.path("data", "foi", x), USE.NAMES = FALSE)
+
+
+# ---------------------------------------- load data
+
+
+all_dts <- lapply(dts_paths, read.csv, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+
 
 # ---------------------------------------- run 
 
@@ -96,17 +100,18 @@ All_FOI_estimates <- cbind(data_id = seq_len(nrow(All_FOI_estimates)), All_FOI_e
 
 dengue_point_countries <- All_FOI_estimates[!duplicated(All_FOI_estimates[, c("country", "ID_0")]), c("country", "ID_0")]
 
+
+# ---------------------------------------- save 
+
+
 write.table(All_FOI_estimates, 
-            file.path("output", "foi", "All_FOI_estimates_linear.txt"), 
+            file.path(foi_out_pt, foi_out_nm), 
             row.names = FALSE, 
             sep = ",")
 
-write.table(dengue_point_countries[order(as.character(dengue_point_countries$country)), ], 
-            file.path("output", 
-                      "datasets", 
-                      "dengue_point_countries.csv"), 
-            row.names = FALSE, 
-            sep = ",")
+write.csv(dengue_point_countries[order(as.character(dengue_point_countries$country)), ], 
+          file.path(deng_count_pt, deng_count_nm), 
+          row.names = FALSE)
 
 
 # # ---------------------------------------- Calculate FOI^2  
