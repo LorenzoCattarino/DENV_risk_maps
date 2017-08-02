@@ -1,3 +1,5 @@
+# For each original foi estimate, calculates the corresponding R0 (only one assumption)
+
 # load packages
 library(ggplot2)
 library(grid)
