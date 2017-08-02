@@ -85,7 +85,7 @@ for (i in seq_len(no_fits)) {
     measure.vars = c("adm_pred", "mean_square_pred", "mean_pxl_pred"),
     variable.name = "scale")
   
-  fl_nm <- paste0("pred_vs_obs_plot_sample_", i,".jpg")
+  fl_nm <- paste0("pred_vs_obs_plot_sample_", i,".png")
   
   RF_preds_vs_obs_plot_stratif(
     df = dts_mlt,
@@ -134,7 +134,7 @@ all_av_preds_mlt <- melt(
   measure.vars = c("admin", "square", "pixel"),
   variable.name = "scale")
 
-fl_nm_av <- paste0("pred_vs_obs_plot_averages.jpg")
+fl_nm_av <- paste0("pred_vs_obs_plot_averages.png")
 
 RF_preds_vs_obs_plot_stratif(
   df = all_av_preds_mlt,
