@@ -11,6 +11,18 @@ source(file.path("R", "burden_and_interventions", "calculate_average_infect_prob
 source(file.path("R", "burden_and_interventions", "calculate_R0.r"))
 
 
+# ---------------------------------------- define parameters
+
+
+m_flds <- c("ID_0", "ID_1")
+
+interm_outs <- c("R0")
+
+base_info <- c("data_id", "ID_0", "ID_1", "FOI", "variance", "population")
+
+my_phis <- c(1, 1, 1, 1)
+
+
 # ---------------------------------------- load data 
 
 
@@ -29,18 +41,6 @@ adm_1_env_vars <- read.csv(
   file.path("output", 
             "env_variables", 
             "All_adm1_env_var.csv"))
-
-
-# ---------------------------------------- define parameters
-
-
-m_flds <- c("ID_0", "ID_1")
-
-interm_outs <- c("R0")
-
-base_info <- c("data_id", "ID_0", "ID_1", "FOI", "variance", "population")
-
-my_phis <- c(1, 1, 1, 1)
 
 
 # ---------------------------------------- extract info from age structure 
