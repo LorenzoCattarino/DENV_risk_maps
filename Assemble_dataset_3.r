@@ -3,7 +3,20 @@ library(maptools)
 library(raster)
 library(rgeos)
 
-# load data 
+
+# ---------------------------------------- define paramaters 
+
+
+pseudo_absence_proportion <- 1
+
+out_pt <- file.path("output", "datasets")
+
+out_nm <- "pseudo_absence_points.csv"
+
+
+# ---------------------------------------- load data
+
+
 All_FOI_estimates <- read.table(
   file.path("output", 
             "foi", 
@@ -16,12 +29,18 @@ world_shp_admin_1_dengue <- readShapePoly(
             "shapefiles", 
             "gadm28_levels.shp", 
             "gadm28_adm1_dengue"))
-  
-no_data_points <- nrow(All_FOI_estimates) 
 
-pseudo_absence_proportion <- 1
+  
+# ---------------------------------------- pre processing
+
+
+no_data_points <- nrow(All_FOI_estimates) 
   
 no_pseudo_absence_points <- floor(no_data_points * pseudo_absence_proportion)  
+
+
+# ---------------------------------------- run
+
 
 world_shp_admin_1_dengue_cropped <- crop(
   world_shp_admin_1_dengue, 
@@ -99,8 +118,10 @@ psAbs_df3 <- data.frame(type = "pseudoAbsence",
 
 all_psAbs <- rbind(psAbs_df1, psAbs_df2, psAbs_df3)
 
+
+# ---------------------------------------- save
+
+
 write.csv(all_psAbs, 
-          file.path("output", 
-                    "datasets", 
-                    "pseudo_absence_points.csv"), 
+          file.path(out_pt, out_nm), 
           row.names = FALSE)
