@@ -1,3 +1,5 @@
+# Combines the foi estimates from different studies / sources  into a single data frame
+
 # load packages
 library(ggmap)
 library(maptools)
