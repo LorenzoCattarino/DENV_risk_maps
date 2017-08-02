@@ -141,8 +141,10 @@ final_age_struct_data[final_age_struct_data$country == "Guernsey", c("Reference_
 # Sort by country name
 final_age_struct_data <- final_age_struct_data [order(final_age_struct_data$country), ]
 
-# write out 
-write.table(final_age_struct_data, 
-            file.path(out_pt, out_nm), 
-            row.names = FALSE, 
-            sep = ",")
+
+# ---------------------------------------- save  
+
+
+write.csv(final_age_struct_data, 
+          file.path(out_pt, out_nm), 
+          row.names = FALSE)
