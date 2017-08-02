@@ -1,3 +1,5 @@
+# Creates a map of the dataset point and dengue presence-absence mask 
+
 # load packages
 library(maptools) 
 library(dplyr)
