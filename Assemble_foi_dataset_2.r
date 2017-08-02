@@ -1,181 +1,199 @@
-# For each original foi estimate, calculates the corresponding R0 (only one assumption)
+# Combines the foi estimates from different studies / sources  into a single data frame
 
 # load packages
-library(ggplot2)
-library(grid)
+library(ggmap)
+library(maptools)
+library(geosphere)
+library(boot)
 
 # load functions 
-source(file.path("R", "burden_and_interventions", "get_age_band_bounds.r"))
-source(file.path("R", "burden_and_interventions", "wrapper_to_get_R0.r"))
-source(file.path("R", "burden_and_interventions", "calculate_probabilities_and_R0.r"))
-source(file.path("R", "burden_and_interventions", "calculate_infection_probability_and_number.r"))
-source(file.path("R", "burden_and_interventions", "calculate_average_infect_probab.r"))
-source(file.path("R", "burden_and_interventions", "calculate_R0.r"))
+source(file.path("R", "prepare_datasets", "get_admin_unit_names.r"))
+source(file.path("R", "prepare_datasets", "get_geocode_results.r"))
+source(file.path("R", "utility_functions.r"))
 
 
-# ---------------------------------------- define parameters
+# ---------------------------------------- define parameters 
 
 
-m_flds <- c("ID_0", "ID_1")
+datasets <- c("NonSerotypeSpecificDatasets",
+              "SerotypeSpecificDatasets",
+              "All_caseReport_datasets",  
+              "additional serology",
+              "additional_India_sero_data_Garg",
+              "additional_India_sero_data_Shah")  
 
-interm_outs <- c("R0")
+fields <- c("type", "ID_0", "ISO",
+            "country", "ID_1", "adm1",
+            "FOI", "variance", "latitude",
+            "longitude", "reference", "date")
 
-base_info <- c("data_id", "ID_0", "ID_1", "FOI", "variance", "population")
+foi_out_pt <- file.path("output", "foi")
+foi_out_nm <- "All_FOI_estimates_linear.txt"
 
-my_phis <- c(1, 1, 1, 1)
-
-
-# ---------------------------------------- load data 
-
-
-All_FOI_estimates <- read.table(
-  file.path("output", "foi", "All_FOI_estimates_linear.txt"), 
-  header = TRUE, 
-  sep = ",", 
-  stringsAsFactors = FALSE)
-
-country_age_struc <- read.csv(
-  file.path("output", 
-            "datasets", 
-            "country_age_structure.csv"))
-
-adm_1_env_vars <- read.csv(
-  file.path("output", 
-            "env_variables", 
-            "All_adm1_env_var.csv"))
+deng_count_pt <- file.path("output", "datasets") 
+deng_count_nm <- "dengue_point_countries.csv"
 
 
-# ---------------------------------------- extract info from age structure 
+# ---------------------------------------- pre processing
 
 
-# Get names of age band columns
-age_band_tgs <- grep("band", names(country_age_struc), value = TRUE)
+output_dts <- vector("list", length = length(datasets))
 
-# Get age band bounds
-age_band_bnds <- get_age_band_bounds(age_band_tgs)
+dts_names <- sapply(datasets, function(x) paste(x, "csv", sep = "."), USE.NAMES = FALSE)
 
-age_band_L_bounds <- age_band_bnds[, 1]
-
-age_band_U_bounds <- age_band_bnds[, 2] + 1
+dts_paths <- sapply(dts_names, function(x) file.path("data", "foi", x), USE.NAMES = FALSE)
 
 
-# ---------------------------------------- pre process age structure
+# ---------------------------------------- load data
 
 
-zero_age_str_countries <- apply(country_age_struc[, age_band_tgs], 1, sum) == 0
-
-country_age_struc <- country_age_struc[!zero_age_str_countries, ]
+all_dts <- lapply(dts_paths, read.csv, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 
 
-# ---------------------------------------- pre process FOI dataset
-
-# Remove missing values 
-All_FOI_estimates_2 <- All_FOI_estimates[!is.na(All_FOI_estimates$FOI), ]
+# ---------------------------------------- run 
 
 
-# ---------------------------------------- preprocess admin dataset
+for (i in 1:length(datasets)){
+
+  one_dts <- all_dts[[i]]  
+  
+  # Add `type` field
+  if(i == length(datasets)){
+    
+    one_dts$type <- "caseReport"
+    
+  }else{
+    
+    one_dts$type <- "serology"
+    
+  }
+  
+  # convert dfs to lists 
+  one_dts_ls <- df_to_list(one_dts, use_names = TRUE)  
+  
+  # get shp file info
+  shp_info <- sapply(one_dts_ls, get_admin_name, country_code_fld = "ISO")  
+  
+  # attach to main datasets 
+  one_dts$latitude <- shp_info[3,]
+  one_dts$longitude <- shp_info[2,]
+  one_dts$adm1 <- shp_info[1,]
+  one_dts$ID_0 <- shp_info[4,]
+  one_dts$ID_1 <- shp_info[5,]
+  
+  output_dts[[i]] <- one_dts
+  
+}
+
+# subset
+output_dts_2 <- lapply(output_dts, function(x) x[, fields])
+
+# bind all together 
+All_FOI_estimates <- do.call("rbind", output_dts_2)
+
+# remove missing data 
+All_FOI_estimates <- subset(All_FOI_estimates, !is.na(FOI))
+  
+# remove outliers 
+All_FOI_estimates <- subset(All_FOI_estimates, ISO != "PYF" & ISO != "HTI")
+
+# add point ID (you will need it when doing the spatial disaggregation)
+All_FOI_estimates <- cbind(data_id = seq_len(nrow(All_FOI_estimates)), All_FOI_estimates)
+
+dengue_point_countries <- All_FOI_estimates[!duplicated(All_FOI_estimates[, c("country", "ID_0")]), c("country", "ID_0")]
 
 
-adm_1_env_vars <- adm_1_env_vars[!duplicated(adm_1_env_vars[, m_flds]), ]
+# ---------------------------------------- save 
 
 
-# ---------------------------------------- merge population data
-
-
-All_FOI_estimates_3 <- merge(
-  All_FOI_estimates_2, 
-  adm_1_env_vars[, c(m_flds, "population")], 
-  by = m_flds, 
-  all.y = FALSE)
-
-
-# ---------------------------------------- filter out data points with NA age structure data
-
-
-dd <- setNames(data.frame(country_age_struc[, m_flds[1]]), nm = m_flds[1])
-
-All_FOI_estimates_4 <- merge(
-  All_FOI_estimates_3, 
-  dd, 
-  by = m_flds[1], 
-  all.y = FALSE)
-
-
-# ---------------------------------------- convert to matrix
-
-
-All_FOI_estimates_5 <- as.matrix(All_FOI_estimates_4[, base_info])
-
-rownames(All_FOI_estimates_5) <- NULL
-
-
-# ---------------------------------------- calculate R0
-
-
-R_0 <- apply(
-  All_FOI_estimates_5, 
-  1, 
-  wrapper_to_get_R0, 
-  age_data = country_age_struc, 
-  age_band_lower_bounds = age_band_L_bounds, 
-  age_band_upper_bounds = age_band_U_bounds, 
-  age_band_tags = age_band_tgs,
-  vec_phis = my_phis,
-  info_1 = interm_outs)
-
-
-# ---------------------------------------- attach back base info
-
-
-All_R_0_estimates <- data.frame(
-  type = All_FOI_estimates_4$type,
-  ISO = All_FOI_estimates_4$ISO,
-  longitude = All_FOI_estimates_4$longitude,
-  latitude = All_FOI_estimates_4$latitude,
-  All_FOI_estimates_5, 
-  R_0)
-
-
-# ---------------------------------------- save output
-
-
-write.table(All_R_0_estimates, 
-            file.path("output", "R_0", "All_R_0_estimates.csv"), 
+write.table(All_FOI_estimates, 
+            file.path(foi_out_pt, foi_out_nm), 
             row.names = FALSE, 
             sep = ",")
 
+write.csv(dengue_point_countries[order(as.character(dengue_point_countries$country)), ], 
+          file.path(deng_count_pt, deng_count_nm), 
+          row.names = FALSE)
 
-# ---------------------------------------- plot 
 
-
-All_R_0_estimates <- All_R_0_estimates[order(All_R_0_estimates$FOI), ]
-
-All_R_0_estimates$ID_point <- seq_len(nrow(All_R_0_estimates))
-
-png(file.path("figures", "reprod_number_plot.png"), 
-    width = 20, 
-    height = 14, 
-    units = "in", 
-    pointsize = 12,
-    bg = "white", 
-    res = 300)
-
-lambda_plot <- ggplot(All_R_0_estimates, aes(x = ID_point, y = FOI, colour = type)) +
-               geom_point(size = 0.8) +
-               scale_x_continuous(name = "Country code", breaks = seq_len(nrow(All_R_0_estimates)), 
-                                  expand = c(0.002, 0)) +
-               scale_y_continuous(name = "FOI") +
-               theme(axis.text.x = element_text(size = 5, angle = 90, hjust = 0.5, vjust = 0.5),
-                     panel.grid.minor = element_blank())
-
-R_0_plot <- ggplot(All_R_0_estimates, aes(x = ID_point, y = R_0, colour = type)) +
-            geom_point(size = 0.8) +
-            scale_x_continuous(name = "Country code", breaks = seq_len(nrow(All_R_0_estimates)), 
-                               expand = c(0.002, 0)) +
-            scale_y_continuous(name = "R_0") +
-            theme(axis.text.x = element_text(size = 5, angle = 90, hjust = 0.5, vjust = 0.5),
-                  panel.grid.minor = element_blank())
-
-grid.draw(rbind(ggplotGrob(lambda_plot), ggplotGrob(R_0_plot), size = "first"))
-                   
-dev.off()
+# # ---------------------------------------- Calculate FOI^2  
+# 
+# 
+# All_FOI_estimates$FOI <- All_FOI_estimates$FOI^2
+# 
+# write.table(All_FOI_estimates, 
+#             file.path("data", "foi", "All_FOI_estimates_squared.csv"), row.names = FALSE, sep = ",")
+# 
+# 
+# #--------------------------------------------------------------------------------------------------------------
+# # Calculate mean and se of FOI on the log scale, 
+# # by assuming that FOI on the linear scale is lognormally distributed
+# 
+# get.mean.logscale <- function(mean_lognormal, var_lognormal)
+# {
+#   log(mean_lognormal^2 / sqrt(var_lognormal + mean_lognormal^2))  
+# }  
+#   
+# get.var.logscale <- function(mean_lognormal, var_lognormal)
+# {
+#   log(1 + (var_lognormal / mean_lognormal^2))  
+# }  
+# 
+# NonSerotypeSpecific_datasets_adm_names$FOI_logscale <- get.mean.logscale(NonSerotypeSpecific_datasets_adm_names$FOI, 
+#                                                                          NonSerotypeSpecific_datasets_adm_names$variance)
+# 
+# NonSerotypeSpecific_datasets_adm_names$var_logscale <- get.var.logscale(NonSerotypeSpecific_datasets_adm_names$FOI, 
+#                                                                         NonSerotypeSpecific_datasets_adm_names$variance)
+# 
+# SerotypeSpecific_datasets_adm_names$FOI_logscale <- get.mean.logscale(SerotypeSpecific_datasets_adm_names$FOI,
+#                                                                       SerotypeSpecific_datasets_adm_names$variance)
+# 
+# SerotypeSpecific_datasets_adm_names$var_logscale <- get.var.logscale(SerotypeSpecific_datasets_adm_names$FOI,
+#                                                                      SerotypeSpecific_datasets_adm_names$variance)
+# 
+# additional_serology_datasets_adm_names$FOI_logscale <- get.mean.logscale(additional_serology_datasets_adm_names$FOI,
+#                                                                          additional_serology_datasets_adm_names$variance)
+# 
+# additional_serology_datasets_adm_names$var_logscale <- get.var.logscale(additional_serology_datasets_adm_names$FOI,
+#                                                                         additional_serology_datasets_adm_names$variance)
+# 
+# caseReport_datasets_adm_names$FOI_logscale <- log(caseReport_datasets_adm_names$FOI)
+# 
+# All_FOI_estimates_log_scale <- rbind(NonSerotypeSpecific_datasets_adm_names[, c("type","country","country_code","adm1","latitude","longitude","FOI_logscale","var_logscale")],
+#                                      SerotypeSpecific_datasets_adm_names[, c("type","country","country_code","adm1","latitude","longitude","FOI_logscale","var_logscale")],
+#                                      additional_serology_datasets_adm_names[, c("type","country","country_code","adm1","latitude","longitude","FOI_logscale","var_logscale")],
+#                                      caseReport_datasets_adm_names[, c("type","country","country_code","adm1","latitude","longitude","FOI_logscale","var_logscale")])
+# 
+# names(All_FOI_estimates_log_scale)[7:8] <- c("FOI", "variance")
+# 
+# write.table(All_FOI_estimates_log_scale, 
+#             file.path("data", "foi", "All_FOI_estimates_log_scale.csv"), row.names=FALSE, sep=",")
+# 
+# # Check density plot of variance on linear and log scale 
+# plot(density(x = All_FOI_estimates$variance, na.rm = TRUE))
+# plot(density(x = All_FOI_estimates_log_scale$variance, na.rm = TRUE))
+# 
+# tiff("histogram_of_variance_linear_scale.tiff")
+# print(hist(All_FOI_estimates$variance, breaks=1000, main = "linear scale"))
+# dev.off()
+# 
+# tiff("histogram_of_variance_log_scale.tiff")
+# print(hist(All_FOI_estimates_log_scale$variance, breaks=1000, main = "log scale"))
+# dev.off()
+# 
+# 
+# #--------------------------------------------------------------------------------------------------------------
+# # Calculate logit(FOI)  
+# 
+# All_FOI_estimates$FOI <- logit(All_FOI_estimates$FOI)
+# 
+# write.table(All_FOI_estimates, 
+#             file.path("data", "foi", "All_FOI_estimates_logit_scale.csv"), row.names=FALSE, sep=",")
+# 
+# #--------------------------------------------------------------------------------------------------------------
+# # Calculate 1/FOI  
+# 
+# All_FOI_estimates$FOI <- 1 / All_FOI_estimates$FOI
+# 
+# write.table(All_FOI_estimates, 
+#             file.path("data", "foi", "All_FOI_estimates_inverse.csv"), row.names = FALSE, sep = ",")

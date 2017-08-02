@@ -1,92 +1,129 @@
-# Assigns an adm 0, adm 1 and adm 2 gadm code to each pseudo absence point
- 
- # load packages
-library(maptools)
+# Locates pseudo absence points
+
+# load packages
+library(maptools) 
+library(raster)
+library(rgeos)
 
 
 # ---------------------------------------- define paramaters 
 
 
-out_pt <- file.path("output", "datasets") 
+pseudo_absence_proportion <- 1
 
-out_nm <- "pseudo_absence_points_NUM_CODES.csv"
+out_pt <- file.path("output", "datasets")
+
+out_nm <- "pseudo_absence_points.csv"
 
 
 # ---------------------------------------- load data
 
 
-pseudo_absence_points <- read.csv(
+All_FOI_estimates <- read.table(
   file.path("output", 
-            "datasets", 
-            "pseudo_absence_points.csv"), 
+            "foi", 
+            "All_FOI_estimates_linear.txt"), 
   header = TRUE, 
-  sep = ",", 
-  stringsAsFactors = FALSE)
+  sep = ",")
 
-# national border shapefile
-adm1_shp_fl <- readShapePoly(
-  file.path("data", 
+world_shp_admin_1_dengue <- readShapePoly(
+  file.path("data",
             "shapefiles", 
             "gadm28_levels.shp", 
-            "gadm28_adm1.shp"))
+            "gadm28_adm1_dengue"))
 
-adm2_shp_fl <- readShapePoly(
-  file.path("data", 
-            "shapefiles", 
-            "gadm28_levels.shp", 
-            "gadm28_adm2.shp"))
+  
+# ---------------------------------------- pre processing
 
 
-# ---------------------------------------- run 
+no_data_points <- nrow(All_FOI_estimates) 
+  
+no_pseudo_absence_points <- floor(no_data_points * pseudo_absence_proportion)  
 
 
-pseudo_absence_points$ID_0 <- 0
-pseudo_absence_points$ID_1 <- 0
-pseudo_absence_points$ID_2 <- 0
+# ---------------------------------------- run
 
-for (i in 1:nrow(pseudo_absence_points)){
-  
-  cat("row number =", i, "\n")
-  
-  c_name <- pseudo_absence_points[i, "ISO"]
-  cat("country code =", c_name, "\n")
-  
-  adm1_code <- pseudo_absence_points[i, "adm1"]
-  cat("admin 1 code =", adm1_code, "\n")
-  
-  lng <- pseudo_absence_points[i, "longitude"]
-  cat("longitude =", lng, "\n")
-  
-  lat <- pseudo_absence_points[i, "latitude"] 
-  cat("latitude =", lat, "\n")
-  
-  location_xy <- data.frame(lng, lat)
-    
-  overlay <- over(SpatialPoints(location_xy), adm2_shp_fl)
-  
-  ID_2 <- overlay$ID_2
-  
-  my_sub <- adm1_shp_fl@data[adm1_shp_fl@data$ISO == c_name & adm1_shp_fl@data$NAME_1 == adm1_code, ] 
-  
-  if(nrow(my_sub) > 1){
-    
-    warning("more one than 1 match")
-    
-    ID_0 <- my_sub[1, "ID_0"]
-    ID_1 <- my_sub[1, "ID_1"]
-  
-  }else{
-    
-    ID_0 <- my_sub$ID_0
-    ID_1 <- my_sub$ID_1
-    
-  }
-  
-  pseudo_absence_points[i, "ID_0"] <- ID_0
-  pseudo_absence_points[i, "ID_1"] <- ID_1
-  pseudo_absence_points[i, "ID_2"] <- ID_2
-}
 
-write.csv(pseudo_absence_points,
-  file.path(out_pt, out_nm), 
-  row.names = FALSE)
+world_shp_admin_1_dengue_cropped <- crop(
+  world_shp_admin_1_dengue, 
+  extent(bbox(world_shp_admin_1_dengue)[1,1], 
+         bbox(world_shp_admin_1_dengue)[1,2], 
+         bbox(world_shp_admin_1_dengue)[2,1], 60))
+
+sub_world <- subset(world_shp_admin_1_dengue_cropped, world_shp_admin_1_dengue_cropped@data$dengue == 0)
+
+# Sample pseudo absences 
+pseudo_absence_points <- spsample(sub_world, 
+                                  n = no_pseudo_absence_points, 
+                                  type = "random")
+
+# Get admin 1 names for pseudo absence points  
+overlay_1 <- over(pseudo_absence_points, world_shp_admin_1_dengue)
+
+# Create df
+psAbs_df1 <- data.frame(type = "pseudoAbsence",
+                        ID_0 = overlay_1$ID_0,
+                        country = overlay_1$NAME_0, 
+                        country_code = overlay_1$ISO, 
+                        ID_1 = overlay_1$ID_1,
+                        adm1 = overlay_1$NAME_1, 
+                        latitude = pseudo_absence_points@coords[,"y"],
+                        longitude = pseudo_absence_points@coords[,"x"])
+
+
+# ---------------------------------------- customize the pseudo absence set
+
+
+# subset Ireland from the world shp 
+all_adm1_IRL <- world_shp_admin_1_dengue_cropped[world_shp_admin_1_dengue_cropped@data$NAME_0 == "Ireland",]
+
+# sample adm 1 in Ireland 
+IRL_adm_ids <- sample(1:nrow(all_adm1_IRL@data), 2, replace = FALSE)
+
+# get the Irish polygons
+IRL_adm <- all_adm1_IRL[IRL_adm_ids, ]
+
+# transform the polygons to spatial points (using polygon centroids) 
+irish_point <- SpatialPoints(coordinates(IRL_adm))
+
+# sample one point in Scotland 
+scottish_point <- spsample(
+  subset(world_shp_admin_1_dengue_cropped, world_shp_admin_1_dengue_cropped@data$NAME_1 == "Scotland"), 
+  n = 2, 
+  type = "random")
+
+overlay_2 <- over(irish_point, world_shp_admin_1_dengue)
+
+psAbs_df2 <- data.frame(type = "pseudoAbsence",
+                        ID_0 = overlay_2$ID_0,
+                        country = overlay_2$NAME_0, 
+                        country_code = overlay_2$ISO, 
+                        ID_1 = overlay_2$ID_1,
+                        adm1 = overlay_2$NAME_1, 
+                        latitude = irish_point@coords[, 2],
+                        longitude = irish_point@coords[, 1])
+
+overlay_3 <- over(scottish_point, world_shp_admin_1_dengue)
+
+psAbs_df3 <- data.frame(type = "pseudoAbsence",
+                        ID_0 = overlay_3$ID_0,
+                        country = overlay_3$NAME_0, 
+                        country_code = overlay_3$ISO, 
+                        ID_1 = overlay_3$ID_1,
+                        adm1 = overlay_3$NAME_1, 
+                        latitude = scottish_point@coords[,"y"],
+                        longitude = scottish_point@coords[,"x"])
+
+
+# ---------------------------------------- rbind all pseudoabsences
+
+
+all_psAbs <- rbind(psAbs_df1, psAbs_df2, psAbs_df3)
+
+
+# ---------------------------------------- save
+
+
+write.csv(all_psAbs, 
+          file.path(out_pt, out_nm), 
+          row.names = FALSE)
