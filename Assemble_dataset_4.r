@@ -1,10 +1,25 @@
+# load packages
 library(maptools)
+
+
+# ---------------------------------------- define paramaters 
+
+
+out_pt <- file.path("output", "datasets") 
+
+out_nm <- "pseudo_absence_points_NUM_CODES.csv"
+
+
+# ---------------------------------------- load data
+
 
 pseudo_absence_points <- read.csv(
   file.path("output", 
             "datasets", 
             "pseudo_absence_points.csv"), 
-  header = TRUE, sep = ",", stringsAsFactors = FALSE)
+  header = TRUE, 
+  sep = ",", 
+  stringsAsFactors = FALSE)
 
 # national border shapefile
 adm1_shp_fl <- readShapePoly(
@@ -18,6 +33,10 @@ adm2_shp_fl <- readShapePoly(
             "shapefiles", 
             "gadm28_levels.shp", 
             "gadm28_adm2.shp"))
+
+
+# ---------------------------------------- run 
+
 
 pseudo_absence_points$ID_0 <- 0
 pseudo_absence_points$ID_1 <- 0
@@ -67,7 +86,5 @@ for (i in 1:nrow(pseudo_absence_points)){
 }
 
 write.csv(pseudo_absence_points,
-  file.path("output", 
-            "datasets", 
-            "pseudo_absence_points_NUM_CODES.csv"), 
+  file.path(out_pt, out_nm), 
   row.names = FALSE)
