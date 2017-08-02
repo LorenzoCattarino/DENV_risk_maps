@@ -1,3 +1,6 @@
+# Removes duplicate pseudo absence points in each adm0-adm1 combination
+# It helps containing the number of pseudo absences when disaggregating the dataset
+
 # load packages
 library(maptools)
 
