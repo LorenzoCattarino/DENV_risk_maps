@@ -13,12 +13,12 @@ source(file.path("R", "utility_functions.r"))
 # ---------------------------------------- define parameters 
 
 
-datasets <- c(
-  "NonSerotypeSpecificDatasets",
-  "SerotypeSpecificDatasets",
-  "additional serology",
-  "additional_India_sero_data",
-  "All_caseReport_datasets")  
+datasets <- c("NonSerotypeSpecificDatasets",
+              "SerotypeSpecificDatasets",
+              "All_caseReport_datasets",  
+              "additional serology",
+              "additional_India_sero_data_Garg",
+              "additional_India_sero_data_Shah")  
 
 fields <- c("type", "ID_0", "ISO",
             "country", "ID_1", "adm1",
