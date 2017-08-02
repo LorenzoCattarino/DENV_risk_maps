@@ -1,3 +1,5 @@
+# Finds the value of the environmental covariates for each point (real and pseudo absence) in the dataset 
+
 # load functions 
 source(file.path("R", "prepare_datasets", "get_env_variables.r"))
 source(file.path("R", "utility_functions.r"))
