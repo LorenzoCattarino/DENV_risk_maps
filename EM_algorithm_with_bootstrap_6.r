@@ -25,7 +25,9 @@ ctx <- context::context_save(path = "context",
 
 model_type <- "boot_model_20km_vw"
 
-no_fits <- 200
+no_fits <- 50
+
+niter <- 50
 
 dependent_variable <- "o_j"
 
@@ -38,8 +40,6 @@ pseudoAbs_value <- 0
 all_wgt <- 1
 
 pAbs_wgt <- 0.25
-
-niter <- 50
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
