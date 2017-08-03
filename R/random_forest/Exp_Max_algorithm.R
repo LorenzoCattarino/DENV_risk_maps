@@ -37,7 +37,6 @@ exp_max_algorithm <- function(
     # isfin_log <- is.finite(dd$wgt_prime)
     # max_fin_wgt <- max(dd$wgt_prime[isfin_log])
     # dd$wgt_prime <- ifelse(is.infinite(dd$wgt_prime), max_fin_wgt, dd$wgt_prime) 
-
     
     
     # -------------------------------------- 2. modify the scaling factors to account for background data
@@ -116,8 +115,11 @@ exp_max_algorithm <- function(
     
     ss_j <- sum(aa$new_weight * (aa$mean_p_i - aa$o_j)^2)
     
-    out_mat[i,] <- c(RF_ms_i, ss_i, ss_j, min_wgt, max_wgt, n_NA_pred)
     
+    # --------------------------------------
+    
+    
+    out_mat[i,] <- c(RF_ms_i, ss_i, ss_j, min_wgt, max_wgt, n_NA_pred)
     
     pxl_dataset$p_i <- dd$p_i
     
