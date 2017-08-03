@@ -23,7 +23,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_type <- "boot_model_20km_vw"
+model_type <- "boot_model_20km_epw"
 
 no_fits <- 50
 
@@ -66,20 +66,20 @@ sq_pred_nm_all <- paste0("dd_debug_", seq_len(no_fits), ".rds")
 RF_out_pth <- file.path(
   "output", 
   "EM_algorithm", 
-  "optimized_model_objects", 
-  model_type)
+  model_type,
+  "optimized_model_objects")
 
 diag_t_pth <- file.path(
   "output", 
   "EM_algorithm", 
-  "diagnostics", 
-  model_type)
+  model_type,
+  "diagnostics")
 
 sq_pred_pth <- file.path(
   "output", 
-  "EM_algorithm", 
-  "square_predictions", 
-  model_type)
+  "EM_algorithm",
+  model_type, 
+  "square_predictions")
 
 map_pth <- file.path(
   "figures", 
