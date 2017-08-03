@@ -35,8 +35,8 @@ model_type <- "boot_model_20km_vw"
 RF_obj_path <- file.path(
   "output",
   "EM_algorithm",
-  "optimized_model_objects",
-  model_type)
+  model_type,
+  "optimized_model_objects")
 
 tile_sets_path <- file.path(
   "data", 
@@ -45,9 +45,9 @@ tile_sets_path <- file.path(
 
 out_pt <- file.path(
   "output",
-  "predictions",
+  "EM_algorithm",
   model_type,
-  "all_scale_predictions",
+  "predictions_data",
   "boot_samples")
   
   
