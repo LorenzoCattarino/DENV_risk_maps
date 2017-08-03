@@ -26,9 +26,9 @@ resample <- function(x, grp_flds, grid_size, env_var_names, out_path){
   
   cc$long.grid <- cc$long.grid * grid_size
   
-  dir.create(out_path, FALSE, TRUE)
-  
   file_name <- basename(x) 
+  
+  dir.create(out_path, FALSE, TRUE)
   
   write.table(cc, 
               file.path(out_path, file_name),
