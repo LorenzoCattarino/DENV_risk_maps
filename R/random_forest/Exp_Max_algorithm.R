@@ -5,15 +5,15 @@ exp_max_algorithm <- function(
   RF_obj_path, RF_obj_name,
   diagn_tab_path, diagn_tab_name,
   map_path, map_name, 
-  sq_pr_path, sq_pr_name, wgt_factor){
-  
-  h2o.init()
+  sq_pr_path, sq_pr_name){
   
   diagnostics <- c("RF_ms_i", "ss_i", "ss_j", "min_wgt", "max_wgt", "n_NA_pred")
   
   out_mat <- matrix(0, nrow = niter, ncol = length(diagnostics))
   
   colnames(out_mat) <- diagnostics
+  
+  h2o.init()
   
   for (i in seq_len(niter)){
     
@@ -22,7 +22,8 @@ exp_max_algorithm <- function(
     cat("iteration =", i, "\n")
     
     
-    ### 1. calculate scaling factors
+    # -------------------------------------- 1. calculate scaling factors
+    
     
     p_i_by_adm <- pxl_dataset %>% group_by_(.dots = grp_flds)
     
@@ -30,27 +31,23 @@ exp_max_algorithm <- function(
     
     dd <- left_join(pxl_dataset, a_sum)
     
-    dd$wgt_prime <- (dd$pop_weight / dd$p_i) * dd$a_sum
-    #dd$wgt_prime <- dd$pop_weight 
+    dd$wgt_prime <- dd$pop_weight
+    
+    # dd$wgt_prime <- (dd$pop_weight / dd$p_i) * dd$a_sum
+    # isfin_log <- is.finite(dd$wgt_prime)
+    # max_fin_wgt <- max(dd$wgt_prime[isfin_log])
+    # dd$wgt_prime <- ifelse(is.infinite(dd$wgt_prime), max_fin_wgt, dd$wgt_prime) 
+
     
     
-    ### fix Inf scaling factor values
+    # -------------------------------------- 2. modify the scaling factors to account for background data
     
-    isfin_log <- is.finite(dd$wgt_prime)
-    
-    max_fin_wgt <- max(dd$wgt_prime[isfin_log])
-    
-    dd$wgt_prime <- ifelse(is.infinite(dd$wgt_prime), max_fin_wgt, dd$wgt_prime) 
-    
-    ###
-    
-    
-    ### 2. modify the scaling factors to account for background data
     
     dd$wgt_prime <- dd$wgt_prime * dd$new_weight
      
 
-    ### 3. calculate new pseudo data value
+    # -------------------------------------- 3. calculate new pseudo data value
+    
     
     psAbs <- dd$a_sum == 0
     
@@ -63,13 +60,13 @@ exp_max_algorithm <- function(
     if(sum(is.na(dd$u_i)) > 0) browser(text="u_i NA")
     
     
-    ### 4. fit RF model
+    # -------------------------------------- 4. fit RF model
+    
     
     min_wgt <- min(dd$wgt_prime)
     max_wgt <- max(dd$wgt_prime)
     
     training_dataset <- dd[, c("u_i", my_predictors, "wgt_prime")]
-    #write.csv(training_dataset,"debug.csv")
     
     RF_obj <- fit_h2o_RF(dependent_variable = "u_i", 
                          predictors = my_predictors, 
@@ -82,15 +79,14 @@ exp_max_algorithm <- function(
     RF_ms_i <- h2o.mse(RF_obj)
     
     
-    ### 5. make new pixel level predictions
+    # -------------------------------------- 5. make new pixel level predictions
     
-    # p_i <- make_predictions(RF_obj, dd, my_predictors)
+    
     p_i <- make_h2o_predictions(RF_obj, dd, my_predictors)
     
     n_NA_pred <- sum(is.na(p_i))
     
     dd$p_i <- ifelse(is.na(p_i), 0, p_i)
-    #write.csv(dd, paste0("dd_debug_iter_", i, ".csv"))
 	
     if(sum(is.na(dd$p_i)) > 0) browser(text="pred NA")
 
@@ -99,22 +95,24 @@ exp_max_algorithm <- function(
     quick_raster_map(dd, map_path, mp_nm) 
       
     
-    ### 6. calculate pixel level sum of square
+    # -------------------------------------- 6. calculate pixel level sum of square
+    
     
     ss_i <- sum(dd$wgt_prime * (dd$p_i - dd$u_i)^2)
     
     
-    ### 7. calculate population weighted mean of pixel level predictions
+    # --------------------------------------  7. calculate population weighted mean of pixel level predictions
+    
     
     p_i_by_adm <- dd %>% group_by_(.dots = grp_flds)
     
     mean_p_i <- p_i_by_adm %>% summarise(mean_p_i = sum(p_i * pop_weight))
     
     aa <- inner_join(adm_dataset, mean_p_i)
-    #write.csv(aa, paste0("aa_debug_iter_", i, ".csv"))
     
     
-    ### 8. calculate admin unit level sum of square
+    # -------------------------------------- 8. calculate admin unit level sum of square
+    
     
     ss_j <- sum(aa$new_weight * (aa$mean_p_i - aa$o_j)^2)
     
@@ -129,7 +127,6 @@ exp_max_algorithm <- function(
   h2o.saveModel(RF_obj, RF_obj_path, force = TRUE)
   write_out_rds(out_mat, diagn_tab_path, diagn_tab_name)
   
-  # make_predictions(RF_obj, pxl_dataset_full, my_predictors)
   out <- make_h2o_predictions(RF_obj, pxl_dataset_full, my_predictors)
   
   h2o.shutdown(prompt = FALSE)
