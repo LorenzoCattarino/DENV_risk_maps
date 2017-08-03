@@ -41,8 +41,6 @@ pAbs_wgt <- 0.25
 
 niter <- 50
 
-wgt_ftcr <- 1
-
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
 boot_pxl_df_path <- file.path("output", "EM_algorithm", "env_variables_foi", "boot_samples")
@@ -173,8 +171,7 @@ foi_data <- foi_data[, c(grp_flds, dependent_variable, "new_weight")]
 #     map_path = map_pth,
 #     map_name = map_nm_all,
 #     sq_pr_path = sq_pred_pth,
-#     sq_pr_name = sq_pred_nm_all,
-#     wgt_factor = wgt_ftcr))
+#     sq_pr_name = sq_pred_nm_all))
 
 
 # ---------------------------------------- submit all jobs
@@ -204,8 +201,7 @@ if (CLUSTER) {
     map_path = map_pth,
     map_name = map_nm_all,
     sq_pr_path = sq_pred_pth,
-    sq_pr_name = sq_pred_nm_all,
-    wgt_factor = wgt_ftcr)
+    sq_pr_name = sq_pred_nm_all)
 
 } else {
 
@@ -230,8 +226,7 @@ if (CLUSTER) {
     map_path = map_pth,
     map_name = map_nm_all,
     sq_pr_path = sq_pred_pth,
-    sq_pr_name = sq_pred_nm_all,
-    wgt_factor = wgt_ftcr)
+    sq_pr_name = sq_pred_nm_all)
 
 }
 
