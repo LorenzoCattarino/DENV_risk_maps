@@ -6,7 +6,7 @@ exp_max_algorithm_boot <- function(
   RF_obj_path, RF_obj_name,
   diagn_tab_path, diagn_tab_name,
   map_path, map_name, 
-  sq_pr_path, sq_pr_name, wgt_factor){
+  sq_pr_path, sq_pr_name){
   
   
   #browser()
@@ -66,7 +66,6 @@ exp_max_algorithm_boot <- function(
                     map_path = cc, 
                     map_name = ee,
                     sq_pr_path = sq_pr_path, 
-                    sq_pr_name = d,
-                    wgt_factor = wgt_factor)
+                    sq_pr_name = d)
   
 }
