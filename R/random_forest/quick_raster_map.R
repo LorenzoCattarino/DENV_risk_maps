@@ -1,7 +1,5 @@
 quick_raster_map <- function(pred_df, out_pt, out_name) {
   
-  dir.create(out_pt, FALSE, TRUE)
-  
   #browser()
   
   gr_size <- 20
@@ -27,6 +25,8 @@ quick_raster_map <- function(pred_df, out_pt, out_name) {
   i.lon <- findInterval(pred_df$long.int, lons.int)
   
   mat[cbind(i.lon, i.lat)] <- pred_df$p_i
+  
+  dir.create(out_pt, FALSE, TRUE)
   
   png(file.path(out_pt, out_name), 
       type = "cairo", 
