@@ -9,7 +9,7 @@ exp_max_algorithm_boot <- function(
   sq_pr_path, sq_pr_name){
   
   
-  #browser()
+  browser()
   
   
   # ---------------------------------------- load pxl level dataset 
@@ -35,7 +35,15 @@ exp_max_algorithm_boot <- function(
   names(pxl_dts_boot)[names(pxl_dts_boot) == "ADM_0"] <- grp_flds[1]
   names(pxl_dts_boot)[names(pxl_dts_boot) == "ADM_1"] <- grp_flds[2]
   
-  pxl_dts_boot$pop_weight <- pxl_dts_boot$population / pxl_dts_boot$adm_pop
+  pxl_dts_boot[pxl_dts_boot$population > 0, "population"] <- 1
+  
+  pxl_dts_grp <- pxl_dts_boot %>% group_by_(.dots = c("unique_id", "ID_0", "ID_1")) 
+  
+  aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
+  
+  pxl_dts_boot <- left_join(pxl_dts_boot, aa)
+  
+  pxl_dts_boot$pop_weight <- pxl_dts_boot$population / pxl_dts_boot$pop_sqr_sum
   
   pxl_dts_boot$new_weight <- all_wgt
   
