@@ -23,12 +23,6 @@ spatial.cv.rf <- function(
     dataset = train_set, 
     sel_preds = preds)
     
-  # # calculate sum of squared errors
-  # sse <- calc_SSE(
-  #   y.data = y_data,
-  #   valid.set = valid_points,
-  #   predictions = predictions)
-  
   h2o.saveModel(RF_obj, model_path, force = TRUE)
   
   h2o.shutdown(prompt = FALSE)
