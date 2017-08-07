@@ -1,8 +1,8 @@
-rm(list = ls())
+# Finds which tiles contain, after resampling and subsetting, no 1 km pixel
 
-# install.packages("didewin",
-#                  repos=c(CRAN="https://cran.rstudio.com",
-#                          drat="https://richfitz.github.io/drat"))
+options(didehpc.cluster = "fi--didemrchnb")
+
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "random_forest", "remove_NA_rows.R"),
@@ -10,7 +10,10 @@ my_resources <- c(
 
 my_pkgs <- c("data.table")
 
-CLUSTER <- TRUE
+context::context_log_start()
+ctx <- context::context_save(path = "context",
+                             sources = my_resources,
+                             packages = my_pkgs)
 
 
 # ------------------------------------- Are you using the cluster?
@@ -18,28 +21,11 @@ CLUSTER <- TRUE
 
 if(CLUSTER) {
   
-  # Load packages
-  library(context)
-  library(queuer)
-  library(didewin)
-  
-  didewin::didewin_config_global(cluster = "fi--didemrchnb")
-  
-  root <- "context"
-  
-  ctx <- context::context_save(packages = my_pkgs,
-                               sources = my_resources,
-                               root = root)
-  
-  obj <- didewin::queue_didewin(ctx)
+  obj <- didehpc::queue_didehpc(ctx)
   
 }else{
   
-  # Load packages
-  sapply(my_pkgs, library, character.only = TRUE)
-  
-  # Load functions 
-  sapply(my_resources, source)
+  context::context_load(ctx)
   
 }
 
