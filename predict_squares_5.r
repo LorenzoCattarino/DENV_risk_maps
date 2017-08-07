@@ -11,20 +11,20 @@ library(scales)
 # ---------------------------------------- define parameters 
 
 
-model_tp <- "boot_model_20km_cw"
+model_tp <- "boot_model_20km_epw"
 
 gr_size <- 20
 
 res <- (1 / 120) * gr_size
 
-cut_off <- 0.005
+cut_off <- 0
 
 lats <- seq(-90, 90, by = res)
 lons <- seq(-180, 180, by = res)
 
 x <- file.path(
   "output",
-  "predictions",
+  "predictions_world",
   model_tp,
   "pred_0_1667_deg_long.rds")
 
@@ -111,6 +111,13 @@ shp_fort <- fortify(country_shp)
 
 dir.create(out_path, FALSE, TRUE)
 
+png(file.path(out_path, out_file_name),
+    width = 28, # original: 7
+    height = 12, # original: 3
+    units = "in",
+    pointsize = 12,
+    res = 300)
+
 p <- ggplot(data = r_df, aes(x = x, y = y)) +
   geom_tile(aes(fill = layer)) +
   scale_fill_gradientn(colours = matlab.like(10), 
@@ -134,13 +141,6 @@ p <- ggplot(data = r_df, aes(x = x, y = y)) +
         legend.title = element_text(face = "bold", size = 30))#,
         #legend.background = element_rect(fill = alpha("white", 0.2), colour = "gray50"),
         #panel.background = element_rect(fill = "#A6CEE3", colour = NA)) # lightblue2
-
-png(file.path(out_path, out_file_name),
-    width = 28, # original: 7
-    height = 12, # original: 3
-    units = "in",
-    pointsize = 12,
-    res = 300)
 
 print(p)
 
