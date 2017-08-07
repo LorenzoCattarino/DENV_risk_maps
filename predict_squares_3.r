@@ -22,14 +22,16 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_cw"
+model_tp <- "boot_model_20km_epw"
+
+no_fits <- 50
 
 bs_inf <- c("cell", "lat.grid", "long.grid", "population")
 
 in_path <- file.path("output", "env_variables", "all_sets_0_1667_deg")
 
 out_pth <- file.path("output", 
-                     "predictions", 
+                     "predictions_world", 
                      model_tp,
                      "tile_sets_0_1667_deg")
 
@@ -39,10 +41,8 @@ var_names <- c("mean_pred" , "low_perc", "up_perc")
 RF_obj_path <- file.path(
   "output",
   "EM_algorithm",
-  "optimized_model_objects",
-  "boot_samples")
-
-no_fits <- 200
+  model_tp,
+  "optimized_model_objects")
 
 
 # ---------------------------------------- are you using the cluster?
