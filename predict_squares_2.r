@@ -61,7 +61,18 @@ best_predictors <- predictor_rank$variable[1:9]
 tile_ids <- tile_summary$tile.id
 
 
-# ---------------------------------------- send tile jobs
+# ----------------------------------------  submit one job
+ 
+
+t <- obj$enqueue(wrapper_to_make_preds(
+  seq_along(tile_ids)[69],
+  ids_vec = tile_ids,
+  model_lst = RF_objs,
+  dide_paral = TRUE,
+  sel_preds = best_predictors))
+
+
+# ---------------------------------------- submit all jobs
 
 
 if (CLUSTER) {
@@ -90,13 +101,7 @@ NA_pixel_tiles <- tile_summary$tile.id[NA_jobs]
 
 out_df <- data.frame(job_id = NA_jobs, tile_id = NA_pixel_tiles)
 
-write.table(out_df, file.path("output", "datasets", "NA_pixel_tiles.txt"), sep = ",", row.names = FALSE)
-
-# # send one job only to the cluster
-# 
-# obj$enqueue(wrapper_to_make_preds(
-#   seq_along(tile_ids)[69],
-#   ids_vec = tile_ids,
-#   model_lst = RF_objs,
-#   dide_paral = TRUE,
-#   sel_preds = best_predictors))
+write.table(out_df, 
+            file.path("output", "datasets", "NA_pixel_tiles.txt"), 
+            sep = ",", 
+            row.names = FALSE)
