@@ -95,7 +95,7 @@ foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 training_dataset <- foi_data[, c(y_var, my_predictors, "new_weight")]
 
 
-# ------------------------------------- # run job
+# ---------------------------------------- # run job
 
 
 if (CLUSTER) {
