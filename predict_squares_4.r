@@ -19,17 +19,17 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-model_tp <- "boot_model_20km_cw" 
+model_tp <- "boot_model_20km_epw" 
 
 in_pt <- file.path(
   "output", 
-  "predictions",
+  "predictions_world",
   model_tp,
   "tile_sets_0_1667_deg")
 
 out_pt <- file.path(
   "output", 
-  "predictions",
+  "predictions_world",
   model_tp)
 
 out_fl_nm <- "pred_0_1667_deg_long.rds"
