@@ -1,11 +1,12 @@
 exp_max_algorithm <- function(
-  niter, adm_dataset, pxl_dataset,
+  niter, orig_dataset, pxl_dataset,
   pxl_dataset_full, no_trees, min_node_size,
   my_predictors, grp_flds, 
   RF_obj_path, RF_obj_name,
   diagn_tab_path, diagn_tab_name,
   map_path, map_name, 
-  sq_pr_path, sq_pr_name){
+  sq_pr_path, sq_pr_name, sct_plt_path,
+  adm_dataset = NULL){
   
   diagnostics <- c("RF_ms_i", "ss_i", "ss_j", "min_wgt", "max_wgt", "n_NA_pred")
   
@@ -89,17 +90,42 @@ exp_max_algorithm <- function(
 	
     if(sum(is.na(dd$p_i)) > 0) browser(text="pred NA")
 
+    
+    # ---------- print diagnostics 
+    
+    
     mp_nm <- sprintf("%s_iter_%s%s", map_name, i, ".png")
     
     quick_raster_map(dd, map_path, mp_nm) 
-      
     
+    sqr_sp_nm <- paste0("pred_vs_obs_sqr_iter_", i, ".png")
+    
+    generic_scatter_plot(df = dd, 
+                         x = "u_i", 
+                         y = "p_i", 
+                         file_name = sqr_sp_nm, 
+                         file_path = sct_plt_path)  
+    
+    browser() 
     # -------------------------------------- 6. calculate pixel level sum of square
     
     
     ss_i <- sum(dd$wgt_prime * (dd$p_i - dd$u_i)^2)
     
     
+    if(!is.null(adm_dataset)) {
+      
+      adm_dataset$adm_pred <- make_h2o_predictions(RF_obj, adm_dataset, my_predictors)
+      
+      cc <- inner_join(orig_dataset, adm_dataset[, c("ID_0", "ID_1", "adm_pred")])
+      
+    } else {
+      
+      cc <- orig_dataset
+    
+    }
+    
+
     # --------------------------------------  7. calculate population weighted mean of pixel level predictions
     
     
@@ -107,9 +133,29 @@ exp_max_algorithm <- function(
     
     mean_p_i <- p_i_by_adm %>% summarise(mean_p_i = sum(p_i * pop_weight))
     
-    aa <- inner_join(adm_dataset, mean_p_i)
+    aa <- inner_join(cc, mean_p_i)
     
     
+    # ---------- print diagnostics
+    
+    
+    av_sqr_sp_nm <- paste0("pred_vs_obs_av_sqr_iter_", i, ".png")
+    
+    generic_scatter_plot(df = aa, 
+                         x = "o_j", 
+                         y = "mean_p_i", 
+                         file_name = av_sqr_sp_nm, 
+                         file_path = sct_plt_path)  
+    
+    adm_sp_nm <- paste0("pred_vs_obs_adm_iter_", i, ".png")
+    
+    generic_scatter_plot(df = aa, 
+                         x = "o_j", 
+                         y = "adm_pred", 
+                         file_name = adm_sp_nm, 
+                         file_path = sct_plt_path)  
+
+        
     # -------------------------------------- 8. calculate admin unit level sum of square
     
     
@@ -125,7 +171,7 @@ exp_max_algorithm <- function(
     
   }
   
-  write_out_rds(dd, sq_pr_path, sq_pr_name)
+  #write_out_rds(dd, sq_pr_path, sq_pr_name)
   h2o.saveModel(RF_obj, RF_obj_path, force = TRUE)
   write_out_rds(out_mat, diagn_tab_path, diagn_tab_name)
   
