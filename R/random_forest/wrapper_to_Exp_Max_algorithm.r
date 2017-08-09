@@ -1,24 +1,32 @@
 exp_max_algorithm_boot <- function(
-  i, pxl_dts_path, adm_dts_orig, 
+  i, pxl_dts_path, boot_samples, 
   pxl_dataset_orig, y_var, my_preds, 
   no_trees, min_node_size, grp_flds, niter, 
   all_wgt, pAbs_wgt,
   RF_obj_path, RF_obj_name,
   diagn_tab_path, diagn_tab_name,
   map_path, map_name, 
-  sq_pr_path, sq_pr_name){
+  sq_pr_path, sq_pr_name, sct_plt_path,
+  adm_dataset){
   
   
   #browser()
   
   
-  # ---------------------------------------- load pxl level dataset 
+  # ---------------------------------------- define variables
   
   
   pxl_dts_nm <- paste0("All_FOI_estimates_disaggreg_20km_sample_", i, ".rds")
+  
+  
+  # ---------------------------------------- load bootstrapped data sets 
+  
+  
   pxl_dts_boot <- readRDS(file.path(pxl_dts_path, pxl_dts_nm))
   
-  
+  foi_data_boot <- boot_samples[[i]]
+    
+
   # ---------------------------------------- get output name 
   
   
@@ -26,18 +34,32 @@ exp_max_algorithm_boot <- function(
   b <- diagn_tab_name[i]
   cc <- map_path[i]  
   d <- sq_pr_name[i]
-  ee <- map_name[i]  
+  ee <- map_name[i] 
+  ff <- sct_plt_path[i]
   
   
-  # ---------------------------------------- pre process pxl level dataset
+  # ---------------------------------------- pre process the bootstrapped foi data set
+  
+  
+  foi_data_boot$new_weight <- all_wgt
+  
+  foi_data_boot[foi_data_boot$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
+  
+  names(foi_data_boot)[names(foi_data_boot) == "FOI"] <- y_var
+  
+  names(foi_data_boot)[names(foi_data_boot) == "ADM_0"] <- grp_flds[1]
+  names(foi_data_boot)[names(foi_data_boot) == "ADM_1"] <- grp_flds[2]
+  
+  
+  # ---------------------------------------- pre process the square data set
   
   
   names(pxl_dts_boot)[names(pxl_dts_boot) == "ADM_0"] <- grp_flds[1]
   names(pxl_dts_boot)[names(pxl_dts_boot) == "ADM_1"] <- grp_flds[2]
   
-  pxl_dts_boot[pxl_dts_boot$population > 0, "population"] <- 1
+  #pxl_dts_boot[pxl_dts_boot$population > 0, "population"] <- 1
   
-  pxl_dts_grp <- pxl_dts_boot %>% group_by_(.dots = c("unique_id", "ID_0", "ID_1")) 
+  pxl_dts_grp <- pxl_dts_boot %>% group_by_(.dots = grp_flds) 
   
   aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
   
@@ -50,17 +72,17 @@ exp_max_algorithm_boot <- function(
   pxl_dts_boot[pxl_dts_boot$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
   
   
-  # ---------------------------------------- attach adm level prediction to pxl level dataset
+  # ---------------------------------------- attach original data to square dataset
   
   
-  pxl_dts_boot <- inner_join(pxl_dts_boot, adm_dts_orig[, c(grp_flds, y_var)])
+  pxl_dts_boot <- inner_join(pxl_dts_boot, foi_data_boot[, c(grp_flds, y_var)])
   
   
   # ---------------------------------------- run the EM 
   
   
   exp_max_algorithm(niter = niter, 
-                    adm_dataset = adm_dts_orig, 
+                    orig_dataset = foi_data_boot, 
                     pxl_dataset = pxl_dts_boot,
                     pxl_dataset_full = pxl_dataset_orig,
                     no_trees = no_trees, 
@@ -74,6 +96,8 @@ exp_max_algorithm_boot <- function(
                     map_path = cc, 
                     map_name = ee,
                     sq_pr_path = sq_pr_path, 
-                    sq_pr_name = d)
+                    sq_pr_name = d,
+                    sct_plt_path = ff,
+                    adm_dataset = adm_dataset)
   
 }
