@@ -106,7 +106,7 @@ exp_max_algorithm <- function(
                          file_name = sqr_sp_nm, 
                          file_path = sct_plt_path)  
     
-    browser() 
+    
     # -------------------------------------- 6. calculate pixel level sum of square
     
     
