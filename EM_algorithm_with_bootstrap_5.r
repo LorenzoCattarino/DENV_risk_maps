@@ -20,15 +20,15 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-no_fits <- 200
+no_fits <- 50
 
 boot_pxl_df_path <- file.path("output", "EM_algorithm", "env_variables", "boot_samples")
 
 RF_obj_path <- file.path("output", "EM_algorithm", "model_objects", "boot_samples")
 
-out_pt <- file.path("output", "EM_algorithm", "env_variables_foi", "boot_samples")
-
 out_fl_nm_all <- paste0("All_FOI_estimates_disaggreg_20km_sample_", seq_len(no_fits), ".rds")
+
+out_pt <- file.path("output", "EM_algorithm", "env_variables_foi", "boot_samples")
 
 
 # ---------------------------------------- are you using the cluster? 
