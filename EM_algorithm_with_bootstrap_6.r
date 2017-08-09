@@ -5,14 +5,16 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
+  file.path("R", "utility_functions.r"),
   file.path("R", "random_forest", "wrapper_to_Exp_Max_algorithm.r"),
   file.path("R", "random_forest", "fit_h2o_random_forest_model.r"),
   file.path("R", "random_forest", "make_h2o_RF_predictions.r"),
   file.path("R", "random_forest", "Exp_Max_algorithm.r"),
   file.path("R", "random_forest", "quick_raster_map.r"),
-  file.path("R", "utility_functions.r"))
+  file.path("R", "random_forest", "get_lm_equation.r"),
+  file.path("R", "generic_scatter_plot.r"))
 
-my_pkgs <- c("h2o", "dplyr", "fields")
+my_pkgs <- c("h2o", "dplyr", "fields", "ggplot2")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -23,11 +25,13 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_type <- "boot_model_20km_epw"
+model_type <- "boot_model_20km_cw"
 
 no_fits <- 50
 
-niter <- 50
+niter <- 10
+
+grp_flds <- c("ID_0", "ID_1", "unique_id")
 
 dependent_variable <- "o_j"
 
@@ -35,13 +39,9 @@ no_trees <- 500
 
 min_node_size <- 20
 
-pseudoAbs_value <- 0
-
 all_wgt <- 1
 
 pAbs_wgt <- 0.25
-
-grp_flds <- c("ID_0", "ID_1", "data_id")
 
 boot_pxl_df_path <- file.path("output", "EM_algorithm", "env_variables_foi", "boot_samples")
 
@@ -88,7 +88,14 @@ map_pth <- file.path(
   "maps", 
   paste0("sample_", seq_len(no_fits)))
   
-  
+sct_plt_pth <- file.path(
+  "figures", 
+  "EM_algorithm", 
+  model_type,
+  "iteration_fits",
+  paste0("sample_", seq_len(no_fits)))
+
+
 # ---------------------------------------- are you using the cluster? 
 
 
@@ -108,9 +115,9 @@ if (CLUSTER) {
 # ---------------------------------------- load data
 
 
-foi_data <- read.csv(
-  file.path("output", "foi", "All_FOI_estimates_linear_env_var.csv"),
-  stringsAsFactors = FALSE) 
+# foi_data <- read.csv(
+#   file.path("output", "foi", "All_FOI_estimates_linear_env_var.csv"),
+#   stringsAsFactors = FALSE) 
 
 full_pxl_df <- readRDS(
   file.path("output", 
@@ -126,6 +133,20 @@ predictor_rank <- read.csv(
             "variable_rank_final_fits_exp_1.csv"),
   stringsAsFactors = FALSE)
 
+adm_dataset <- read.csv(  
+  file.path("output",
+            "env_variables",
+            "All_adm1_env_var.csv"),
+  header = TRUE,
+  sep = ",", 
+  stringsAsFactors = FALSE)
+
+bt_samples <- readRDS(
+  file.path("output",
+            "EM_algorithm",
+            "boot_samples",
+            "bootstrap_samples.rds"))
+
 
 # ---------------------------------------- get the vector of best predictors
 
@@ -133,18 +154,10 @@ predictor_rank <- read.csv(
 my_predictors <- predictor_rank$variable[1:9]
 
 
-# ---------------------------------------- pre processing the original dataset
+# ---------------------------------------- pre process the admin data set
 
 
-foi_data[foi_data$type == "pseudoAbsence", "FOI"] <- pseudoAbs_value
-
-foi_data$new_weight <- all_wgt
-
-foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
-
-names(foi_data)[names(foi_data) == "FOI"] <- dependent_variable
-
-foi_data <- foi_data[, c(grp_flds, dependent_variable, "new_weight")]
+adm_dts <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 
 
 # ---------------------------------------- submit one job 
@@ -154,7 +167,7 @@ foi_data <- foi_data[, c(grp_flds, dependent_variable, "new_weight")]
 #   exp_max_algorithm_boot(
 #     seq_len(no_fits)[1],
 #     pxl_dts_path = boot_pxl_df_path,
-#     adm_dts_orig = foi_data,
+#     boot_samples = bt_samples,
 #     pxl_dataset_orig = full_pxl_df,
 #     y_var = dependent_variable,
 #     my_preds = my_predictors,
@@ -171,7 +184,9 @@ foi_data <- foi_data[, c(grp_flds, dependent_variable, "new_weight")]
 #     map_path = map_pth,
 #     map_name = map_nm_all,
 #     sq_pr_path = sq_pred_pth,
-#     sq_pr_name = sq_pred_nm_all))
+#     sq_pr_name = sq_pred_nm_all,
+#     sct_plt_path = sct_plt_pth,
+#     adm_dataset = adm_dts))
 
 
 # ---------------------------------------- submit all jobs
@@ -184,7 +199,7 @@ if (CLUSTER) {
     exp_max_algorithm_boot,
     obj,
     pxl_dts_path = boot_pxl_df_path,
-    adm_dts_orig = foi_data,
+    boot_samples = bt_samples,
     pxl_dataset_orig = full_pxl_df,
     y_var = dependent_variable,
     my_preds = my_predictors,
@@ -201,7 +216,9 @@ if (CLUSTER) {
     map_path = map_pth,
     map_name = map_nm_all,
     sq_pr_path = sq_pred_pth,
-    sq_pr_name = sq_pred_nm_all)
+    sq_pr_name = sq_pred_nm_all,
+    sct_plt_path = sct_plt_pth,
+    adm_dataset = adm_dts)
 
 } else {
 
@@ -209,7 +226,7 @@ if (CLUSTER) {
     seq_len(no_fits)[1],
     exp_max_algorithm_boot,
     pxl_dts_path = boot_pxl_df_path,
-    adm_dts_orig = foi_data,
+    boot_samples = bt_samples,
     pxl_dataset_orig = full_pxl_df,
     y_var = dependent_variable,
     my_preds = my_predictors,
@@ -226,7 +243,9 @@ if (CLUSTER) {
     map_path = map_pth,
     map_name = map_nm_all,
     sq_pr_path = sq_pred_pth,
-    sq_pr_name = sq_pred_nm_all)
+    sq_pr_name = sq_pred_nm_all,
+    sct_plt_path = sct_plt_pth,
+    adm_dataset = adm_dts)
 
 }
 
