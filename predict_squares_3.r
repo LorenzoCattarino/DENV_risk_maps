@@ -22,20 +22,12 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_epw"
+model_tp <- "boot_model_20km_cw"
 
 no_fits <- 50
 
 bs_inf <- c("cell", "lat.grid", "long.grid", "population")
 
-in_path <- file.path("output", "env_variables", "all_sets_0_1667_deg")
-
-out_pth <- file.path("output", 
-                     "predictions_world", 
-                     model_tp,
-                     "tile_sets_0_1667_deg")
-
-# var_names <- "mean_pred"
 var_names <- c("mean_pred" , "low_perc", "up_perc")
 
 RF_obj_path <- file.path(
@@ -43,6 +35,11 @@ RF_obj_path <- file.path(
   "EM_algorithm",
   model_tp,
   "optimized_model_objects")
+
+out_pth <- file.path("output", 
+                     "predictions_world", 
+                     model_tp,
+                     "tile_sets_0_1667_deg")
 
 
 # ---------------------------------------- are you using the cluster?
@@ -117,7 +114,6 @@ tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]
 #     seq_along(tile_ids_2)[1],
 #     ids_vec = tile_ids_2,
 #     sel_preds = best_predictors,
-#     in_path = in_path,
 #     model_in_path = RF_obj_path,
 #     out_path = out_pth,
 #     var_names = var_names,
@@ -139,7 +135,6 @@ if (CLUSTER) {
     obj,
     ids_vec = tile_ids_2,
     sel_preds = best_predictors,
-    in_path = in_path,
     model_in_path = RF_obj_path,
     out_path = out_pth,
     var_names = var_names,
@@ -156,7 +151,6 @@ if (CLUSTER) {
     wrapper_to_load_tile_dataset,
     ids_vec = tile_ids_2,
     sel_preds = best_predictors,
-    in_path = in_path,
     model_in_path = RF_obj_path,
     out_path = out_pth,
     var_names = var_names,
