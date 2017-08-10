@@ -19,7 +19,6 @@ get_boot_sample_and_fit_RF <- function(i, boot_ls, y_var, my_preds, no_trees, mi
                        model_nm = a)
   
   h2o.saveModel(RF_obj, out_path, force = TRUE)
-  #write_out_rds(RF_obj, out_path, a)
 
   h2o.shutdown(prompt = FALSE)
 
