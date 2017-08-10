@@ -70,42 +70,37 @@ attach_pred_different_scale_to_data <- function(
   # -------------------------------------- process 1 km predictions
 
 
-  #[c(140, 141, 170, 171)]
-
-  tile_prds <- loop(
-    seq_along(tile_ids),
-    load_predict_filter,
-    ids_vec = tile_ids,
-    predictors = predictors,
-    RF_obj = RF_obj,
-    foi_dts = foi_data,
-    grp_flds = grp_fields,
-    parallel = FALSE)
-
-  tile_prds_rb <- do.call("rbind", tile_prds)
-
-  average_pxl <- average_up(
-    pxl_df = tile_prds_rb,
-    grp_flds = grp_fields,
-    var_names = "pred")
-
-  names(average_pxl)[names(average_pxl) == "pred"] <- "mean_pxl_pred"
+  # #[c(140, 141, 170, 171)]
+  # 
+  # tile_prds <- loop(
+  #   seq_along(tile_ids),
+  #   load_predict_filter,
+  #   ids_vec = tile_ids,
+  #   predictors = predictors,
+  #   RF_obj = RF_obj,
+  #   foi_dts = foi_data,
+  #   grp_flds = grp_fields,
+  #   parallel = FALSE)
+  # 
+  # tile_prds_rb <- do.call("rbind", tile_prds)
+  # 
+  # average_pxl <- average_up(
+  #   pxl_df = tile_prds_rb,
+  #   grp_flds = grp_fields,
+  #   var_names = "pred")
+  # 
+  # names(average_pxl)[names(average_pxl) == "pred"] <- "mean_pxl_pred"
 
 
   # -------------------------------------- join admin, square and pixel level predictions
-  
-  
-  m_1 <- left_join(
-    foi_data[, c(grp_fields, "o_j")],
-    fltr_adm[, c(grp_fields, "adm_pred")])
 
-  m_2 <- left_join(
-    m_1,
-    average_sqr[, c(grp_fields, "mean_square_pred")])
-
-  m_final <- left_join(
-    m_2,
-    average_pxl[, c(grp_fields, "mean_pxl_pred")])
+  
+  df_lst <- list(foi_data[, c(grp_fields, "o_j")],
+                 fltr_adm[, c(grp_fields, "adm_pred")],
+                 average_sqr[, c(grp_fields, "mean_square_pred")])#,
+                 #average_pxl[, c(grp_fields, "mean_pxl_pred")]) 
+    
+  join_all <- Reduce(function(...) left_join(...), df_lst)
   
   
   # --------------------------------------
@@ -119,13 +114,13 @@ attach_pred_different_scale_to_data <- function(
   
   train_ids[ids] <- 1
   
-  m_final$train <- train_ids
+  join_all$train <- train_ids
   
   
   # -------------------------------------- save 
   
   
-  write_out_rds(m_final, out_path, out_name)
+  write_out_rds(join_all, out_path, out_name)
   
   
   # -------------------------------------- close h2o down 
