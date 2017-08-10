@@ -8,7 +8,7 @@ get_boot_sample_and_fit_RF <- function(i, boot_ls, y_var, my_preds, no_trees, mi
   
   training_dataset <- adm_dts_boot[, c(y_var, my_preds, "new_weight")]
   
-  a <- paste0("RF_obj_sample_", i, ".rds")
+  a <- paste0("RF_model_object_", i, ".rds")
   
   h2o.init()
   
