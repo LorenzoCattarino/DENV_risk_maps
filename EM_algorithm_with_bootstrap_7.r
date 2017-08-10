@@ -10,9 +10,9 @@ library(ggplot2)
 # ---------------------------------------- define parameters
 
 
-model_type <- "boot_model_20km_vw"
+model_type <- "boot_model_20km_cw"
 
-no_fits <- 200
+no_fits <- 50
   
 diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j")
 
@@ -23,7 +23,7 @@ strip_labs <- c(
 
 strip_labs <- gsub("([[:punct:]])|\\s+", "_", strip_labs)
 
-diag_t_pth <- file.path("output", "EM_algorithm", "diagnostics", model_type)
+diag_t_pth <- file.path("output", "EM_algorithm", model_type, "diagnostics")
 
 fig_file_tag <- paste0(strip_labs, ".png")
 
