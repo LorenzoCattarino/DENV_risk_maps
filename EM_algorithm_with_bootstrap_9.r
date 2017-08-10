@@ -28,9 +28,11 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-no_fits <- 200
+model_type <- "boot_model_20km_cw"
 
-model_type <- "boot_model_20km_vw"
+no_fits <- 50
+
+grp_flds <- c("ADM_0", "ADM_1", "data_id")
 
 RF_obj_path <- file.path(
   "output",
@@ -38,17 +40,11 @@ RF_obj_path <- file.path(
   model_type,
   "optimized_model_objects")
 
-tile_sets_path <- file.path(
-  "data", 
-  "env_variables", 
-  "all_sets_gadm_codes")
-
 out_pt <- file.path(
   "output",
   "EM_algorithm",
   model_type,
-  "predictions_data",
-  "boot_samples")
+  "predictions_data")
   
   
 # ---------------------------------------- are you using the cluster? 
@@ -121,7 +117,7 @@ NA_pixel_tiles <- read.table(
 
 all_sqr_predictions <- readRDS(
   file.path("output",
-            "predictions",
+            "predictions_world",
             model_type,
             "square_predictions_all_data.rds"))
 
@@ -157,9 +153,9 @@ best_predictors <- predictor_rank$variable[1:9]
 #     all_sqr_preds = all_sqr_predictions,
 #     sqr_dts = sqr_dataset,
 #     tile_ids = tile_ids_2,
-#     in_path = tile_sets_path,
 #     bt_samples = boot_samples,
-#     out_path = out_pt))
+#     out_path = out_pt,
+#     grp_fields = grp_flds))
 
 
 # ---------------------------------------- submit all jobs
@@ -178,9 +174,9 @@ if (CLUSTER) {
     all_sqr_preds = all_sqr_predictions,
     sqr_dts = sqr_dataset,
     tile_ids = tile_ids_2,
-    in_path = tile_sets_path,
     bt_samples = boot_samples,
-    out_path = out_pt)
+    out_path = out_pt,
+    grp_fields = grp_flds)
 
 } else {
 
@@ -194,8 +190,8 @@ if (CLUSTER) {
     all_sqr_preds = all_sqr_predictions,
     sqr_dts = sqr_dataset,
     tile_ids = tile_ids_2,
-    in_path = tile_sets_path,
     bt_samples = boot_samples,
-    out_path = out_pt)
+    out_path = out_pt,
+    grp_fields = grp_flds)
 
 }
