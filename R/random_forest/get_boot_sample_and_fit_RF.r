@@ -1,6 +1,8 @@
-get_boot_sample_and_fit_RF <- function(i, boot_ls, y_var, my_preds, no_trees, min_node_size, out_path) {
+get_boot_sample_and_fit_RF <- function(i, boot_ls, y_var, my_preds, no_trees, min_node_size, out_path, psAb_val) {
   
   adm_dts_boot <- boot_ls[[i]]
+  
+  adm_dts_boot[adm_dts_boot$type == "pseudoAbsence", y_var] <- psAb_val
   
   my_weights <- adm_dts_boot$new_weight 
   
