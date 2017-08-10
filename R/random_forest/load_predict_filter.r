@@ -1,9 +1,14 @@
 load_predict_filter <- function(
-  i, ids_vec, in_path,
-  predictors, RF_obj, foi_dts){
+  i, ids_vec, predictors, 
+  RF_obj, foi_dts, grp_flds){
   
   #browser()
   
+  in_path <- file.path(
+    "data", 
+    "env_variables", 
+    "all_sets_gadm_codes")
+
   one_id <- ids_vec[i]
   cat("tile id =", one_id, "\n")
   
@@ -22,13 +27,13 @@ load_predict_filter <- function(
   
   if(is.character(xx$ADM_0)) stop("ADM_0 is a character")
   
-  a <- "ADM_1"
+  a <- grp_flds[2]
   
   zz <- subset(xx, xx[[a]] != -1)
   
   aa <- inner_join(
     zz, 
-    foi_dts[, c("data_id", "ADM_0", "ADM_1")])
+    foi_dts[, grp_flds])
   
   subset(aa, population != 0)
   
