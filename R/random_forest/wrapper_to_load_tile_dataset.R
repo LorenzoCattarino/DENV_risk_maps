@@ -1,10 +1,12 @@
 wrapper_to_load_tile_dataset <- function(
   i, ids_vec, sel_preds, 
-  in_path, model_in_path, out_path, 
+  model_in_path, out_path, 
   var_names, base_info, parallel, 
   no_fits, average, model_type){
   
   #browser()
+  
+  in_path <- file.path("output", "env_variables", "all_sets_0_1667_deg")
   
   one_id <- ids_vec[i]
   cat("tile id = ", one_id, "\n")
