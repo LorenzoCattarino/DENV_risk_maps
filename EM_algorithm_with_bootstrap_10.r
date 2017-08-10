@@ -17,17 +17,16 @@ source(file.path("R", "random_forest", "get_lm_equation.r"))
 # ---------------------------------------- define parameters 
 
 
-no_fits <- 200
+no_fits <- 50
 no_datapoints <- 433
 
 model_type <- "boot_model_20km_cw"
 
 in_path <- file.path(
   "output",
-  "predictions",
+  "EM_algorithm",
   model_type,
-  "all_scale_predictions",
-  "boot_samples") 
+  "predictions_data") 
 
 out_path <- file.path(
   "figures",
@@ -48,7 +47,7 @@ out_path_av <- file.path(
 
 all_adm_preds <- matrix(0, nrow = no_datapoints, ncol = no_fits)
 all_sqr_preds <- matrix(0, nrow = no_datapoints, ncol = no_fits)
-all_pxl_preds <- matrix(0, nrow = no_datapoints, ncol = no_fits)
+#all_pxl_preds <- matrix(0, nrow = no_datapoints, ncol = no_fits)
 train_ids <- matrix(0, nrow = no_datapoints, ncol = no_fits)
 test_ids <- matrix(0, nrow = no_datapoints, ncol = no_fits)
   
@@ -67,7 +66,7 @@ for (i in seq_len(no_fits)) {
   
   all_adm_preds[,i] <- dts$adm_pred
   all_sqr_preds[,i] <- dts$mean_square_pred
-  all_pxl_preds[,i] <- dts$mean_pxl_pred
+  #all_pxl_preds[,i] <- dts$mean_pxl_pred
   train_ids[,i] <- dts$train
   test_ids[,i] <- 1 - dts$train
   
@@ -82,7 +81,7 @@ for (i in seq_len(no_fits)) {
   dts_mlt <- melt(
     dts, 
     id.vars = c("data_id", "ADM_0", "ADM_1", "o_j", "dataset"),
-    measure.vars = c("adm_pred", "mean_square_pred", "mean_pxl_pred"),
+    measure.vars = c("adm_pred", "mean_square_pred"),
     variable.name = "scale")
   
   fl_nm <- paste0("pred_vs_obs_plot_sample_", i,".png")
@@ -111,19 +110,19 @@ mean_adm_pred_test <- rowSums(all_adm_preds * test_ids) / test_sets_n
 mean_sqr_pred_train <- rowSums(all_sqr_preds * train_ids) / train_sets_n
 mean_sqr_pred_test <- rowSums(all_sqr_preds * test_ids) / test_sets_n
 
-mean_pxl_pred_train <- rowSums(all_pxl_preds * train_ids) / train_sets_n
-mean_pxl_pred_test <- rowSums(all_pxl_preds * test_ids) / test_sets_n
+#mean_pxl_pred_train <- rowSums(all_pxl_preds * train_ids) / train_sets_n
+#mean_pxl_pred_test <- rowSums(all_pxl_preds * test_ids) / test_sets_n
 
 av_train_preds <- data.frame(dts[,c("data_id", "ADM_0", "ADM_1", "o_j")],
                              admin = mean_adm_pred_train,
                              square = mean_sqr_pred_train,
-                             pixel = mean_pxl_pred_train,
+                             #pixel = mean_pxl_pred_train,
                              dataset = "train")
 
 av_test_preds <- data.frame(dts[,c("data_id", "ADM_0", "ADM_1", "o_j")],
                             admin = mean_adm_pred_test,
                             square = mean_sqr_pred_test,
-                            pixel = mean_pxl_pred_test,
+                            #pixel = mean_pxl_pred_test,
                             dataset = "test")
 
 all_av_preds <- rbind(av_train_preds, av_test_preds)
@@ -131,7 +130,7 @@ all_av_preds <- rbind(av_train_preds, av_test_preds)
 all_av_preds_mlt <- melt(
   all_av_preds, 
   id.vars = c("data_id", "ADM_0", "ADM_1", "o_j", "dataset"),
-  measure.vars = c("admin", "square", "pixel"),
+  measure.vars = c("admin", "square"),
   variable.name = "scale")
 
 fl_nm_av <- paste0("pred_vs_obs_plot_averages.png")
