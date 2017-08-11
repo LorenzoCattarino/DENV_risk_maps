@@ -15,7 +15,9 @@ resample <- function(x, grp_flds, grid_size, env_var_names, out_path){
     grid_size = grid_size, 
     rnd_dist = FALSE)
   
-  bb <- subset(yy, population != 0)
+  bb <- yy[!is.na(yy$population), ]
+    
+  bb[bb$population == 0, "population"] <- 1
   
   cc <- average_up(
     pxl_df = bb, 
