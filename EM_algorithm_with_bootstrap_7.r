@@ -1,5 +1,6 @@
 # For each bootstrap sample, creates and saves one plot 
 # for each of three diagnostics of the EM algorithm output:
+#
 # 1) pixel level sum of squares
 # 2) admin unit level sum of square
 # 3) mean square error of the RF object
@@ -20,6 +21,10 @@ strip_labs <- c(
   "internal RF mean square error", 
   "pixel level sum of square", 
   "admin unit level sum of square") 
+
+
+# ---------------------------------------- define variables
+
 
 strip_labs <- gsub("([[:punct:]])|\\s+", "_", strip_labs)
 
