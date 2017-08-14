@@ -5,8 +5,8 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "remove_NA_rows.R"),
-  file.path("R", "find_NA_pixel_tiles.R"))
+  file.path("R", "prepare_datasets", "remove_NA_rows.r"),
+  file.path("R", "prepare_datasets", "find_NA_pixel_tiles.R"))
 
 my_pkgs <- c("data.table")
 
@@ -34,21 +34,22 @@ if(CLUSTER) {
 
 
 # predicting variable rank
-predictor_rank <- read.csv((file.path("output", 
-                                      "dengue_dataset", 
-                                      "predictor_importance", 
-                                      "metropolis_hastings", 
-                                      "exp_4", 
-                                      "variable_rank_1.csv")),
-                           stringsAsFactors = FALSE)
+predictor_rank <- read.csv(
+  file.path("output", 
+            "variable_selection", 
+            "metropolis_hastings", 
+            "exp_1", 
+            "variable_rank_final_fits_exp_1.csv"),
+  stringsAsFactors = FALSE)
 
 # tiles info 
-tile_summary <- read.csv(file.path("data", 
-                                   "env_variables", 
-                                   "plus60minus60_tiles.csv"), 
-                         header = TRUE, 
-                         sep = ",", 
-                         stringsAsFactors = FALSE)
+tile_summary <- read.csv(
+  file.path("data", 
+            "env_variables", 
+            "plus60minus60_tiles.csv"), 
+  header = TRUE, 
+  sep = ",", 
+  stringsAsFactors = FALSE)
 
 
 # ---------------------------------------- pre processing
@@ -64,12 +65,10 @@ tile_ids <- tile_summary$tile.id
 # ----------------------------------------  submit one job
  
 
-t <- obj$enqueue(wrapper_to_make_preds(
-  seq_along(tile_ids)[69],
-  ids_vec = tile_ids,
-  model_lst = RF_objs,
-  dide_paral = TRUE,
-  sel_preds = best_predictors))
+# t <- obj$enqueue(find_tiles_with_all_NA_pred_values(
+#   seq_along(tile_ids)[1],
+#   ids_vec = tile_ids,
+#   sel_preds = best_predictors))
 
 
 # ---------------------------------------- submit all jobs
@@ -77,17 +76,16 @@ t <- obj$enqueue(wrapper_to_make_preds(
 
 if (CLUSTER) {
   
-  all_tiles <- queuer::qlapply(
+  find_NA_tls <- queuer::qlapply(
     seq_along(tile_ids), 
     find_tiles_with_all_NA_pred_values, 
     obj,
     ids_vec = tile_ids,
-    sel_preds = best_predictors,
-    timeout = 0)
+    sel_preds = best_predictors)
   
 } else {
   
-  all_tiles <- lapply(
+  find_NA_tls <- lapply(
     seq_along(tile_ids)[245],
     find_tiles_with_all_NA_pred_values,
     ids_vec = tile_ids,
@@ -102,6 +100,6 @@ NA_pixel_tiles <- tile_summary$tile.id[NA_jobs]
 out_df <- data.frame(job_id = NA_jobs, tile_id = NA_pixel_tiles)
 
 write.table(out_df, 
-            file.path("output", "datasets", "NA_pixel_tiles.txt"), 
+            file.path("output", "datasets", "NA_pixel_tiles_20km.txt"), 
             sep = ",", 
             row.names = FALSE)

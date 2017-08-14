@@ -21,6 +21,12 @@ ctx <- context::context_save(path = "context",
 
 model_tp <- "boot_model_20km_cw" 
 
+out_fl_nm <- "pred_0_1667_deg_long.rds"
+
+
+# ---------------------------------------- define variables 
+
+
 in_pt <- file.path(
   "output", 
   "predictions_world",
@@ -31,8 +37,6 @@ out_pt <- file.path(
   "output", 
   "predictions_world",
   model_tp)
-
-out_fl_nm <- "pred_0_1667_deg_long.rds"
 
 
 # ---------------------------------------- are you using the cluster?

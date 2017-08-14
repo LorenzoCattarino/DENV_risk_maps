@@ -74,9 +74,9 @@ fi <- list.files(in_pt,
 
 # t <- obj$enqueue(
 #   resample(fi[1],
-#   grp_flds = group_fields, 
+#   grp_flds = group_fields,
 #   grid_size = new_res,
-#   env_var_names = var_names, 
+#   env_var_names = var_names,
 #   out_path = out_pt))
 
 
@@ -84,24 +84,24 @@ fi <- list.files(in_pt,
 
 
 if (CLUSTER) {
-  
-  resample_pred_tiles <- queuer::qlapply(
+
+  resample_tiles <- queuer::qlapply(
     fi,
     resample,
     obj,
-    grp_flds = group_fields, 
+    grp_flds = group_fields,
     grid_size = new_res,
-    env_var_names = var_names, 
+    env_var_names = var_names,
     out_path = out_pt)
-  
+
 }else{
-  
-  resample_pred_tiles <- lapply(
-    fi,
+
+  resample_tiles <- lapply(
+    fi[135],
     resample,
-    grp_flds = group_fields, 
+    grp_flds = group_fields,
     grid_size = new_res,
-    env_var_names = var_names, 
+    env_var_names = var_names,
     out_path = out_pt)
-  
+
 }

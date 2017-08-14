@@ -30,16 +30,23 @@ bs_inf <- c("cell", "lat.grid", "long.grid", "population")
 
 var_names <- c("mean_pred" , "low_perc", "up_perc")
 
+NA_tile_fl_name <- "NA_pixel_tiles_20km.txt"
+
+
+# ---------------------------------------- define variables
+
+
 RF_obj_path <- file.path(
   "output",
   "EM_algorithm",
   model_tp,
   "optimized_model_objects")
 
-out_pth <- file.path("output", 
-                     "predictions_world", 
-                     model_tp,
-                     "tile_sets_0_1667_deg")
+out_pth <- file.path(
+  "output", 
+  "predictions_world", 
+  model_tp,
+  "tile_sets_0_1667_deg")
 
 
 # ---------------------------------------- are you using the cluster?
@@ -83,7 +90,7 @@ tile_summary <- read.csv(
 NA_pixel_tiles <- read.table(
   file.path("output", 
             "datasets", 
-            "NA_pixel_tiles.txt"), 
+            NA_tile_fl_name), 
   sep = ",", 
   header = TRUE)
 
@@ -97,11 +104,7 @@ best_predictors <- predictor_rank$variable[1:9]
 # get tile ids
 tile_ids <- tile_summary$tile.id
 
-NA_pixel_tile_ids <- c(217, 254, 288, 321, 326, 402, 
-                         442, 458, 485, 486, 492, 493, 
-                         494, 519, 520, 523, 530, 539, 
-                         284, 289, 290, 291, 406, 432, 
-                         433, 529)
+NA_pixel_tile_ids <- NA_pixel_tiles$tile_id
 
 tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]  
 
@@ -128,10 +131,10 @@ tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]
 
 
 if (CLUSTER) {
-  
-  all_tiles <- queuer::qlapply(
-    seq_along(tile_ids_2), 
-    wrapper_to_load_tile_dataset, 
+
+  pred_tiles <- queuer::qlapply(
+    seq_along(tile_ids_2),
+    wrapper_to_load_tile_dataset,
     obj,
     ids_vec = tile_ids_2,
     sel_preds = best_predictors,
@@ -143,10 +146,10 @@ if (CLUSTER) {
     no_fits = no_fits,
     average = TRUE,
     model_type = model_tp)
-  
+
 } else {
-  
-  all_tiles <- lapply(
+
+  pred_tiles <- lapply(
     seq_along(tile_ids_2)[61],
     wrapper_to_load_tile_dataset,
     ids_vec = tile_ids_2,
@@ -159,7 +162,7 @@ if (CLUSTER) {
     no_fits = no_fits,
     average = TRUE,
     model_type = model_tp)
-  
+
 }
 
 if (!CLUSTER) {

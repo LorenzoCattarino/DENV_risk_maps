@@ -24,10 +24,16 @@ gr_size <- 20
 
 res <- (1 / 120) * gr_size
 
-cut_off <- 0
+cut_off <- 0.009
 
 lats <- seq(-90, 90, by = res)
 lons <- seq(-180, 180, by = res)
+
+out_fl_nm <- "pred_0_1667_deg.png"
+
+
+# ---------------------------------------- define variables
+
 
 x <- file.path(
   "output",
@@ -39,8 +45,6 @@ out_pt <- file.path(
   "figures", 
   "predictions_world",
   model_tp)
-
-out_fl_nm <- "pred_0_1667_deg.png"
 
 
 # ---------------------------------------- are you using the cluster?
