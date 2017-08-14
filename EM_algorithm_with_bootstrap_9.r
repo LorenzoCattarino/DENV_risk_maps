@@ -34,6 +34,12 @@ no_fits <- 50
 
 grp_flds <- c("ADM_0", "ADM_1", "data_id")
 
+pseudoAbsence_value <- -0.02
+
+
+# ---------------------------------------- define variables 
+
+
 RF_obj_path <- file.path(
   "output",
   "EM_algorithm",
@@ -120,6 +126,16 @@ all_sqr_predictions <- readRDS(
             "predictions_world",
             model_type,
             "square_predictions_all_data.rds"))
+
+
+# -------------------------------------- process the original data  
+
+
+names(foi_dataset)[names(foi_dataset) == "FOI"] <- "o_j"
+names(foi_dataset)[names(foi_dataset) == "ID_0"] <- grp_flds[1]
+names(foi_dataset)[names(foi_dataset) == "ID_1"] <- grp_flds[2]
+
+foi_dataset[foi_dataset$type == "pseudoAbsence", "o_j"] <- pseudoAbsence_value
 
 
 # ---------------------------------------- pre process admin predictions
