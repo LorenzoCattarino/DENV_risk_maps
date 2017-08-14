@@ -31,21 +31,19 @@ no_fits <- 50
 
 niter <- 10
 
-grp_flds <- c("ID_0", "ID_1", "unique_id")
-
-dependent_variable <- "o_j"
-
-no_trees <- 500
-
-min_node_size <- 20
+pseudoAbsence_value <- -0.02
 
 all_wgt <- 1
 
 pAbs_wgt <- 0.25
 
-boot_pxl_df_path <- file.path("output", "EM_algorithm", "env_variables_foi", "boot_samples")
+grp_flds <- c("ID_0", "ID_1", "unique_id")
 
 full_pxl_df_name <- "aggreg_pixel_level_env_vars_20km.rds"
+
+
+# ---------------------------------------- define variables 
+
 
 RF_nm_all <- paste0("RF_obj_sample_", seq_len(no_fits), ".rds")
 
@@ -54,14 +52,6 @@ diag_t_nm_all <- paste0("diagno_table_", seq_len(no_fits), ".rds")
 map_nm_all <- paste0("map_", seq_len(no_fits))
 
 sq_pred_nm_all <- paste0("dd_debug_", seq_len(no_fits), ".rds")
-
-
-# ========================================
-# 
-# output paths - IMPORTANT!
-# 
-# ========================================
-
 
 RF_out_pth <- file.path(
   "output", 
@@ -115,10 +105,6 @@ if (CLUSTER) {
 # ---------------------------------------- load data
 
 
-# foi_data <- read.csv(
-#   file.path("output", "foi", "All_FOI_estimates_linear_env_var.csv"),
-#   stringsAsFactors = FALSE) 
-
 full_pxl_df <- readRDS(
   file.path("output", 
             "EM_algorithm",
@@ -166,13 +152,10 @@ adm_dts <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 # t <- obj$enqueue(
 #   exp_max_algorithm_boot(
 #     seq_len(no_fits)[1],
-#     pxl_dts_path = boot_pxl_df_path,
 #     boot_samples = bt_samples,
 #     pxl_dataset_orig = full_pxl_df,
-#     y_var = dependent_variable,
+#     psAbs = pseudoAbsence_value, 
 #     my_preds = my_predictors,
-#     no_trees = no_trees,
-#     min_node_size = min_node_size,
 #     grp_flds = grp_flds,
 #     niter = niter,
 #     all_wgt = all_wgt,
@@ -198,13 +181,10 @@ if (CLUSTER) {
     seq_len(no_fits),
     exp_max_algorithm_boot,
     obj,
-    pxl_dts_path = boot_pxl_df_path,
     boot_samples = bt_samples,
     pxl_dataset_orig = full_pxl_df,
-    y_var = dependent_variable,
+    psAbs = pseudoAbsence_value, 
     my_preds = my_predictors,
-    no_trees = no_trees,
-    min_node_size = min_node_size,
     grp_flds = grp_flds,
     niter = niter,
     all_wgt = all_wgt,
@@ -225,13 +205,10 @@ if (CLUSTER) {
   EM_alg_run <- lapply(
     seq_len(no_fits)[1],
     exp_max_algorithm_boot,
-    pxl_dts_path = boot_pxl_df_path,
     boot_samples = bt_samples,
     pxl_dataset_orig = full_pxl_df,
-    y_var = dependent_variable,
+    psAbs = pseudoAbsence_value, 
     my_preds = my_predictors,
-    no_trees = no_trees,
-    min_node_size = min_node_size,
     grp_flds = grp_flds,
     niter = niter,
     all_wgt = all_wgt,
