@@ -21,8 +21,10 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-no_fits <- 200
+no_fits <- 50
 
+pseudoAbsence_value <- -0.02
+  
 dependent_variable <- "o_j"
 
 no_trees <- 500
@@ -82,7 +84,8 @@ my_predictors <- predictor_rank$variable[1:9]
 #     y_var = dependent_variable,
 #     no_trees = no_trees,
 #     min_node_size = min_node_size,
-#     out_path = out_pt))
+#     out_path = out_pt,
+#     psAb_val = pseudoAbsence_value))
 
 
 # ---------------------------------------- submit all jobs
@@ -99,7 +102,8 @@ if (CLUSTER) {
     y_var = dependent_variable,
     no_trees = no_trees,
     min_node_size = min_node_size,
-    out_path = out_pt)
+    out_path = out_pt,
+    psAb_val = pseudoAbsence_value)
   
 } else {
 
@@ -111,6 +115,7 @@ if (CLUSTER) {
     y_var = dependent_variable,
     no_trees = no_trees,
     min_node_size = min_node_size,
-    out_path = out_pt)
+    out_path = out_pt,
+    psAb_val = pseudoAbsence_value)
 
 }
