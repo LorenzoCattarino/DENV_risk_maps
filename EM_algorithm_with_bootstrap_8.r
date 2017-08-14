@@ -1,5 +1,6 @@
 # Load back in the results of the EM algorithm.
 # Specifically, for each bootstrap sample, get:
+#
 # 1) Vector of square-level predictions for the entire 20km dataset
 
 options(didehpc.cluster = "fi--didemrchnb")
@@ -30,6 +31,11 @@ ctx <- context::context_save(path = "context",
 model_type <- "boot_model_20km_cw"
 
 out_fl_nm <- "square_predictions_all_data.rds"
+
+
+# ---------------------------------------- define variables 
+
+
 out_pt <- file.path("output", "predictions_world", model_type)
 
 
@@ -51,7 +57,8 @@ if (CLUSTER) {
 # ---------------------------------------- get results
 
 
-my_task_id <- "garish_senegalpython"
+# loads the LAST task bundle
+my_task_id <- obj$task_bundle_info()[nrow(obj$task_bundle_info()), "name"] 
 
 EM_alg_run_t <- obj$task_bundle_get(my_task_id)
 
