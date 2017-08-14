@@ -13,8 +13,6 @@ calculate_R0 <- function(
   phi_3 <- vec_phis[3]
   phi_4 <- vec_phis[4]
   
-  R0 <- FOI * N / (phi_1 * I1 + phi_2 * I2 + phi_3 * I3 + phi_4 * I4)
-  
-  R0
+  FOI * N / (phi_1 * I1 + phi_2 * I2 + phi_3 * I3 + phi_4 * I4)
   
 }
