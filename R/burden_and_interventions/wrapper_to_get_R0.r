@@ -1,8 +1,7 @@
 wrapper_to_get_R0 <- function(
   x, age_data, 
   age_band_lower_bounds, age_band_upper_bounds, age_band_tags,
-  vec_phis,
-  info_1){
+  vec_phis){
   
   
   # ---------------------------------------- extract info for ONE foi value
