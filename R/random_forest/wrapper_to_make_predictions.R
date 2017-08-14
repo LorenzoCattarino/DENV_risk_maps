@@ -30,9 +30,9 @@ wrapper_to_make_preds <- function(
   
   preds_all_models[preds_all_models < 0] <- 0
   
-  # if there is only one pixel in the dataset
-  
   if (average) {
+    
+    # if there is only one pixel in the dataset
     
     if(is.null(dim(preds_all_models))) {
       
@@ -67,10 +67,10 @@ wrapper_to_make_preds <- function(
   if (average) {
     
     out <- setNames(data.frame(dataset_2[!zero_logical, base_info],
-                             mean_pred[!zero_logical],
-                             a[!zero_logical],
-                             b[!zero_logical]),
-                  nm = c(base_info, var_names))
+                               mean_pred[!zero_logical],
+                               a[!zero_logical],
+                               b[!zero_logical]),
+                    nm = c(base_info, var_names))
   } else {
     
     out <- setNames(data.frame(dataset_2[!zero_logical, base_info],
