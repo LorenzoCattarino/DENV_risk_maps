@@ -1,17 +1,19 @@
 calculate_probs_and_R0 <- function(
-  age_data, ID_0, age_band_tags, FOI, 
+  FOI, 
   age_band_lower_bounds, age_band_upper_bounds,
-  total_pop, vec_phis){
+  n_j, vec_phis){
   
+  
+  #browser()
   
   # ---------------------------------------- start
   
   
   # get age structure for the FOI location 
-  ag_st <- age_data[age_data$ID_0 == ID_0, age_band_tags]
+  #ag_st <- age_data[age_data$ID_0 == ID_0, age_band_tags]
   
   # calculate n people in age group
-  n_j <- ag_st * total_pop  
+  #n_j <- ag_st * total_pop  
   
   
   # ---------------------------------------- calculate incidence of infections
@@ -61,13 +63,15 @@ calculate_probs_and_R0 <- function(
   
   total_infec_4 <- sum(infec_4_j)
   
+  tot_pop <- sum(n_j)
+  
   
   # ------------------------------------- calculate R0
   
   
   calculate_R0(
     FOI = FOI,
-    N = total_pop,
+    N = tot_pop,
     vec_infections = c(total_infec_1, total_infec_2, total_infec_3, total_infec_4), 
     vec_phis = vec_phis)
   
