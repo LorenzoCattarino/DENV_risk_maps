@@ -5,6 +5,16 @@ wrapper_to_make_preds <- function(
   
   #browser()
   
+  
+  # -------------------------------------- start up h2o 
+  
+  
+  h2o.init()
+  
+  
+  # --------------------------------------
+  
+  
   # Remove records with at least one NA predictor value
   dataset_2 <- remove_NA_rows(dataset, predictors)
     
@@ -81,6 +91,15 @@ wrapper_to_make_preds <- function(
   
   if(sum(is.na(out$mean_pred)) > 0) stop ("NA predictions")
     
+  
+  # -------------------------------------- close down h2o 
+  
+  
+  h2o.shutdown(prompt = FALSE)
+  
+  
+  # --------------------------------------
+  
   out  
 
 }
