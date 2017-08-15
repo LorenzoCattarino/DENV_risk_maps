@@ -7,7 +7,6 @@ library(grid)
 # load functions 
 source(file.path("R", "burden_and_interventions", "get_age_band_bounds.r"))
 source(file.path("R", "burden_and_interventions", "wrapper_to_get_R0.r"))
-source(file.path("R", "burden_and_interventions", "calculate_probabilities_and_R0.r"))
 source(file.path("R", "burden_and_interventions", "calculate_infection_probability_and_number.r"))
 source(file.path("R", "burden_and_interventions", "calculate_average_infect_probab.r"))
 source(file.path("R", "burden_and_interventions", "calculate_R0.r"))
