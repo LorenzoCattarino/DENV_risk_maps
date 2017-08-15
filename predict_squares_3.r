@@ -9,7 +9,7 @@ my_resources <- c(
   file.path("R", "random_forest", "wrapper_to_load_tile_dataset.R"),
   file.path("R", "random_forest", "wrapper_to_make_predictions.R"),
   file.path("R", "random_forest", "make_h2o_RF_predictions.R"),
-  file.path("R", "prepare_datasets", "remove_NA_rows.R"))
+  file.path("R", "prepare_datasets", "remove_NA_rows.r"))
 
 my_pkgs <- c("h2o", "data.table")
 
@@ -31,6 +31,8 @@ bs_inf <- c("cell", "lat.grid", "long.grid", "population")
 var_names <- c("mean_pred" , "low_perc", "up_perc")
 
 NA_tile_fl_name <- "NA_pixel_tiles_20km.txt"
+
+in_pth <- file.path("output", "env_variables", "all_sets_0_1667_deg")
 
 
 # ---------------------------------------- define variables
@@ -116,15 +118,16 @@ tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]
 #   wrapper_to_load_tile_dataset(
 #     seq_along(tile_ids_2)[1],
 #     ids_vec = tile_ids_2,
-#     sel_preds = best_predictors,
+#     in_path = in_pth,
+#     predictors = best_predictors,
 #     model_in_path = RF_obj_path,
-#     out_path = out_pth,
-#     var_names = var_names,
-#     base_info = bs_inf,
 #     parallel = FALSE,
+#     base_info = bs_inf,
+#     var_names = var_names,
 #     no_fits = no_fits,
 #     average = TRUE,
-#     model_type = model_tp))
+#     model_type = model_tp,
+#     out_path = out_pth))
 
 
 # ---------------------------------------- submit all jobs
@@ -137,34 +140,36 @@ if (CLUSTER) {
     wrapper_to_load_tile_dataset,
     obj,
     ids_vec = tile_ids_2,
-    sel_preds = best_predictors,
+    in_path = in_pth,
+    predictors = best_predictors,
     model_in_path = RF_obj_path,
-    out_path = out_pth,
-    var_names = var_names,
-    base_info = bs_inf,
     parallel = FALSE,
+    base_info = bs_inf,
+    var_names = var_names,
     no_fits = no_fits,
     average = TRUE,
-    model_type = model_tp)
+    model_type = model_tp,
+    out_path = out_pth)
 
 } else {
 
   pred_tiles <- lapply(
-    seq_along(tile_ids_2)[61],
+    seq_along(tile_ids_2)[1],
     wrapper_to_load_tile_dataset,
     ids_vec = tile_ids_2,
-    sel_preds = best_predictors,
+    in_path = in_pth,
+    predictors = best_predictors,
     model_in_path = RF_obj_path,
-    out_path = out_pth,
-    var_names = var_names,
-    base_info = bs_inf,
     parallel = FALSE,
+    base_info = bs_inf,
+    var_names = var_names,
     no_fits = no_fits,
     average = TRUE,
-    model_type = model_tp)
+    model_type = model_tp,
+    out_path = out_pth)
 
 }
 
 if (!CLUSTER) {
-  context:::stop_parallel_cluster()
+  context::parallel_cluster_stop()
 }
