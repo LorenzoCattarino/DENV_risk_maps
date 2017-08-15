@@ -1,29 +1,40 @@
 wrapper_to_get_R0 <- function(
-  x, age_data, 
+  i, df, age_data, 
   age_band_lower_bounds, age_band_upper_bounds, age_band_tags,
   vec_phis){
   
+  #browser()
   
   # ---------------------------------------- extract info for ONE foi value
   
   
-  FOI <- x["FOI"]
+  FOI <- df[i, "FOI"]
   #cat("FOI value =", FOI, "\n")
   
-  ID_0 <- x["ID_0"]
+  ID_0 <- df[i, "ID_0"]
   #cat("country code =", ID_0, "\n")
   
-  total_pop <- x["population"]
+  total_pop <- df[i, "population"]
   #cat("population =", total_pop, "\n")
   
+  ag_st <- age_data[i, age_band_tags]
+  
+  
+  # ----------------------------------------
+  
+  
+  # calculate n people in age group
+  n_j <- ag_st * total_pop  
+  
+  
+  # ---------------------------------------- get R0
+  
+  
   calculate_probs_and_R0(
-    age_data = age_data, 
-    ID_0 = ID_0, 
-    age_band_tags = age_band_tags, 
     FOI = FOI, 
     age_band_lower_bounds = age_band_lower_bounds, 
     age_band_upper_bounds = age_band_upper_bounds,
-    total_pop = total_pop, 
+    n_j = n_j, 
     vec_phis = vec_phis)  
   
 }
