@@ -18,9 +18,9 @@ source(file.path("R", "burden_and_interventions", "calculate_R0.r"))
 
 m_flds <- c("ID_0", "ID_1")
 
-interm_outs <- c("R0")
+base_info <- c("type", "ISO", "longitude", "latitude", "data_id", "ID_0", "ID_1", "FOI", "variance", "population")
 
-base_info <- c("data_id", "ID_0", "ID_1", "FOI", "variance", "population")
+var <- "R_0"
 
 my_phis <- c(1, 1, 1, 1)
 
@@ -67,12 +67,6 @@ zero_age_str_countries <- apply(country_age_struc[, age_band_tgs], 1, sum) == 0
 country_age_struc <- country_age_struc[!zero_age_str_countries, ]
 
 
-# ---------------------------------------- pre process FOI dataset
-
-# Remove missing values 
-All_FOI_estimates_2 <- All_FOI_estimates[!is.na(All_FOI_estimates$FOI), ]
-
-
 # ---------------------------------------- preprocess admin dataset
 
 
@@ -82,8 +76,8 @@ adm_1_env_vars <- adm_1_env_vars[!duplicated(adm_1_env_vars[, m_flds]), ]
 # ---------------------------------------- merge population data
 
 
-All_FOI_estimates_3 <- merge(
-  All_FOI_estimates_2, 
+All_FOI_estimates_2 <- merge(
+  All_FOI_estimates, 
   adm_1_env_vars[, c(m_flds, "population")], 
   by = m_flds, 
   all.y = FALSE)
@@ -94,46 +88,44 @@ All_FOI_estimates_3 <- merge(
 
 dd <- setNames(data.frame(country_age_struc[, m_flds[1]]), nm = m_flds[1])
 
-All_FOI_estimates_4 <- merge(
-  All_FOI_estimates_3, 
+All_FOI_estimates_3 <- merge(
+  All_FOI_estimates_2, 
   dd, 
   by = m_flds[1], 
   all.y = FALSE)
 
 
-# ---------------------------------------- convert to matrix
+# ---------------------------------------- create look up table for age structure
 
 
-All_FOI_estimates_5 <- as.matrix(All_FOI_estimates_4[, base_info])
-
-rownames(All_FOI_estimates_5) <- NULL
+info_age <- country_age_struc[c ("ID_0", age_band_tgs)]
+test_id <- match(All_FOI_estimates_3[, "ID_0"], info_age$ID_0)
+look_up <- info_age[test_id, ]
 
 
 # ---------------------------------------- calculate R0
 
 
-R_0 <- apply(
-  All_FOI_estimates_5, 
-  1, 
+n <- nrow(All_FOI_estimates_3)
+
+R_0 <- vapply(
+  seq_len(n),
   wrapper_to_get_R0, 
-  age_data = country_age_struc, 
+  numeric(1),
+  df = All_FOI_estimates_3, 
+  age_data = look_up, 
   age_band_lower_bounds = age_band_L_bounds, 
   age_band_upper_bounds = age_band_U_bounds, 
   age_band_tags = age_band_tgs,
-  vec_phis = my_phis,
-  info_1 = interm_outs)
+  vec_phis = my_phis)
 
 
-# ---------------------------------------- attach back base info
+# ---------------------------------------- attach base info
 
 
-All_R_0_estimates <- data.frame(
-  type = All_FOI_estimates_4$type,
-  ISO = All_FOI_estimates_4$ISO,
-  longitude = All_FOI_estimates_4$longitude,
-  latitude = All_FOI_estimates_4$latitude,
-  All_FOI_estimates_5, 
-  R_0)
+All_R_0_estimates <- setNames(cbind(All_FOI_estimates_3[, base_info],
+                                    R_0),
+                              nm = c(base_info, var))
 
 
 # ---------------------------------------- save output
