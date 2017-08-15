@@ -1,12 +1,10 @@
 wrapper_to_load_tile_dataset <- function(
-  i, ids_vec, sel_preds, 
-  model_in_path, out_path, 
-  var_names, base_info, parallel, 
-  no_fits, average, model_type){
+  i, ids_vec, in_path, 
+  predictors, model_in_path, parallel,
+  base_info, var_names, no_fits,
+  average, model_type, out_path){
   
   #browser()
-  
-  in_path <- file.path("output", "env_variables", "all_sets_0_1667_deg")
   
   one_id <- ids_vec[i]
   cat("tile id = ", one_id, "\n")
@@ -20,16 +18,15 @@ wrapper_to_load_tile_dataset <- function(
                 fill = TRUE,
                 data.table = FALSE)
   
-  out <- wrapper_to_make_preds(
-    dataset = tile, 
-    predictors = sel_preds, 
-    model_in_path = model_in_path,
-    parallel = parallel,
-    base_info = base_info, 
-    var_names = var_names,
-    no_fits = no_fits,
-    average = average,
-    model_type = model_type)  
+  out <- wrapper_to_make_preds(tile, 
+                               predictors, 
+                               model_in_path,
+                               parallel, 
+                               base_info, 
+                               var_names, 
+                               no_fits, 
+                               average, 
+                               model_type)
   
   dir.create(out_path, FALSE, TRUE)
   
