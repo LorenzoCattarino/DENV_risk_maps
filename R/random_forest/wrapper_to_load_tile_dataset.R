@@ -20,8 +20,6 @@ wrapper_to_load_tile_dataset <- function(
                 fill = TRUE,
                 data.table = FALSE)
   
-  h2o.init()
-  
   out <- wrapper_to_make_preds(
     dataset = tile, 
     predictors = sel_preds, 
@@ -39,7 +37,5 @@ wrapper_to_load_tile_dataset <- function(
               file.path(out_path, file_name),
               row.names = FALSE,
               sep = ",")
-  
-  h2o.shutdown(prompt = FALSE)
   
 }  
