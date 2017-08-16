@@ -1,4 +1,4 @@
-# Finds which tiles contain, after resampling and subsetting, no 1 km pixel
+# Finds which tiles contain, after resampling and subsetting, no squares
 
 options(didehpc.cluster = "fi--didemrchnb")
 
