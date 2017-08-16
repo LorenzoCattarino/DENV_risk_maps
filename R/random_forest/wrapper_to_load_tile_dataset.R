@@ -26,6 +26,8 @@ wrapper_to_load_tile_dataset <- function(
     predictors = predictors, 
     parallel = parallel)
     
+  foi[foi < 0] <- 0
+  
   out_pt_one_tile <- out_path[i]  
 
   out_nm <- paste0(out_name, ".rds")
