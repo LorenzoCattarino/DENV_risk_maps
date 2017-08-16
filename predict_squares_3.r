@@ -1,15 +1,14 @@
-# Makes predictions for all squares in each tile 
+# Makes foi predictions of all squares, for each tile and model fit
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "wrapper_to_load_tile_dataset.R"),
-  file.path("R", "random_forest", "wrapper_to_make_predictions.R"),
-  file.path("R", "random_forest", "make_h2o_RF_predictions.R"),
-  file.path("R", "prepare_datasets", "remove_NA_rows.r"))
+  file.path("R", "random_forest", "wrapper_to_load_tile_dataset.r"),
+  file.path("R", "random_forest", "wrapper_to_make_predictions.r"),
+  file.path("R", "random_forest", "make_h2o_RF_predictions.r"))
 
 my_pkgs <- c("h2o", "data.table")
 
@@ -26,29 +25,11 @@ model_tp <- "boot_model_20km_cw"
 
 no_fits <- 50
 
-bs_inf <- c("cell", "lat.grid", "long.grid", "population")
-
-var_names <- c("mean_pred" , "low_perc", "up_perc")
-
 NA_tile_fl_name <- "NA_pixel_tiles_20km.txt"
 
 in_pth <- file.path("output", "env_variables", "all_sets_0_1667_deg")
 
-
-# ---------------------------------------- define variables
-
-
-RF_obj_path <- file.path(
-  "output",
-  "EM_algorithm",
-  model_tp,
-  "optimized_model_objects")
-
-out_pth <- file.path(
-  "output", 
-  "predictions_world", 
-  model_tp,
-  "tile_sets_0_1667_deg")
+var_name <- "foi"
 
 
 # ---------------------------------------- are you using the cluster?
@@ -110,6 +91,23 @@ NA_pixel_tile_ids <- NA_pixel_tiles$tile_id
 
 tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]  
 
+  
+# ---------------------------------------- define variables
+
+
+RF_obj_path <- file.path(
+  "output",
+  "EM_algorithm",
+  model_tp,
+  "optimized_model_objects")
+
+out_pth_all <- file.path(
+  "output", 
+  "predictions_world", 
+  model_tp,
+  "tile_sets_0_1667_deg",
+  paste0("tile_", tile_ids_2))
+
 
 # ---------------------------------------- submit one job 
 
@@ -119,15 +117,12 @@ tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]
 #     seq_along(tile_ids_2)[1],
 #     ids_vec = tile_ids_2,
 #     in_path = in_pth,
-#     predictors = best_predictors,
-#     model_in_path = RF_obj_path,
-#     parallel = FALSE,
-#     base_info = bs_inf,
-#     var_names = var_names,
 #     no_fits = no_fits,
-#     average = TRUE,
-#     model_type = model_tp,
-#     out_path = out_pth))
+#     model_in_path = RF_obj_path,
+#     predictors = best_predictors,
+#     parallel = FALSE,
+#     out_path = out_pth_all,
+#     out_name = var_name))
 
 
 # ---------------------------------------- submit all jobs
@@ -141,15 +136,12 @@ if (CLUSTER) {
     obj,
     ids_vec = tile_ids_2,
     in_path = in_pth,
-    predictors = best_predictors,
-    model_in_path = RF_obj_path,
-    parallel = FALSE,
-    base_info = bs_inf,
-    var_names = var_names,
     no_fits = no_fits,
-    average = TRUE,
-    model_type = model_tp,
-    out_path = out_pth)
+    model_in_path = RF_obj_path,
+    predictors = best_predictors,
+    parallel = FALSE,
+    out_path = out_pth_all,
+    out_name = var_name)
 
 } else {
 
@@ -158,15 +150,12 @@ if (CLUSTER) {
     wrapper_to_load_tile_dataset,
     ids_vec = tile_ids_2,
     in_path = in_pth,
-    predictors = best_predictors,
-    model_in_path = RF_obj_path,
-    parallel = FALSE,
-    base_info = bs_inf,
-    var_names = var_names,
     no_fits = no_fits,
-    average = TRUE,
-    model_type = model_tp,
-    out_path = out_pth)
+    model_in_path = RF_obj_path,
+    predictors = best_predictors,
+    parallel = FALSE,
+    out_path = out_pth_all,
+    out_name = var_name)
 
 }
 
