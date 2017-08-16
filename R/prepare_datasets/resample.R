@@ -1,14 +1,17 @@
 resample <- function(x, grp_flds, grid_size, env_var_names, out_path){
   
-  browser()
-  xx <- fread(x,
-              header = TRUE, 
-              sep = ",",              
-              na.strings = c("NA", "-1.#IND", "Peipsi", "Moskva", "IJsselmeer", "Zeeuwse meren"),
-              fill = TRUE, 
-              data.table = FALSE)
+  #browser()
   
-  if(is.character(xx$ADM_0)) stop("ADM_0 is a character")
+  tile <- fread(x,
+                header = TRUE, 
+                sep = ",",              
+                na.strings = c("NA", "-1.#IND", "Peipsi", "Moskva", "IJsselmeer", "Zeeuwse meren"),
+                fill = TRUE, 
+                data.table = FALSE)
+  
+  if(is.character(tile$ADM_0)) stop("ADM_0 is a character")
+  
+  xx <- remove_NA_rows(tile, env_var_names)
   
   yy <- grid_up(
     dataset = xx, 
