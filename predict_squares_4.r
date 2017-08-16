@@ -1,14 +1,16 @@
-# Takes the mean foi across models, for each tile 
+# Takes the averaged value across models, and confidence intervals, 
+# of different measured variables (foi, R0, burden...), for each tile. 
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "prepare_datasets", "remove_NA_rows.r"))
+  file.path("R", "prepare_datasets", "calculate_mean_across_fits.r"),
+  file.path("R", "prepare_datasets", "wrapper_to_mean_across_fits.r"))
 
-my_pkgs <- NULL
+my_pkgs <- "data.table"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -25,11 +27,11 @@ no_fits <- 50
 
 NA_tile_fl_name <- "NA_pixel_tiles_20km.txt"
 
-in_pth <- file.path("output", "env_variables", "all_sets_0_1667_deg")
-
 bs_inf <- c("cell", "lat.grid", "long.grid", "population")
 
-in_foi_pth <- file.path(
+orig_in_pth  <- file.path("output", "env_variables", "all_sets_0_1667_deg")
+
+in_pth <- file.path(
   "output", 
   "predictions_world", 
   model_tp,
@@ -37,13 +39,11 @@ in_foi_pth <- file.path(
 
 var_names <- "foi"
 
-out_names <- c("mean" , "l_CI", "u_CI")
-
 
 # ---------------------------------------- define variables
 
 
-out_pth_all <- file.path(
+out_pth <- file.path(
   "output", 
   "predictions_world", 
   model_tp,
@@ -62,7 +62,7 @@ if (CLUSTER) {
 } else {
   
   context::context_load(ctx)
-  #context::start_parallel_cluster(8, ctx)
+  context::parallel_cluster_start(8, ctx)
   
 }
 
@@ -102,53 +102,50 @@ tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]
 # ---------------------------------------- submit one job 
 
 
-# t <- obj$enqueue(
-#   wrapper_to_load_tile_dataset(
-#     seq_along(tile_ids_2)[1],
-#     ids_vec = tile_ids_2,
-#     in_path = in_pth,
-#     predictors = best_predictors,
-#     model_in_path = RF_obj_path,
-#     parallel = FALSE,
-#     no_fits = no_fits,
-#     model_type = model_tp,
-#     out_path = out_pth_all))
+t <- obj$enqueue(
+  wrapper_to_mean_across_fits(
+    seq_along(tile_ids_2)[1],
+    ids_vec = tile_ids_2,
+    in_path = in_pth,
+    orig_in_path = orig_in_pth,
+    var_names = var_names,
+    parallel = TRUE,
+    base_info = bs_inf,
+    out_path = out_pth))
 
 
 # ---------------------------------------- submit all jobs
 
 
-if (CLUSTER) {
-
-  pred_tiles <- queuer::qlapply(
-    seq_along(tile_ids_2),
-    wrapper_to_load_tile_dataset,
-    obj,
-    ids_vec = tile_ids_2,
-    in_path = in_pth,
-    predictors = best_predictors,
-    model_in_path = RF_obj_path,
-    parallel = FALSE,
-    no_fits = no_fits,
-    model_type = model_tp,
-    out_path = out_pth_all)
-
-} else {
-
-  pred_tiles <- lapply(
-    seq_along(tile_ids_2)[1],
-    wrapper_to_load_tile_dataset,
-    ids_vec = tile_ids_2,
-    in_path = in_pth,
-    predictors = best_predictors,
-    model_in_path = RF_obj_path,
-    parallel = FALSE,
-    no_fits = no_fits,
-    model_type = model_tp,
-    out_path = out_pth_all)
-
-}
-
-if (!CLUSTER) {
-  context::parallel_cluster_stop()
-}
+# if (CLUSTER) {
+# 
+#   pred_tiles <- queuer::qlapply(
+#     seq_along(tile_ids_2),
+#     wrapper_to_mean_across_fits,
+#     obj,
+#     ids_vec = tile_ids_2,
+#     in_path = in_pth,
+#     orig_in_path = orig_in_pth,
+#     var_names = var_names,
+#     parallel = TRUE,
+#     base_info = bs_inf,
+#     out_path = out_pth)
+# 
+# } else {
+# 
+#   pred_tiles <- lapply(
+#     seq_along(tile_ids_2)[1],
+#     wrapper_to_mean_across_fits,
+#     ids_vec = tile_ids_2,
+#     in_path = in_pth,
+#     orig_in_path = orig_in_pth,
+#     var_names = var_names,
+#     parallel = TRUE,
+#     base_info = bs_inf,
+#     out_path = out_pth)
+# 
+# }
+# 
+# if (!CLUSTER) {
+#   context::parallel_cluster_stop()
+# }
