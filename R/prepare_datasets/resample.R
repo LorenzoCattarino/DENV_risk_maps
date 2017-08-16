@@ -13,21 +13,29 @@ resample <- function(x, grp_flds, grid_size, env_var_names, out_path){
   
   xx <- remove_NA_rows(tile, env_var_names)
   
-  yy <- grid_up(
-    dataset = xx, 
-    grid_size = grid_size, 
-    rnd_dist = FALSE)
-  
-  bb <- yy[!is.na(yy$population), ]
+  if (nrow(xx) > 0){
     
+    bb <- xx[!is.na(xx$population), ]
+      
+  } else {
+    
+    bb <- xx
+    
+  }
+  
   if (nrow(bb) > 0) {
     
     bb[bb$population == 0, "population"] <- 1
   
   }
   
+  yy <- grid_up(
+    dataset = bb, 
+    grid_size = grid_size, 
+    rnd_dist = FALSE)
+  
   cc <- average_up(
-    pxl_df = bb, 
+    pxl_df = yy, 
     grp_flds = grp_flds, 
     var_names = env_var_names)
   
