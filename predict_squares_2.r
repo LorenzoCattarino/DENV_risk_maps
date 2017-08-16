@@ -65,33 +65,33 @@ tile_ids <- tile_summary$tile.id
 # ----------------------------------------  submit one job
  
 
-# t <- obj$enqueue(find_tiles_with_all_NA_pred_values(
-#   seq_along(tile_ids)[1],
-#   ids_vec = tile_ids,
-#   sel_preds = best_predictors))
+t <- obj$enqueue(find_tiles_with_all_NA_pred_values(
+  seq_along(tile_ids)[1],
+  ids_vec = tile_ids,
+  sel_preds = best_predictors))
 
 
 # ---------------------------------------- submit all jobs
 
 
-if (CLUSTER) {
-  
-  find_NA_tls <- queuer::qlapply(
-    seq_along(tile_ids), 
-    find_tiles_with_all_NA_pred_values, 
-    obj,
-    ids_vec = tile_ids,
-    sel_preds = best_predictors)
-  
-} else {
-  
-  find_NA_tls <- lapply(
-    seq_along(tile_ids)[245],
-    find_tiles_with_all_NA_pred_values,
-    ids_vec = tile_ids,
-    sel_preds = best_predictors)
-  
-}
+# if (CLUSTER) {
+#   
+#   find_NA_tls <- queuer::qlapply(
+#     seq_along(tile_ids), 
+#     find_tiles_with_all_NA_pred_values, 
+#     obj,
+#     ids_vec = tile_ids,
+#     sel_preds = best_predictors)
+#   
+# } else {
+#   
+#   find_NA_tls <- lapply(
+#     seq_along(tile_ids)[245],
+#     find_tiles_with_all_NA_pred_values,
+#     ids_vec = tile_ids,
+#     sel_preds = best_predictors)
+#   
+# }
 
 NA_jobs <- which(all_tiles$results() == TRUE)
 
