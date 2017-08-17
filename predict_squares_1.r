@@ -12,10 +12,12 @@ my_resources <- c(
 
 my_pkgs <- c("data.table", "dplyr")
 
+lcf <- provisionr::package_sources(local = file.path("R_binaries", "data.table_1.10.5.zip"))
 context::context_log_start()
 ctx <- context::context_save(path = "context",
                              sources = my_resources,
-                             packages = my_pkgs)
+                             packages = my_pkgs,
+                             package_sources = lcf)
 
 
 # ---------------------------------------- define parameters
@@ -30,9 +32,9 @@ gr_size <- 20
 new_res <- (1 / 120) * gr_size
 
 out_pt <- file.path(
-"output",
-"env_variables",
-"all_sets_0_1667_deg")
+  "output",
+  "env_variables",
+  "all_sets_0_1667_deg")
 
 
 # ---------------------------------------- are you using the cluster? 
@@ -63,7 +65,9 @@ all_predictors <- read.table(
 # ---------------------------------------- pre processing
 
 
-var_names <- all_predictors$variable
+wanted_preds_ids <- grep("^lct", all_predictors$variable, invert = TRUE) 
+
+var_names <- all_predictors$variable[wanted_preds_ids]
 
 fi <- list.files(in_pt, 
                  pattern = "^tile",
@@ -73,36 +77,36 @@ fi <- list.files(in_pt,
 # ---------------------------------------- submit one job
 
 
-t <- obj$enqueue(
-  resample(fi[1],
-  grp_flds = group_fields,
-  grid_size = new_res,
-  env_var_names = var_names,
-  out_path = out_pt))
+# t <- obj$enqueue(
+#   resample(fi[185],
+#   grp_flds = group_fields,
+#   grid_size = new_res,
+#   env_var_names = var_names,
+#   out_path = out_pt))
 
 
 # ---------------------------------------- submit all jobs
 
 
-# if (CLUSTER) {
-# 
-#   resample_tiles <- queuer::qlapply(
-#     fi,
-#     resample,
-#     obj,
-#     grp_flds = group_fields,
-#     grid_size = new_res,
-#     env_var_names = var_names,
-#     out_path = out_pt)
-# 
-# }else{
-# 
-#   resample_tiles <- lapply(
-#     fi[135],
-#     resample,
-#     grp_flds = group_fields,
-#     grid_size = new_res,
-#     env_var_names = var_names,
-#     out_path = out_pt)
-# 
-# }
+if (CLUSTER) {
+
+  resample_tiles <- queuer::qlapply(
+    fi,
+    resample,
+    obj,
+    grp_flds = group_fields,
+    grid_size = new_res,
+    env_var_names = var_names,
+    out_path = out_pt)
+
+}else{
+
+  resample_tiles <- lapply(
+    fi[185],
+    resample,
+    grp_flds = group_fields,
+    grid_size = new_res,
+    env_var_names = var_names,
+    out_path = out_pt)
+
+}
