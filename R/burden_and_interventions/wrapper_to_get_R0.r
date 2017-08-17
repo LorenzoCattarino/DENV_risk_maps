@@ -1,30 +1,11 @@
 wrapper_to_get_R0 <- function(
-  i, df, age_data, 
+  FOI, N, age_struct, 
   age_band_lower_bounds, age_band_upper_bounds, age_band_tags,
   vec_phis){
   
-  #browser()
-  
-  # ---------------------------------------- extract info for ONE foi value
-  
-  
-  FOI <- df[i, "FOI"]
-  #cat("FOI value =", FOI, "\n")
-  
-  ID_0 <- df[i, "ID_0"]
-  #cat("country code =", ID_0, "\n")
-  
-  total_pop <- df[i, "population"]
-  #cat("population =", total_pop, "\n")
-  
-  ag_st <- age_data[i, age_band_tags]
-  
-  
-  # ----------------------------------------
-  
   
   # calculate n people in age group
-  n_j <- ag_st * total_pop  
+  n_j <- age_struct * N  
   
   
   # ---------------------------------------- calculate incidence of infections
@@ -74,13 +55,13 @@ wrapper_to_get_R0 <- function(
   
   total_infec_4 <- sum(infec_4_j)
   
-
+  
   # ------------------------------------- calculate R0
   
   
   calculate_R0(
     FOI = FOI,
-    N = total_pop,
+    N = N,
     vec_infections = c(total_infec_1, total_infec_2, total_infec_3, total_infec_4), 
     vec_phis = vec_phis)
   
