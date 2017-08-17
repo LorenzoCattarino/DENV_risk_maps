@@ -2,7 +2,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
@@ -27,7 +27,7 @@ no_fits <- 50
 
 NA_tile_fl_name <- "NA_pixel_tiles_20km.txt"
 
-in_pth <- file.path("output", "env_variables", "all_sets_0_1667_deg")
+in_pth <- file.path("output", "env_variables", "all_sets_0_1667_deg", "gadm")
 
 var_name <- "foi"
 
@@ -112,9 +112,28 @@ out_pth_all <- file.path(
 # ---------------------------------------- submit one job 
 
 
-t <- obj$enqueue(
-  wrapper_to_load_tile_dataset(
-    seq_along(tile_ids_2)[1],
+# t <- obj$enqueue(
+#   wrapper_to_load_tile_dataset(
+#     seq_along(tile_ids_2)[185],
+#     ids_vec = tile_ids_2,
+#     in_path = in_pth,
+#     no_fits = no_fits,
+#     model_in_path = RF_obj_path,
+#     predictors = best_predictors,
+#     parallel = FALSE,
+#     out_path = out_pth_all,
+#     out_name = var_name))
+
+
+# ---------------------------------------- submit all jobs
+
+
+if (CLUSTER) {
+
+  pred_tiles <- queuer::qlapply(
+    seq_along(tile_ids_2),
+    wrapper_to_load_tile_dataset,
+    obj,
     ids_vec = tile_ids_2,
     in_path = in_pth,
     no_fits = no_fits,
@@ -122,43 +141,24 @@ t <- obj$enqueue(
     predictors = best_predictors,
     parallel = FALSE,
     out_path = out_pth_all,
-    out_name = var_name))
+    out_name = var_name)
 
+} else {
 
-# ---------------------------------------- submit all jobs
+  pred_tiles <- lapply(
+    seq_along(tile_ids_2)[1],
+    wrapper_to_load_tile_dataset,
+    ids_vec = tile_ids_2,
+    in_path = in_pth,
+    no_fits = no_fits,
+    model_in_path = RF_obj_path,
+    predictors = best_predictors,
+    parallel = FALSE,
+    out_path = out_pth_all,
+    out_name = var_name)
 
+}
 
-# if (CLUSTER) {
-# 
-#   pred_tiles <- queuer::qlapply(
-#     seq_along(tile_ids_2),
-#     wrapper_to_load_tile_dataset,
-#     obj,
-#     ids_vec = tile_ids_2,
-#     in_path = in_pth,
-#     no_fits = no_fits,
-#     model_in_path = RF_obj_path,
-#     predictors = best_predictors,
-#     parallel = FALSE,
-#     out_path = out_pth_all,
-#     out_name = var_name)
-# 
-# } else {
-# 
-#   pred_tiles <- lapply(
-#     seq_along(tile_ids_2)[1],
-#     wrapper_to_load_tile_dataset,
-#     ids_vec = tile_ids_2,
-#     in_path = in_pth,
-#     no_fits = no_fits,
-#     model_in_path = RF_obj_path,
-#     predictors = best_predictors,
-#     parallel = FALSE,
-#     out_path = out_pth_all,
-#     out_name = var_name)
-# 
-# }
-# 
-# if (!CLUSTER) {
-#   context::parallel_cluster_stop()
-# }
+if (!CLUSTER) {
+  context::parallel_cluster_stop()
+}
