@@ -58,14 +58,6 @@ age_band_L_bounds <- age_band_bnds[, 1]
 age_band_U_bounds <- age_band_bnds[, 2] + 1
 
 
-# ---------------------------------------- pre process age structure
-
-
-zero_age_str_countries <- apply(country_age_struc[, age_band_tgs], 1, sum) == 0
-
-country_age_struc <- country_age_struc[!zero_age_str_countries, ]
-
-
 # ---------------------------------------- preprocess admin dataset
 
 
@@ -97,7 +89,7 @@ All_FOI_estimates_3 <- merge(
 # ---------------------------------------- create look up table for age structure
 
 
-info_age <- country_age_struc[c ("ID_0", age_band_tgs)]
+info_age <- country_age_struc[, c("ID_0", age_band_tgs)]
 test_id <- match(All_FOI_estimates_3[, "ID_0"], info_age$ID_0)
 look_up <- info_age[test_id, ]
 
