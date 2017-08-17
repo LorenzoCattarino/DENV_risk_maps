@@ -7,8 +7,6 @@ mean_across_fits <- function(
   
   fl <- readRDS(file.path(fl_pth, fl_nm))
   
-  
-  
   # check if there is only one record in the dataset
   
   if(is.null(dim(fl))) {
