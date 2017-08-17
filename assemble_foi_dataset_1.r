@@ -23,13 +23,8 @@ age_struct_data <- read.csv(file.path("data",
                                       "WPP2015_POP_F07_1_POPULATION_BY_AGE_BOTH_SEXES.csv"), 
                             colClasses = col_classes, na.strings = "…")
 
-# age_struct_data_taiwan <- read.csv(file.path("data", 
-#                                              "population",
-#                                              "taiwan_age_distribution.csv"))
-
 numerical_codes <- read.csv(file.path("data", "country_codes.csv")) 
 
-# national border shapefile
 country_border_shp_fl <- readShapePoly(
   file.path("data", 
             "shapefiles", 
@@ -142,9 +137,17 @@ final_age_struct_data[final_age_struct_data$country == "Guernsey", c("Reference_
 final_age_struct_data <- final_age_struct_data [order(final_age_struct_data$country), ]
 
 
+# ---------------------------------------- now remove the zero (!) (NEED TO FIX THIS CODE!) 
+
+
+zero_records <- apply(final_age_struct_data[, numeric_columns], 1, sum) == 0
+
+final_age_struct_data_mz <- final_age_struct_data[!zero_records, ]
+
+
 # ---------------------------------------- save  
 
 
-write.csv(final_age_struct_data, 
+write.csv(final_age_struct_data_mz, 
           file.path(out_pt, out_nm), 
           row.names = FALSE)
