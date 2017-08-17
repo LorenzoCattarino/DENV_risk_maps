@@ -13,16 +13,8 @@ resample <- function(x, grp_flds, grid_size, env_var_names, out_path){
   
   xx <- remove_NA_rows(tile, env_var_names)
   
-  if (nrow(xx) > 0){
-    
-    bb <- xx[!is.na(xx$population), ]
-      
-  } else {
-    
-    bb <- xx
-    
-  }
-  
+  bb <- xx[!is.na(xx$population), ]
+
   if (nrow(bb) > 0) {
     
     bb[bb$population == 0, "population"] <- 1
