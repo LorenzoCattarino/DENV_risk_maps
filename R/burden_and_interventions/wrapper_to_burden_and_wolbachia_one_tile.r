@@ -2,10 +2,11 @@ burden_and_wolbachia_one_tile <- function(
   i, ids_vec, in_path,
   orig_in_path, xx, age_band_tgs,
   age_band_lower_bounds, age_band_upper_bounds,
-  sympt_weights, age_struct){
+  w_1, w_2, w_3, 
+  age_struct, out_path, parallel){
   
   
-  browser()
+  #browser()
   
   one_id <- ids_vec[i]
   cat("tile id = ", one_id, "\n")
@@ -37,18 +38,23 @@ burden_and_wolbachia_one_tile <- function(
   tile_foi <- readRDS(file.path(in_path, tile_nm, "foi.rds"))
     
   
-  # ---------------------------------------- calculates R0 for each foi value
+  # ---------------------------------------- calculates R0 for each R0 assumption
   
-  
-  R_0_values <- loop(
-    xx,
-    burden_multi_factor_wrapper,
-    predicted_FOI = tile_foi, 
-    age_band_tags = age_band_tgs,
-    age_band_lower_bounds = age_band_lower_bounds,
-    age_band_upper_bounds = age_band_upper_bounds,
-    sympt_weights = sympt_weights,
-    look_up = look_up,
-    parallel = TRUE)
+
+  out_path <- out_pth_all[i]
+    
+  loop(xx,
+       burden_multi_factor_wrapper,
+       foi_data = tile_foi, 
+       orig_data = original_tile,
+       age_band_tags = age_band_tgs,
+       age_band_lower_bounds = age_band_lower_bounds,
+       age_band_upper_bounds = age_band_upper_bounds,
+       w_1 = w_1, 
+       w_2 = w_2, 
+       w_3 = w_3,
+       look_up = look_up,
+       out_path = out_path,
+       parallel = parallel)
   
 }  
