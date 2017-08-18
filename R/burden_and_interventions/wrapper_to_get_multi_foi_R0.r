@@ -7,32 +7,25 @@ wrapper_to_get_multi_foi_R0 <- function(
   vec_phis){
   
   
-  browser()
+  #browser()
   
   # ---------------------------------------- extract info for ONE foi value
   
-  
-  FOI <- foi_data[i, "FOI"]
-  #cat("FOI value =", FOI, "\n")
-  
-  ID_0 <- orig_data[i, "ID_0"]
-  #cat("country code =", ID_0, "\n")
+  # vector of foi values 
+  FOI_values <- foi_data[i, ]
   
   N <- orig_data[i, "population"]
-  #cat("population =", total_pop, "\n")
+  #cat("population =", N, "\n")
   
   age_struct <- age_data[i, age_band_tags]
   
   
-  # ----------------------------------------
+  # ---------------------------------------- calculates R0 values for different replicates of the same pixel  
   
   
-  no_rep <- length(i)
-  
-  vapply(seq_len(no_rep),
+  vapply(FOI_values,
          wrapper_to_get_R0,
          numeric(1),
-         FOI = FOI, 
          N = N, 
          age_struct = age_struct, 
          age_band_lower_bounds = age_band_lower_bounds, 
