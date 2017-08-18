@@ -41,7 +41,7 @@ burden_and_wolbachia_one_tile <- function(
   # ---------------------------------------- calculates R0 for each R0 assumption
   
 
-  out_path <- out_pth_all[i]
+  tile_out_path <- out_path[i]
     
   loop(xx,
        burden_multi_factor_wrapper,
@@ -54,7 +54,7 @@ burden_and_wolbachia_one_tile <- function(
        w_2 = w_2, 
        w_3 = w_3,
        look_up = look_up,
-       out_path = out_path,
+       out_path = tile_out_path,
        parallel = parallel)
   
 }  
