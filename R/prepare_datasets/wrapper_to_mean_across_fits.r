@@ -3,7 +3,11 @@ wrapper_to_mean_across_fits <- function(
   var_names, parallel, base_info,
   out_path){
   
+  
   #browser()
+  
+  # ----------------------------------------
+  
   
   one_id <- ids_vec[i]
   cat("tile id = ", one_id, "\n")
