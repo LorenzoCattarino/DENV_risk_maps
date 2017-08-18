@@ -1,7 +1,7 @@
 mean_across_fits <- function(
   i, var_names, fl_pth) {
   
-  out_names <- c("mean" , "l_CI", "u_CI")
+  out_names <- c("mean" , "lCI", "uCI")
   
   fl_nm <- paste0(var_names[i], ".rds")
   
