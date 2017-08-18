@@ -4,7 +4,8 @@ wrapper_to_get_multi_foi_R0 <- function(
   age_band_tags,
   age_band_lower_bounds, 
   age_band_upper_bounds, 
-  vec_phis){
+  vec_phis, scaling_factor,
+  w_1, w_2, w_3){
   
   
   #browser()
@@ -25,12 +26,16 @@ wrapper_to_get_multi_foi_R0 <- function(
   
   vapply(FOI_values,
          wrapper_to_get_R0,
-         numeric(1),
+         numeric(5),
          N = N, 
          age_struct = age_struct, 
          age_band_lower_bounds = age_band_lower_bounds, 
          age_band_upper_bounds = age_band_upper_bounds, 
          age_band_tags = age_band_tags,
-         vec_phis = vec_phis)
+         vec_phis = vec_phis,
+         scaling_factor = scaling_factor,
+         w_1 = w_1, 
+         w_2 = w_2, 
+         w_3 = w_3)
   
 }
