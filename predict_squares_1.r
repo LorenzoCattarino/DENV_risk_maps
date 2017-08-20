@@ -15,8 +15,8 @@ my_pkgs <- c("data.table", "dplyr")
 lcf <- provisionr::package_sources(local = file.path("R_binaries", "data.table_1.10.5.zip"))
 context::context_log_start()
 ctx <- context::context_save(path = "context",
-                             sources = my_resources,
                              packages = my_pkgs,
+                             sources = my_resources,
                              package_sources = lcf)
 
 
