@@ -31,11 +31,7 @@ burden_multi_factor_wrapper <- function(
   # ---------------------------------------- define parameters 
   
   
-  out_tags <- c("R0", 
-                "number_of_infections", 
-                "number_of_cases", 
-                "incidence_of_infections", 
-                "incidence_of_cases")
+  out_tags <- c("R0", "I_num", "C_num")#, "I_inc", "C_inc")
   
   
   # ---------------------------------------- define variables
@@ -47,32 +43,35 @@ burden_multi_factor_wrapper <- function(
   # ---------------------------------------- calculates R0 values for different pixels  
   
 
-  R0_values <- vapply(
+  burden_estimates <- lapply(
     seq_len(nrow(foi_data)),
     wrapper_to_get_multi_foi_R0, 
-    numeric(ncol(foi_data)),
     foi_data = foi_data, 
     orig_data = orig_data,
     age_data = look_up, 
     age_band_lower_bounds = age_band_lower_bounds, 
     age_band_upper_bounds = age_band_upper_bounds, 
     age_band_tags = age_band_tags,
-    vec_phis = vec_phis)
+    vec_phis = vec_phis,
+    scaling_factor = sf,
+    w_1 = w_1, 
+    w_2 = w_2, 
+    w_3 = w_3)
   
   
-  # ---------------------------------------- fixes NaN
-  
-  
-  R0_values[is.na(R0_values)] <- 0 
-  
-    
   # ---------------------------------------- save
-  
-  
-  R0_values_t <- t(R0_values)
-  
-  out_name <- paste0("R0_", run_ID, ".rds")
-    
-  write_out_rds(R0_values_t, out_path, out_name)
 
+  
+  for (b in seq_along(out_tags)){
+    
+    ret1 <- lapply(burden_estimates, "[", b, TRUE)
+  
+    ret2 <- do.call("rbind", ret1)  
+    
+    out_name <- paste0(out_tags[b], "_", run_ID, ".rds")
+    
+    write_out_rds(ret2, out_path, out_name)
+  
+  }
+  
 }
