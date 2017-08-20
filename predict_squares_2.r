@@ -2,7 +2,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "prepare_datasets", "remove_NA_rows.r"),
@@ -13,6 +13,7 @@ my_pkgs <- "data.table"
 lcf <- provisionr::package_sources(local = file.path("R_binaries", "data.table_1.10.5.zip"))
 context::context_log_start()
 ctx <- context::context_save(path = "context",
+                             packages = my_pkgs,
                              sources = my_resources,
                              package_sources = lcf)
 
@@ -20,7 +21,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-in_pth <- file.path("output", "env_variables", "all_sets_0_1667_deg")
+in_pth <- file.path("output", "env_variables", "all_sets_0_1667_deg", "gadm")
 
           
 # ------------------------------------- Are you using the cluster?
