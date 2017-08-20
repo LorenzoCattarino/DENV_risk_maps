@@ -1,5 +1,5 @@
-# Takes the averaged value across models, and confidence intervals, 
-# of different measured variables (foi, R0, burden...), for each tile. 
+# Takes the mean and confidence intervals, across models,  
+# of different measured variables (foi, R0, burden), for each tile. 
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -25,6 +25,9 @@ model_tp <- "boot_model_20km_cw"
 
 no_fits <- 50
 
+# number of R0 and wolbachia scenarios considered 
+no_runs <- 4 
+
 NA_tile_fl_name <- "NA_pixel_tiles_20km.txt"
 
 bs_inf <- c("cell", "lat.grid", "long.grid", "population")
@@ -37,7 +40,8 @@ in_pth <- file.path(
   model_tp,
   "tile_sets_0_1667_deg")
 
-var_names <- "foi"
+# there is always `foi` and it always comes first
+var_names <- c("foi", "R0", "I_num", "C_num")  
 
 
 # ---------------------------------------- define variables
@@ -50,6 +54,18 @@ out_pth <- file.path(
   "tile_sets_0_1667_deg",
   "averages")
 
+if(length(var_names) > 1) {
+  
+  cr_tags <- vapply(var_names[2:length(var_names)], paste, character(4), 1:no_runs, sep = "_")
+         
+  my_vars <- c(var_names[1], as.vector(cr_tags))  
+
+} else {
+  
+  my_vars <- var_names[1]    
+  
+}
+  
 
 # ---------------------------------------- are you using the cluster?
 
@@ -102,50 +118,50 @@ tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]
 # ---------------------------------------- submit one job 
 
 
-t <- obj$enqueue(
-  wrapper_to_mean_across_fits(
-    seq_along(tile_ids_2)[1],
-    ids_vec = tile_ids_2,
-    in_path = in_pth,
-    orig_in_path = orig_in_pth,
-    var_names = var_names,
-    parallel = TRUE,
-    base_info = bs_inf,
-    out_path = out_pth))
+# t <- obj$enqueue(
+#   wrapper_to_mean_across_fits(
+#     seq_along(tile_ids_2)[1],
+#     ids_vec = tile_ids_2,
+#     in_path = in_pth,
+#     orig_in_path = orig_in_pth,
+#     var_names = my_vars,
+#     parallel = TRUE,
+#     base_info = bs_inf,
+#     out_path = out_pth))
 
 
 # ---------------------------------------- submit all jobs
 
 
-# if (CLUSTER) {
-# 
-#   pred_tiles <- queuer::qlapply(
-#     seq_along(tile_ids_2),
-#     wrapper_to_mean_across_fits,
-#     obj,
-#     ids_vec = tile_ids_2,
-#     in_path = in_pth,
-#     orig_in_path = orig_in_pth,
-#     var_names = var_names,
-#     parallel = TRUE,
-#     base_info = bs_inf,
-#     out_path = out_pth)
-# 
-# } else {
-# 
-#   pred_tiles <- lapply(
-#     seq_along(tile_ids_2)[1],
-#     wrapper_to_mean_across_fits,
-#     ids_vec = tile_ids_2,
-#     in_path = in_pth,
-#     orig_in_path = orig_in_pth,
-#     var_names = var_names,
-#     parallel = TRUE,
-#     base_info = bs_inf,
-#     out_path = out_pth)
-# 
-# }
-# 
-# if (!CLUSTER) {
-#   context::parallel_cluster_stop()
-# }
+if (CLUSTER) {
+
+  pred_tiles <- queuer::qlapply(
+    seq_along(tile_ids_2),
+    wrapper_to_mean_across_fits,
+    obj,
+    ids_vec = tile_ids_2,
+    in_path = in_pth,
+    orig_in_path = orig_in_pth,
+    var_names = my_vars,
+    parallel = TRUE,
+    base_info = bs_inf,
+    out_path = out_pth)
+
+} else {
+
+  pred_tiles <- lapply(
+    seq_along(tile_ids_2)[137],
+    wrapper_to_mean_across_fits,
+    ids_vec = tile_ids_2,
+    in_path = in_pth,
+    orig_in_path = orig_in_pth,
+    var_names = my_vars,
+    parallel = TRUE,
+    base_info = bs_inf,
+    out_path = out_pth)
+
+}
+
+if (!CLUSTER) {
+  context::parallel_cluster_stop()
+}
