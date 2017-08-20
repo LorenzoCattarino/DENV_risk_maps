@@ -2,7 +2,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
@@ -14,8 +14,8 @@ my_pkgs <- c("h2o", "data.table")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
+                             packages = my_pkgs,
+                             sources = my_resources)
 
 
 # ---------------------------------------- define parameters
