@@ -1,6 +1,6 @@
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "utility_functions.R"),
@@ -28,7 +28,7 @@ if (CLUSTER) {
 } else {
   
   context::context_load(ctx)
-  #context::start_parallel_cluster(8, ctx)
+  #context::parallel_cluster_start(8, ctx)
 
 }
 
@@ -38,23 +38,30 @@ if (CLUSTER) {
 
 adm_levels <- c(1, 2)
 
+model_tp <- "boot_model_20km_cw"
+
+no_fits <- 50
+
 bse_inf_1 <- c("OBJECTID", "ID_0", "country", "ID_1", "name1", "population")
 bse_inf_2 <- c("OBJECTID", "ID_0", "country", "ID_1", "name1", "ID_2", "name2", "population")
 
 var_names <- "mean_pred"
 # var_names <- c("mean_pred" ,"low_perc", "up_perc")
 
+
+# ---------------------------------------- define variables
+
+
 RF_obj_path <- file.path(
   "output",
   "EM_algorithm",
+  model_tp,
   "optimized_model_objects")
 
 out_pth <- file.path(
   "output", 
-  "predictions", 
-  "best_model_20km_cw")
-
-no_fits <- 200
+  "predictions_world", 
+  model_tp)
 
 
 # ---------------------------------------- load data
@@ -102,13 +109,12 @@ if (CLUSTER) {
     var_names = var_names, 
     model_in_path = RF_obj_path,
     out_path = out_pth,
-    no_fits = no_fits,
-    average = FALSE)
+    no_fits = no_fits)
   
 } else {
   
   all_admin <- lapply(
-    seq_along(adm_levels),
+    seq_along(adm_levels)[2],
     wrapper_to_load_admin_dataset,
     prediction_datasets = prediction_datasets,
     adm_levels = adm_levels, 
@@ -118,11 +124,10 @@ if (CLUSTER) {
     var_names = var_names, 
     model_in_path = RF_obj_path,
     out_path = out_pth,
-    no_fits = no_fits,
-    average = FALSE)
+    no_fits = no_fits)
   
 }
 
 if (!CLUSTER) {
-  context:::stop_parallel_cluster()
+  context::parallel_cluster_stop()
 }
