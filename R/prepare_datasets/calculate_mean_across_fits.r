@@ -1,28 +1,31 @@
-mean_across_fits <- function(
-  i, var_names, fl_pth) {
+mean_across_fits <- function(dat) {
   
-  out_names <- c("mean", "lCI", "uCI")
+  out_names <- c("mean", "sd", "lCI", "uCI")
   
-  fl_nm <- paste0(var_names[i], ".rds")
+  #fl_nm <- paste0(var_names[i], ".rds")
   
-  fl <- readRDS(file.path(fl_pth, fl_nm))
+  #fl <- readRDS(file.path(fl_pth, fl_nm))
   
   # check if there is only one record in the dataset
   
-  if(is.null(dim(fl))) {
+  if(is.null(dim(dat))) {
     
-    mean_val <- mean(fl)
+    mean_val <- mean(dat)
     
-    percentiles <- quantile(fl, probs = c(0.025, 0.975))
+    st_dev <- sd(dat)
+      
+    percentiles <- quantile(dat, probs = c(0.025, 0.975))
     
     l_b <- percentiles[1]
     u_b <- percentiles[2]
-    
+      
   } else {
     
-    mean_val <- rowMeans(fl)
+    mean_val <- rowMeans(dat)
     
-    percentiles <- apply(fl, 1, FUN = quantile, probs = c(0.025, 0.975))
+    st_dev <- apply(dat, 1, FUN = sd)
+    
+    percentiles <- apply(dat, 1, FUN = quantile, probs = c(0.025, 0.975))
     
     percentiles <- t(percentiles)
     
@@ -31,8 +34,6 @@ mean_across_fits <- function(
     
   }
   
-  col_nms <- paste0(var_names[i], "_", out_names)
-  
-  setNames(data.frame(mean_val, l_b, u_b), col_nms)
+  setNames(data.frame(mean_val, st_dev, l_b, u_b), out_names)
 
 }
