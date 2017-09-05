@@ -2,34 +2,45 @@ wrapper_to_load_admin_dataset <- function(
   i, prediction_datasets, adm_levels, 
   bse_infs, sel_preds, parallel, 
   var_names, model_in_path, 
-  out_path, no_fits, average){
+  out_path, no_fits){
   
   pred_dts <- prediction_datasets[[i]]
   
+  pred_dts <- remove_NA_rows(pred_dts, sel_preds)
+    
   adm_lvl <- adm_levels[i]
   
   base_info <- bse_infs[[i]]
   
-  file_name <- paste0("adm_", adm_lvl, "_predictions" , ".rds")
+  file_name <- paste0("adm_", adm_lvl, "_predictions" , ".csv")
   
-  h2o.init()
-  
-  print(packageVersion("h2o"))
-  
-  out <- wrapper_to_make_preds(
+  foi <- wrapper_to_make_preds(
+    no_fits = no_fits, 
+    model_in_path = model_in_path, 
     dataset = pred_dts, 
     predictors = sel_preds, 
-    model_in_path = model_in_path,
-    parallel = parallel,
-    base_info = base_info, 
-    var_names = var_names,
-    no_fits = no_fits,
-    average = average)  
+    parallel = parallel)  
   
-  dir.create(out_path, FALSE, TRUE)
+  #browser()
   
-  saveRDS(out, file.path(out_path, file_name))
+  foi[foi < 0] <- 0
   
-  h2o.shutdown(prompt = FALSE)
+  mean_val <- rowMeans(foi)
+  
+  sd <- apply(foi, 1, FUN = sd)
+  
+  out_names <- c("mean", "sd")
+  
+  col_nms <- paste0("foi", "_", out_names)
+  
+  av_df <- setNames(data.frame(mean_val, sd), col_nms)
+  
+  out <- cbind(pred_dts[, base_info], av_df)
+  
+  zero_logic <- out$foi_mean == 0
+  
+  out_mz <- out[!zero_logic, ] 
+  
+  write_out_csv(out_mz, out_path, file_name)
 
 }
