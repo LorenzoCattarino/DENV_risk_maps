@@ -21,19 +21,13 @@ wrapper_to_load_admin_dataset <- function(
     predictors = sel_preds, 
     parallel = parallel)  
   
-  #browser()
-  
   foi[foi < 0] <- 0
   
-  mean_val <- rowMeans(foi)
+  ret <- mean_across_fits(foi)
   
-  sd <- apply(foi, 1, FUN = sd)
+  col_nms <- paste0("foi", "_", colnames(ret))
   
-  out_names <- c("mean", "sd")
-  
-  col_nms <- paste0("foi", "_", out_names)
-  
-  av_df <- setNames(data.frame(mean_val, sd), col_nms)
+  av_df <- setNames(ret, col_nms)
   
   out <- cbind(pred_dts[, base_info], av_df)
   
