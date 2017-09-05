@@ -3,7 +3,7 @@ burden_multi_factor_wrapper <- function(
   age_band_tags, age_band_lower_bounds, 
   age_band_upper_bounds, 
   w_1, w_2, w_3,
-  look_up, out_path){
+  look_up, var_names){
   
   
   #browser()
@@ -31,7 +31,8 @@ burden_multi_factor_wrapper <- function(
   # ---------------------------------------- define parameters 
   
   
-  out_tags <- c("R0", "I_num", "C_num")#, "I_inc", "C_inc")
+  # first one is `foi`
+  out_tags <- var_names[2:length(var_names)]
   
   
   # ---------------------------------------- define variables
@@ -59,19 +60,24 @@ burden_multi_factor_wrapper <- function(
     w_3 = w_3)
   
   
-  # ---------------------------------------- save
+  # ---------------------------------------- reshape and save
 
-  
+
+  ret <- vector("list", length = length(out_tags))
+    
   for (b in seq_along(out_tags)){
     
     ret1 <- lapply(burden_estimates, "[", b, TRUE)
   
     ret2 <- do.call("rbind", ret1)  
     
-    out_name <- paste0(out_tags[b], "_", run_ID, ".rds")
+    ret[[b]] <- ret2
     
-    write_out_rds(ret2, out_path, out_name)
+    #out_name <- paste0(out_tags[b], "_", run_ID, ".rds")
+    #write_out_rds(ret2, out_path, out_name)
   
   }
   
+  ret
+
 }
