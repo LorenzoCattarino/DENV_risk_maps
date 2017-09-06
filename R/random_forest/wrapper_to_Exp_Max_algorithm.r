@@ -65,8 +65,6 @@ exp_max_algorithm_boot <- function(
   names(pxl_dts_boot)[names(pxl_dts_boot) == "ADM_0"] <- grp_flds[1]
   names(pxl_dts_boot)[names(pxl_dts_boot) == "ADM_1"] <- grp_flds[2]
   
-  #pxl_dts_boot[pxl_dts_boot$population > 0, "population"] <- 1
-  
   pxl_dts_grp <- pxl_dts_boot %>% group_by_(.dots = grp_flds) 
   
   aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
