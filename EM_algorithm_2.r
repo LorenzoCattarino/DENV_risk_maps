@@ -7,9 +7,10 @@ CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "prepare_datasets", "filter_and_resample.r"),
+  file.path("R", "prepare_datasets", "clean_and_resample.r"),
+  file.path("R", "prepare_datasets", "remove_NA_rows.r"),
   file.path("R", "prepare_datasets", "grid_up_foi_dataset.r"),
   file.path("R", "prepare_datasets", "average_up.r"),
-  file.path("R", "prepare_datasets", "remove_NA_rows.r"),
   file.path("R", "utility_functions.r"))
 
 my_pkgs <- c("data.table", "dplyr")
@@ -59,7 +60,7 @@ if (CLUSTER) {
 
 }
 
-task_b_name <- "cubiform_noddy"
+task_b_name <- "ignitable_gerbil"
 
 pxl_job_t <- obj$task_bundle_get(task_b_name)
 
@@ -73,12 +74,6 @@ all_pixel_df <- do.call("rbind", pxl_job)
 
 # check duplicate cell values - it is OK to have duplicate! 
 # sum(duplicated(all_pixel_df[,1:4]))
-
-# assign NA to 0 covariate values 
-all_pixel_df[, my_predictors][all_pixel_df[, my_predictors] == 0] <- NA
-
-#remove records with at least one NA predictor value
-all_pixel_df <- remove_NA_rows(all_pixel_df, my_predictors)
 
 # assign cell ID
 all_pixel_df$cell <- seq_len(nrow(all_pixel_df))
