@@ -1,28 +1,24 @@
 filter_resample_and_combine <- function(
   i, boot_samples, tile_ls, 
-  var_names, grp_flds, new_res, 
-  my_preds, out_file_path, out_file_name){
+  grp_flds, new_res, predictors, 
+  out_file_path, out_file_name){
   
   #browser()
   
   foi_data <- boot_samples[[i]]
   
-  names(foi_data)[names(foi_data) == "population"] <- "adm_pop" # this could go out! 
+  names(foi_data)[names(foi_data) == "population"] <- "adm_pop"
   
   pxl_job <- loop(
     tile_ls,
     filter_and_resample,
     foi_dts = foi_data, 
-    env_var_names = var_names, 
+    env_var_names = predictors, 
     grp_flds = grp_flds, 
     grid_size = new_res,
     parallel = TRUE)
   
   pxl_dataset <- do.call("rbind", pxl_job)
-  
-  pxl_dataset[, my_preds][pxl_dataset[, my_preds] == 0] <- NA
-  
-  pxl_dataset <- remove_NA_rows(pxl_dataset, my_preds)
   
   pxl_dataset$cell <- seq_len(nrow(pxl_dataset))
   
