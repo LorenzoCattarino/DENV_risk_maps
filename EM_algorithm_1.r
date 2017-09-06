@@ -7,6 +7,8 @@ CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "prepare_datasets", "filter_and_resample.r"),
+  file.path("R", "prepare_datasets", "clean_and_resample.r"),
+  file.path("R", "prepare_datasets", "remove_NA_rows.r"),
   file.path("R", "prepare_datasets", "grid_up_foi_dataset.r"),
   file.path("R", "prepare_datasets", "average_up.r"))
 
@@ -47,11 +49,12 @@ if (CLUSTER) {
 # ---------------------------------------- load data
 
 
-all_predictors <- read.table(
+predictor_rank <- read.csv(
   file.path("output", 
-            "datasets", 
-            "all_predictors.txt"), 
-  header = TRUE, 
+            "variable_selection", 
+            "metropolis_hastings", 
+            "exp_1", 
+            "variable_rank_final_fits_exp_1.csv"),
   stringsAsFactors = FALSE)
 
 foi_data <- read.csv(
@@ -66,7 +69,7 @@ names(foi_data)[names(foi_data) == "ID_0"] <- "ADM_0"
 names(foi_data)[names(foi_data) == "ID_1"] <- "ADM_1"
 names(foi_data)[names(foi_data) == "population"] <- "adm_pop"
 
-var_names <- all_predictors$variable
+my_predictors <- predictor_rank$variable[1:9]
 
 fi <- list.files(in_pt, 
                  pattern = "^tile",
@@ -77,10 +80,10 @@ fi <- list.files(in_pt,
 
 
 # t <- obj$enqueue(
-#   wrapper_to_tiles_to_dts(
+#   filter_and_resample(
 #     fi[1],
 #     foi_dts = foi_data,
-#     env_var_names = var_names,
+#     env_var_names = my_predictors,
 #     grp_flds = group_fields,
 #     grid_size = new_res))
 
@@ -89,24 +92,24 @@ fi <- list.files(in_pt,
 
 
 if (CLUSTER) {
-  
+
   pxl_job <- queuer::qlapply(
     fi,
     filter_and_resample,
     obj,
-    foi_dts = foi_data, 
-    env_var_names = var_names, 
-    grp_flds = group_fields, 
+    foi_dts = foi_data,
+    env_var_names = my_predictors,
+    grp_flds = group_fields,
     grid_size = new_res)
 
 } else {
-  
+
   pxl_job <- lapply(
     fi[159],
     filter_and_resample,
-    foi_dts = foi_data, 
-    env_var_names = var_names, 
-    grp_flds = group_fields, 
+    foi_dts = foi_data,
+    env_var_names = my_predictors,
+    grp_flds = group_fields,
     grid_size = new_res)
-  
+
 }
