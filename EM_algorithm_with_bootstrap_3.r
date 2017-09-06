@@ -9,6 +9,7 @@ CLUSTER <- TRUE
 my_resources <- c(
   file.path("R", "prepare_datasets", "filter_resample_and_combine.r"),
   file.path("R", "prepare_datasets", "filter_and_resample.r"),
+  file.path("R", "prepare_datasets", "clean_and_resample.r"),
   file.path("R", "prepare_datasets", "grid_up_foi_dataset.r"),
   file.path("R", "prepare_datasets", "average_up.r"),
   file.path("R", "prepare_datasets", "remove_NA_rows.r"),
@@ -25,7 +26,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-no_fits <- 200
+no_fits <- 50
   
 in_pt <- file.path("data", "env_variables", "all_sets_gadm_codes")
 
@@ -65,13 +66,6 @@ boot_samples <- readRDS(
             "boot_samples",
             "bootstrap_samples.rds"))
 
-all_predictors <- read.table(
-  file.path("output", 
-            "datasets", 
-            "all_predictors.txt"), 
-  header = TRUE, 
-  stringsAsFactors = FALSE)
-
 predictor_rank <- read.csv(
   file.path("output", 
             "variable_selection", 
@@ -86,8 +80,6 @@ predictor_rank <- read.csv(
 
 my_predictors <- predictor_rank$variable[1:9]
 
-var_names <- all_predictors$variable
-
 fi <- list.files(in_pt, 
                  pattern = "^tile",
                  full.names = TRUE)
@@ -98,13 +90,12 @@ fi <- list.files(in_pt,
 
 # t <- obj$enqueue(
 #   filter_resample_and_combine(
-#     seq_along(boot_samples)[1],
+#     seq_len(no_fits)[1],
 #     boot_samples = boot_samples,
 #     tile_ls = fi,
-#     var_names = var_names,
 #     grp_flds = group_fields,
 #     new_res = new_res,
-#     my_preds = my_predictors,
+#     predictors = my_predictors,
 #     out_file_path = out_pt,
 #     out_file_name = out_fl_nm_all))
 
@@ -115,29 +106,27 @@ fi <- list.files(in_pt,
 if (CLUSTER) {
 
   pxl_jobs <- queuer::qlapply(
-    seq_along(boot_samples),
+    seq_len(no_fits),
     filter_resample_and_combine,
     obj,
     boot_samples = boot_samples,
     tile_ls = fi,
-    var_names = var_names,
     grp_flds = group_fields,
     new_res = new_res,
-    my_preds = my_predictors,
+    predictors = my_predictors,
     out_file_path = out_pt,
     out_file_name = out_fl_nm_all)
 
 } else {
 
   pxl_jobs <- lapply(
-    seq_along(boot_samples)[1],
+    seq_len(no_fits)[1],
     filter_resample_and_combine,
     boot_samples = boot_samples,
     tile_ls = fi,
-    var_names = var_names,
     grp_flds = group_fields,
     new_res = new_res,
-    my_preds = my_predictors,
+    predictors = my_predictors,
     out_file_path = out_pt,
     out_file_name = out_fl_nm_all)
 
