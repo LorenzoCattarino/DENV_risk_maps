@@ -23,7 +23,7 @@ ctx <- context::context_save(path = "context",
 
 no_fits <- 50
 
-pseudoAbsence_value <- -0.02
+pseudoAbsence_value <- -0.001
   
 dependent_variable <- "o_j"
 
