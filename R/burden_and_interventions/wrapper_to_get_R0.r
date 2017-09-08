@@ -53,4 +53,6 @@ wrapper_to_get_R0 <- function(
       vec_infections = total_infec, 
       vec_phis = vec_phis)
 
+  }
+
 }
