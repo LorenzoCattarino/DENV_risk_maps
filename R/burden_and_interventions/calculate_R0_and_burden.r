@@ -1,4 +1,4 @@
-wrapper_to_get_R0 <- function(
+calculate_R0_and_burden <- function(
   FOI, N, age_struct, 
   age_band_lower_bounds, age_band_upper_bounds, age_band_tags,
   vec_phis, scaling_factor,
