@@ -25,7 +25,7 @@ wrapper_to_get_multi_foi_R0 <- function(
   
   
   vapply(FOI_values,
-         wrapper_to_get_R0,
+         calculate_R0_and_burden,
          numeric(5),
          N = N, 
          age_struct = age_struct, 
