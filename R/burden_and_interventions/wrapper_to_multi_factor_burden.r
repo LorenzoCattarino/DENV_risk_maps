@@ -3,7 +3,7 @@ burden_multi_factor_wrapper <- function(
   age_band_tags, age_band_lower_bounds, 
   age_band_upper_bounds, 
   w_1, w_2, w_3,
-  look_up, var_names){
+  look_up, parallel_2, var_names){
   
   
   #browser()
@@ -19,21 +19,7 @@ burden_multi_factor_wrapper <- function(
   phi_3 <- x$phi3
   phi_4 <- x$phi4
   
-  cat("phi 1 =", phi_1, "\n")  
-  cat("phi 2 =", phi_2, "\n") 
-  cat("phi 3 =", phi_3, "\n") 
-  cat("phi 4 =", phi_4, "\n") 
-  
   sf <- x$scaling_factor
-  cat("scaling factor =", sf, "\n")
-  
-  
-  # ---------------------------------------- define parameters 
-  
-  
-  # first one is `foi`
-  out_tags <- var_names[2:length(var_names)]
-  
   
   # ---------------------------------------- define variables
  
@@ -44,7 +30,7 @@ burden_multi_factor_wrapper <- function(
   # ---------------------------------------- calculates R0 values for different pixels  
   
 
-  burden_estimates <- lapply(
+  burden_estimates <- loop(
     seq_len(nrow(foi_data)),
     wrapper_to_get_multi_foi_R0, 
     foi_data = foi_data, 
@@ -57,27 +43,38 @@ burden_multi_factor_wrapper <- function(
     scaling_factor = sf,
     w_1 = w_1, 
     w_2 = w_2, 
-    w_3 = w_3)
+    w_3 = w_3,
+    var_names = var_names,
+    parallel = parallel_2)
   
   
   # ---------------------------------------- reshape and save
 
 
-  ret <- vector("list", length = length(out_tags))
-    
-  for (b in seq_along(out_tags)){
-    
-    ret1 <- lapply(burden_estimates, "[", b, TRUE)
+  out <- do.call("rbind", burden_estimates)
   
-    ret2 <- do.call("rbind", ret1)  
-    
-    ret[[b]] <- ret2
-    
-    #out_name <- paste0(out_tags[b], "_", run_ID, ".rds")
-    #write_out_rds(ret2, out_path, out_name)
+  var_names <- paste(var_names, run_ID, sep = "_")
   
-  }
+  setNames(as.data.frame(out), var_names)
   
-  ret
+  # fl_nm <- paste0("R0_and_burden_", run_ID, ".rds")
+  # 
+  # write_out_rds(out2, 
+  #               "output/predictions_world/boot_model_20km_cw",
+  #               fl_nm)
+  
+  # ret <- vector("list", length = length(var_names))
+  #   
+  # for (b in seq_along(var_names)){
+  #   
+  #   ret1 <- lapply(burden_estimates, "[", b, TRUE)
+  # 
+  #   ret2 <- do.call("rbind", ret1)  
+  #   
+  #   ret[[b]] <- ret2
+  # 
+  # }
+  # 
+  # ret
 
 }
