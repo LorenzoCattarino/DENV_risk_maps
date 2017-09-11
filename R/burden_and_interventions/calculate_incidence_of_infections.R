@@ -1,5 +1,5 @@
-calculate_incidence_of_infections <- function(infections, population) {
+calculate_incidence_of_infections <- function(infections, population, tot) {
   
-  (infections / population) * 100000
+  (infections / population) * tot
   
 }
