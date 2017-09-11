@@ -5,7 +5,8 @@ wrapper_to_get_multi_foi_R0 <- function(
   age_band_lower_bounds, 
   age_band_upper_bounds, 
   vec_phis, scaling_factor,
-  w_1, w_2, w_3){
+  w_1, w_2, w_3,
+  var_names){
   
   
   #browser()
@@ -13,7 +14,8 @@ wrapper_to_get_multi_foi_R0 <- function(
   # ---------------------------------------- extract info for ONE foi value
   
   # vector of foi values 
-  FOI_values <- foi_data[i, ]
+  #FOI_values <- foi_data[i, ]
+  FOI_values <- foi_data[i, "mean_pred"]
   
   N <- orig_data[i, "population"]
   #cat("population =", N, "\n")
@@ -24,18 +26,30 @@ wrapper_to_get_multi_foi_R0 <- function(
   # ---------------------------------------- calculates R0 values for different replicates of the same pixel  
   
   
-  vapply(FOI_values,
-         calculate_R0_and_burden,
-         numeric(5),
-         N = N, 
-         age_struct = age_struct, 
-         age_band_lower_bounds = age_band_lower_bounds, 
-         age_band_upper_bounds = age_band_upper_bounds, 
-         age_band_tags = age_band_tags,
-         vec_phis = vec_phis,
-         scaling_factor = scaling_factor,
-         w_1 = w_1, 
-         w_2 = w_2, 
-         w_3 = w_3)
+  # vapply(FOI_values,
+  #        calculate_R0_and_burden,
+  #        numeric(3),
+  #        N = N, 
+  #        age_struct = age_struct, 
+  #        age_band_lower_bounds = age_band_lower_bounds, 
+  #        age_band_upper_bounds = age_band_upper_bounds, 
+  #        age_band_tags = age_band_tags,
+  #        vec_phis = vec_phis,
+  #        scaling_factor = scaling_factor,
+  #        w_1 = w_1, 
+  #        w_2 = w_2, 
+  #        w_3 = w_3)
   
+  calculate_R0_and_burden(FOI_values,
+                          N = N, 
+                          age_struct = age_struct, 
+                          age_band_lower_bounds = age_band_lower_bounds, 
+                          age_band_upper_bounds = age_band_upper_bounds, 
+                          age_band_tags = age_band_tags,
+                          vec_phis = vec_phis,
+                          scaling_factor = scaling_factor,
+                          w_1 = w_1, 
+                          w_2 = w_2, 
+                          w_3 = w_3,
+                          var_names = var_names)  
 }
