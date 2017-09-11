@@ -1,5 +1,5 @@
 wrapper_to_get_R0 <- function(
-  FOI, N, age_struct, 
+  i, df, age_data, N, age_struct, 
   age_band_lower_bounds, age_band_upper_bounds, age_band_tags,
   vec_phis){
   
@@ -9,7 +9,14 @@ wrapper_to_get_R0 <- function(
     "calculate_tertiary_infection_prob",
     "calculate_quaternary_infection_prob")
   
-  out <- rep(0, 5)
+  # vector of foi values 
+  FOI_values <- foi_data[i, ]
+  
+  N <- orig_data[i, "population"]
+  #cat("population =", N, "\n")
+  
+  age_struct <- age_data[i, age_band_tags]
+  
   
   if (FOI != 0) {
     
