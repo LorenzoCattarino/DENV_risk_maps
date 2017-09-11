@@ -1,4 +1,4 @@
-calculate_primary_infection_prob <- function(
+calculate_primary_infection_prob_4_sero <- function(
   
   FOI, start_ages_vec, end_ages_vec) {
   
@@ -6,7 +6,7 @@ calculate_primary_infection_prob <- function(
   
 }  
   
-calculate_secondary_infection_prob <- function(
+calculate_secondary_infection_prob_4_sero <- function(
   
   FOI, start_ages_vec, end_ages_vec) {
 
@@ -15,7 +15,7 @@ calculate_secondary_infection_prob <- function(
   
 }  
 
-calculate_tertiary_infection_prob <- function(
+calculate_tertiary_infection_prob_4_sero <- function(
   
   FOI, start_ages_vec, end_ages_vec) {
   
@@ -25,7 +25,7 @@ calculate_tertiary_infection_prob <- function(
   
 }  
 
-calculate_quaternary_infection_prob <- function(
+calculate_quaternary_infection_prob_4_sero <- function(
   
   FOI, start_ages_vec, end_ages_vec) {
   
