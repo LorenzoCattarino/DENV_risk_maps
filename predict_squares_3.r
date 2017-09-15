@@ -7,7 +7,7 @@ CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "wrapper_to_make_predictions.r"))
+  file.path("R", "random_forest", "functions_for_making_RF_predictions.r"))
   
 my_pkgs <- c("h2o")
 
