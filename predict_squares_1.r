@@ -6,6 +6,7 @@ CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "prepare_datasets", "resample.R"),
+  file.path("R", "prepare_datasets", "clean_and_resample.r"),
   file.path("R", "prepare_datasets", "grid_up_foi_dataset.R"),
   file.path("R", "prepare_datasets", "remove_NA_rows.r"),
   file.path("R", "prepare_datasets", "average_up.R"))
@@ -77,36 +78,36 @@ fi <- list.files(in_pt,
 # ---------------------------------------- submit one job
 
 
-# t <- obj$enqueue(
-#   resample(fi[185],
-#   grp_flds = group_fields,
-#   grid_size = new_res,
-#   env_var_names = var_names,
-#   out_path = out_pt))
+t <- obj$enqueue(
+  resample(fi[185],
+  grp_flds = group_fields,
+  grid_size = new_res,
+  env_var_names = var_names,
+  out_path = out_pt))
 
 
 # ---------------------------------------- submit all jobs
 
 
-if (CLUSTER) {
-
-  resample_tiles <- queuer::qlapply(
-    fi,
-    resample,
-    obj,
-    grp_flds = group_fields,
-    grid_size = new_res,
-    env_var_names = var_names,
-    out_path = out_pt)
-
-}else{
-
-  resample_tiles <- lapply(
-    fi[185],
-    resample,
-    grp_flds = group_fields,
-    grid_size = new_res,
-    env_var_names = var_names,
-    out_path = out_pt)
-
-}
+# if (CLUSTER) {
+# 
+#   resample_tiles <- queuer::qlapply(
+#     fi,
+#     resample,
+#     obj,
+#     grp_flds = group_fields,
+#     grid_size = new_res,
+#     env_var_names = var_names,
+#     out_path = out_pt)
+# 
+# }else{
+# 
+#   resample_tiles <- lapply(
+#     fi[185],
+#     resample,
+#     grp_flds = group_fields,
+#     grid_size = new_res,
+#     env_var_names = var_names,
+#     out_path = out_pt)
+# 
+# }
