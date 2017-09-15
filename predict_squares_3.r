@@ -17,7 +17,7 @@ my_resources <- c(
   file.path("R", "random_forest", "make_h2o_RF_predictions.r"),
   file.path("R", "burden_and_interventions", "wrapper_to_multi_factor_burden.r"),
   file.path("R", "burden_and_interventions", "wrapper_to_get_multi_foi_R0.r"),
-  file.path("R", "burden_and_interventions", "wrapper_to_get_R0.r"),             
+  file.path("R", "burden_and_interventions", "calculate_R0_and_burden.r"),             
   file.path("R", "burden_and_interventions", "get_age_band_bounds.r"),
   file.path("R", "burden_and_interventions", "calculate_infection_probability_and_number.r"),
   file.path("R", "burden_and_interventions", "calculate_average_infect_probab.r"),
@@ -40,7 +40,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_cw"
+model_tp <- "boot_model_20km_cw_old"
 
 no_fits <- 50
 
@@ -49,15 +49,15 @@ NA_tile_fl_name <- "NA_pixel_tiles_20km.txt"
 in_pth <- file.path("output", "env_variables", "all_sets_0_1667_deg", "gadm")
 
 # there is always `foi` and it always comes first
-var_names <- c("foi", "R0", "I_num", "C_num")#, "I_inc", "C_inc") 
+var_names <- c("R0", "I_inc", "C_inc") #"I_num", "C_num",
 
 bs_inf <- c("cell", "lat.grid", "long.grid", "population")
 
 # percentage reduction in R0 caused by wolbachia
-sf_vals <- 1
+sf_vals <- c(1, 0.7)
 
 # id of the combinations of infectiousness weights (i.e., how many infections you can have before immunity)
-phi_set_id <- c(1, 2, 3, 4)
+phi_set_id <- c(1, 4) #c(1, 2, 3, 4)
 
 phi_set_id_tag <- "phi_set_id"
 
@@ -198,7 +198,7 @@ fctr_combs <- df_to_list(fct_c_2, use_names = TRUE)
 
 # t <- obj$enqueue(
 #   wrapper_to_load_tile_dataset(
-#     seq_along(tile_ids_2)[261],
+#     seq_along(tile_ids_2)[1],
 #     ids_vec = tile_ids_2,
 #     in_path = in_pth,
 #     no_fits = no_fits,
@@ -248,7 +248,7 @@ if (CLUSTER) {
 } else {
 
   pred_tiles <- lapply(
-    seq_along(tile_ids_2)[261],
+    seq_along(tile_ids_2)[115],
     wrapper_to_load_tile_dataset,
     ids_vec = tile_ids_2,
     in_path = in_pth,
