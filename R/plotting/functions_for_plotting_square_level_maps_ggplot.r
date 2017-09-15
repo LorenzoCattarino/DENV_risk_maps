@@ -19,10 +19,10 @@ wrapper_to_ggplot_map <- function(
   if (i == 1){
     j <- 1
   } 
-  if (i > 1 & i <= 7){
+  if (i > 1 & i <= 8){
     j <- 2 
   }
-  if (i > 7){
+  if (i > 8){
     j <- 3
   }
   
