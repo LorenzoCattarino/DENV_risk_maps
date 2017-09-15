@@ -2,10 +2,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
-
 my_resources <- c(
-  file.path("R", "prepare_datasets", "load_and_bind.r"),
   file.path("R", "utility_functions.r"))
 
 my_pkgs <- "data.table"
@@ -15,43 +12,26 @@ ctx <- context::context_save(path = "context",
                              sources = my_resources,
                              packages = my_pkgs)
 
+context::context_load(ctx)
+context::parallel_cluster_start(8, ctx)
+
 
 # ---------------------------------------- define parameters 
 
 
 model_tp <- "boot_model_20km_cw" 
 
-out_fl_nm <- "pred_0_1667_deg_long.rds"
-
-
-# ---------------------------------------- define variables 
-
-
 in_pt <- file.path(
   "output", 
-  "predictions_world",
-  model_tp,
-  "tile_sets_0_1667_deg")
+  "env_variables",
+  "all_sets_0_1667_deg",
+  "gadm")
+
+out_fl_nm <- "all_squares_env_var_0_1667_deg.rds"
 
 out_pt <- file.path(
   "output", 
-  "predictions_world",
-  model_tp)
-
-
-# ---------------------------------------- are you using the cluster?
-
-
-if (CLUSTER) {
-  
-  config <- didehpc::didehpc_config(template = "24Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
-  
-}else{
-  
-  context::context_load(ctx)
-  
-}
+  "env_variables")
 
 
 # ---------------------------------------- pre processing
@@ -62,15 +42,23 @@ fi <- list.files(in_pt,
                  full.names = TRUE)
 
 
-# ---------------------------------------- submit job
+# ---------------------------------------- combine all covariate tiles
 
 
-if (CLUSTER) {
-  
-  all_tiles <- obj$enqueue(load_and_bind(fi, out_pt, out_fl_nm))
+all_tiles <- loop(
+  fi, 
+  fread,
+  header = TRUE,
+  sep = ",",
+  na.strings = c("NA", "-1.#IND", "Peipsi", "Moskva", "IJsselmeer", "Zeeuwse meren"),
+  fill = TRUE, 
+  data.table = FALSE,
+  parallel = TRUE)
 
-} else {
-  
-  all_tiles <- load_and_bind(fi, out_pt, out_fl_nm)
+all_sqr_covariates <- do.call("rbind", all_tiles)
 
-}
+all_sqr_covariates$cell <- seq_len(nrow(all_sqr_covariates))
+
+write_out_rds(all_sqr_covariates, out_pt, out_fl_nm)
+
+context::parallel_cluster_stop()
