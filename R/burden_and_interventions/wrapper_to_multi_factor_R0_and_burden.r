@@ -1,9 +1,7 @@
 wrapper_to_multi_factor_R0_and_burden <- function(
-  x, foi_data, orig_data,
-  age_band_tags, age_band_lower_bounds, 
-  age_band_upper_bounds, 
-  rho, gamma_1, gamma_3,
-  look_up, parallel_2, var_names){
+  x, foi_data, age_data,
+  age_band_tags, age_band_lower_bounds, age_band_upper_bounds,
+  parallel_2, var_names, FOI_values, FOI_to_Inf_list, FOI_to_C_list, prob_fun){
   
   
   #browser()
@@ -22,37 +20,34 @@ wrapper_to_multi_factor_R0_and_burden <- function(
   
   sf <- x$scaling_factor
     
-    
-  # ---------------------------------------- define parameters 
-  
-  
-  prob_fun <- list("calculate_primary_infection_prob",
-                   "calculate_secondary_infection_prob",
-                   "calculate_tertiary_infection_prob",
-                   "calculate_quaternary_infection_prob")
-  
   
   # ---------------------------------------- define variables
  
 
   vec_phis <- c(phi_1, phi_2, phi_3, phi_4)
-
-  max_FOI <- max(foi_data$mean_pred)
   
   
-  # ---------------------------------------- create look up function to back map foi from R0
+  # ---------------------------------------- create FOI -> R0 look up tables
 
   
-  R0_to_FOI_list <- apply(seq_len(nrow(look_up)), 
-                          get_all_look_up_functions, 
-                          look_up = look_up, 
-                          age_band_tags = age_band_tags, 
-                          vec_phis = vec_phis, 
-                          prob_fun = prob_fun, 
-                          max_FOI = max_FOI, 
-                          age_band_lower_bounds = age_band_lower_bounds, 
-                          age_band_upper_bounds = age_band_upper_bounds)
+  R0_values <- loop(seq_len(nrow(age_data)), 
+                    wrapper_to_lookup,
+                    age_struct = age_data, 
+                    tags = age_band_tags, 
+                    FOI_values = FOI_values, 
+                    my_fun = calculate_R0,
+                    N = 1,
+                    prob_fun = prob_fun,
+                    age_band_lower_bounds = age_band_lower_bounds, 
+                    age_band_upper_bounds = age_band_upper_bounds,
+                    vec_phis = vec_phis,
+                    parallel = TRUE)
   
+  FOI_to_R0_list <- lapply(R0_values, function(i) cbind(x = FOI_values, y = i))
+  
+  FOI_to_R0_list <- lapply(FOI_to_R0_list, function(i) {
+    i[1, "y"] <- 1
+    rbind(c(x = 0, y = 0),i)})
   
   # ---------------------------------------- calculates R0 values for different pixels  
   
@@ -61,16 +56,17 @@ wrapper_to_multi_factor_R0_and_burden <- function(
     seq_len(nrow(foi_data)),
     wrapper_to_replicate_R0_and_burden, 
     foi_data = foi_data, 
-    look_up = look_up,
-    age_band_tags = age_band_tags,
-    age_band_lower_bounds = age_band_lower_bounds, 
-    age_band_upper_bounds = age_band_upper_bounds, 
-    vec_phis = vec_phis,
+    age_struct = age_data,
     scaling_factor = sf,
-    rho = rho, 
-    gamma_1 = gamma_1, 
-    gamma_3 = gamma_3,
     var_names = var_names,
+    FOI_to_R0_list = FOI_to_R0_list,
+    FOI_to_Inf_list = FOI_to_Inf_list,
+    FOI_to_C_list = FOI_to_C_list,
+    age_band_lower_bounds = age_band_lower_bounds,
+    age_band_upper_bounds = age_band_upper_bounds,
+    age_band_tags = age_band_tags,
+    vec_phis = vec_phis, 
+    prob_fun = prob_fun,
     parallel = parallel_2)
   
   
