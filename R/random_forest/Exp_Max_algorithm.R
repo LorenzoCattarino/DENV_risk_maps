@@ -5,8 +5,7 @@ exp_max_algorithm <- function(
   RF_obj_path, RF_obj_name,
   diagn_tab_path, diagn_tab_name,
   map_path, map_name, 
-  sq_pr_path, sq_pr_name, sct_plt_path,
-  adm_dataset = NULL){
+  sct_plt_path, adm_dataset = NULL){
   
   diagnostics <- c("RF_ms_i", "ss_i", "ss_j", "min_wgt", "max_wgt", "n_NA_pred")
   
@@ -15,7 +14,7 @@ exp_max_algorithm <- function(
   colnames(out_mat) <- diagnostics
   
   h2o.init(ignore_config = TRUE)
-  
+    
   for (i in seq_len(niter)){
     
     #browser()
@@ -34,11 +33,6 @@ exp_max_algorithm <- function(
     
     dd$wgt_prime <- dd$pop_weight
     
-    # dd$wgt_prime <- (dd$pop_weight / dd$p_i) * dd$a_sum
-    # isfin_log <- is.finite(dd$wgt_prime)
-    # max_fin_wgt <- max(dd$wgt_prime[isfin_log])
-    # dd$wgt_prime <- ifelse(is.infinite(dd$wgt_prime), max_fin_wgt, dd$wgt_prime) 
-    
     
     # -------------------------------------- 2. modify the scaling factors to account for background data
     
@@ -49,15 +43,17 @@ exp_max_algorithm <- function(
     # -------------------------------------- 3. calculate new pseudo data value
     
     
-    psAbs <- dd$a_sum == 0
-    
+    psAbs <- dd$type == "pseudoAbsence"
+  
     u_i <- rep(0, nrow(dd))
       
     u_i[!psAbs] <- (((dd$o_j[!psAbs] - l_f) * (dd$p_i[!psAbs] - l_f)) / (dd$a_sum[!psAbs] - l_f)) + l_f 
     
-    dd$u_i <- u_i
+    u_i[psAbs] <- ifelse(dd$p_i[psAbs] > 0, l_f, dd$p_i[psAbs])
     
-    if(sum(is.na(dd$u_i)) > 0) browser(text="u_i NA")
+    #u_i <- (((dd$o_j - l_f) * (dd$p_i - l_f)) / (dd$a_sum - l_f)) + l_f
+    
+    dd$u_i <- u_i
     
     
     # -------------------------------------- 4. fit RF model
@@ -86,21 +82,32 @@ exp_max_algorithm <- function(
     
     n_NA_pred <- sum(is.na(p_i))
     
-    dd$p_i <- ifelse(is.na(p_i), 0, p_i)
-	
-    if(sum(is.na(dd$p_i)) > 0) browser(text="pred NA")
+    dd$p_i <- p_i
 
     
-    # ---------- print diagnostics 
+    # -------------------------------------- map of square predictions 
     
     
     mp_nm <- sprintf("%s_iter_%s%s", map_name, i, ".png")
     
     quick_raster_map(dd, map_path, mp_nm) 
     
+    
+    # -------------------------------------- create a copy for obs vs preds plot and SS calculation  
+    
+    
+    dd_2 <- dd
+      
+    
+    # -------------------------------------- plot of observed vs predicted square values 
+
+    
+    dd_2$u_i[psAbs] <- 0
+    dd_2$p_i[psAbs] <- ifelse(dd_2$p_i[psAbs] < 0, 0, dd_2$p_i[psAbs])
+    
     sqr_sp_nm <- paste0("pred_vs_obs_sqr_iter_", i, ".png")
     
-    generic_scatter_plot(df = dd, 
+    generic_scatter_plot(df = dd_2, 
                          x = "u_i", 
                          y = "p_i", 
                          file_name = sqr_sp_nm, 
@@ -110,7 +117,10 @@ exp_max_algorithm <- function(
     # -------------------------------------- 6. calculate pixel level sum of square
     
     
-    ss_i <- sum(dd$wgt_prime * (dd$p_i - dd$u_i)^2)
+    ss_i <- sum(dd_2$wgt_prime * (dd_2$p_i - dd_2$u_i)^2)
+    
+    
+    # -------------------------------------- make admin unit level predictions 
     
     
     if(!is.null(adm_dataset)) {
@@ -125,8 +135,13 @@ exp_max_algorithm <- function(
     
     }
     
-
-    # --------------------------------------  7. calculate population weighted mean of pixel level predictions
+    psAbs_adm <- cc$type == "pseudoAbsence" 
+      
+    cc$o_j[psAbs_adm] <- 0
+    cc$adm_pred[psAbs_adm] <- ifelse(cc$adm_pred[psAbs_adm] < 0, 0, cc$adm_pred[psAbs_adm])
+    
+    
+    # -------------------------------------- 7. calculate population weighted mean of pixel level predictions
     
     
     p_i_by_adm <- dd %>% group_by_(.dots = grp_flds)
@@ -136,7 +151,7 @@ exp_max_algorithm <- function(
     aa <- inner_join(cc, mean_p_i)
     
     
-    # ---------- print diagnostics
+    # -------------------------------------- plot of observed admin values vs pop-wgt average predicted square values 
     
     
     av_sqr_sp_nm <- paste0("pred_vs_obs_av_sqr_iter_", i, ".png")
@@ -146,6 +161,10 @@ exp_max_algorithm <- function(
                          y = "mean_p_i", 
                          file_name = av_sqr_sp_nm, 
                          file_path = sct_plt_path)  
+    
+    
+    # -------------------------------------- plot of observed vs predicted admin values
+    
     
     adm_sp_nm <- paste0("pred_vs_obs_adm_iter_", i, ".png")
     
@@ -158,6 +177,14 @@ exp_max_algorithm <- function(
         
     # -------------------------------------- 8. calculate admin unit level sum of square
     
+
+    #neg_w_mean <- aa$mean_p_i < 0
+    
+    #S <- rep(0, nrow(aa)) 
+      
+    #S[!neg_w_mean] <- (aa$mean_p_i[!neg_w_mean] - aa$o_j[!neg_w_mean])^2 
+    
+    #ss_j <- sum(aa$new_weight * S)
     
     ss_j <- sum(aa$new_weight * (aa$mean_p_i - aa$o_j)^2)
     
@@ -171,7 +198,6 @@ exp_max_algorithm <- function(
     
   }
   
-  #write_out_rds(dd, sq_pr_path, sq_pr_name)
   h2o.saveModel(RF_obj, RF_obj_path, force = TRUE)
   write_out_rds(out_mat, diagn_tab_path, diagn_tab_name)
   
