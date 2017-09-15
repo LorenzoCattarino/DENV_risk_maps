@@ -1,132 +1,70 @@
-# 1. Makes foi predictions of all squares, for each tile and model fit
-
-# 2. Conditionally calculates, for each tile, model fit and R0-Wolbachia effect assumption combinations
+# Calculates, for each model fit and R0-Wolbachia effect assumption combinations
 # R0 values and burden, for different foi value (squares).
 
-# 3. Takes the mean and confidence intervals, across models,  
+# Takes the mean and confidence intervals, across models,  
 # of different measured variables (foi, R0, burden), for each tile. 
+
+
+# ----------------------------------------
+
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
-
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "wrapper_to_load_tile_dataset.r"),
-  file.path("R", "random_forest", "wrapper_to_make_predictions.r"),
-  file.path("R", "random_forest", "make_h2o_RF_predictions.r"),
-  file.path("R", "burden_and_interventions", "wrapper_to_multi_factor_burden.r"),
-  file.path("R", "burden_and_interventions", "wrapper_to_get_multi_foi_R0.r"),
-  file.path("R", "burden_and_interventions", "calculate_R0_and_burden.r"),             
-  file.path("R", "burden_and_interventions", "get_age_band_bounds.r"),
-  file.path("R", "burden_and_interventions", "calculate_infection_probability_and_number.r"),
-  file.path("R", "burden_and_interventions", "calculate_average_infect_probab.r"),
-  file.path("R", "burden_and_interventions", "calculate_total_incidence.r"),
-  file.path("R", "burden_and_interventions", "calculate_incidence_of_infections.r"),
-  file.path("R", "burden_and_interventions", "calculate_R0.r"),
-  file.path("R", "prepare_datasets", "calculate_mean_across_fits.r"),
-  file.path("R", "prepare_datasets", "wrapper_to_mean_across_fits.r"))
+  file.path("R", "burden_and_interventions", "wrapper_to_multi_factor_R0_and_burden.r"),
+  file.path("R", "burden_and_interventions", "wrapper_to_replicate_R0_and_burden.r"),  
+  file.path("R", "burden_and_interventions", "wrapper_to_R0_and_burden.r"),
+  file.path("R", "burden_and_interventions", "functions_to_calculate_R0_and_burden.r"))
 
-my_pkgs <- c("h2o", "data.table", "approximate", "dplyr")
+my_pkgs <- c("data.table", "dplyr", "reshape2", "ggplot2")
 
-gth <- provisionr::package_sources(github = "richfitz/approximate")
 context::context_log_start()
 ctx <- context::context_save(path = "context",
                              packages = my_pkgs,
-                             sources = my_resources,
-                             package_sources = gth)
+                             sources = my_resources)
+
+context::context_load(ctx)
+context::parallel_cluster_start(8, ctx)
+
+CLUSTER <- TRUE
 
 
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_cw_old"
+model_tp <- "boot_model_20km_cw" 
 
-no_fits <- 50
+var_names <- c("R0", "I_num", "C_num", "I_inc", "C_inc")
 
-NA_tile_fl_name <- "NA_pixel_tiles_20km.txt"
+prob_fun <- list("calculate_primary_infection_prob",
+                 "calculate_secondary_infection_prob",
+                 "calculate_tertiary_infection_prob",
+                 "calculate_quaternary_infection_prob")
 
-in_pth <- file.path("output", "env_variables", "all_sets_0_1667_deg", "gadm")
-
-# there is always `foi` and it always comes first
-var_names <- c("R0", "I_inc", "C_inc") #"I_num", "C_num",
-
-bs_inf <- c("cell", "lat.grid", "long.grid", "population")
-
-# percentage reduction in R0 caused by wolbachia
-sf_vals <- c(1, 0.7)
-
-# id of the combinations of infectiousness weights (i.e., how many infections you can have before immunity)
-phi_set_id <- c(1, 4) #c(1, 2, 3, 4)
-
+sf_vals <- c(1, 0.7, 0.3)
+phi_set_id <- c(1, 4)
 phi_set_id_tag <- "phi_set_id"
+gamma_1 <- 0.45
+rho <- 0.85
+gamma_3 <- 0.15
 
-# relative simptomaticity of prim second and tert infections 
-w_1 <- 0.45
-w_2 <- 0.85
-w_3 <- 0.15
+v1 <- c(1, 1, 0, 0) # Up to 2 infections
+v2 <- c(1, 1, 1, 0) # Up to 3 infections
+v3 <- c(1, 1, 1, 1) # Up to 4 infections 
 
-
-# ---------------------------------------- define variables
-
-
-RF_obj_path <- file.path(
-  "output",
-  "EM_algorithm",
-  model_tp,
-  "optimized_model_objects")
-
-out_pth <- file.path(
-  "output", 
-  "predictions_world", 
-  model_tp,
-  "tile_sets_0_1667_deg")
-
-
-# ---------------------------------------- are you using the cluster?
-
-
-if (CLUSTER) {
-  
-  config <- didehpc::didehpc_config(template = "12and16Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
-  
-} else {
-  
-  context::context_load(ctx)
-  context::parallel_cluster_start(8, ctx)
-  
-}
+out_path <- file.path("output", "predictions_world", model_tp)
 
 
 # ---------------------------------------- load data
 
 
-# predicting variable rank
-predictor_rank <- read.csv(
-  file.path("output", 
-            "variable_selection", 
-            "metropolis_hastings", 
-            "exp_1", 
-            "variable_rank_final_fits_exp_1.csv"),
-  stringsAsFactors = FALSE)
-
-# tiles
-tile_summary <- read.csv(
-  file.path("data", 
-            "env_variables", 
-            "plus60minus60_tiles.csv"), 
-  header = TRUE, 
-  sep = ",", 
-  stringsAsFactors = FALSE)
-
-# NA pixel tiles 
-NA_pixel_tiles <- read.table(
-  file.path("output", 
-            "datasets", 
-            NA_tile_fl_name), 
-  sep = ",", 
-  header = TRUE)
+all_sqr_mean_foi <- readRDS(
+  file.path(
+    "output", 
+    "predictions_world",
+    model_tp,
+    "all_squares_mean_foi_0_1667_deg.rds"))
 
 age_struct <- read.csv(
   file.path("output", 
@@ -135,53 +73,29 @@ age_struct <- read.csv(
   header = TRUE) 
 
 
-# ---------------------------------------- create df with different combinations of infectiousness weigths (phi)  
+# ---------------------------------------- 
 
 
-v1 <- c(1, 1, 0, 0) # Up to 2 infections
-v2 <- c(1, 1, 1, 0) # Up to 3 infections
-v3 <- c(1, 1, 1, 1) # Up to 4 infections 
+age_struct$age_id <- seq_len(nrow(age_struct))
 
-phi_2 <- 1
-phi_1 <- (w_1 * 2 + (1 - w_1)) / (w_2 * 2 + (1 - w_2)) 
-phi_3 <- phi_4 <- (w_3 * 2 + (1 - w_3)) / (w_2 * 2 + (1 - w_2))
+names(age_struct)[names(age_struct) == "ID_0"] <- "ADM_0"
 
-v4 <- c(phi_1, phi_2, phi_3, phi_4) # up to 4, with symptomatic infections twice as infectious as asymptomatic ones
 
+# ---------------------------------------- keep onle the FOI for which there is age data available
+
+
+all_sqr_mean_foi <- inner_join(
+  age_struct[, c("age_id", "country", "ADM_0")],
+  all_sqr_mean_foi, 
+  by = "ADM_0")
+
+
+# ---------------------------------------- create table of scenarios 
+
+
+v4 <- calculate_infectiousness_wgts_for_sym_asym_assumption(gamma_1, rho, gamma_3)
 phi_combs <- setNames(data.frame(seq_len(4), rbind(v1, v2, v3, v4)),
                       nm = c(phi_set_id_tag, "phi1", "phi2", "phi3", "phi4"))
-
-
-# ---------------------------------------- extract info from age structure 
-
-
-age_band_tgs <- grep("band", names(age_struct), value = TRUE)
-
-age_band_bnds <- get_age_band_bounds(age_band_tgs)
-
-age_band_L_bounds <- age_band_bnds[, 1]
-
-age_band_U_bounds <- age_band_bnds[, 2] + 1
-
-
-# ---------------------------------------- get the vector of predictors
-
-
-best_predictors <- predictor_rank$variable[1:9]
-
-
-# ---------------------------------------- get tile ids
-
-
-tile_ids <- tile_summary$tile.id
-
-NA_pixel_tile_ids <- NA_pixel_tiles$tile_id
-
-tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]  
-
-
-# ---------------------------------------- create combinations of phi sets and wolbachia effect
-
 
 fct_c <- setNames(expand.grid(phi_set_id, sf_vals),
                   nm = c(phi_set_id_tag, "scaling_factor"))
@@ -189,87 +103,224 @@ fct_c <- setNames(expand.grid(phi_set_id, sf_vals),
 fct_c <- cbind(id = seq_len(nrow(fct_c)), fct_c)
 
 fct_c_2 <- left_join(fct_c, phi_combs, by = phi_set_id_tag)
+write.csv(fct_c_2, 
+          "output/predictions_world/boot_model_20km_cw/scenario_table.csv", 
+          row.names = FALSE)
 
 fctr_combs <- df_to_list(fct_c_2, use_names = TRUE)
 
 
-# ---------------------------------------- submit one job 
+# ----------------------------------------
 
 
-# t <- obj$enqueue(
-#   wrapper_to_load_tile_dataset(
-#     seq_along(tile_ids_2)[1],
-#     ids_vec = tile_ids_2,
-#     in_path = in_pth,
-#     no_fits = no_fits,
-#     model_in_path = RF_obj_path,
-#     predictors = best_predictors,
-#     burden = TRUE,
-#     age_struct = age_struct,
-#     var_names = var_names,
-#     fctr_combs = fctr_combs,
-#     age_band_tgs = age_band_tgs,
-#     age_band_lower_bounds = age_band_L_bounds,
-#     age_band_upper_bounds = age_band_U_bounds,
-#     w_1 = w_1,
-#     w_2 = w_2,
-#     w_3 = w_3,
-#     base_info = bs_inf,
-#     out_path = out_pth))
+age_band_tgs <- grep("band", names(age_struct), value = TRUE)
+age_band_bnds <- get_age_band_bounds(age_band_tgs)
+age_band_L_bounds <- age_band_bnds[, 1]
+age_band_U_bounds <- age_band_bnds[, 2] + 1
 
 
-# ---------------------------------------- submit all jobs
+# ---------------------------------------- create FOI -> Inf and FOI -> C lookup tables 
+
+
+max_FOI <- max(all_sqr_mean_foi$mean_pred)
+
+FOI_values <- seq(0, 0.05, by = 0.0002) 
+
+if(!file.exists("output/predictions_world/boot_model_20km_cw/FOI_to_I_lookup_tables.rds")){
+  
+  Infection_values <- loop(seq_len(nrow(age_struct)), 
+                           wrapper_to_lookup,
+                           age_struct = age_struct, 
+                           tags = age_band_tgs, 
+                           FOI_values = FOI_values, 
+                           my_fun = calculate_infections,
+                           prob_fun = prob_fun,
+                           age_band_lower_bounds = age_band_L_bounds,
+                           age_band_upper_bounds = age_band_U_bounds,
+                           parallel = TRUE)
+  
+  FOI_to_Inf_list <- lapply(Infection_values, function(i) cbind(x = FOI_values, y = i))
+  
+  saveRDS(FOI_to_Inf_list, "output/predictions_world/boot_model_20km_cw/FOI_to_I_lookup_tables.rds")
+  
+} else {
+  
+  FOI_to_Inf_list <- readRDS("output/predictions_world/boot_model_20km_cw/FOI_to_I_lookup_tables.rds")
+  
+}
+
+if(!file.exists("output/predictions_world/boot_model_20km_cw/FOI_to_C_lookup_tables.rds")){
+  
+  Case_values <- loop(seq_len(nrow(age_struct)), 
+                      wrapper_to_lookup,
+                      age_struct = age_struct, 
+                      tags = age_band_tgs, 
+                      FOI_values = FOI_values, 
+                      my_fun = calculate_cases,
+                      prob_fun = prob_fun,
+                      age_band_lower_bounds = age_band_L_bounds,
+                      age_band_upper_bounds = age_band_U_bounds,
+                      rho = rho, 
+                      gamma_1 = gamma_1, 
+                      gamma_3 = gamma_3,
+                      parallel = TRUE)
+  
+  FOI_to_C_list <- lapply(Case_values, function(i) cbind(x = FOI_values, y = i))
+  
+  saveRDS(FOI_to_C_list, "output/predictions_world/boot_model_20km_cw/FOI_to_C_lookup_tables.rds")
+  
+} else{
+  
+  FOI_to_C_list <- readRDS("output/predictions_world/boot_model_20km_cw/FOI_to_C_lookup_tables.rds")
+  
+}
+
+# ------------------------------------------ submit jobs 
 
 
 if (CLUSTER) {
+  
+  config <- didehpc::didehpc_config(template = "12and16Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
+  
+}
 
-  pred_tiles <- queuer::qlapply(
-    seq_along(tile_ids_2),
-    wrapper_to_load_tile_dataset,
+if (CLUSTER) {
+  
+  R0_and_burden <- queuer::qlapply(
+    fctr_combs,
+    wrapper_to_multi_factor_R0_and_burden,
     obj,
-    ids_vec = tile_ids_2,
-    in_path = in_pth,
-    no_fits = no_fits,
-    model_in_path = RF_obj_path,
-    predictors = best_predictors,
-    burden = TRUE,
-    age_struct = age_struct,
-    var_names = var_names,
-    fctr_combs = fctr_combs,
-    age_band_tgs = age_band_tgs,
+    foi_data = all_sqr_mean_foi, 
+    age_data = age_struct,
+    age_band_tags = age_band_tgs,
     age_band_lower_bounds = age_band_L_bounds,
     age_band_upper_bounds = age_band_U_bounds,
-    w_1 = w_1,
-    w_2 = w_2,
-    w_3 = w_3,
-    base_info = bs_inf,
-    out_path = out_pth)
-
+    parallel_2 = TRUE,    
+    var_names = var_names, 
+    FOI_values = FOI_values,
+    FOI_to_Inf_list = FOI_to_Inf_list,
+    FOI_to_C_list = FOI_to_C_list,
+    prob_fun = prob_fun)
+  
 } else {
-
-  pred_tiles <- lapply(
-    seq_along(tile_ids_2)[115],
-    wrapper_to_load_tile_dataset,
-    ids_vec = tile_ids_2,
-    in_path = in_pth,
-    no_fits = no_fits,
-    model_in_path = RF_obj_path,
-    predictors = best_predictors,
-    burden = TRUE,
-    age_struct = age_struct,
-    var_names = var_names,
-    fctr_combs = fctr_combs,
-    age_band_tgs = age_band_tgs,
+  
+  R0_and_burden <- loop(
+    fctr_combs,
+    wrapper_to_multi_factor_R0_and_burden,
+    foi_data = all_sqr_mean_foi, 
+    age_data = age_struct,
+    age_band_tags = age_band_tgs,
     age_band_lower_bounds = age_band_L_bounds,
     age_band_upper_bounds = age_band_U_bounds,
-    w_1 = w_1,
-    w_2 = w_2,
-    w_3 = w_3,
-    base_info = bs_inf,
-    out_path = out_pth)
-
+    parallel_2 = TRUE,    
+    var_names = var_names, 
+    FOI_values = FOI_values,
+    FOI_to_Inf_list = FOI_to_Inf_list,
+    FOI_to_C_list = FOI_to_C_list,
+    prob_fun = prob_fun,
+    parallel = FALSE)
+  
 }
 
-if (!CLUSTER) {
-  context::parallel_cluster_stop()
-}
+context::parallel_cluster_stop()
+
+
+# ---------------------------------------- combine all scenario results 
+
+
+all_bur_scenarios <- R0_and_burden$results()
+
+all_bur_scenarios <- do.call("cbind", all_bur_scenarios)
+
+out <- cbind(all_sqr_mean_foi, all_bur_scenarios)
+
+
+# ---------------------------------------- post processing 
+
+
+zero_logic <- out$mean_pred == 0
+
+out_mz <- out[!zero_logic, ] 
+
+out_mz$p9 <- 100 * (1 - exp(-36 * out_mz$mean_pred))
+
+names(out_mz)[names(out_mz) == "mean_pred"] <- "FOI"
+
+write_out_rds(out_mz,
+              out_path, 
+              "R0_and_burden_all_combs.rds")
+
+
+# ---------------------------------------- summarize burden by country 
+
+
+n_combs <- nrow(fct_c_2)
+
+var_to_sum <- c("population",
+                paste0("I_num_", seq_len(n_combs)),
+                paste0("C_num_", seq_len(n_combs)))
+
+by_country <- out_mz %>% group_by(country)
+
+inf_cas_sums <- by_country %>% summarise_each("sum", one_of(var_to_sum))
+
+num_Inf_and_C_by_c <- as.data.frame(inf_cas_sums)
+
+write.csv(num_Inf_and_C_by_c, 
+          file.path(out_path, "total_infec_and_cases_by_country.csv"),
+          row.names = FALSE)
+
+
+# ---------------------------------------- plot number and incidence of infections and cases, for each scenario  
+
+
+summed_vars <- colSums(num_Inf_and_C_by_c[, var_to_sum])
+
+resh_res <- setNames(data.frame(matrix(summed_vars[2:length(var_to_sum)], ncol = 2)),
+                     nm = c("Infections", "Cases"))
+
+resh_res$Incidence_of_infections <- (resh_res$Infections / summed_vars[1]) * 1000
+
+resh_res$Incidence_of_cases <- (resh_res$Cases / summed_vars[1]) * 1000
+
+summary_table <- cbind(fct_c_2, resh_res)
+
+summary_table$scaling_factor <- factor(summary_table$scaling_factor, 
+                                       levels = c(1,0.7,0.3), 
+                                       labels = c(1,0.7,0.3))
+
+phi_factor_levels <- c("Up to 2 infections", "Up to 4 infections (sym twice as infectious as asym)")
+
+summary_table$phi_set_id <- factor(summary_table$phi_set_id, 
+                                   levels = c(1, 4), 
+                                   labels = phi_factor_levels)
+
+summary_table_long <- melt(summary_table, 
+                           id.vars = c("phi_set_id", "scaling_factor"), 
+                           measure.vars = c("Infections", "Cases", "Incidence_of_infections", "Incidence_of_cases"))
+
+two_dts <- list(summary_table_long[1:12,], summary_table_long[13:nrow(summary_table_long),])
+
+fl_nms <- c("Numbers_of_infections_and_cases_plot.png", "Incidence_of_infections_and_cases_plot.png")
+ylabs <- c("Total numbers", "Incidence") 
+
+lapply(seq_along(two_dts), function(i){
+  
+  ggplot(two_dts[[i]], aes(scaling_factor, value)) + 
+    geom_bar(aes(fill = variable), stat = "identity", position = "dodge") +
+    scale_fill_manual(values = c("red", "blue"),
+                      labels = c("Infections", "Cases"),
+                      guide = guide_legend(title = NULL, 
+                                           keywidth = 2, 
+                                           keyheight = 2)) +
+    facet_grid(. ~ phi_set_id) +
+    xlab("Wolbachia induced R0 reduction") +
+    ylab(ylabs[i])
+  
+  ggsave(file.path("figures", "predictions_world", model_tp, fl_nms[i]),
+         width = 12, 
+         height = 4, 
+         units = "in")
+  
+})
