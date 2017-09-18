@@ -10,12 +10,11 @@ CLUSTER <- TRUE
 my_resources <- c(
   file.path("R", "utility_functions.r"),
   file.path("R", "random_forest", "wrapper_to_Exp_Max_algorithm.r"),
-  file.path("R", "random_forest", "fit_h2o_random_forest_model.r"),
-  file.path("R", "random_forest", "make_h2o_RF_predictions.r"),
+  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
   file.path("R", "random_forest", "Exp_Max_algorithm.r"),
-  file.path("R", "random_forest", "quick_raster_map.r"),
   file.path("R", "random_forest", "get_lm_equation.r"),
-  file.path("R", "generic_scatter_plot.r"))
+  file.path("R", "plotting", "quick_raster_map.r"),
+  file.path("R", "plotting", "generic_scatter_plot.r"))
 
 my_pkgs <- c("h2o", "dplyr", "fields", "ggplot2")
 
@@ -28,7 +27,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_type <- "boot_model_20km_cw"
+model_type <- "boot_model_20km_cw_2"
 
 out_fl_nm <- "square_predictions_all_data.rds"
 
