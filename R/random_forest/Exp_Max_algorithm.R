@@ -144,7 +144,7 @@ exp_max_algorithm <- function(
     # -------------------------------------- 7. calculate population weighted mean of pixel level predictions
     
     
-    p_i_by_adm <- dd %>% group_by_(.dots = grp_flds)
+    p_i_by_adm <- dd_2 %>% group_by_(.dots = grp_flds)
     
     mean_p_i <- p_i_by_adm %>% summarise(mean_p_i = sum(p_i * pop_weight))
     
