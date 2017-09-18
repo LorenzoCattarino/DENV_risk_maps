@@ -13,7 +13,7 @@ my_resources <- c(
   file.path("R", "utility_functions.r"),
   file.path("R", "prepare_datasets", "average_up.r"),
   file.path("R", "prepare_datasets", "remove_NA_rows.R"),
-  file.path("R", "random_forest", "make_h2o_RF_predictions.R"),
+  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
   file.path("R", "random_forest", "load_predict_filter.r"),
   file.path("R", "random_forest", "attach_predictions_diff_scales_to_data.r"))
 
@@ -28,7 +28,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-model_type <- "boot_model_20km_cw"
+model_type <- "boot_model_20km_cw_2"
 
 no_fits <- 50
 
@@ -117,7 +117,7 @@ tile_summary <- read.csv(
 NA_pixel_tiles <- read.table(
   file.path("output", 
             "datasets", 
-            "NA_pixel_tiles.txt"), 
+            "NA_pixel_tiles_20km.txt"), 
   sep = ",", 
   header = TRUE)
 
