@@ -7,12 +7,11 @@ CLUSTER <- TRUE
 my_resources <- c(
   file.path("R", "utility_functions.r"),
   file.path("R", "random_forest", "wrapper_to_Exp_Max_algorithm.r"),
-  file.path("R", "random_forest", "fit_h2o_random_forest_model.r"),
-  file.path("R", "random_forest", "make_h2o_RF_predictions.r"),
+  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
   file.path("R", "random_forest", "Exp_Max_algorithm.r"),
-  file.path("R", "random_forest", "quick_raster_map.r"),
   file.path("R", "random_forest", "get_lm_equation.r"),
-  file.path("R", "generic_scatter_plot.r"))
+  file.path("R", "plotting", "quick_raster_map.r"),
+  file.path("R", "plotting", "generic_scatter_plot.r"))
 
 my_pkgs <- c("h2o", "dplyr", "fields", "ggplot2")
 
@@ -25,7 +24,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_type <- "boot_model_20km_cw"
+model_type <- "boot_model_20km_cw_2"
 
 no_fits <- 50
 
@@ -51,8 +50,6 @@ diag_t_nm_all <- paste0("diagno_table_", seq_len(no_fits), ".rds")
 
 map_nm_all <- paste0("map_", seq_len(no_fits))
 
-sq_pred_nm_all <- paste0("dd_debug_", seq_len(no_fits), ".rds")
-
 RF_out_pth <- file.path(
   "output", 
   "EM_algorithm", 
@@ -64,12 +61,6 @@ diag_t_pth <- file.path(
   "EM_algorithm", 
   model_type,
   "diagnostics")
-
-sq_pred_pth <- file.path(
-  "output", 
-  "EM_algorithm",
-  model_type, 
-  "square_predictions")
 
 map_pth <- file.path(
   "figures", 
@@ -154,7 +145,7 @@ adm_dts <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 #     seq_len(no_fits)[1],
 #     boot_samples = bt_samples,
 #     pxl_dataset_orig = full_pxl_df,
-#     psAbs = pseudoAbsence_value, 
+#     psAbs = pseudoAbsence_value,
 #     my_preds = my_predictors,
 #     grp_flds = grp_flds,
 #     niter = niter,
@@ -166,8 +157,6 @@ adm_dts <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 #     diagn_tab_name = diag_t_nm_all,
 #     map_path = map_pth,
 #     map_name = map_nm_all,
-#     sq_pr_path = sq_pred_pth,
-#     sq_pr_name = sq_pred_nm_all,
 #     sct_plt_path = sct_plt_pth,
 #     adm_dataset = adm_dts))
 
@@ -183,7 +172,7 @@ if (CLUSTER) {
     obj,
     boot_samples = bt_samples,
     pxl_dataset_orig = full_pxl_df,
-    psAbs = pseudoAbsence_value, 
+    psAbs = pseudoAbsence_value,
     my_preds = my_predictors,
     grp_flds = grp_flds,
     niter = niter,
@@ -195,8 +184,6 @@ if (CLUSTER) {
     diagn_tab_name = diag_t_nm_all,
     map_path = map_pth,
     map_name = map_nm_all,
-    sq_pr_path = sq_pred_pth,
-    sq_pr_name = sq_pred_nm_all,
     sct_plt_path = sct_plt_pth,
     adm_dataset = adm_dts)
 
@@ -207,7 +194,7 @@ if (CLUSTER) {
     exp_max_algorithm_boot,
     boot_samples = bt_samples,
     pxl_dataset_orig = full_pxl_df,
-    psAbs = pseudoAbsence_value, 
+    psAbs = pseudoAbsence_value,
     my_preds = my_predictors,
     grp_flds = grp_flds,
     niter = niter,
@@ -219,8 +206,6 @@ if (CLUSTER) {
     diagn_tab_name = diag_t_nm_all,
     map_path = map_pth,
     map_name = map_nm_all,
-    sq_pr_path = sq_pred_pth,
-    sq_pr_name = sq_pred_nm_all,
     sct_plt_path = sct_plt_pth,
     adm_dataset = adm_dts)
 
