@@ -47,11 +47,11 @@ exp_max_algorithm <- function(
   
     u_i <- rep(0, nrow(dd))
       
-    u_i[!psAbs] <- (((dd$o_j[!psAbs] - l_f) * (dd$p_i[!psAbs] - l_f)) / (dd$a_sum[!psAbs] - l_f)) + l_f 
+    #u_i[!psAbs] <- (((dd$o_j[!psAbs] - l_f) * (dd$p_i[!psAbs] - l_f)) / (dd$a_sum[!psAbs] - l_f)) + l_f 
+    u_i[!psAbs] <- (dd$o_j[!psAbs] * dd$p_i[!psAbs]) / dd$a_sum[!psAbs]
     
-    u_i[psAbs] <- ifelse(dd$p_i[psAbs] > 0, l_f, dd$p_i[psAbs])
-    
-    #u_i <- (((dd$o_j - l_f) * (dd$p_i - l_f)) / (dd$a_sum - l_f)) + l_f
+    #u_i[psAbs] <- ifelse(dd$p_i[psAbs] > 0, l_f, dd$p_i[psAbs])
+    u_i[psAbs] <- ifelse(dd$p_i[psAbs] > 1, l_f, dd$p_i[psAbs])
     
     dd$u_i <- u_i
     
