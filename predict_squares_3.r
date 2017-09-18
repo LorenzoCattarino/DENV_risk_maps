@@ -3,11 +3,9 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
-
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "functions_for_making_RF_predictions.r"))
+  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"))
   
 my_pkgs <- c("h2o")
 
@@ -17,13 +15,12 @@ ctx <- context::context_save(path = "context",
                              sources = my_resources)
 
 context::context_load(ctx)
-context::parallel_cluster_start(8, ctx)
 
 
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_cw"
+model_tp <- "boot_model_20km_cw_2"
 
 no_fits <- 50
 
