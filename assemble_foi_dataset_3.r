@@ -5,11 +5,7 @@ library(ggplot2)
 library(grid)
 
 # load functions 
-source(file.path("R", "burden_and_interventions", "get_age_band_bounds.r"))
-source(file.path("R", "burden_and_interventions", "wrapper_to_get_R0.r"))
-source(file.path("R", "burden_and_interventions", "calculate_infection_probability_and_number.r"))
-source(file.path("R", "burden_and_interventions", "calculate_average_infect_probab.r"))
-source(file.path("R", "burden_and_interventions", "calculate_R0.r"))
+source(file.path("R", "burden_and_interventions", "functions_to_calculate_R0_and_burden.r"))
 
 
 # ---------------------------------------- define parameters
@@ -22,6 +18,11 @@ base_info <- c("type", "ISO", "longitude", "latitude", "data_id", "ID_0", "ID_1"
 var <- "R_0"
 
 my_phis <- c(1, 1, 1, 1)
+
+prob_fun <- list("calculate_primary_infection_prob",
+                 "calculate_secondary_infection_prob",
+                 "calculate_tertiary_infection_prob",
+                 "calculate_quaternary_infection_prob")
 
 
 # ---------------------------------------- load data 
@@ -77,21 +78,11 @@ All_FOI_estimates_2 <- merge(
 # ---------------------------------------- filter out data points with NA age structure data
 
 
-dd <- setNames(data.frame(country_age_struc[, m_flds[1]]), nm = m_flds[1])
-
 All_FOI_estimates_3 <- merge(
   All_FOI_estimates_2, 
-  dd, 
+  country_age_struc[, m_flds[1], drop = FALSE], 
   by = m_flds[1], 
   all.y = FALSE)
-
-
-# ---------------------------------------- create look up table for age structure
-
-
-info_age <- country_age_struc[, c("ID_0", age_band_tgs)]
-test_id <- match(All_FOI_estimates_3[, "ID_0"], info_age$ID_0)
-look_up <- info_age[test_id, ]
 
 
 # ---------------------------------------- calculate R0
@@ -99,16 +90,25 @@ look_up <- info_age[test_id, ]
 
 n <- nrow(All_FOI_estimates_3)
 
-R_0 <- vapply(
-  seq_len(n),
-  wrapper_to_get_R0, 
+R_0 <- vapply(seq_len(n), function(i, foi_data, age_struct, age_band_tags, age_band_lower_bounds, age_band_upper_bounds, vec_phis, prob_fun){
+  m_j <- age_struct[age_struct$ID_0 == foi_data[i, "ID_0"], age_band_tags]
+  FOI <- foi_data[i, "FOI"]
+  calculate_R0(
+    FOI = FOI, 
+    N = 1, 
+    n_j = m_j, 
+    age_band_lower_bounds = age_band_lower_bounds, 
+    age_band_upper_bounds = age_band_upper_bounds,
+    vec_phis = vec_phis, 
+    prob_fun = prob_fun)}, 
   numeric(1),
-  df = All_FOI_estimates_3, 
-  age_data = look_up, 
+  foi_data = All_FOI_estimates_3, 
+  age_struct = country_age_struc, 
   age_band_lower_bounds = age_band_L_bounds, 
   age_band_upper_bounds = age_band_U_bounds, 
   age_band_tags = age_band_tgs,
-  vec_phis = my_phis)
+  vec_phis = my_phis,
+  prob_fun = prob_fun)
 
 
 # ---------------------------------------- attach base info
