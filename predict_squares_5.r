@@ -18,7 +18,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-model_tp <- "boot_model_20km_cw"
+model_tp <- "boot_model_20km_cw_2"
 
 n_scenarios <- 6 
   
@@ -96,9 +96,28 @@ shp_fort <- fortify(country_shp)
 # ------------------------------------------ submit one job 
 
 
-t <- obj$enqueue(
-  wrapper_to_ggplot_map(
-    seq_along(vars)[2],
+# t <- obj$enqueue(
+#   wrapper_to_ggplot_map(
+#     seq_along(vars)[2],
+#     vars = vars,
+#     my_colors = col_ls,
+#     titles_vec = all_titles,
+#     df_long = all_preds,
+#     country_shp = country_shp,
+#     shp_fort = shp_fort,
+#     out_path = out_pt,
+#     do.p9.logic = do.p9.logic))
+
+
+# ---------------------------------------- submit all jobs
+
+
+if (CLUSTER) {
+
+  foi_map <- queuer::qlapply(
+    seq_along(vars),
+    wrapper_to_ggplot_map,
+    obj,
     vars = vars,
     my_colors = col_ls,
     titles_vec = all_titles,
@@ -106,39 +125,20 @@ t <- obj$enqueue(
     country_shp = country_shp,
     shp_fort = shp_fort,
     out_path = out_pt,
-    do.p9.logic = do.p9.logic))
+    do.p9.logic = do.p9.logic)
 
+} else {
 
-# ---------------------------------------- submit all jobs
+  foi_map <- lapply(
+    seq_along(vars)[1],
+    wrapper_to_ggplot_map,
+    vars = vars,
+    my_colors = col_ls,
+    titles_vec = all_titles,
+    df_long = all_preds,
+    country_shp = country_shp,
+    shp_fort = shp_fort,
+    out_path = out_pt,
+    do.p9.logic = do.p9.logic)
 
-
-# if (CLUSTER) {
-# 
-#   foi_map <- queuer::qlapply(
-#     seq_along(vars),
-#     wrapper_to_ggplot_map,
-#     obj,
-#     vars = vars,
-#     my_colors = col_ls,
-#     titles_vec = all_titles,
-#     df_long = all_preds,
-#     country_shp = country_shp,
-#     shp_fort = shp_fort,
-#     out_path = out_pt,
-#     do.p9.logic = do.p9.logic)
-# 
-# } else {
-# 
-#   foi_map <- lapply(
-#     seq_along(vars)[1],
-#     wrapper_to_ggplot_map,
-#     vars = vars,
-#     my_colors = col_ls,
-#     titles_vec = all_titles,
-#     df_long = all_preds,
-#     country_shp = country_shp,
-#     shp_fort = shp_fort,
-#     out_path = out_pt,
-#     do.p9.logic = do.p9.logic)
-# 
-# }
+}
