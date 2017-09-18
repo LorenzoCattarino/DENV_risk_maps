@@ -33,7 +33,7 @@ CLUSTER <- TRUE
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_cw" 
+model_tp <- "boot_model_20km_cw_2" 
 
 var_names <- c("R0", "I_num", "C_num", "I_inc", "C_inc")
 
@@ -126,7 +126,7 @@ max_FOI <- max(all_sqr_mean_foi$mean_pred)
 
 FOI_values <- seq(0, 0.05, by = 0.0002) 
 
-if(!file.exists("output/predictions_world/boot_model_20km_cw/FOI_to_I_lookup_tables.rds")){
+if(!file.exists(file.path(out_path, "FOI_to_I_lookup_tables.rds"))){
   
   Infection_values <- loop(seq_len(nrow(age_struct)), 
                            wrapper_to_lookup,
@@ -141,15 +141,15 @@ if(!file.exists("output/predictions_world/boot_model_20km_cw/FOI_to_I_lookup_tab
   
   FOI_to_Inf_list <- lapply(Infection_values, function(i) cbind(x = FOI_values, y = i))
   
-  saveRDS(FOI_to_Inf_list, "output/predictions_world/boot_model_20km_cw/FOI_to_I_lookup_tables.rds")
+  saveRDS(FOI_to_Inf_list, file.path(out_path, "FOI_to_I_lookup_tables.rds"))
   
 } else {
   
-  FOI_to_Inf_list <- readRDS("output/predictions_world/boot_model_20km_cw/FOI_to_I_lookup_tables.rds")
+  FOI_to_Inf_list <- readRDS(file.path(out_path, "FOI_to_I_lookup_tables.rds"))
   
 }
 
-if(!file.exists("output/predictions_world/boot_model_20km_cw/FOI_to_C_lookup_tables.rds")){
+if(!file.exists(file.path(out_path, "FOI_to_C_lookup_tables.rds"))){
   
   Case_values <- loop(seq_len(nrow(age_struct)), 
                       wrapper_to_lookup,
@@ -167,11 +167,11 @@ if(!file.exists("output/predictions_world/boot_model_20km_cw/FOI_to_C_lookup_tab
   
   FOI_to_C_list <- lapply(Case_values, function(i) cbind(x = FOI_values, y = i))
   
-  saveRDS(FOI_to_C_list, "output/predictions_world/boot_model_20km_cw/FOI_to_C_lookup_tables.rds")
+  saveRDS(FOI_to_C_list, file.path(out_path, "FOI_to_C_lookup_tables.rds"))
   
 } else{
   
-  FOI_to_C_list <- readRDS("output/predictions_world/boot_model_20km_cw/FOI_to_C_lookup_tables.rds")
+  FOI_to_C_list <- readRDS(file.path(out_path, "FOI_to_C_lookup_tables.rds"))
   
 }
 
@@ -317,6 +317,8 @@ lapply(seq_along(two_dts), function(i){
     facet_grid(. ~ phi_set_id) +
     xlab("Wolbachia induced R0 reduction") +
     ylab(ylabs[i])
+  
+  dir.create(file.path("figures", "predictions_world", model_tp), FALSE, TRUE)
   
   ggsave(file.path("figures", "predictions_world", model_tp, fl_nms[i]),
          width = 12, 
