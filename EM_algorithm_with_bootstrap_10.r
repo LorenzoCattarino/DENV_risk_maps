@@ -10,14 +10,14 @@ library(reshape2)
 library(ggplot2)
 library(plyr)
 
-source(file.path("R", "random_forest", "RF_preds_vs_obs_stratified_plot.r"))
+source(file.path("R", "plotting", "plot_RF_preds_vs_obs_by_cv_dataset.r"))
 source(file.path("R", "random_forest", "get_lm_equation.r"))
-
+source(file.path("R", "utility_functions.r"))
 
 # ---------------------------------------- define parameters 
 
 
-model_type <- "boot_model_20km_cw"
+model_type <- "boot_model_20km_cw_2"
 
 no_fits <- 50
 
@@ -38,15 +38,21 @@ in_path <- file.path(
   model_type,
   "predictions_data") 
 
-out_path <- file.path(
+out_fig_path <- file.path(
   "figures",
   "EM_algorithm",
   model_type,
   "scatter_plots",
   "boot_samples")
   
-out_path_av <- file.path(
+out_fig_path_av <- file.path(
   "figures",
+  "EM_algorithm",
+  model_type,
+  "scatter_plots")
+
+out_table_path <- file.path(
+  "output",
   "EM_algorithm",
   model_type,
   "scatter_plots")
@@ -119,22 +125,22 @@ for (j in seq_along(tags)) {
     
     dts$dataset <- factor(x = dts$dataset, levels = c(1, 0), labels = c("train", "test"))
     
-    # rotate df from wide to long to allow faceting
-    dts_mlt <- melt(
-      dts, 
-      id.vars = c("data_id", "ADM_0", "ADM_1", "o_j", "dataset"),
-      measure.vars = mes_vars,
-      variable.name = "scale")
-    
-    fl_nm <- paste0("pred_vs_obs_plot_sample_", i, "_", tag, ".png")
-    
-    RF_preds_vs_obs_plot_stratif(
-      df = dts_mlt,
-      x = "o_j",
-      y = "value",
-      facet_var = "scale",
-      file_name = fl_nm,
-      file_path = out_path)
+    # # rotate df from wide to long to allow faceting
+    # dts_mlt <- melt(
+    #   dts, 
+    #   id.vars = c("data_id", "ADM_0", "ADM_1", "o_j", "dataset"),
+    #   measure.vars = mes_vars,
+    #   variable.name = "scale")
+    # 
+    # fl_nm <- paste0("pred_vs_obs_plot_sample_", i, "_", tag, ".png")
+    # 
+    # RF_preds_vs_obs_plot_stratif(
+    #   df = dts_mlt,
+    #   x = "o_j",
+    #   y = "value",
+    #   facet_var = "scale",
+    #   file_name = fl_nm,
+    #   file_path = out_fig_path)
     
   }
   
@@ -168,26 +174,23 @@ for (j in seq_along(tags)) {
                               dataset = "test")
   
   all_av_preds <- rbind(av_train_preds, av_test_preds)
-  write.csv(all_av_preds, 
-            file.path(out_path, 
-                      paste0("pred_vs_obs_plot_averages_", tag, ".csv")), 
-            row.names = FALSE)
+  write_out_csv(all_av_preds, out_table_path, paste0("pred_vs_obs_plot_averages_", tag, ".csv"))
   
-  all_av_preds_mlt <- melt(
-    all_av_preds, 
-    id.vars = c("data_id", "ADM_0", "ADM_1", "o_j", "dataset"),
-    measure.vars = mes_vars,
-    variable.name = "scale")
-  
-  fl_nm_av <- paste0("pred_vs_obs_plot_averages_", tag, ".png")
-  
-  RF_preds_vs_obs_plot_stratif(
-    df = all_av_preds_mlt,
-    x = "o_j",
-    y = "value",
-    facet_var = "scale",
-    file_name = fl_nm_av,
-    file_path = out_path_av)
+  # all_av_preds_mlt <- melt(
+  #   all_av_preds, 
+  #   id.vars = c("data_id", "ADM_0", "ADM_1", "o_j", "dataset"),
+  #   measure.vars = mes_vars,
+  #   variable.name = "scale")
+  # 
+  # fl_nm_av <- paste0("pred_vs_obs_plot_averages_", tag, ".png")
+  # 
+  # RF_preds_vs_obs_plot_stratif(
+  #   df = all_av_preds_mlt,
+  #   x = "o_j",
+  #   y = "value",
+  #   facet_var = "scale",
+  #   file_name = fl_nm_av,
+  #   file_path = out_fig_path_av)
   
   # percentiles_train <- t(apply(produc_train, 1, quantile, probs = c(0.025, 0.975)))
   # percentiles_test <- t(apply(produc_test, 1, quantile, probs = c(0.025, 0.975)))
