@@ -1,6 +1,6 @@
 load_predict_and_save <- function(
   i, RF_obj_path, 
-  my_preds, no_fits){
+  my_preds, no_fits, out_file_path){
   
   pxl_dts_path <- file.path("output", "EM_algorithm", "env_variables", "boot_samples")
   
@@ -27,8 +27,6 @@ load_predict_and_save <- function(
   
   
   out_file_name <- paste0("covariates_and_foi_20km_", seq_len(no_fits), ".rds")
-  
-  out_file_path <- file.path("output", "EM_algorithm", "env_variables_foi", "boot_samples")
   
   a <- out_file_name[i]
   
