@@ -1,7 +1,7 @@
 wrapper_to_load_admin_dataset <- function(
   i, prediction_datasets, adm_levels, 
   bse_infs, sel_preds, parallel, 
-  var_names, model_in_path, 
+  model_in_path, 
   out_path, no_fits){
   
   pred_dts <- prediction_datasets[[i]]
@@ -31,10 +31,10 @@ wrapper_to_load_admin_dataset <- function(
   
   out <- cbind(pred_dts[, base_info], av_df)
   
-  zero_logic <- out$foi_mean == 0
+  #zero_logic <- out$foi_mean == 0
   
-  out_mz <- out[!zero_logic, ] 
+  #out_mz <- out[!zero_logic, ] 
   
-  write_out_csv(out_mz, out_path, file_name)
+  write_out_csv(out, out_path, file_name)
 
 }
