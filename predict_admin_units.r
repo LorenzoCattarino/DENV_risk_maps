@@ -6,8 +6,7 @@ my_resources <- c(
   file.path("R", "utility_functions.R"),
   file.path("R", "random_forest", "wrapper_to_load_admin_dataset.R"),
   file.path("R", "prepare_datasets", "remove_NA_rows.R"),
-  file.path("R", "random_forest", "wrapper_to_make_predictions.R"),
-  file.path("R", "random_forest", "make_h2o_RF_predictions.R"),
+  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
   file.path("R", "prepare_datasets", "calculate_mean_across_fits.r"))
 
 my_pkgs <- "h2o"
@@ -45,9 +44,6 @@ no_fits <- 50
 
 bse_inf_1 <- c("OBJECTID", "ID_0", "country", "ID_1", "name1", "population")
 bse_inf_2 <- c("OBJECTID", "ID_0", "country", "ID_1", "name1", "ID_2", "name2", "population")
-
-var_names <- "mean_pred"
-# var_names <- c("mean_pred" ,"low_perc", "up_perc")
 
 
 # ---------------------------------------- define variables
@@ -107,7 +103,6 @@ if (CLUSTER) {
     bse_infs = bse_infs, 
     sel_preds = best_predictors, 
     parallel = FALSE,
-    var_names = var_names, 
     model_in_path = RF_obj_path,
     out_path = out_pth,
     no_fits = no_fits)
@@ -122,7 +117,6 @@ if (CLUSTER) {
     bse_infs = bse_infs, 
     sel_preds = best_predictors, 
     parallel = FALSE,
-    var_names = var_names, 
     model_in_path = RF_obj_path,
     out_path = out_pth,
     no_fits = no_fits)
