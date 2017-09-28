@@ -6,17 +6,12 @@ exp_max_algorithm_boot <- function(
   RF_obj_path, RF_obj_name,
   diagn_tab_path, diagn_tab_name,
   map_path, map_name, 
-  sct_plt_path, adm_dataset){
+  sct_plt_path, adm_dataset, pxl_dts_pt,
+  var_to_fit){
   
   
   #browser()
-  
-  
-  # ---------------------------------------- define parameters 
-  
-  
-  pxl_dts_pt <- file.path("output", "EM_algorithm", "env_variables_foi", "boot_samples")
-  
+
   
   # ---------------------------------------- define variables
   
@@ -45,13 +40,16 @@ exp_max_algorithm_boot <- function(
   # ---------------------------------------- pre process the bootstrapped foi data set
   
   
+  if(var_to_fit == "R_0"){
+    foi_data_boot <- foi_data_boot[setdiff(names(foi_data_boot), "o_j")]
+    names(foi_data_boot)[names(foi_data_boot) == "R_0"] <- "o_j"
+  }
+    
   foi_data_boot[foi_data_boot$type == "pseudoAbsence", "o_j"] <- psAbs
   
   foi_data_boot$new_weight <- all_wgt
   
   foi_data_boot[foi_data_boot$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
-  
-  names(foi_data_boot)[names(foi_data_boot) == "FOI"] <- "o_j"
   
   names(foi_data_boot)[names(foi_data_boot) == "ADM_0"] <- grp_flds[1]
   names(foi_data_boot)[names(foi_data_boot) == "ADM_1"] <- grp_flds[2]
