@@ -6,7 +6,7 @@ wrapper_to_replicate_R0_and_burden <- function(
   FOI_to_Inf_list,
   FOI_to_C_list,
   age_band_lower_bounds, age_band_upper_bounds, age_band_tags,
-  vec_phis, prob_fun){
+  vec_phis, prob_fun, reverse){
   
   
   #browser()
@@ -62,5 +62,6 @@ wrapper_to_replicate_R0_and_burden <- function(
                            FOI_to_R0 = FOI_to_R0, 
                            FOI_to_Inf = FOI_to_Inf, 
                            FOI_to_C = FOI_to_C,
-                           N = sqr_pop)  
+                           N = sqr_pop,
+                           reverse = reverse)  
 }

@@ -3,7 +3,7 @@ wrapper_to_R0_and_burden <- function(
   age_band_lower_bounds, age_band_upper_bounds,
   vec_phis, prob_fun, scaling_factor, var_names, 
   FOI_to_R0, FOI_to_Inf, FOI_to_C,
-  N){
+  N, reverse){
 
   #browser()
   
@@ -18,7 +18,9 @@ wrapper_to_R0_and_burden <- function(
     # ---------------------------------------- calculate R0
     
     
-    R0 <- calculate_R0(
+    if(!reverse){
+      
+      R0 <- calculate_R0(
       FOI = FOI, 
       N = 1, 
       n_j = n_j, 
@@ -26,6 +28,12 @@ wrapper_to_R0_and_burden <- function(
       age_band_upper_bounds = age_band_upper_bounds,
       vec_phis = vec_phis, 
       prob_fun = prob_fun)
+    
+    } else {
+      
+      R0 <- FOI
+    
+    }
     
     #cat("R0 =", R0, "\n")
     
@@ -70,8 +78,8 @@ wrapper_to_R0_and_burden <- function(
     #cat("incidence of infections =", Inc_infections, "\n")
     #cat("incidence of cases =", Inc_cases, "\n")
     
-    out <- setNames(c(red_R0, Infections, Cases, Inc_infections, Inc_cases),
-                    c("R0", "I_num", "C_num", "I_inc", "C_inc"))
+    out <- setNames(c(red_FOI, red_R0, Infections, Cases, Inc_infections, Inc_cases),
+                    c("FOI", "R0", "I_num", "C_num", "I_inc", "C_inc"))
     
   }
   

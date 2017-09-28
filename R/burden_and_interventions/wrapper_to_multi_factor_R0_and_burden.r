@@ -1,7 +1,7 @@
 wrapper_to_multi_factor_R0_and_burden <- function(
   x, foi_data, age_data,
   age_band_tags, age_band_lower_bounds, age_band_upper_bounds,
-  parallel_2, var_names, FOI_values, FOI_to_Inf_list, FOI_to_C_list, prob_fun){
+  parallel_2, var_names, FOI_values, FOI_to_Inf_list, FOI_to_C_list, prob_fun, reverse){
   
   
   #browser()
@@ -67,6 +67,7 @@ wrapper_to_multi_factor_R0_and_burden <- function(
     age_band_tags = age_band_tags,
     vec_phis = vec_phis, 
     prob_fun = prob_fun,
+    reverse = reverse,
     parallel = parallel_2)
   
   
