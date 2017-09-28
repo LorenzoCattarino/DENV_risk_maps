@@ -39,6 +39,8 @@ generic_scatter_plot <- function(
   
   eq_df <- data.frame(eq) 
     
+  x_text <- ifelse(max_x_value > 2, 1, 0.02)
+    
   p <- ggplot(df, aes_string(x = x, y = y)) +
     geom_point(aes_string(x = x, y = y), size = 1) + 
     scale_x_continuous("Observations",
@@ -52,7 +54,7 @@ generic_scatter_plot <- function(
     geom_smooth(method = "lm", formula = y ~ x - 1, se = FALSE) + 
     coord_cartesian(xlim = c(min_x_value, max_x_value),
                     ylim = c(min_y_value, max_y_value)) + 
-    geom_text(data = eq_df, aes(x = 0.02, y = max_y_value, label = eq), parse = TRUE) +
+    geom_text(data = eq_df, aes(x = x_text, y = max_y_value, label = eq), parse = TRUE) +
     theme(axis.title.x = element_text(hjust = 0.5, vjust = 1, size = 15, margin = margin(t = 20)),
           axis.title.y = element_text(hjust = 0.5, vjust = 0, size = 15, margin = margin(r = 20)),
           axis.text.x = element_text(size = 11),
