@@ -102,7 +102,7 @@ exp_max_algorithm <- function(
     # -------------------------------------- plot of observed vs predicted square values 
 
     
-    dd_2$u_i[psAbs] <- 0
+    #dd_2$u_i[psAbs] <- 0
     dd_2$p_i[psAbs] <- ifelse(dd_2$p_i[psAbs] < 0, 0, dd_2$p_i[psAbs])
     
     sqr_sp_nm <- paste0("pred_vs_obs_sqr_iter_", i, ".png")
@@ -137,7 +137,7 @@ exp_max_algorithm <- function(
     
     psAbs_adm <- cc$type == "pseudoAbsence" 
       
-    cc$o_j[psAbs_adm] <- 0
+    #cc$o_j[psAbs_adm] <- 0
     cc$adm_pred[psAbs_adm] <- ifelse(cc$adm_pred[psAbs_adm] < 0, 0, cc$adm_pred[psAbs_adm])
     
     
@@ -178,14 +178,6 @@ exp_max_algorithm <- function(
     # -------------------------------------- 8. calculate admin unit level sum of square
     
 
-    #neg_w_mean <- aa$mean_p_i < 0
-    
-    #S <- rep(0, nrow(aa)) 
-      
-    #S[!neg_w_mean] <- (aa$mean_p_i[!neg_w_mean] - aa$o_j[!neg_w_mean])^2 
-    
-    #ss_j <- sum(aa$new_weight * S)
-    
     ss_j <- sum(aa$new_weight * (aa$mean_p_i - aa$o_j)^2)
     
     
