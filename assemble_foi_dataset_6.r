@@ -22,7 +22,7 @@ pseudoAbsences <- read.csv(
             "pseudo_absence_points_NUM_CODES_sub.csv"), 
   header = TRUE)
 
-world_shp_admin_1_dengue <- readOGR(dsn = file.path("data", "shapefiles", "gadm28_levels.shp"), layer = "gadm28_adm1_dengue")
+world_shp_admin_1_dengue <- readOGR(dsn = file.path("data", "shapefiles", "gadm28_levels.shp"), layer = "gadm28_adm1_dengue_2")
 
 
 # ---------------------------------------- pre processing
@@ -46,22 +46,24 @@ pseudoAbsence_points_list <- list(
 
 
 png(file.path("figures", "dengue_points_and_absence_mask.png"), 
-     width = 18, 
+    width = 18, 
     height = 10, 
     units = "in", 
     pointsize = 12,
     bg = "white", 
     res = 200)
 
-spplot(world_shp_admin_1_dengue, "dengue", lwd = 0.5,
-       scales = list(x = list(draw = TRUE, 
-                              at = seq(-150, 150, 50)), 
-                     y = list(draw = TRUE)),
-       xlab = "Longitude",
-       ylab = "Latitude", 
-       col.regions = c("palegreen3","red2"),
-       colorkey = FALSE,
-       sp.layout = list(data_points_list,
-                        pseudoAbsence_points_list))
+p <- spplot(world_shp_admin_1_dengue, "dengue", lwd = 0.5,
+            scales = list(x = list(draw = TRUE, 
+                                   at = seq(-150, 150, 50)), 
+                          y = list(draw = TRUE)),
+            xlab = "Longitude",
+            ylab = "Latitude", 
+            col.regions = c("palegreen3","red2"),
+            colorkey = FALSE,
+            sp.layout = list(data_points_list,
+                             pseudoAbsence_points_list))
+
+print(p)
 
 dev.off()
