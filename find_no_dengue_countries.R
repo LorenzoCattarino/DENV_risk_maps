@@ -242,7 +242,7 @@ no_dengue_shp_records_unique <- no_dengue_shp_records[!duplicated(no_dengue_shp_
 no_dengue_shp_records_unique_sorted <- no_dengue_shp_records_unique[order(no_dengue_shp_records_unique$country), ]
 
 # write out shapefile with the new attribute 
-writeSpatialShape(world_shp_admin_1, file.path("data", "shapefiles", "gadm28_levels.shp", "gadm28_adm1_dengue"))
+writeSpatialShape(world_shp_admin_1, file.path("output", "shapefiles", "gadm28_levels.shp", "gadm28_adm1_dengue"))
 
 # Write out .csv as well
 write.table(no_dengue_shp_records_unique_sorted,
