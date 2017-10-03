@@ -5,7 +5,7 @@ library(ggplot2)
 library(grid)
 
 # load functions 
-source(file.path("R", "burden_and_interventions", "functions_to_calculate_R0_and_burden.r"))
+source(file.path("R", "prepare_datasets", "functions_for_calculating_R0.r"))
 
 
 # ---------------------------------------- define parameters
@@ -15,14 +15,27 @@ m_flds <- c("ID_0", "ID_1")
 
 base_info <- c("type", "ISO", "longitude", "latitude", "data_id", "ID_0", "ID_1", "FOI", "variance", "population")
 
-var <- "R_0"
+gamma_1 <- 0.45
+rho <- 0.85
+gamma_3 <- 0.15
 
-my_phis <- c(1, 1, 1, 1)
+phi_combs <- list(
+  c(1, 1, 0, 0),
+  c(1, 1, 1, 1),
+  calculate_infectiousness_wgts_for_sym_asym_assumption(gamma_1, rho, gamma_3))
 
 prob_fun <- list("calculate_primary_infection_prob",
                  "calculate_secondary_infection_prob",
                  "calculate_tertiary_infection_prob",
                  "calculate_quaternary_infection_prob")
+
+
+# ---------------------------------------- define variables
+
+
+comb_no <- length(phi_combs)
+
+var <- paste0("R0_", seq_len(comb_no))
 
 
 # ---------------------------------------- load data 
@@ -85,29 +98,18 @@ All_FOI_estimates_3 <- merge(
   all.y = FALSE)
 
 
-# ---------------------------------------- calculate R0
+# ---------------------------------------- calculate R0 for all 3 assumptions
 
 
-n <- nrow(All_FOI_estimates_3)
-
-R_0 <- vapply(seq_len(n), function(i, foi_data, age_struct, age_band_tags, age_band_lower_bounds, age_band_upper_bounds, vec_phis, prob_fun){
-  m_j <- age_struct[age_struct$ID_0 == foi_data[i, "ID_0"], age_band_tags]
-  FOI <- foi_data[i, "FOI"]
-  calculate_R0(
-    FOI = FOI, 
-    N = 1, 
-    n_j = m_j, 
-    age_band_lower_bounds = age_band_lower_bounds, 
-    age_band_upper_bounds = age_band_upper_bounds,
-    vec_phis = vec_phis, 
-    prob_fun = prob_fun)}, 
-  numeric(1),
+R_0 <- vapply(
+  phi_combs,
+  wrapper_to_multi_factor_R0,
+  numeric(nrow(All_FOI_estimates_3)),
   foi_data = All_FOI_estimates_3, 
   age_struct = country_age_struc, 
+  age_band_tags = age_band_tgs, 
   age_band_lower_bounds = age_band_L_bounds, 
   age_band_upper_bounds = age_band_U_bounds, 
-  age_band_tags = age_band_tgs,
-  vec_phis = my_phis,
   prob_fun = prob_fun)
 
 
@@ -151,7 +153,7 @@ lambda_plot <- ggplot(All_R_0_estimates, aes(x = ID_point, y = FOI, colour = typ
                theme(axis.text.x = element_text(size = 5, angle = 90, hjust = 0.5, vjust = 0.5),
                      panel.grid.minor = element_blank())
 
-R_0_plot <- ggplot(All_R_0_estimates, aes(x = ID_point, y = R_0, colour = type)) +
+R_0_plot <- ggplot(All_R_0_estimates, aes(x = ID_point, y = R0_2, colour = type)) +
             geom_point(size = 0.8) +
             scale_x_continuous(name = "Country code", breaks = seq_len(nrow(All_R_0_estimates)), 
                                expand = c(0.002, 0)) +
