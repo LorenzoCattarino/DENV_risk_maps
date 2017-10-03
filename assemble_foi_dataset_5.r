@@ -19,10 +19,11 @@ All_FOI_estimates <- read.table(
 pseudoAbsences <- read.csv(
   file.path("output", 
             "datasets", 
-            "pseudo_absence_points_NUM_CODES_sub.csv"), 
+            "pseudo_absence_points_2.csv"), 
   header = TRUE)
 
-world_shp_admin_1_dengue <- readOGR(dsn = file.path("data", "shapefiles", "gadm28_levels.shp"), layer = "gadm28_adm1_dengue_2")
+world_shp_admin_1_dengue <- readOGR(dsn = file.path("output", "shapefiles"), 
+                                    layer = "gadm28_adm1_dengue")
 
 
 # ---------------------------------------- pre processing
