@@ -2,12 +2,10 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
-  file.path("R", "random_forest", "grid_and_bootstrap.r"),
-  file.path("R", "random_forest", "grid_up_foi_dataset.r"),
-  file.path("R", "random_forest", "bootstrap_foi_dataset.r"),
+  file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samples.r"),
   file.path("R", "utility_functions.r"))
 
 my_pkgs <- c()
@@ -23,11 +21,7 @@ ctx <- context::context_save(path = "context",
 
 no_fits <- 200
 
-dependent_variable <- "FOI"
-
 grid_size <- 5
-
-pseudoAbs_value <- 0
 
 all_wgt <- 1
 
@@ -44,7 +38,8 @@ if (CLUSTER) {
 } else {
   
   context::context_load(ctx)
-  
+  context::parallel_cluster_start(8, ctx)
+
 }
 
 
@@ -59,13 +54,9 @@ foi_data <- read.csv(
 # ---------------------------------------- pre process the original foi dataset
 
 
-foi_data[foi_data$type == "pseudoAbsence", dependent_variable] <- pseudoAbs_value
-
 foi_data$new_weight <- all_wgt
 
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
-
-names(foi_data)[names(foi_data) == dependent_variable] <- "o_j"
 
 names(foi_data)[names(foi_data) == "ID_0"] <- "ADM_0"
 
@@ -96,10 +87,15 @@ if (CLUSTER) {
 
 } else {
 
-  get_boot_samples <- lapply(
+  get_boot_samples <- loop(
     seq_len(no_fits),
     grid_and_boot,
     a = foi_data,
-    b = grid_size)
+    b = grid_size,
+    parallel = TRUE)
 
+}
+
+if(!CLUSTER){
+  context::parallel_cluster_stop()
 }
