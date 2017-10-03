@@ -7,19 +7,18 @@ library(rgeos)
 library(ggplot2)
 library(dplyr)
 
-source(file.path("R", "plotting", "map_country_ID_1_codes.r"))
-source(file.path("R", "prepare_datasets", "rep_num.r"))
+source(file.path("R", "prepare_datasets", "functions_for_locating_pseudo_absences.r"))
 
 
 # ---------------------------------------- define paramaters 
 
 
-pseudo_absence_proportion <- 1
+pseudo_absence_proportion <- 2
 
 shp_fl_pth <- file.path(
   "output",
   "shapefiles", 
-  "gadm28_adm1_dengue_cropped")
+  "gadm28_adm1_dengue_cropped.shp")
 
 out_pt <- file.path("output", "datasets")
 
@@ -87,24 +86,14 @@ if(fl_ex){
 sub_world <- subset(adm_shp_file_cropped, adm_shp_file_cropped@data$dengue == 0)
 
 
-# ---------------------------------------- sample at random which admin units where to place pseudo absences 
+# ---------------------------------------- sample at random pseudo absences
 
 
-ids <- sample(1:nrow(sub_world@data), no_pseudo_absence_points, replace = FALSE)
-
-
-# ---------------------------------------- sample one point in each admin unit
-
-
-sub_world_2 <- sub_world[ids,]
-
-pap_list <- sapply(slot(sub_world_2, "polygons"), function(i) spsample(i, n = 1, type = "random"))
-
-
+pseudo_absence_points <- spsample(sub_world, n = no_pseudo_absence_points, type = "random")
+  
+  
 # ----------------------------------------
 
-
-pseudo_absence_points <- do.call("rbind", pap_list)
 
 # Get admin 1 names for pseudo absence points  
 overlay_1 <- over(pseudo_absence_points, adm_shp_file)
@@ -114,6 +103,13 @@ psAbs_df1 <- setNames(data.frame("pseudoAbsence",
                                  overlay_1[, var_1],
                                  pseudo_absence_points@coords[, var_2]),
                       nm = col_nms)
+
+
+# ---------------------------------------- remove adm 1 duplicates
+
+
+dup <- duplicated(psAbs_df1[, c("ID_0", "ID_1")])
+psAbs_df1 <- psAbs_df1[!dup, ]
 
 
 # ---------------------------------------- save
