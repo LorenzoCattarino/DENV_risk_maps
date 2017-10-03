@@ -13,7 +13,7 @@ source(file.path("R", "prepare_datasets", "functions_for_locating_pseudo_absence
 # ---------------------------------------- define paramaters 
 
 
-pseudo_absence_proportion <- 2
+pseudo_absence_proportion <- 2.5
 
 shp_fl_pth <- file.path(
   "output",
