@@ -8,7 +8,7 @@ source(file.path("R", "utility_functions.r"))
 # ---------------------------------------- define parameters 
 
 
-base_info <- c("type", "longitude", "latitude", "ISO", "ID_0", "ID_1", "FOI", "R_0")
+base_info <- c("type", "longitude", "latitude", "ISO", "ID_0", "ID_1", "FOI", "R0_1", "R0_2", "R0_3")
 
 population_var <- "pop"
 
@@ -39,7 +39,7 @@ All_FOI_R0_estimates <- read.csv(
 pseudo_absence_points <- read.csv(
   file.path("output", 
             "datasets", 
-            "pseudo_absence_points_NUM_CODES_sub.csv"), 
+            "pseudo_absence_points_2.csv"), 
   header = TRUE, 
   sep = ",", 
   stringsAsFactors = FALSE)
@@ -49,8 +49,10 @@ pseudo_absence_points <- read.csv(
 
 
 pseudo_absence_points$FOI <- 0
-pseudo_absence_points$R_0 <- 0
-  
+pseudo_absence_points$R0_1 <- 0
+pseudo_absence_points$R0_2 <- 0
+pseudo_absence_points$R0_3 <- 0
+
 All_FOI_R0_estimates <- All_FOI_R0_estimates[, base_info]
 pseudo_absence_points <- pseudo_absence_points[, base_info]
 
