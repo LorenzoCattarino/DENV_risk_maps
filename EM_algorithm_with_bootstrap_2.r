@@ -5,9 +5,7 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "grid_and_bootstrap.r"),
-  file.path("R", "random_forest", "grid_up_foi_dataset.r"),
-  file.path("R", "random_forest", "bootstrap_foi_dataset.r"),
+  file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samples.r"),
   file.path("R", "utility_functions.r"))
 
 my_pkgs <- c()
