@@ -5,12 +5,8 @@ rm(list = ls())
 #    "richfitz/queuer",
 #    "dide-tools/didewin"), force = TRUE, upgrade = FALSE)
 
-my_resources <- c(file.path("R", "convert_df_to_list.R"),
-                  file.path("R", "prepare_datasets", "wrapper_to_load_env_var.R"),
-                  file.path("R", "prepare_datasets", "load_sets_of_environmental_variables.R"),
-                  file.path("R", "prepare_datasets", "append_env_var_by_tile.R"),
-                  file.path("R", "prepare_datasets", "wrapper_to_get_env_var_for_All_pixels.R"),
-                  file.path("R", "prepare_datasets", "assign_NA_env_var_pixel.R"))
+my_resources <- c(file.path("R", "utility_functions.r"),
+                  file.path("R", "prepare_datasets", "functions_for_collating_env_var_by_tile.R"))
 
 my_pkgs <- c("data.table", "raster", "rgdal")  
 
