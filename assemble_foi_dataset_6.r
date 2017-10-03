@@ -97,6 +97,8 @@ pop_col_names <- grep("pop", colnames(foi_data_with_env_variables), value = FALS
 
 colnames(foi_data_with_env_variables)[pop_col_names] <- "population"
 
+## Add ID fields - you will need them when doing the spatial disaggregation with bootstrapping
+
 foi_data_with_env_variables <- cbind(unique_id = seq_len(nrow(foi_data_with_env_variables)),
                                      data_id = seq_len(nrow(foi_data_with_env_variables)), 
                                      foi_data_with_env_variables)
