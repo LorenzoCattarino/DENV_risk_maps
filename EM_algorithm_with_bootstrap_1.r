@@ -6,6 +6,7 @@ CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samples.r"),
+  file.path("R", "prepare_datasets", "grid_up.R"),
   file.path("R", "utility_functions.r"))
 
 my_pkgs <- c()
