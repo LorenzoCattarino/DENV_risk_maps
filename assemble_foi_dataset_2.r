@@ -20,8 +20,7 @@ library(maptools)
 
 
 # load functions 
-source(file.path("R", "prepare_datasets", "get_admin_unit_names.r"))
-source(file.path("R", "prepare_datasets", "get_geocode_results.r"))
+source(file.path("R", "prepare_datasets", "functions_for_geolocating_admin_units.r"))
 source(file.path("R", "utility_functions.r"))
 
 
