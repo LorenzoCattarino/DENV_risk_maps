@@ -1,10 +1,9 @@
-get_admin_name <- function(x, country_code_fld)
-{
-  # start 
+get_admin_name <- function(x, country_code_fld){
+  
   country_name <- x$country
   #cat("country = ", country_name, "\n")
   
-  country_code <- x[country_code_fld]  
+  country_code <- x[[country_code_fld]]  
   #cat("country code = ", country_code, "\n")
   
   #admin_level <- as.numeric(x["admin"]) 
@@ -16,7 +15,7 @@ get_admin_name <- function(x, country_code_fld)
   location_str <- ifelse(country_name != location, paste(location, country_name, sep = ", "), location)
   #cat("location string = ", location_str, "\n")
   
-  geocode_run <- geocode (enc2utf8(location_str), output = "all") # take care of funny characters 
+  geocode_run <- geocode(enc2utf8(location_str), output = "all") # take care of funny characters 
   
   if(geocode_run$status!="OK") {stop("no match!")}
     
