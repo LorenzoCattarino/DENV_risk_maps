@@ -1,10 +1,23 @@
 # Combines the foi estimates from different studies / sources  into a single data frame
 
+# install dev version of ggmap
+devtools::install_github("dkahle/ggmap")
+
 # load packages
-library(ggmap)
+library(ggmap) # for geocode()
 library(maptools)
-library(geosphere)
-library(boot)
+
+
+# ===================================================================
+#
+# 
+# GET a key for the google map API geocoding tool 
+# Do enable the google map geocoding tool on your google developer project page
+# https://console.cloud.google.com/home/dashboard?project=dengue-mapping
+# 
+#
+# ===================================================================
+
 
 # load functions 
 source(file.path("R", "prepare_datasets", "get_admin_unit_names.r"))
@@ -15,12 +28,14 @@ source(file.path("R", "utility_functions.r"))
 # ---------------------------------------- define parameters 
 
 
+my_api_key <- "AIzaSyBuHLASHGLaorGdZidB5sNa-9C2fxXYj1c"
+
 datasets <- c("NonSerotypeSpecificDatasets",
               "SerotypeSpecificDatasets",
-              "All_caseReport_datasets",  
               "additional serology",
               "additional_India_sero_data_Garg",
-              "additional_India_sero_data_Shah")  
+              "additional_India_sero_data_Shah",
+              "All_caseReport_datasets")  
 
 fields <- c("type", "ID_0", "ISO",
             "country", "ID_1", "adm1",
@@ -32,6 +47,12 @@ foi_out_nm <- "All_FOI_estimates_linear.txt"
 
 deng_count_pt <- file.path("output", "datasets") 
 deng_count_nm <- "dengue_point_countries.csv"
+
+
+# ---------------------------------------- register your api key
+
+
+register_google(key = my_api_key, account_type = "premium", day_limit = 100000)
 
 
 # ---------------------------------------- pre processing
