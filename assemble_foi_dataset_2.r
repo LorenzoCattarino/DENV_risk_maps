@@ -118,9 +118,6 @@ All_FOI_estimates <- subset(All_FOI_estimates, !is.na(FOI))
 # remove outliers 
 All_FOI_estimates <- subset(All_FOI_estimates, ISO != "PYF" & ISO != "HTI")
 
-# add point ID (you will need it when doing the spatial disaggregation)
-All_FOI_estimates <- cbind(data_id = seq_len(nrow(All_FOI_estimates)), All_FOI_estimates)
-
 dengue_point_countries <- All_FOI_estimates[!duplicated(All_FOI_estimates[, c("country", "ID_0")]), c("country", "ID_0")]
 
 
