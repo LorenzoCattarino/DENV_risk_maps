@@ -8,7 +8,6 @@ source(file.path("R", "utility_functions.r"))
 boot_samples <- readRDS(
   file.path("output",
             "EM_algorithm",
-            "boot_samples",
             "bootstrap_samples.rds"))
 
 if (names(boot_samples[[1]])[1] != "unique_id") {
@@ -21,8 +20,7 @@ if (names(boot_samples[[1]])[1] != "unique_id") {
   
   write_out_rds(test, 
                 file.path("output",
-                          "EM_algorithm",
-                          "boot_samples"),
+                          "EM_algorithm"),
                 "bootstrap_samples.rds")
   
 }
