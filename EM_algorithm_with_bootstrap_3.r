@@ -10,7 +10,7 @@ my_resources <- c(
   file.path("R", "prepare_datasets", "filter_resample_and_combine.r"),
   file.path("R", "prepare_datasets", "filter_and_resample.r"),
   file.path("R", "prepare_datasets", "clean_and_resample.r"),
-  file.path("R", "prepare_datasets", "grid_up_foi_dataset.r"),
+  file.path("R", "prepare_datasets", "grid_up.R"),
   file.path("R", "prepare_datasets", "average_up.r"),
   file.path("R", "prepare_datasets", "remove_NA_rows.r"),
   file.path("R", "utility_functions.r"))
@@ -26,7 +26,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-no_fits <- 50
+no_fits <- 200
   
 in_pt <- file.path("data", "env_variables", "all_sets_gadm_codes")
 
@@ -38,7 +38,7 @@ new_res <- (1 / 120) * gr_size
 
 out_pt <- file.path("output", "EM_algorithm", "env_variables", "boot_samples")
 
-out_fl_nm_all <- paste0("aggreg_pixel_level_env_vars_20km_sample_", seq_len(no_fits), ".rds")
+out_fl_nm_all <- paste0("env_vars_20km_sample_", seq_len(no_fits), ".rds")
 
 
 # ---------------------------------------- are you using the cluster? 
@@ -63,7 +63,6 @@ if (CLUSTER) {
 boot_samples <- readRDS(
   file.path("output",
             "EM_algorithm",
-            "boot_samples",
             "bootstrap_samples.rds"))
 
 predictor_rank <- read.csv(
