@@ -103,7 +103,7 @@ if (CLUSTER) {
     min_node_size = min_node_size,
     out_path = out_pt,
     psAb_val = pseudoAbsence_value)
-  
+
 } else {
 
   RF_obj <- lapply(
