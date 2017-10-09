@@ -2,9 +2,11 @@ load_predict_and_save <- function(
   i, RF_obj_path, 
   my_preds, no_fits, out_file_path){
   
+  #browser()
+  
   pxl_dts_path <- file.path("output", "EM_algorithm", "env_variables", "boot_samples")
   
-  pxl_dts_nm <- paste0("aggreg_pixel_level_env_vars_20km_sample_", i, ".rds")
+  pxl_dts_nm <- paste0("env_vars_20km_sample_", i, ".rds")
   
   RF_obj_nm <- paste0("RF_model_object_", i, ".rds")
   
