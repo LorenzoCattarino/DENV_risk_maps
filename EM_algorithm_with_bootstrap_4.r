@@ -7,7 +7,7 @@ CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "random_forest", "get_boot_sample_and_fit_RF.r"),
-  file.path("R", "random_forest", "fit_h2o_random_forest_model.r"),
+  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
   file.path("R", "utility_functions.r"))
 
 my_pkgs <- "h2o"
@@ -21,17 +21,17 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-no_fits <- 50
+dependent_variable <- "FOI"
+
+no_fits <- 200
 
 pseudoAbsence_value <- -0.02
-  
-dependent_variable <- "o_j"
 
 no_trees <- 500
 
 min_node_size <- 20
 
-out_pt <- file.path("output", "EM_algorithm", "model_objects", "boot_samples")
+out_pt <- file.path("output", "EM_algorithm", paste0("model_objects_", dependent_variable, "_fit"), "boot_samples")
 
 
 # ---------------------------------------- are you using the cluster? 
@@ -55,7 +55,6 @@ if (CLUSTER) {
 boot_samples <- readRDS(
   file.path("output",
             "EM_algorithm",
-            "boot_samples",
             "bootstrap_samples.rds"))
   
 predictor_rank <- read.csv(
@@ -108,7 +107,7 @@ if (CLUSTER) {
 } else {
 
   RF_obj <- lapply(
-    seq_len(no_fits),
+    seq_len(no_fits)[1],
     get_boot_sample_and_fit_RF,
     boot_ls = boot_samples,
     my_preds = my_predictors,
