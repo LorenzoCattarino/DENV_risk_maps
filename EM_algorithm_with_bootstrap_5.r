@@ -60,6 +60,8 @@ predictor_rank <- read.csv(
 
 my_predictors <- predictor_rank$variable[1:9]
 
+my_predictors <- c(my_predictors, "RFE_const_term")
+
 
 # ---------------------------------------- submit one job 
 
