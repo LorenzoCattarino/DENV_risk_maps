@@ -30,7 +30,7 @@ no_fits <- 200
   
 in_pt <- file.path("data", "env_variables", "all_sets_gadm_codes")
 
-group_fields <- c("unique_id", "data_id", "ADM_0", "ADM_1", "cell", "lat.grid", "long.grid")
+group_fields <- c("unique_id", "data_id", "ADM_0", "ADM_1")
 
 gr_size <- 20
 
