@@ -21,6 +21,6 @@ clean_and_resample <- function(
     grid_size = grid_size, 
     rnd_dist = FALSE)
   
-  average_up(yy, grp_flds, env_vars)
+  average_up(yy, c(grp_flds, "cell", "lat.grid", "long.grid"), env_vars)
   
 }
