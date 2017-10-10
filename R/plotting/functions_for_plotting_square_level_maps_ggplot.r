@@ -100,7 +100,7 @@ wrapper_to_ggplot_map <- function(
 
 map_data_pixel_ggplot <- function(df, shp, out_path, out_file_name, my_col, ttl, do.p9) {
   
-  browser()
+  #browser()
   
   dir.create(out_path, FALSE, TRUE)
   
