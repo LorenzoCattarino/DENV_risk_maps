@@ -16,7 +16,7 @@ filter_and_resample <- function(x, foi_dts, env_var_names, grp_flds, grid_size){
   
   aa <- inner_join(
     tile, 
-    foi_dts[, c("unique_id", "data_id", "ADM_0", "ADM_1")])
+    foi_dts[, grp_flds])
   
   if(nrow(aa) > 0) {
     
@@ -24,7 +24,7 @@ filter_and_resample <- function(x, foi_dts, env_var_names, grp_flds, grid_size){
     
     dd <- inner_join(
       cc,
-      foi_dts[, c("unique_id", "data_id", "ADM_0", "ADM_1", "type", "adm_pop")])
+      foi_dts[, c(grp_flds, "type", "adm_pop")])
     
     names(dd)[names(dd) == "lat.grid"] <- "latitude"
     
