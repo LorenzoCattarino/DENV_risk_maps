@@ -71,6 +71,8 @@ names(foi_data)[names(foi_data) == "population"] <- "adm_pop"
 
 my_predictors <- predictor_rank$variable[1:9]
 
+my_predictors <- c(my_predictors, "RFE_const_term")
+
 fi <- list.files(in_pt, 
                  pattern = "^tile",
                  full.names = TRUE)

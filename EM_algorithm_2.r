@@ -29,24 +29,6 @@ out_pt <- file.path("output", "EM_algorithm", "env_variables")
 out_fl_nm <- "env_vars_20km.rds"
 
 
-# ---------------------------------------- load data
-
-
-predictor_rank <- read.csv(
-  file.path("output", 
-            "variable_selection", 
-            "metropolis_hastings", 
-            "exp_1", 
-            "variable_rank_final_fits_exp_1.csv"),
-  stringsAsFactors = FALSE)
-
-
-# ---------------------------------------- get the vector of best predictors
-
-
-my_predictors <- predictor_rank$variable[1:9]
-
-
 # ---------------------------------------- rebuild the queue
 
 
@@ -60,7 +42,9 @@ if (CLUSTER) {
 
 }
 
-task_b_name <- "amiable_pachyderm"
+all_tasks <- obj$task_bundle_info()
+
+task_b_name <- all_tasks[nrow(all_tasks), "name"]
 
 pxl_job_t <- obj$task_bundle_get(task_b_name)
 
