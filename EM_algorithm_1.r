@@ -9,7 +9,7 @@ my_resources <- c(
   file.path("R", "prepare_datasets", "filter_and_resample.r"),
   file.path("R", "prepare_datasets", "clean_and_resample.r"),
   file.path("R", "prepare_datasets", "remove_NA_rows.r"),
-  file.path("R", "prepare_datasets", "grid_up_foi_dataset.r"),
+  file.path("R", "prepare_datasets", "grid_up.R"),
   file.path("R", "prepare_datasets", "average_up.r"))
 
 my_pkgs <- c("data.table", "dplyr")
@@ -25,7 +25,7 @@ ctx <- context::context_save(path = "context",
 
 in_pt <- file.path("data", "env_variables", "all_sets_gadm_codes")
 
-group_fields <- c("data_id", "ADM_0", "ADM_1", "cell", "lat.grid", "long.grid")
+group_fields <- c("data_id", "ADM_0", "ADM_1")
 
 gr_size <- 20
   
