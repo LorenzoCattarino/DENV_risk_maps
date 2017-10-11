@@ -40,9 +40,15 @@ exp_max_algorithm_boot <- function(
   # ---------------------------------------- pre process the bootstrapped foi data set
   
   
-  if(var_to_fit == "R_0"){
+  if(var_to_fit == "FOI"){
+    
+    names(foi_data_boot)[names(foi_data_boot) == "FOI"] <- "o_j"
+  
+  } else {
+    
     foi_data_boot <- foi_data_boot[setdiff(names(foi_data_boot), "o_j")]
     names(foi_data_boot)[names(foi_data_boot) == "R_0"] <- "o_j"
+  
   }
     
   foi_data_boot[foi_data_boot$type == "pseudoAbsence", "o_j"] <- psAbs
@@ -97,6 +103,7 @@ exp_max_algorithm_boot <- function(
                     map_path = cc, 
                     map_name = ee,
                     sct_plt_path = ff,
+                    var_to_fit = var_to_fit,
                     adm_dataset = adm_dataset)
   
 }
