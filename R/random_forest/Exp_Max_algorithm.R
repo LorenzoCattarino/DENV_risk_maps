@@ -5,7 +5,7 @@ exp_max_algorithm <- function(
   RF_obj_path, RF_obj_name,
   diagn_tab_path, diagn_tab_name,
   map_path, map_name, 
-  sct_plt_path, adm_dataset = NULL){
+  sct_plt_path, var_to_fit, adm_dataset = NULL){
   
   diagnostics <- c("RF_ms_i", "ss_i", "ss_j", "min_wgt", "max_wgt", "n_NA_pred")
   
@@ -47,11 +47,17 @@ exp_max_algorithm <- function(
   
     u_i <- rep(0, nrow(dd))
       
-    #u_i[!psAbs] <- (((dd$o_j[!psAbs] - l_f) * (dd$p_i[!psAbs] - l_f)) / (dd$a_sum[!psAbs] - l_f)) + l_f 
-    u_i[!psAbs] <- (dd$o_j[!psAbs] * dd$p_i[!psAbs]) / dd$a_sum[!psAbs]
+    if(var_to_fit == "FOI"){
+      
+      u_i[!psAbs] <- (((dd$o_j[!psAbs] - l_f) * (dd$p_i[!psAbs] - l_f)) / (dd$a_sum[!psAbs] - l_f)) + l_f 
+      u_i[psAbs] <- ifelse(dd$p_i[psAbs] > 0, l_f, dd$p_i[psAbs])
     
-    #u_i[psAbs] <- ifelse(dd$p_i[psAbs] > 0, l_f, dd$p_i[psAbs])
-    u_i[psAbs] <- ifelse(dd$p_i[psAbs] > 1, l_f, dd$p_i[psAbs])
+    } else {
+      
+      u_i[!psAbs] <- (dd$o_j[!psAbs] * dd$p_i[!psAbs]) / dd$a_sum[!psAbs]
+      u_i[psAbs] <- ifelse(dd$p_i[psAbs] > 1, l_f, dd$p_i[psAbs])
+    
+    }
     
     dd$u_i <- u_i
     
@@ -102,7 +108,12 @@ exp_max_algorithm <- function(
     # -------------------------------------- plot of observed vs predicted square values 
 
     
-    #dd_2$u_i[psAbs] <- 0
+    if(var_to_fit == "FOI"){
+      
+      dd_2$u_i[psAbs] <- 0 
+    
+    }
+      
     dd_2$p_i[psAbs] <- ifelse(dd_2$p_i[psAbs] < 0, 0, dd_2$p_i[psAbs])
     
     sqr_sp_nm <- paste0("pred_vs_obs_sqr_iter_", i, ".png")
@@ -137,7 +148,11 @@ exp_max_algorithm <- function(
     
     psAbs_adm <- cc$type == "pseudoAbsence" 
       
-    #cc$o_j[psAbs_adm] <- 0
+    if(var_to_fit == "FOI"){
+      
+      cc$o_j[psAbs_adm] <- 0
+    }
+    
     cc$adm_pred[psAbs_adm] <- ifelse(cc$adm_pred[psAbs_adm] < 0, 0, cc$adm_pred[psAbs_adm])
     
     
