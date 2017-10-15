@@ -5,7 +5,8 @@ options(didehpc.cluster = "fi--didemrchnb")
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"))
+  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
+  file.path("R", "prepare_datasets", "calculate_mean_across_fits.r"))
   
 my_pkgs <- c("h2o")
 
@@ -20,9 +21,18 @@ context::context_load(ctx)
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_cw_2"
+model_tp <- "boot_model_20km_2"
 
-no_fits <- 50
+no_fits <- 200
+
+out_fl_nm <- "all_squares_mean_foi_0_1667_deg.rds"
+
+out_pt <- file.path(
+  "output", 
+  "predictions_world",
+  model_tp)
+
+picked_vars <- c("mean", "sd", "lCI", "uCI")
 
 
 # ---------------------------------------- load data
@@ -49,7 +59,9 @@ predictor_rank <- read.csv(
 # ---------------------------------------- get best predictor
 
 
-best_predictors <- predictor_rank$variable[1:9]
+my_predictors <- predictor_rank$variable[1:9]
+
+my_predictors <- c(my_predictors, "RFE_const_term")
 
 
 # ---------------------------------------- run job
@@ -59,7 +71,7 @@ foi <- wrapper_to_make_preds(
   no_fits = no_fits,
   model_in_path = RF_obj_path, 
   dataset = all_sqr_covariates, 
-  predictors = best_predictors, 
+  predictors = my_predictors, 
   parallel = FALSE)
 
 
@@ -68,18 +80,12 @@ foi <- wrapper_to_make_preds(
 
 foi[foi < 0] <- 0
 
-mean_pred <- rowMeans(foi)
-  
-all_sqr_covariates$mean_pred <- mean_pred
+mean_pred <- mean_across_fits(foi, 
+                              picked_vars)
 
-all_sqr_covariates <- all_sqr_covariates[, c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2", "mean_pred")]
+all_sqr_covariates <- cbind(all_sqr_covariates, mean_pred)
 
-out_fl_nm <- "all_squares_mean_foi_0_1667_deg.rds"
-
-out_pt <- file.path(
-  "output", 
-  "predictions_world",
-  model_tp)
+all_sqr_covariates <- all_sqr_covariates[, c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2", picked_vars)]
 
 
 # ---------------------------------------- save mean predictions 
