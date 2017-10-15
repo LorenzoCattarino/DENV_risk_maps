@@ -28,13 +28,15 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-model_type <- "boot_model_20km_cw_2"
+var_to_fit <- "FOI"
 
-no_fits <- 50
+model_type <- "boot_model_20km_2"
 
-grp_flds <- c("ADM_0", "ADM_1", "data_id")
+no_fits <- 200
 
 pseudoAbsence_value <- -0.02
+
+grp_flds <- c("ADM_0", "ADM_1", "data_id")
 
 
 # ---------------------------------------- define variables 
@@ -78,14 +80,13 @@ foi_dataset <- read.csv(
 boot_samples <- readRDS(
   file.path("output",
             "EM_algorithm",
-            "boot_samples",
             "bootstrap_samples.rds"))
   
 sqr_dataset <- readRDS(
   file.path("output",
   "EM_algorithm",
   "env_variables",
-  "aggreg_pixel_level_env_vars_20km.rds"))
+  "env_vars_20km.rds"))
   
 adm_dataset <- read.csv(  
   file.path("output",
@@ -131,7 +132,7 @@ all_sqr_predictions <- readRDS(
 # -------------------------------------- process the original data  
 
 
-names(foi_dataset)[names(foi_dataset) == "FOI"] <- "o_j"
+names(foi_dataset)[names(foi_dataset) == var_to_fit] <- "o_j"
 names(foi_dataset)[names(foi_dataset) == "ID_0"] <- grp_flds[1]
 names(foi_dataset)[names(foi_dataset) == "ID_1"] <- grp_flds[2]
 
@@ -153,7 +154,9 @@ NA_pixel_tile_ids <- NA_pixel_tiles$tile_id
 
 tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]  
 
-best_predictors <- predictor_rank$variable[1:9]
+my_predictors<- predictor_rank$variable[1:9]
+
+my_predictors <- c(my_predictors, "RFE_const_term")
 
 
 # ---------------------------------------- submit one job 
@@ -165,7 +168,7 @@ best_predictors <- predictor_rank$variable[1:9]
 #     model_path = RF_obj_path,
 #     foi_data = foi_dataset,
 #     adm_dts = adm_dataset,
-#     predictors = best_predictors,
+#     predictors = my_predictors,
 #     all_sqr_preds = all_sqr_predictions,
 #     sqr_dts = sqr_dataset,
 #     tile_ids = tile_ids_2,
@@ -186,7 +189,7 @@ if (CLUSTER) {
     model_path = RF_obj_path,
     foi_data = foi_dataset,
     adm_dts = adm_dataset,
-    predictors = best_predictors,
+    predictors = my_predictors,
     all_sqr_preds = all_sqr_predictions,
     sqr_dts = sqr_dataset,
     tile_ids = tile_ids_2,
@@ -202,7 +205,7 @@ if (CLUSTER) {
     model_path = RF_obj_path,
     foi_data = foi_dataset,
     adm_dts = adm_dataset,
-    predictors = best_predictors,
+    predictors = my_predictors,
     all_sqr_preds = all_sqr_predictions,
     sqr_dts = sqr_dataset,
     tile_ids = tile_ids_2,
