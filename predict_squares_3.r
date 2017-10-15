@@ -25,7 +25,8 @@ model_tp <- "boot_model_20km_2"
 
 no_fits <- 200
 
-out_fl_nm <- "all_squares_mean_foi_0_1667_deg.rds"
+foi_out_fl_nm <- "all_squares_foi_0_1667_deg.rds"
+mean_foi_out_fl_nm <- "all_squares_mean_foi_0_1667_deg.rds"
 
 out_pt <- file.path(
   "output", 
@@ -64,7 +65,7 @@ my_predictors <- predictor_rank$variable[1:9]
 my_predictors <- c(my_predictors, "RFE_const_term")
 
 
-# ---------------------------------------- run job
+# ---------------------------------------- make prediction for each square and model fit
 
 
 foi <- wrapper_to_make_preds(
@@ -75,10 +76,20 @@ foi <- wrapper_to_make_preds(
   parallel = FALSE)
 
 
-# ---------------------------------------- post processing 
+# ---------------------------------------- set negative foi to zero 
 
 
 foi[foi < 0] <- 0
+
+
+# ---------------------------------------- save all fits foi predictions 
+
+
+write_out_rds(foi, out_pt, foi_out_fl_nm)
+
+
+# ---------------------------------------- take the mean foi value for each square
+
 
 mean_pred <- mean_across_fits(foi, 
                               picked_vars)
@@ -91,4 +102,4 @@ all_sqr_covariates <- all_sqr_covariates[, c("cell", "lat.grid", "long.grid", "p
 # ---------------------------------------- save mean predictions 
 
 
-write_out_rds(all_sqr_covariates, out_pt, out_fl_nm)
+write_out_rds(all_sqr_covariates, out_pt, mean_foi_out_fl_nm)
