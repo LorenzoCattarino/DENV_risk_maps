@@ -17,9 +17,9 @@ source(file.path("R", "utility_functions.r"))
 # ---------------------------------------- define parameters 
 
 
-model_type <- "boot_model_20km_cw_2"
+model_type <- "boot_model_20km_2"
 
-no_fits <- 50
+no_fits <- 200
 
 mes_vars <- c("admin", "square")
 
