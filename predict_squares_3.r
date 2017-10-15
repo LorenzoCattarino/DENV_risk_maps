@@ -8,7 +8,7 @@ my_resources <- c(
   file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
   file.path("R", "prepare_datasets", "calculate_mean_across_fits.r"))
   
-my_pkgs <- c("h2o")
+my_pkgs <- "h2o"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
