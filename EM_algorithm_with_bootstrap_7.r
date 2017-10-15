@@ -11,9 +11,9 @@ library(ggplot2)
 # ---------------------------------------- define parameters
 
 
-model_type <- "boot_model_20km_cw_2"
+model_type <- "boot_model_20km_2"
 
-no_fits <- 50
+no_fits <- 200
   
 diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j")
 
