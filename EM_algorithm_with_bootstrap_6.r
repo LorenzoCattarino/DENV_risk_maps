@@ -24,13 +24,15 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_type <- "boot_model_20km_cw_2"
+model_type <- "boot_model_20km_2"
 
-no_fits <- 50
-
-niter <- 10
+var_to_fit <- "FOI"
 
 pseudoAbsence_value <- -0.02
+
+no_fits <- 200
+
+niter <- 10
 
 all_wgt <- 1
 
@@ -38,7 +40,7 @@ pAbs_wgt <- 0.25
 
 grp_flds <- c("ID_0", "ID_1", "unique_id")
 
-full_pxl_df_name <- "aggreg_pixel_level_env_vars_20km.rds"
+full_pxl_df_name <- "env_vars_20km.rds"
 
 
 # ---------------------------------------- define variables 
@@ -75,6 +77,12 @@ sct_plt_pth <- file.path(
   model_type,
   "iteration_fits",
   paste0("sample_", seq_len(no_fits)))
+
+sqr_dts_pth <- file.path(
+  "output", 
+  "EM_algorithm", 
+  paste0("env_variables_", var_to_fit, "_fit"),
+  "boot_samples")
 
 
 # ---------------------------------------- are you using the cluster? 
@@ -121,7 +129,6 @@ adm_dataset <- read.csv(
 bt_samples <- readRDS(
   file.path("output",
             "EM_algorithm",
-            "boot_samples",
             "bootstrap_samples.rds"))
 
 
@@ -129,6 +136,8 @@ bt_samples <- readRDS(
 
 
 my_predictors <- predictor_rank$variable[1:9]
+
+my_predictors <- c(my_predictors, "RFE_const_term")
 
 
 # ---------------------------------------- pre process the admin data set
@@ -158,7 +167,9 @@ adm_dts <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 #     map_path = map_pth,
 #     map_name = map_nm_all,
 #     sct_plt_path = sct_plt_pth,
-#     adm_dataset = adm_dts))
+#     adm_dataset = adm_dts,
+#     pxl_dts_pt = sqr_dts_pth,
+#     var_to_fit = var_to_fit))
 
 
 # ---------------------------------------- submit all jobs
@@ -185,7 +196,9 @@ if (CLUSTER) {
     map_path = map_pth,
     map_name = map_nm_all,
     sct_plt_path = sct_plt_pth,
-    adm_dataset = adm_dts)
+    adm_dataset = adm_dts,
+    pxl_dts_pt = sqr_dts_pth,
+    var_to_fit = var_to_fit)
 
 } else {
 
@@ -207,7 +220,9 @@ if (CLUSTER) {
     map_path = map_pth,
     map_name = map_nm_all,
     sct_plt_path = sct_plt_pth,
-    adm_dataset = adm_dts)
+    adm_dataset = adm_dts,
+    pxl_dts_pt = sqr_dts_pth,
+    var_to_fit = var_to_fit)
 
 }
 
