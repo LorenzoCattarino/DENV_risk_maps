@@ -1,7 +1,8 @@
 wrapper_to_multi_factor_R0_and_burden <- function(
   x, foi_data, age_data,
   age_band_tags, age_band_lower_bounds, age_band_upper_bounds,
-  parallel_2, var_names, FOI_values, FOI_to_Inf_list, FOI_to_C_list, prob_fun, reverse){
+  parallel_2, var_names, FOI_values, FOI_to_Inf_list, FOI_to_C_list, 
+  prob_fun, no_fits, out_path, base_info, reverse){
   
   
   #browser()
@@ -68,6 +69,7 @@ wrapper_to_multi_factor_R0_and_burden <- function(
     age_band_tags = age_band_tags,
     vec_phis = vec_phis, 
     prob_fun = prob_fun,
+    no_fits = no_fits,
     reverse = reverse,
     parallel = parallel_2)
   
@@ -75,30 +77,24 @@ wrapper_to_multi_factor_R0_and_burden <- function(
   # ---------------------------------------- reshape and save
 
 
-  out <- do.call("rbind", burden_estimates)
-  
-  var_names <- paste(var_names, run_ID, sep = "_")
-  
-  setNames(as.data.frame(out), var_names)
-  
-  # fl_nm <- paste0("R0_and_burden_", run_ID, ".rds")
+  # out <- do.call("rbind", burden_estimates)
   # 
-  # write_out_rds(out2, 
-  #               "output/predictions_world/boot_model_20km_cw",
-  #               fl_nm)
+  # var_names <- paste(var_names, run_ID, sep = "_")
+  # 
+  # setNames(as.data.frame(out), var_names)
   
-  # ret <- vector("list", length = length(var_names))
-  #   
-  # for (b in seq_along(var_names)){
-  #   
-  #   ret1 <- lapply(burden_estimates, "[", b, TRUE)
-  # 
-  #   ret2 <- do.call("rbind", ret1)  
-  #   
-  #   ret[[b]] <- ret2
-  # 
-  # }
-  # 
-  # ret
+  for (b in seq_along(var_names)){
+
+    ret1 <- lapply(burden_estimates, "[", b, TRUE)
+
+    ret2 <- do.call("rbind", ret1)
+
+    ret3 <- cbind(foi_data[, base_info], ret2)
+    
+    fl_nm <- paste0(var_names[b], "_all_squares_0_1667_deg_", run_ID, ".rds")
+    
+    write_out_rds(ret3, out_path, fl_nm)
+    
+  }
 
 }
