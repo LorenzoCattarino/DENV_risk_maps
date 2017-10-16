@@ -1,10 +1,6 @@
-mean_across_fits <- function(dat) {
+mean_across_fits <- function(dat, picked_vars) {
   
   out_names <- c("mean", "sd", "lCI", "uCI")
-  
-  #fl_nm <- paste0(var_names[i], ".rds")
-  
-  #fl <- readRDS(file.path(fl_pth, fl_nm))
   
   # check if there is only one record in the dataset
   
@@ -34,6 +30,7 @@ mean_across_fits <- function(dat) {
     
   }
   
-  setNames(data.frame(mean_val, st_dev, l_b, u_b), out_names)
-
+  ret <- setNames(data.frame(mean_val, st_dev, l_b, u_b), out_names)
+  
+  ret[, picked_vars]
 }
