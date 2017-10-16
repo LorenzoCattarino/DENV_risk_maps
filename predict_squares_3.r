@@ -25,8 +25,8 @@ model_tp <- "boot_model_20km_2"
 
 no_fits <- 200
 
-foi_out_fl_nm <- "all_squares_foi_0_1667_deg.rds"
-mean_foi_out_fl_nm <- "all_squares_mean_foi_0_1667_deg.rds"
+foi_out_fl_nm <- "FOI_all_squares_0_1667_deg.rds"
+mean_foi_out_fl_nm <- "mean_FOI_all_squares_0_1667_deg.rds"
 
 out_pt <- file.path(
   "output", 
@@ -88,18 +88,18 @@ foi[foi < 0] <- 0
 write_out_rds(foi, out_pt, foi_out_fl_nm)
 
 
-# ---------------------------------------- take the mean foi value for each square
-
-
-mean_pred <- mean_across_fits(foi, 
-                              picked_vars)
-
-all_sqr_covariates <- cbind(all_sqr_covariates, mean_pred)
-
-all_sqr_covariates <- all_sqr_covariates[, c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2", picked_vars)]
-
-
-# ---------------------------------------- save mean predictions 
-
-
-write_out_rds(all_sqr_covariates, out_pt, mean_foi_out_fl_nm)
+# # ---------------------------------------- take the mean foi value for each square
+# 
+# 
+# mean_pred <- mean_across_fits(foi, 
+#                               picked_vars)
+# 
+# all_sqr_covariates <- cbind(all_sqr_covariates, mean_pred)
+# 
+# all_sqr_covariates <- all_sqr_covariates[, c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2", picked_vars)]
+# 
+# 
+# # ---------------------------------------- save mean predictions 
+# 
+# 
+# write_out_rds(all_sqr_covariates, out_pt, mean_foi_out_fl_nm)
