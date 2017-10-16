@@ -49,6 +49,7 @@ wrapper_to_multi_factor_R0_and_burden <- function(
     i[1, "y"] <- 1
     rbind(c(x = 0, y = 0),i)})
   
+  
   # ---------------------------------------- calculates R0 values for different pixels  
   
 
