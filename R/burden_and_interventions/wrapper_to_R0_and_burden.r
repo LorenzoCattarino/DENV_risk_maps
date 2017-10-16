@@ -7,7 +7,7 @@ wrapper_to_R0_and_burden <- function(
 
   #browser()
   
-  all_var_names <- c("FOI", "R0", "I_num", "C_num", "I_inc", "C_inc")
+  all_var_names <- c("FOI_r", "R0_r", "I_num", "C_num", "I_inc", "C_inc")
   
   out <- setNames(rep(0, length(var_names)),
                   all_var_names)
