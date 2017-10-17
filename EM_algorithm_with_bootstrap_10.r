@@ -21,7 +21,7 @@ model_type <- "boot_model_20km_2"
 
 no_fits <- 200
 
-mes_vars <- c("admin", "square")
+mes_vars <- c("admin", "cell")
 
 tags <- c("all_data", "no_psAb")
 
@@ -163,34 +163,34 @@ for (j in seq_along(tags)) {
   
   av_train_preds <- data.frame(dts[,c("data_id", "ADM_0", "ADM_1", "o_j")],
                                admin = mean_adm_pred_train,
-                               square = mean_sqr_pred_train,
+                               cell = mean_sqr_pred_train,
                                #pixel = mean_pxl_pred_train,
                                dataset = "train")
   
   av_test_preds <- data.frame(dts[,c("data_id", "ADM_0", "ADM_1", "o_j")],
                               admin = mean_adm_pred_test,
-                              square = mean_sqr_pred_test,
+                              cell = mean_sqr_pred_test,
                               #pixel = mean_pxl_pred_test,
                               dataset = "test")
   
   all_av_preds <- rbind(av_train_preds, av_test_preds)
   write_out_csv(all_av_preds, out_table_path, paste0("pred_vs_obs_plot_averages_", tag, ".csv"))
   
-  # all_av_preds_mlt <- melt(
-  #   all_av_preds, 
-  #   id.vars = c("data_id", "ADM_0", "ADM_1", "o_j", "dataset"),
-  #   measure.vars = mes_vars,
-  #   variable.name = "scale")
-  # 
-  # fl_nm_av <- paste0("pred_vs_obs_plot_averages_", tag, ".png")
-  # 
-  # RF_preds_vs_obs_plot_stratif(
-  #   df = all_av_preds_mlt,
-  #   x = "o_j",
-  #   y = "value",
-  #   facet_var = "scale",
-  #   file_name = fl_nm_av,
-  #   file_path = out_fig_path_av)
+  all_av_preds_mlt <- melt(
+    all_av_preds,
+    id.vars = c("data_id", "ADM_0", "ADM_1", "o_j", "dataset"),
+    measure.vars = mes_vars,
+    variable.name = "scale")
+
+  fl_nm_av <- paste0("pred_vs_obs_plot_averages_", tag, ".png")
+
+  RF_preds_vs_obs_plot_stratif(
+    df = all_av_preds_mlt,
+    x = "o_j",
+    y = "value",
+    facet_var = "scale",
+    file_name = fl_nm_av,
+    file_path = out_fig_path_av)
   
   # percentiles_train <- t(apply(produc_train, 1, quantile, probs = c(0.025, 0.975)))
   # percentiles_test <- t(apply(produc_test, 1, quantile, probs = c(0.025, 0.975)))
