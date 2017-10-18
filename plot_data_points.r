@@ -39,6 +39,8 @@ mex <- readOGR(dsn = file.path("data", "shapefiles", "MEX_adm_shp"),
 ind <- readOGR(dsn = file.path("data", "shapefiles", "IND_adm_shp"), 
                layer = "IND_adm1")
 
+aus <- readOGR(dsn = file.path("data", "shapefiles", "AUS_adm_shp"), 
+               layer = "AUS_adm1")
 
 # ---------------------------------------- pre processing
 
@@ -50,7 +52,7 @@ fort_col <- fortify(col)
 fort_ven <- fortify(ven)
 fort_mex <- fortify(mex)
 fort_ind <- fortify(ind)
-
+fort_aus <- fortify(aus)
 
 # ---------------------------------------- plot
 
@@ -89,6 +91,11 @@ p <- ggplot() +
                fill = "gray80",
                size = 0.2) + 
   geom_polygon(data = fort_ven, 
+               aes(x = long, y = lat, group = group),
+               colour = "black",
+               fill = "gray80",
+               size = 0.2) + 
+  geom_polygon(data = fort_aus, 
                aes(x = long, y = lat, group = group),
                colour = "black",
                fill = "gray80",
