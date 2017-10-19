@@ -16,15 +16,7 @@ wrapper_to_ggplot_map <- function(
   
   var <- vars[i]
   
-  if (i == 1){
-    j <- 1
-  } 
-  if (i > 1 & i <= 8){
-    j <- 2 
-  }
-  if (i > 8){
-    j <- 3
-  }
+  j <- 2
   
   col <- my_colors[[j]]
   ttl <- titles_vec[i]
@@ -86,7 +78,7 @@ wrapper_to_ggplot_map <- function(
   # ---------------------------------------- make map 
   
   
-  out_fl_nm <- paste0(var, "_0_1667_deg.png")
+  out_fl_nm <- paste0(var, "_FOI_0_1667_deg.png")
   
   map_data_pixel_ggplot(df = r_df, 
                         shp = shp_fort, 
