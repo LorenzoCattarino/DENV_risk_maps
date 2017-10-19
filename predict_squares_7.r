@@ -1,154 +1,62 @@
-# Makes a pretty map of the square predictions  
+# Take mean, sd and 95%CI of foi, R0 and burden measures, for each 20 km square 
 
-options(didehpc.cluster = "fi--didemrchnb")
-
-CLUSTER <- FALSE
-
-my_resources <- c(
-  file.path("R", "utility_functions.r"),
-  file.path("R", "plotting", "functions_for_plotting_square_level_maps_ggplot.r"))
-
-my_pkgs <- c("data.table", "ggplot2", "colorRamps", "raster", "rgdal", "scales", "RColorBrewer")
-
-context::context_log_start()
-ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
+source(file.path("R", "utility_functions.r"))
+source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.r"))
 
 
-# ---------------------------------------- define parameters 
+# ---------------------------------------- define parameters
 
 
 model_tp <- "boot_model_20km_2"
 
-base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2") 
+in_path <- file.path("output", "predictions_world", model_tp)
+
+out_path <- file.path("output", "predictions_world", model_tp, "means")
+
+vars <- c("FOI")#, "R0_r", "I_inc", "C_inc") # when fitting the R0 get also "FOI_r"
+
+no_fits <- 200
+
+col_names <- as.character(seq_len(no_fits))
+
+base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2")
 
 
-# ---------------------------------------- define variables
+# ---------------------------------------- run
 
 
-out_pt <- file.path(
-  "figures", 
-  "predictions_world",
-  model_tp)
-
-vars <-  c("mean", "sd", "interv", "lCI", "uCI")
-
-all_titles <- c("FOI", "SD", "quantile_diff", "2.5_quantile", "97.5_quantile")
-
-do.p9.logic <- c(FALSE, FALSE, FALSE, FALSE, FALSE)
-
-
-# ---------------------------------------- are you using the cluster?
-
-
-if (CLUSTER) {
+for (j in seq_along(vars)){
   
-  obj <- didehpc::queue_didehpc(ctx)
+  my_var <- vars[j]
   
-}else{
+  root_name <- paste0(my_var, "_all_squares_0_1667_deg")
   
-  context::context_load(ctx)
-  context::parallel_cluster_start(3, ctx)
-}
+  if(j == 1) {
+    
+    dat <- readRDS(file.path(in_path, paste0(root_name, ".rds")))
+    
+    ret <- average_boot_samples_dim2(dat)
 
+    out_name <- paste0(my_var, "_mean_all_squares_0_1667_deg.rds")
+      
+    write_out_rds(ret, out_path, out_name)
+    
+  } else {
+    
+    for (i in seq_len(9)){
+      
+      dat <- readRDS(file.path(in_path, sprintf("%s_%s%s", root_name, i, ".rds")))
+      
+      ret <- average_boot_samples_dim2(dat[, col_names])
+      
+      out_name <- sprintf("%s_%s%s", root_name, i, ".rds")
+      
+      ret2 <- cbind(dat[, base_info], ret) 
+        
+      write_out_rds(ret2, out_path, out_name)
+      
+    }
+      
+  }
 
-# ---------------------------------------- create color palette
-
-
-col_ls <- list(
-  c("red3", "orange", "chartreuse4"),
-  matlab.like(10),
-  colorRampPalette(c("green4", "yellow", "red"))(10))
-
-
-# ---------------------------------------- load data 
-
-
-mean_FOI <- readRDS(
-  file.path(
-    "output",
-    "predictions_world",
-    model_tp,
-    "means",
-    "FOI_mean_all_squares_0_1667_deg.rds"))
-
-all_sqr_covariates <- readRDS(
-  file.path(
-    "output", 
-    "env_variables", 
-    "all_squares_env_var_0_1667_deg.rds"))
-
-all_preds <- cbind(all_sqr_covariates[, base_info], mean_FOI)
-
-all_preds$interv <- all_preds$uCI - all_preds$lCI 
-
-country_shp <- readOGR(dsn = file.path("output", "shapefiles"), layer = "gadm28_adm0_eras")
-
-
-# ---------------------------------------- remove the Caspian Sea
-
-
-country_shp <- country_shp[!country_shp@data$NAME_ENGLI == "Caspian Sea", ]
-
-
-# ---------------------------------------- convert to ggplot-friendly object 
-
-
-shp_fort <- fortify(country_shp)
-
-
-# ------------------------------------------ submit one job 
-
-
-# t <- obj$enqueue(
-#   wrapper_to_ggplot_map(
-#     seq_along(vars)[1],
-#     vars = vars,
-#     my_colors = col_ls,
-#     titles_vec = all_titles,
-#     df_long = all_preds,
-#     country_shp = country_shp,
-#     shp_fort = shp_fort,
-#     out_path = out_pt,
-#     do.p9.logic = do.p9.logic))
-
-
-# ---------------------------------------- submit all jobs
-
-
-if (CLUSTER) {
-  
-  maps <- queuer::qlapply(
-    seq_along(vars),
-    wrapper_to_ggplot_map,
-    obj,
-    vars = vars,
-    my_colors = col_ls,
-    titles_vec = all_titles,
-    df_long = all_preds,
-    country_shp = country_shp,
-    shp_fort = shp_fort,
-    out_path = out_pt,
-    do.p9.logic = do.p9.logic)
-  
-} else {
-  
-  maps <- loop(
-    seq_along(vars)[3:5],
-    wrapper_to_ggplot_map,
-    vars = vars,
-    my_colors = col_ls,
-    titles_vec = all_titles,
-    df_long = all_preds,
-    country_shp = country_shp,
-    shp_fort = shp_fort,
-    out_path = out_pt,
-    do.p9.logic = do.p9.logic,
-    parallel = TRUE)
-  
-}
-
-if(!CLUSTER){
-  context::parallel_cluster_stop()
 }
