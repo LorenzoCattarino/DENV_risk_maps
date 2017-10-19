@@ -38,7 +38,7 @@ wrapper_to_ggplot_map <- function(
   
   mat[cbind(i.lon, i.lat)] <- df_long[, var]
   
-  
+  #mat[mat==0] <- NA
   # ---------------------------------------- convert matrix to raster object
   
   
@@ -92,7 +92,7 @@ wrapper_to_ggplot_map <- function(
 
 map_data_pixel_ggplot <- function(df, shp, out_path, out_file_name, my_col, ttl, do.p9) {
   
-  #browser()
+  browser()
   
   dir.create(out_path, FALSE, TRUE)
   
@@ -107,8 +107,8 @@ map_data_pixel_ggplot <- function(df, shp, out_path, out_file_name, my_col, ttl,
     
     df$layer1 <- cut(df$layer, breaks = c(-Inf, 50, 70, Inf), right = FALSE)
     
-    p <- ggplot(data = df, aes(x = x, y = y)) + 
-      geom_tile(aes(fill = layer1)) +
+    p <- ggplot() + 
+      geom_tile(data = df, aes(x = x, y = y, fill = layer1)) +
       scale_fill_manual(values = my_col,
                         labels = c("< 50", "50-70", "> 70"),
                         guide = guide_legend(title = ttl, 
@@ -116,12 +116,13 @@ map_data_pixel_ggplot <- function(df, shp, out_path, out_file_name, my_col, ttl,
                                              keyheight = 5))
   } else {
     
-    p <- ggplot(data = df, aes(x = x, y = y)) +
-      geom_tile(aes(fill = layer)) +
+    p <- ggplot() +
+      geom_tile(data = df, aes(x = x, y = y, fill = layer)) +
       scale_fill_gradientn(colours = my_col, 
                            guide = guide_colourbar(title = ttl, 
                                                    barwidth = dev.size()[1] * 0.15, 
-                                                   barheight = dev.size()[1] * 0.7))
+                                                   barheight = dev.size()[1] * 0.7),
+                           na.value = "grey60")
     
   }
   
