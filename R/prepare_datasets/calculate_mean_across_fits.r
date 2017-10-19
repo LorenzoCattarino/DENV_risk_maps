@@ -34,3 +34,24 @@ mean_across_fits <- function(dat, picked_vars) {
   
   ret[, picked_vars]
 }
+
+average_boot_samples_dim2 <- function(dat){
+  out_names <- c("mean", "sd", "lCI", "uCI")
+  mean_val <- rowMeans(dat)
+  st_dev <- apply(dat, 1, FUN = sd)
+  percentiles <- apply(dat, 1, FUN = quantile, probs = c(0.025, 0.975))
+  percentiles <- t(percentiles)
+  l_b <- percentiles[, 1]
+  u_b <- percentiles[, 2]
+  setNames(data.frame(mean_val, st_dev, l_b, u_b), out_names)
+}
+
+average_boot_samples_dim1 <- function(dat){
+  out_names <- c("mean", "sd", "lCI", "uCI")
+  mean_val <- mean(dat)
+  st_dev <- sd(dat)
+  percentiles <- quantile(dat, probs = c(0.025, 0.975))
+  l_b <- percentiles[1]
+  u_b <- percentiles[2]
+  setNames(c(mean_val, st_dev, l_b, u_b), out_names)
+}
