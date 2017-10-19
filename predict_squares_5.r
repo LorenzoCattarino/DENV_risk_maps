@@ -2,9 +2,10 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
+  file.path("R", "utility_functions.r"),
   file.path("R", "plotting", "functions_for_plotting_square_level_maps_ggplot.r"))
   
 my_pkgs <- c("data.table", "ggplot2", "colorRamps", "raster", "rgdal", "scales", "RColorBrewer")
@@ -18,9 +19,9 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-model_tp <- "boot_model_20km_cw_2"
+model_tp <- "boot_model_20km_cw_3"
 
-n_scenarios <- 6 
+n_scenarios <- 3 
   
   
 # ---------------------------------------- define variables
@@ -37,15 +38,19 @@ out_pt <- file.path(
   "predictions_world",
   model_tp)
 
-vars <-  c("p9", "FOI", 
-           paste0("R0_", seq_len(n_scenarios)), 
-           paste0("I_inc_", seq_len(n_scenarios)),
-           paste0("C_inc_", seq_len(n_scenarios)))
+# vars <-  c("p9", "FOI", 
+#            paste0("R0_", seq_len(n_scenarios)), 
+#            paste0("I_inc_", seq_len(n_scenarios)),
+#            paste0("C_inc_", seq_len(n_scenarios)))
 
-all_titles <- c("p9", "FOI", 
-                rep("R0", n_scenarios),
-                rep("Infections", n_scenarios),
-                rep("Cases", n_scenarios))
+vars <-  c("p9", "FOI_1", "R_0")
+
+# all_titles <- c("p9", "FOI", 
+#                 rep("R0", n_scenarios),
+#                 rep("Infections", n_scenarios),
+#                 rep("Cases", n_scenarios))
+
+all_titles <- c("p9", "FOI", "R0")
 
 do.p9.logic <- c(TRUE, rep(FALSE, length(vars)-1))
 
@@ -60,7 +65,7 @@ if (CLUSTER) {
 }else{
   
   context::context_load(ctx)
-  
+  context::parallel_cluster_start(3, ctx)
 }
 
 
@@ -98,7 +103,7 @@ shp_fort <- fortify(country_shp)
 
 # t <- obj$enqueue(
 #   wrapper_to_ggplot_map(
-#     seq_along(vars)[2],
+#     seq_along(vars)[1],
 #     vars = vars,
 #     my_colors = col_ls,
 #     titles_vec = all_titles,
@@ -114,7 +119,7 @@ shp_fort <- fortify(country_shp)
 
 if (CLUSTER) {
 
-  foi_map <- queuer::qlapply(
+  maps <- queuer::qlapply(
     seq_along(vars),
     wrapper_to_ggplot_map,
     obj,
@@ -129,8 +134,8 @@ if (CLUSTER) {
 
 } else {
 
-  foi_map <- lapply(
-    seq_along(vars)[1],
+  maps <- loop(
+    seq_along(vars),
     wrapper_to_ggplot_map,
     vars = vars,
     my_colors = col_ls,
@@ -139,6 +144,11 @@ if (CLUSTER) {
     country_shp = country_shp,
     shp_fort = shp_fort,
     out_path = out_pt,
-    do.p9.logic = do.p9.logic)
+    do.p9.logic = do.p9.logic,
+    parallel = TRUE)
 
+}
+
+if(!CLUSTER){
+  context::parallel_cluster_stop()
 }
