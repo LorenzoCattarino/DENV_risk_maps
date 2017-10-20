@@ -37,7 +37,7 @@ RF_obj_path <- file.path(
   model_tp,
   "optimized_model_objects")
 
-out_pth <- file.path(
+out_pt <- file.path(
   "output", 
   "predictions_world", 
   model_tp)
