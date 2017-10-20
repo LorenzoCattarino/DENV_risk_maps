@@ -2,7 +2,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
@@ -27,18 +27,25 @@ base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", 
 # ---------------------------------------- define variables
 
 
+vars <- "C_inc"
+  
+scenario <- 1
+  
+statistics <-  c("mean", "sd", "interv", "lCI", "uCI")
+
+all_titles <- c("mean", "SD", "quantile_diff", "2.5_quantile", "97.5_quantile")
+
+do.p9.logic <- c(FALSE, FALSE, FALSE, FALSE, FALSE)
+
+plot_wdt <- 28 #or: 7
+plot_hgt <- 12 #or: 3
+
 out_pt <- file.path(
   "figures", 
   "predictions_world",
   model_tp)
-
-vars <-  c("mean", "sd", "interv", "lCI", "uCI")
-
-all_titles <- c("FOI", "SD", "quantile_diff", "2.5_quantile", "97.5_quantile")
-
-do.p9.logic <- c(FALSE, FALSE, FALSE, FALSE, FALSE)
-
-
+  
+  
 # ---------------------------------------- are you using the cluster?
 
 
@@ -65,13 +72,23 @@ col_ls <- list(
 # ---------------------------------------- load data 
 
 
-mean_FOI <- readRDS(
+if(vars == "FOI"){
+  
+  mean_pred_fl_nm <- paste0(vars, "_mean_all_squares_0_1667_deg.rds")
+  
+} else {
+  
+  mean_pred_fl_nm <- paste0(vars, "_mean_all_squares_0_1667_deg_", scenario, ".rds")
+    
+}
+
+mean_preds <- readRDS(
   file.path(
     "output",
     "predictions_world",
     model_tp,
     "means",
-    "FOI_mean_all_squares_0_1667_deg.rds"))
+    mean_pred_fl_nm))
 
 all_sqr_covariates <- readRDS(
   file.path(
@@ -79,9 +96,17 @@ all_sqr_covariates <- readRDS(
     "env_variables", 
     "all_squares_env_var_0_1667_deg.rds"))
 
-all_preds <- cbind(all_sqr_covariates[, base_info], mean_FOI)
+if(vars == "FOI"){
+  
+  data_all <- cbind(all_sqr_covariates[, base_info], mean_preds)
 
-all_preds$interv <- all_preds$uCI - all_preds$lCI 
+} else {
+  
+  data_all <- mean_preds
+  
+}
+
+data_all$interv <- data_all$uCI - data_all$lCI 
 
 country_shp <- readOGR(dsn = file.path("output", "shapefiles"), layer = "gadm28_adm0_eras")
 
@@ -103,11 +128,12 @@ shp_fort <- fortify(country_shp)
 
 # t <- obj$enqueue(
 #   wrapper_to_ggplot_map(
-#     seq_along(vars)[1],
+#     seq_along(statistics)[1],
 #     vars = vars,
+#     statistics = statistics,
 #     my_colors = col_ls,
 #     titles_vec = all_titles,
-#     df_long = all_preds,
+#     df_long = data_all,
 #     country_shp = country_shp,
 #     shp_fort = shp_fort,
 #     out_path = out_pt,
@@ -118,35 +144,41 @@ shp_fort <- fortify(country_shp)
 
 
 if (CLUSTER) {
-  
+
   maps <- queuer::qlapply(
-    seq_along(vars),
+    seq_along(statistics),
     wrapper_to_ggplot_map,
     obj,
     vars = vars,
+    statistics = statistics,
     my_colors = col_ls,
     titles_vec = all_titles,
-    df_long = all_preds,
-    country_shp = country_shp,
-    shp_fort = shp_fort,
-    out_path = out_pt,
-    do.p9.logic = do.p9.logic)
-  
-} else {
-  
-  maps <- loop(
-    seq_along(vars)[3:5],
-    wrapper_to_ggplot_map,
-    vars = vars,
-    my_colors = col_ls,
-    titles_vec = all_titles,
-    df_long = all_preds,
+    df_long = data_all,
     country_shp = country_shp,
     shp_fort = shp_fort,
     out_path = out_pt,
     do.p9.logic = do.p9.logic,
+    plot_wdt = plot_wdt,
+    plot_hgt = plot_hgt)
+
+} else {
+
+  maps <- loop(
+    seq_along(statistics)[1],
+    wrapper_to_ggplot_map,
+    vars = vars,
+    statistics = statistics,
+    my_colors = col_ls,
+    titles_vec = all_titles,
+    df_long = data_all,
+    country_shp = country_shp,
+    shp_fort = shp_fort,
+    out_path = out_pt,
+    do.p9.logic = do.p9.logic,
+    plot_wdt = plot_wdt,
+    plot_hgt = plot_hgt,
     parallel = TRUE)
-  
+
 }
 
 if(!CLUSTER){
