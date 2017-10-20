@@ -1,5 +1,5 @@
 wrapper_to_ggplot_map <- function(
-  i, vars, my_colors, 
+  i, vars, statistics, my_colors, 
   titles_vec, df_long, country_shp, 
   shp_fort, out_path, do.p9.logic,
   plot_wdt, plot_hgt){
@@ -15,13 +15,14 @@ wrapper_to_ggplot_map <- function(
   lats <- seq(-90, 90, by = res)
   lons <- seq(-180, 180, by = res)
   
-  var <- vars[i]
+  statsc <- statistics[i]
   
   j <- 2
   
   col <- my_colors[[j]]
   ttl <- titles_vec[i]
   do.p9 <- do.p9.logic[i]
+  
   
   # ---------------------------------------- create matrix of values
   
@@ -37,7 +38,7 @@ wrapper_to_ggplot_map <- function(
   i.lat <- findInterval(df_long$lat.int, lats.int)
   i.lon <- findInterval(df_long$long.int, lons.int)
   
-  mat[cbind(i.lon, i.lat)] <- df_long[, var]
+  mat[cbind(i.lon, i.lat)] <- df_long[, statsc]
   
   #mat[mat==0] <- NA
   # ---------------------------------------- convert matrix to raster object
@@ -79,7 +80,7 @@ wrapper_to_ggplot_map <- function(
   # ---------------------------------------- make map 
   
   
-  out_fl_nm <- paste0(var, "_FOI_0_1667_deg.png")
+  out_fl_nm <- paste0(statsc, "_", vars,"_0_1667_deg.png")
   
   map_data_pixel_ggplot(df = r_df, 
                         shp = shp_fort, 
