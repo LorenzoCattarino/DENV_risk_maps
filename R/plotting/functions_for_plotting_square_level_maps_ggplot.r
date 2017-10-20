@@ -1,7 +1,8 @@
 wrapper_to_ggplot_map <- function(
   i, vars, my_colors, 
   titles_vec, df_long, country_shp, 
-  shp_fort, out_path, do.p9.logic){
+  shp_fort, out_path, do.p9.logic,
+  plot_wdt, plot_hgt){
   
   
   # ----------------------------------------
@@ -86,19 +87,21 @@ wrapper_to_ggplot_map <- function(
                         out_file_name = out_fl_nm,
                         my_col = col, 
                         ttl = ttl,
-                        do.p9 = do.p9)
+                        do.p9 = do.p9,
+                        plot_wdt = plot_wdt, 
+                        plot_hgt = plot_hgt)
   
 }
 
-map_data_pixel_ggplot <- function(df, shp, out_path, out_file_name, my_col, ttl, do.p9) {
+map_data_pixel_ggplot <- function(df, shp, out_path, out_file_name, my_col, ttl, do.p9, plot_wdt, plot_hgt) {
   
-  browser()
+  #browser()
   
   dir.create(out_path, FALSE, TRUE)
   
   png(file.path(out_path, out_file_name),
-      width = 28, # original: 7
-      height = 12, # original: 3
+      width = plot_wdt,
+      height = plot_hgt,
       units = "in",
       pointsize = 12,
       res = 300)
