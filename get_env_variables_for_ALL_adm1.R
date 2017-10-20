@@ -1,11 +1,9 @@
-rm(list = ls())
-
 # load packages
 library(maptools)
 
 # load functions
 source(file.path("R", "prepare_datasets", "get_env_variables.R"))
-source(file.path("R", "convert_df_to_list.R"))
+source(file.path("R", "utility_functions.r"))
 
 # load data 
 shp_fl_adm1 <- readShapePoly(file.path("data", "shapefiles", "gadm28_levels.shp", "gadm28_adm1.shp"))
@@ -55,9 +53,7 @@ env_var_values <- sapply(all_adm1_ls,
                          FT_data = FTs_dt, 
                          LC_vars = LandCover_var, 
                          admin_level = 1,
-                         my_path = file.path("data", 
-                                             "env_variables", 
-                                             "processed"))
+                         my_path = file.path("data", "env_variables"))
 
 adm1_env_var <- cbind(all_adm1, t(env_var_values))
 
