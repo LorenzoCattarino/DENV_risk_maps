@@ -1,4 +1,4 @@
-# Take mean, sd and 95%CI of foi, R0 and burden measures, for each 20 km square
+# Take mean, sd and 95% CI of foi, R0 and burden measures, for each 20 km square
 # THIS IS FOR THE MAPS!
 
 options(didehpc.cluster = "fi--didemrchnb")
@@ -71,7 +71,6 @@ if (CLUSTER) {
   
   
 # ---------------------------------------- run
-
 
 
 if (CLUSTER) {
