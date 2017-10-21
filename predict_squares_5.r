@@ -38,6 +38,8 @@ in_path <- file.path("output", "predictions_world", model_tp)
 
 out_path <- file.path("output", "predictions_world", model_tp, "means")
 
+dts_tag <- "all_squares_0_1667_deg"
+
 
 # ----------------------------------------
 
@@ -67,7 +69,8 @@ if (CLUSTER) {
 #     out_path = out_path, 
 #     no_scenarios = no_scenarios, 
 #     col_names = col_names,
-#     base_info = base_info))
+#     base_info = base_info
+#     dts_tag = dts_tag))
   
   
 # ---------------------------------------- run
@@ -84,7 +87,8 @@ if (CLUSTER) {
     out_path = out_path,
     no_scenarios = no_scenarios,
     col_names = col_names,
-    base_info = base_info)
+    base_info = base_info,
+    dts_tag = dts_tag)
 
 } else {
 
@@ -97,6 +101,7 @@ if (CLUSTER) {
     no_scenarios = no_scenarios,
     col_names = col_names,
     base_info = base_info,
+    dts_tag = dts_tag,
     parallel = TRUE)
 
 }
