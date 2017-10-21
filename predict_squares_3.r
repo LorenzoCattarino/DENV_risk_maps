@@ -14,13 +14,13 @@ ctx <- context::context_save(path = "context",
                              packages = my_pkgs,
                              sources = my_resources)
 
-context::context_load(ctx)
+CLUSTER <- TRUE
 
 
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_2"
+model_tp <- "boot_model_20km_3"
 
 no_fits <- 200
 
@@ -30,6 +30,21 @@ out_pt <- file.path(
   "output", 
   "predictions_world",
   model_tp)
+
+
+# ---------------------------------------- are you using the cluster? 
+
+
+if (CLUSTER) {
+  
+  config <- didehpc::didehpc_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
+  
+} else {
+  
+  context::context_load(ctx)
+  
+}
 
 
 # ---------------------------------------- load data
@@ -64,21 +79,26 @@ my_predictors <- c(my_predictors, "RFE_const_term")
 # ---------------------------------------- make prediction for each square and model fit
 
 
-foi <- wrapper_to_make_preds(
-  no_fits = no_fits,
-  model_in_path = RF_obj_path, 
-  dataset = all_sqr_covariates, 
-  predictors = my_predictors, 
-  parallel = FALSE)
-
-
-# ---------------------------------------- set negative foi to zero 
-
-
-foi[foi < 0] <- 0
-
-
-# ---------------------------------------- save all fits foi predictions 
-
-
-write_out_rds(foi, out_pt, foi_out_fl_nm)
+if(CLUSTER){
+  
+  t <- obj$enqueue(
+    wrapper_to_load_admin_dataset(
+      dat = all_sqr_covariates, 
+      sel_preds = my_predictors, 
+      parallel = FALSE, 
+      model_in_path = RF_obj_path, 
+      out_path = out_pt, 
+      no_fits = no_fits))
+  
+} else{
+  
+  wrapper_to_load_admin_dataset(
+    dat = all_sqr_covariates, 
+    sel_preds = my_predictors, 
+    parallel = FALSE, 
+    model_in_path = RF_obj_path, 
+    out_path = out_pt, 
+    no_fits = no_fits)
+  
+}
+  
