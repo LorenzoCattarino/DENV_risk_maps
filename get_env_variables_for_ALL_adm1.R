@@ -80,6 +80,12 @@ row.has.na <- apply(adm1_env_var, 1, function(x){any(is.na(x))})
 NA_adm1_anv_var <- adm1_env_var[row.has.na, base_info[1:5]]
 
 
+# ---------------------------------------- remove rows with NA values 
+
+
+adm1_env_var <- adm1_env_var[!row.has.na, ]
+
+
 # ---------------------------------------- write out 
 
 
