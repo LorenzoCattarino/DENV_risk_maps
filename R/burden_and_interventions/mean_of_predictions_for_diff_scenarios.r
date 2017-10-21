@@ -1,19 +1,19 @@
 average_foi_and_burden_predictions <- function(
   j, vars, in_path, 
   out_path, no_scenarios, col_names,
-  base_info){
+  base_info, dts_tag){
   
   my_var <- vars[j]
   
   if(j == 1) {
     
-    root_name <- paste0(my_var, "_all_squares_0_1667_deg")
+    root_name <- paste0(my_var, "_", dts_tag)
     
     dat <- readRDS(file.path(in_path, paste0(root_name, ".rds")))
     
     ret <- average_boot_samples_dim2(dat)
     
-    out_name <- paste0(my_var, "_mean_all_squares_0_1667_deg.rds")
+    out_name <- paste0(my_var, "_", "mean_", dts_tag, ".rds")
     
     write_out_rds(ret, out_path, out_name)
     
