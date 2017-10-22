@@ -69,7 +69,7 @@ wrapper_to_make_preds <- function(
 wrapper_to_load_admin_dataset <- function(
   dat, sel_preds, parallel, 
   model_in_path, 
-  out_path, no_fits){
+  out_path, out_fl_nm, no_fits){
   
   foi <- wrapper_to_make_preds(
     no_fits = no_fits, 
@@ -80,6 +80,6 @@ wrapper_to_load_admin_dataset <- function(
   
   foi[foi < 0] <- 0
   
-  write_out_rds(foi, out_path, file_name)
+  write_out_rds(foi, out_path, out_fl_nm)
   
 }
