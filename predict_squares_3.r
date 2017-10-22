@@ -88,6 +88,7 @@ if(CLUSTER){
       parallel = FALSE, 
       model_in_path = RF_obj_path, 
       out_path = out_pt, 
+      out_fl_nm = foi_out_fl_nm,
       no_fits = no_fits))
   
 } else{
@@ -98,6 +99,7 @@ if(CLUSTER){
     parallel = FALSE, 
     model_in_path = RF_obj_path, 
     out_path = out_pt, 
+    out_fl_nm = foi_out_fl_nm,
     no_fits = no_fits)
   
 }
