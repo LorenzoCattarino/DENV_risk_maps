@@ -34,11 +34,12 @@ CLUSTER <- TRUE
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_2" 
+model_tp <- "boot_model_20km_3" 
 
 no_fits <- 200
 
-var_names <- c("FOI_r", "R0_r", "I_num", "C_num", "I_inc", "C_inc")
+var_names <- "FOI_r"
+#var_names <- c("FOI_r", "R0_r", "I_num", "C_num", "I_inc", "C_inc")
 
 phi_set_id <- c(1, 3, 4)
 sf_vals <- c(1, 0.7, 0.3)
@@ -193,6 +194,7 @@ if(!file.exists(file.path(out_path, "FOI_to_C_lookup_tables.rds"))){
   
 }
 
+
 # ------------------------------------------ submit jobs 
 
 
@@ -206,7 +208,7 @@ if (CLUSTER) {
 if (CLUSTER) {
   
   R0_and_burden <- queuer::qlapply(
-    fctr_combs,
+    fctr_combs[1],
     wrapper_to_multi_factor_R0_and_burden,
     obj,
     foi_data = all_sqr_foi, 
@@ -223,7 +225,7 @@ if (CLUSTER) {
     no_fits = no_fits,
     out_path = out_path,
     base_info = base_info,
-    reverse = FALSE)
+    reverse = TRUE)
   
 } else {
   
