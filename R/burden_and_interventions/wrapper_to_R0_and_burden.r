@@ -1,5 +1,5 @@
 wrapper_to_R0_and_burden <- function(
-  FOI, n_j,
+  FOI, n_j, vars,
   age_band_lower_bounds, age_band_upper_bounds,
   vec_phis, prob_fun, scaling_factor, 
   FOI_to_R0, FOI_to_Inf, FOI_to_C,
@@ -7,10 +7,8 @@ wrapper_to_R0_and_burden <- function(
 
   #browser()
   
-  all_var_names <- c("FOI_r", "R0_r", "I_num", "C_num", "I_inc", "C_inc")
-  
-  out <- setNames(rep(0, length(all_var_names)),
-                  all_var_names)
+  out <- setNames(rep(0, length(vars)),
+                  vars)
   
   #cat("FOI =", FOI, "\n")
   #cat("scaling factor =", scaling_factor, "\n")
@@ -82,7 +80,7 @@ wrapper_to_R0_and_burden <- function(
     #cat("incidence of cases =", Inc_cases, "\n")
     
     out <- setNames(c(red_FOI, red_R0, Infections, Cases, Inc_infections, Inc_cases),
-                    all_var_names)
+                    vars)
     
   }
   
