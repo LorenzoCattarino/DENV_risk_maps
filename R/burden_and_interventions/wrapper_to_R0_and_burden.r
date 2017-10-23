@@ -1,7 +1,7 @@
 wrapper_to_R0_and_burden <- function(
   FOI, n_j,
   age_band_lower_bounds, age_band_upper_bounds,
-  vec_phis, prob_fun, scaling_factor, var_names, 
+  vec_phis, prob_fun, scaling_factor, 
   FOI_to_R0, FOI_to_Inf, FOI_to_C,
   N, reverse){
 
@@ -9,7 +9,7 @@ wrapper_to_R0_and_burden <- function(
   
   all_var_names <- c("FOI_r", "R0_r", "I_num", "C_num", "I_inc", "C_inc")
   
-  out <- setNames(rep(0, length(var_names)),
+  out <- setNames(rep(0, length(all_var_names)),
                   all_var_names)
   
   #cat("FOI =", FOI, "\n")
@@ -86,5 +86,5 @@ wrapper_to_R0_and_burden <- function(
     
   }
   
-  out[var_names]
+  out
 }
