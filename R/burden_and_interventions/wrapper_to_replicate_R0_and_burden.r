@@ -39,18 +39,20 @@ wrapper_to_replicate_R0_and_burden <- function(
   # ---------------------------------------- calculates R0 values for different replicates of the same pixel  
   
   
-  n <- length(var_names)
+  vars <- c("FOI_r", "R0_r", "I_num", "C_num", "I_inc", "C_inc")
+  
+  n <- length(vars)
   
   vapply(FOI_values,
          wrapper_to_R0_and_burden,
          numeric(n),
          n_j = m_j,
+         vars = vars,
          age_band_lower_bounds = age_band_lower_bounds, 
          age_band_upper_bounds = age_band_upper_bounds,
          vec_phis = vec_phis, 
          prob_fun = prob_fun,
          scaling_factor = scaling_factor,
-         var_names = var_names,
          FOI_to_R0 = FOI_to_R0, 
          FOI_to_Inf = FOI_to_Inf, 
          FOI_to_C = FOI_to_C,
