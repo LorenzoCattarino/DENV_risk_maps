@@ -52,7 +52,7 @@ v1 <- c(1, 1, 0, 0) # Up to 2 infections
 v2 <- c(1, 1, 1, 0) # Up to 3 infections
 v3 <- c(1, 1, 1, 1) # Up to 4 infections 
 
-FOI_values <- seq(0, 0.1, by = 0.0002)
+FOI_values <- seq(0, 0.2, by = 0.0002)
 
 prob_fun <- list("calculate_primary_infection_prob",
                  "calculate_secondary_infection_prob",
@@ -246,7 +246,7 @@ if (CLUSTER) {
     no_fits = no_fits,
     out_path = out_path,
     base_info = base_info,
-    reverse = FALSE,
+    reverse = TRUE,
     parallel = FALSE)
   
 }
