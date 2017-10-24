@@ -21,14 +21,14 @@ CLUSTER <- TRUE
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_2"
+model_tp <- "boot_model_20km_3"
 
-vars <- c("FOI", "R0_r", "I_inc", "C_inc") 
-# when fitting the R0 get also "FOI_r"
+vars <- c("FOI", "FOI_r")
+#vars <- c("FOI", "R0_r", "I_inc", "C_inc") 
+
+no_scenarios <- 1
 
 no_fits <- 200
-
-no_scenarios <- 9
 
 col_names <- as.character(seq_len(no_fits))
 
@@ -79,7 +79,7 @@ if (CLUSTER) {
 if (CLUSTER) {
 
   means_all_scenarios <- queuer::qlapply(
-    seq_along(vars)[2:4],
+    seq_along(vars),
     average_foi_and_burden_predictions,
     obj,
     vars = vars,
@@ -93,7 +93,7 @@ if (CLUSTER) {
 } else {
 
   means_all_scenarios <- loop(
-    seq_along(vars)[2],
+    seq_along(vars),
     average_foi_and_burden_predictions,
     vars = vars,
     in_path = in_path,
