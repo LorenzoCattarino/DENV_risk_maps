@@ -27,7 +27,8 @@ base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", 
 # ---------------------------------------- define variables
 
 
-vars <- "FOI_r"
+### you have to manually loop through these at the moment!!!
+vars <- c("FOI", "FOI_r") 
   
 scenario <- 1
   
