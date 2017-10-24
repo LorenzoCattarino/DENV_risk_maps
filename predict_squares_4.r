@@ -10,6 +10,8 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
+CLUSTER <- TRUE
+
 my_resources <- c(
   file.path("R", "utility_functions.r"),
   file.path("R", "burden_and_interventions", "wrapper_to_multi_factor_R0_and_burden.r"),
@@ -27,8 +29,6 @@ ctx <- context::context_save(path = "context",
 
 context::context_load(ctx)
 context::parallel_cluster_start(8, ctx)
-
-CLUSTER <- TRUE
 
 
 # ---------------------------------------- define parameters

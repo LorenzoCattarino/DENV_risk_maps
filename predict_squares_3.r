@@ -3,6 +3,8 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
+CLUSTER <- TRUE
+
 my_resources <- c(
   file.path("R", "utility_functions.r"),
   file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"))
@@ -13,8 +15,6 @@ context::context_log_start()
 ctx <- context::context_save(path = "context",
                              packages = my_pkgs,
                              sources = my_resources)
-
-CLUSTER <- TRUE
 
 
 # ---------------------------------------- define parameters

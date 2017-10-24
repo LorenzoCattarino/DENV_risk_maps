@@ -3,6 +3,8 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
+CLUSTER <- TRUE
+
 my_resources <- c(
   file.path("R", "utility_functions.r"),
   file.path("R", "prepare_datasets", "calculate_mean_across_fits.r"),
@@ -14,8 +16,6 @@ context::context_log_start()
 ctx <- context::context_save(path = "context",
                              packages = my_pkgs,
                              sources = my_resources)
-
-CLUSTER <- TRUE
 
 
 # ---------------------------------------- define parameters
