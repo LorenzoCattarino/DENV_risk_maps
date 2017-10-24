@@ -40,7 +40,7 @@ wrapper_to_ggplot_map <- function(
   
   mat[cbind(i.lon, i.lat)] <- df_long[, statsc]
   
-  #mat[mat==0] <- NA
+
   # ---------------------------------------- convert matrix to raster object
   
   
@@ -75,6 +75,16 @@ wrapper_to_ggplot_map <- function(
   r_spdf <- as(r_mat_msk, "SpatialPixelsDataFrame")
   
   r_df <- as.data.frame(r_spdf)
+  
+  
+  # ---------------------------------------- plot differently NA values
+  
+  
+  if(statsc == "mean"){
+    
+    r_df$layer[r_df$layer < 1] <- NA  
+  
+  }
   
   
   # ---------------------------------------- make map 
@@ -126,7 +136,7 @@ map_data_pixel_ggplot <- function(df, shp, out_path, out_file_name, my_col, ttl,
                            guide = guide_colourbar(title = ttl, 
                                                    barwidth = dev.size()[1] * 0.15, 
                                                    barheight = dev.size()[1] * 0.7),
-                           na.value = "grey60")
+                           na.value = "grey70")
     
   }
   
