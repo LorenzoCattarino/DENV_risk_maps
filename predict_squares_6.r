@@ -6,7 +6,7 @@ CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "plotting", "functions_for_plotting_square_level_maps_ggplot.r"))
+  file.path("R", "plotting", "functions_for_plotting_square_level_maps.r"))
 
 my_pkgs <- c("data.table", "ggplot2", "colorRamps", "raster", "rgdal", "scales", "RColorBrewer")
 
@@ -19,7 +19,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-model_tp <- "boot_model_20km_2"
+model_tp <- "boot_model_20km_3"
 
 base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2") 
 
@@ -27,7 +27,7 @@ base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", 
 # ---------------------------------------- define variables
 
 
-vars <- "C_inc"
+vars <- "FOI_r"
   
 scenario <- 1
   
