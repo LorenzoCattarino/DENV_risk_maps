@@ -80,11 +80,17 @@ wrapper_to_ggplot_map <- function(
   # ---------------------------------------- plot differently NA values
   
   
-  if(statsc == "mean"){
+  if(vars == "FOI" & statsc == "mean"){
     
-    r_df$layer[r_df$layer < 1] <- NA  
+    na_cutoff <- 1 
   
-  }
+  } else {
+  
+    na_cutoff <- 0  
+  
+  }  
+  
+  r_df$layer[r_df$layer < na_cutoff] <- NA 
   
   
   # ---------------------------------------- make map 
