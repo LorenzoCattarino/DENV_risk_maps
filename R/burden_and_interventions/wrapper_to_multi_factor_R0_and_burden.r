@@ -60,7 +60,6 @@ wrapper_to_multi_factor_R0_and_burden <- function(
     foi_data = foi_data, 
     age_struct = age_data,
     scaling_factor = sf,
-    var_names = var_names,
     FOI_to_R0_list = FOI_to_R0_list,
     FOI_to_Inf_list = FOI_to_Inf_list,
     FOI_to_C_list = FOI_to_C_list,
