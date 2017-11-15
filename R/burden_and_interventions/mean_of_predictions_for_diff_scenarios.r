@@ -1,6 +1,6 @@
 average_foi_and_burden_predictions <- function(
   j, vars, in_path, 
-  out_path, no_scenarios, col_names,
+  out_path, scenario_ids, col_names,
   base_info, dts_tag){
   
   my_var <- vars[j]
@@ -19,7 +19,7 @@ average_foi_and_burden_predictions <- function(
     
   } else {
   
-    loop(seq_len(no_scenarios),
+    loop(scenario_ids,
          calculate_mean_of_burden_predictions_for_different_scenarios,
          in_path = in_path, 
          my_var = my_var,
