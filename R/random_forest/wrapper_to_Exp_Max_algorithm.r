@@ -46,7 +46,6 @@ exp_max_algorithm_boot <- function(
   
   } else {
     
-    foi_data_boot <- foi_data_boot[setdiff(names(foi_data_boot), "o_j")]
     names(foi_data_boot)[names(foi_data_boot) == var_to_fit] <- "o_j"
   
   }
