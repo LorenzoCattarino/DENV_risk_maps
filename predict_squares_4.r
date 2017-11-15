@@ -34,9 +34,12 @@ context::parallel_cluster_start(8, ctx)
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_3" 
+model_tp <- "boot_model_20km_5" 
 
 no_fits <- 200
+
+### NOTE BELOW: when fitting the R0 during the EM, the "FOI" var name refers to the predicted R0 values,
+### while the "FOI_r" var name refers to the back transformed FOI. Confusing.
 
 var_names <- "FOI_r"
 #var_names <- c("FOI_r", "R0_r", "I_num", "C_num", "I_inc", "C_inc")
@@ -66,13 +69,6 @@ base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", 
 
 # ---------------------------------------- load data
 
-
-# all_sqr_mean_foi <- readRDS(
-#   file.path(
-#     "output", 
-#     "predictions_world",
-#     model_tp,
-#     "all_squares_mean_foi_0_1667_deg.rds"))
 
 all_sqr_foi <- readRDS(
   file.path(
@@ -208,7 +204,7 @@ if (CLUSTER) {
 if (CLUSTER) {
   
   R0_and_burden <- queuer::qlapply(
-    fctr_combs[1],
+    fctr_combs[3],
     wrapper_to_multi_factor_R0_and_burden,
     obj,
     foi_data = all_sqr_foi, 

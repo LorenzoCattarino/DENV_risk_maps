@@ -141,7 +141,7 @@ ggplot(summary_table_long, aes(time, mean, fill = scaling_factor, ymin = lCI, ym
                                          keyheight = 2)) +
   facet_grid(. ~ phi_set_id) +
   xlab(NULL) +
-  scale_y_continuous(NULL, 
+  scale_y_continuous("Mean (95% CI)", 
                      breaks = y_values, 
                      labels = format(y_values/1000000), 
                      limits = c(min(y_values), max(y_values))) +

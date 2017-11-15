@@ -1,8 +1,8 @@
-# Makes a pretty map of the square predictions  
+# Makes a pretty map of the square predictions
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
@@ -19,27 +19,23 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-model_tp <- "boot_model_20km_3"
-
-base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2") 
+model_tp <- "boot_model_20km_2"
 
 
 # ---------------------------------------- define variables
 
 
-### you have to manually loop through these at the moment!!!
-vars <- c("FOI", "FOI_r") 
+vars <- "I_inc"
+
+scenario_id <- 4:9
   
-scenario <- 1
-  
-statistics <-  c("mean", "sd", "interv", "lCI", "uCI")
+statistics <- "mean"
+#statistics <- c("mean", "sd", "interv", "lCI", "uCI")
 
-all_titles <- c("mean", "SD", "quantile_diff", "2.5_quantile", "97.5_quantile")
+fact_comb <- expand.grid(vars = vars, scenario_id = scenario_id, statistics = statistics, stringsAsFactors = FALSE)
 
-do.p9.logic <- c(FALSE, FALSE, FALSE, FALSE, FALSE)
-
-plot_wdt <- 28 #or: 7
-plot_hgt <- 12 #or: 3
+plot_wdt <- 12 # or: 8 # or: 28
+plot_hgt <- 6 # or: 4 # or: 12
 
 out_pt <- file.path(
   "figures", 
@@ -52,12 +48,13 @@ out_pt <- file.path(
 
 if (CLUSTER) {
   
+  #config <- didehpc::didehpc_config(template = "12Core")
   obj <- didehpc::queue_didehpc(ctx)
   
 }else{
   
   context::context_load(ctx)
-  context::parallel_cluster_start(3, ctx)
+  context::parallel_cluster_start(6, ctx)
 }
 
 
@@ -72,42 +69,6 @@ col_ls <- list(
 
 # ---------------------------------------- load data 
 
-
-if(vars == "FOI"){
-  
-  mean_pred_fl_nm <- paste0(vars, "_mean_all_squares_0_1667_deg.rds")
-  
-} else {
-  
-  mean_pred_fl_nm <- paste0(vars, "_mean_all_squares_0_1667_deg_", scenario, ".rds")
-    
-}
-
-mean_preds <- readRDS(
-  file.path(
-    "output",
-    "predictions_world",
-    model_tp,
-    "means",
-    mean_pred_fl_nm))
-
-all_sqr_covariates <- readRDS(
-  file.path(
-    "output", 
-    "env_variables", 
-    "all_squares_env_var_0_1667_deg.rds"))
-
-if(vars == "FOI"){
-  
-  data_all <- cbind(all_sqr_covariates[, base_info], mean_preds)
-
-} else {
-  
-  data_all <- mean_preds
-  
-}
-
-data_all$interv <- data_all$uCI - data_all$lCI 
 
 country_shp <- readOGR(dsn = file.path("output", "shapefiles"), layer = "gadm28_adm0_eras")
 
@@ -124,21 +85,25 @@ country_shp <- country_shp[!country_shp@data$NAME_ENGLI == "Caspian Sea", ]
 shp_fort <- fortify(country_shp)
 
 
+# ----------------------------------------
+
+
+fact_comb_ls <- df_to_list(fact_comb, use_names = TRUE)
+  
+  
 # ------------------------------------------ submit one job 
 
 
-# t <- obj$enqueue(
+# t1 <- obj$enqueue(
 #   wrapper_to_ggplot_map(
-#     seq_along(statistics)[1],
-#     vars = vars,
-#     statistics = statistics,
+#     fact_comb_ls[1],
 #     my_colors = col_ls,
-#     titles_vec = all_titles,
-#     df_long = data_all,
+#     model_tp = model_tp,
 #     country_shp = country_shp,
 #     shp_fort = shp_fort,
 #     out_path = out_pt,
-#     do.p9.logic = do.p9.logic))
+#     plot_wdt = plot_wdt,
+#     plot_hgt = plot_hgt))
 
 
 # ---------------------------------------- submit all jobs
@@ -147,35 +112,27 @@ shp_fort <- fortify(country_shp)
 if (CLUSTER) {
 
   maps <- queuer::qlapply(
-    seq_along(statistics),
+    fact_comb_ls,
     wrapper_to_ggplot_map,
     obj,
-    vars = vars,
-    statistics = statistics,
     my_colors = col_ls,
-    titles_vec = all_titles,
-    df_long = data_all,
+    model_tp = model_tp,
     country_shp = country_shp,
     shp_fort = shp_fort,
     out_path = out_pt,
-    do.p9.logic = do.p9.logic,
     plot_wdt = plot_wdt,
     plot_hgt = plot_hgt)
 
 } else {
 
-  maps <- loop(
-    seq_along(statistics)[1],
+  map_1 <- loop(
+    fact_comb_ls,
     wrapper_to_ggplot_map,
-    vars = vars,
-    statistics = statistics,
     my_colors = col_ls,
-    titles_vec = all_titles,
-    df_long = data_all,
+    model_tp = model_tp,
     country_shp = country_shp,
     shp_fort = shp_fort,
     out_path = out_pt,
-    do.p9.logic = do.p9.logic,
     plot_wdt = plot_wdt,
     plot_hgt = plot_hgt,
     parallel = TRUE)

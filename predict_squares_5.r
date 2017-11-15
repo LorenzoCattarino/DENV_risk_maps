@@ -3,7 +3,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
@@ -21,12 +21,13 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_3"
+model_tp <- "boot_model_20km_2"
 
-vars <- c("FOI", "FOI_r")
+vars <- c("C_num", "C_num") 
+#vars <- c("FOI", "FOI_r")
 #vars <- c("FOI", "R0_r", "I_inc", "C_inc") 
 
-no_scenarios <- 1
+scenario_ids <- 1:3
 
 no_fits <- 200
 
@@ -67,7 +68,7 @@ if (CLUSTER) {
 #     vars = vars,
 #     in_path = in_path, 
 #     out_path = out_path, 
-#     no_scenarios = no_scenarios, 
+#     scenario_ids = scenario_ids, 
 #     col_names = col_names,
 #     base_info = base_info
 #     dts_tag = dts_tag))
@@ -85,7 +86,7 @@ if (CLUSTER) {
     vars = vars,
     in_path = in_path,
     out_path = out_path,
-    no_scenarios = no_scenarios,
+    scenario_ids = scenario_ids,
     col_names = col_names,
     base_info = base_info,
     dts_tag = dts_tag)
@@ -93,15 +94,19 @@ if (CLUSTER) {
 } else {
 
   means_all_scenarios <- loop(
-    seq_along(vars),
+    seq_along(vars)[2],
     average_foi_and_burden_predictions,
     vars = vars,
     in_path = in_path,
     out_path = out_path,
-    no_scenarios = no_scenarios,
+    scenario_ids = scenario_ids,
     col_names = col_names,
     base_info = base_info,
     dts_tag = dts_tag,
-    parallel = TRUE)
+    parallel = FALSE)
 
+}
+
+if(!CLUSTER){
+  context::parallel_cluster_stop()
 }
