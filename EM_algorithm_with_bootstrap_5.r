@@ -20,7 +20,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-var_to_fit <- "FOI"
+var_to_fit <- "R0_3"
 
 no_fits <- 200
 

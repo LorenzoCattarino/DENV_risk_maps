@@ -14,10 +14,11 @@ source(file.path("R", "plotting", "plot_RF_preds_vs_obs_by_cv_dataset.r"))
 source(file.path("R", "random_forest", "get_lm_equation.r"))
 source(file.path("R", "utility_functions.r"))
 
+
 # ---------------------------------------- define parameters 
 
 
-model_type <- "boot_model_20km_2"
+model_type <- "boot_model_20km_6"
 
 no_fits <- 200
 

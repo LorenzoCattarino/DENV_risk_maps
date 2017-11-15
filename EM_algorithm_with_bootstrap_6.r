@@ -24,11 +24,11 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_type <- "boot_model_20km_2"
+model_type <- "boot_model_20km_6"
 
-var_to_fit <- "FOI"
+var_to_fit <- "R0_3"
 
-pseudoAbsence_value <- -0.02
+pseudoAbsence_value <- 0
 
 no_fits <- 200
 

@@ -21,11 +21,11 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-dependent_variable <- "FOI"
+dependent_variable <- "R0_3"
 
 no_fits <- 200
 
-pseudoAbsence_value <- -0.02
+pseudoAbsence_value <- 0
 
 no_trees <- 500
 

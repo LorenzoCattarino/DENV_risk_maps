@@ -27,7 +27,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_type <- "boot_model_20km_2"
+model_type <- "boot_model_20km_6"
 
 out_fl_nm <- "square_predictions_all_data.rds"
 

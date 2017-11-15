@@ -28,13 +28,13 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-var_to_fit <- "FOI"
+var_to_fit <- "R0_3"
 
-model_type <- "boot_model_20km_2"
+model_type <- "boot_model_20km_6"
 
 no_fits <- 200
 
-pseudoAbsence_value <- -0.02
+pseudoAbsence_value <- 0
 
 grp_flds <- c("ADM_0", "ADM_1", "data_id")
 
@@ -154,7 +154,7 @@ NA_pixel_tile_ids <- NA_pixel_tiles$tile_id
 
 tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]  
 
-my_predictors<- predictor_rank$variable[1:9]
+my_predictors <- predictor_rank$variable[1:9]
 
 my_predictors <- c(my_predictors, "RFE_const_term")
 
