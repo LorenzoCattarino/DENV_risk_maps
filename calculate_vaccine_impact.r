@@ -48,7 +48,7 @@ R0_vals <- readRDS(
 look_up_table <- read.csv(
   file.path("data",
             "vaccine",
-            "R0_sympt_cases_averted_lookup.csv"),
+            "R0_to_prop_cases_averted_lookup.csv"),
   header = TRUE)
 
 
