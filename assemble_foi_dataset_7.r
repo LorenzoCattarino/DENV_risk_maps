@@ -1,4 +1,4 @@
-# Attach the area (km2) of each admin unit to the foi dataset   
+# Attach area (km2) of each admin unit AND population density
 
 library(rgdal)
 library(dplyr)
