@@ -1,53 +1,23 @@
-# Binds different bootstrap samples together in a list and save the list 
+# This assign a UNIQUE id to each point in the bootstrap sample
+# e.g. If point 1 from original dataset is repeated twice, 
+# the first instance in the bootstrap sample will have id = 1,
+# the second instance will have id = 2.
 
-options(didehpc.cluster = "fi--didemrchnb")
+source(file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samples.r"))
+source(file.path("R", "utility_functions.r"))
 
-CLUSTER <- TRUE
+boot_samples <- readRDS(
+  file.path("output",
+            "EM_algorithm",
+            "bootstrap_samples.rds"))
 
-my_resources <- c(
-  file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samples.r"),
-  file.path("R", "utility_functions.r"))
-
-my_pkgs <- c()
-
-context::context_log_start()
-ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
-
-
-# ---------------------------------------- define parameters
-
-
-out_fl_nm <- "bootstrap_samples.rds"
-
-out_pt <- file.path("output", "EM_algorithm")
-
-
-# ---------------------------------------- rebuild the queue obj
-
-
-if (CLUSTER) {
+if (names(boot_samples[[1]])[1] != "unique_id") {
   
-  obj <- didehpc::queue_didehpc(ctx)
+  test <- lapply(seq_along(boot_samples), attach_unique_id, boot_samples)
   
-} else {
-  
-  context::context_load(ctx)
+  write_out_rds(test, 
+                file.path("output",
+                          "EM_algorithm"),
+                "bootstrap_samples.rds")
   
 }
-
-task_b_name <- "chiroptophobic_auklet"
-
-get_boot_samples_t <- obj$task_bundle_get(task_b_name)
-
-
-# ---------------------------------------- get the results 
-
-
-boot_samples <- get_boot_samples_t$results()
-
-
-# ---------------------------------------- save
-
-write_out_rds(boot_samples, out_pt, out_fl_nm)
