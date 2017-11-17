@@ -1,4 +1,4 @@
-# Attach to the foi dataset a column with the area (km2) of each admin unit  
+# Attach the area (km2) of each admin unit to the foi dataset   
 
 library(rgdal)
 library(dplyr)
@@ -41,7 +41,9 @@ shp_pr@data <- shp_pr@data[!duplicated(shp_pr@data[, c("ID_0", "ID_1")]), ]
 
 foi_data_2 <- left_join(foi_data, shp_pr@data[, c("ID_0", "ID_1", "Shape_Area")], by = c("ID_0", "ID_1"))
 
-
+foi_data_2$pop_den <- foi_data_2$population / foi_data_2$Shape_Area  
+  
+  
 # ---------------------------------------- save 
 
 
