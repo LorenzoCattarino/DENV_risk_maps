@@ -26,7 +26,7 @@ quick_raster_map <- function(pred_df, out_pt, out_name) {
   
   mat[cbind(i.lon, i.lat)] <- pred_df$p_i
   
-  mat[mat < 1] <- NA
+  #mat[mat < 1] <- NA
   
   dir.create(out_pt, FALSE, TRUE)
   
