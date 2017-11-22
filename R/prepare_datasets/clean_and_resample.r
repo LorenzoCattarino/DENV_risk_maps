@@ -21,6 +21,11 @@ clean_and_resample <- function(
     grid_size = grid_size, 
     rnd_dist = FALSE)
   
-  average_up(yy, c(grp_flds, "cell", "lat.grid", "long.grid"), env_vars)
+  ret <- average_up(yy, c(grp_flds, "cell", "lat.grid", "long.grid"), env_vars)
   
+  sqr_area_km <- (grid_size * 111.32)^2
+  
+  ret$pop_den <- ret$population / sqr_area_km 
+  
+  ret
 }
