@@ -1,12 +1,10 @@
-# Estimate foi for each resampled square
+# Estimate foi for each 20 km square of the dataset disaggregated from the entire original foi dataset
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
-
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "make_h2o_RF_predictions.r"))  
+  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"))  
 
 my_pkgs <- "h2o"
 
@@ -19,25 +17,19 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-aggr_dts_name <- "aggreg_pixel_level_env_vars_20km.rds"
+var_to_fit <- "R0_3"
 
-out_fl_nm <- "All_FOI_estimates_disaggreg_20km.rds"
+aggr_dts_name <- "env_vars_20km.rds"
 
-out_pth <- file.path("output", "EM_algorithm", "env_variables_foi")
+out_fl_nm <- "covariates_and_foi_20km.rds"
+
+out_pth <- file.path("output", "EM_algorithm", paste0("env_variables_", var_to_fit, "_fit"))
   
   
-# ---------------------------------------- are you using the cluster? 
+# ---------------------------------------- start up 
 
 
-if (CLUSTER) {
-  
-  obj <- didehpc::queue_didehpc(ctx)
-  
-} else {
-  
-  context::context_load(ctx)
-  
-}
+context::context_load(ctx)
 
 
 # ---------------------------------------- load data
@@ -48,7 +40,7 @@ h2o.init()
 RF_obj <- h2o.loadModel(
   file.path("output",
             "EM_algorithm",
-            "model_objects",
+            paste0("model_objects_", var_to_fit, "_fit"),
             "all_data.rds"))
 
 aggreg_pxl_env_var <- readRDS(
@@ -71,26 +63,18 @@ predictor_rank <- read.csv(
 
 my_predictors <- predictor_rank$variable[1:9]
 
+my_predictors <- c(my_predictors, "RFE_const_term", "pop_den")
+
 
 # ---------------------------------------- submit job
 
 
-if (CLUSTER) {
-  
-  p_i <- obj$enqueue(
-    make_predictions(
-      mod_obj = RF_obj, 
-      dataset = aggreg_pxl_env_var, 
-      sel_preds = my_predictors))
-  
-} else {
+p_i <- make_h2o_predictions(
+  mod_obj = RF_obj, 
+  dataset = aggreg_pxl_env_var, 
+  sel_preds = my_predictors)
 
-  p_i <- make_h2o_predictions(
-      mod_obj = RF_obj, 
-      dataset = aggreg_pxl_env_var, 
-      sel_preds = my_predictors)
-  h2o.shutdown(prompt = FALSE)
-}
+h2o.shutdown(prompt = FALSE)
 
 aggreg_pxl_env_var$p_i <- p_i
 
