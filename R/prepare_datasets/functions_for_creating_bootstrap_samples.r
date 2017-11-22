@@ -12,3 +12,10 @@ do_boostrap <- function(dataset){
   pick <- sample(idx, size = length(idx), replace = TRUE)
   dataset[unlist(pick), ]
 }
+
+attach_unique_id <- function(i, b_sam) {
+ 
+  x <- b_sam[[i]]
+  cbind(unique_id = seq_len(nrow(x)), x)
+
+}
