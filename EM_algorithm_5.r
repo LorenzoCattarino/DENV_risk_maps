@@ -6,12 +6,11 @@ CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.R"),
+  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
   file.path("R", "random_forest", "Exp_Max_algorithm.R"),
-  file.path("R", "random_forest", "fit_h2o_random_forest_model.r"),
-  file.path("R", "random_forest", "make_h2o_RF_predictions.r"),
-  file.path("R", "random_forest", "quick_raster_map.r"),
   file.path("R", "random_forest", "get_lm_equation.r"),
-  file.path("R", "generic_scatter_plot.r"))  
+  file.path("R", "plotting", "quick_raster_map.r"),
+  file.path("R", "plotting", "generic_scatter_plot.r"))  
 
 my_pkgs <- c("h2o", "dplyr", "fields", "ggplot2")
 
@@ -39,11 +38,13 @@ if (CLUSTER) {
 # ---------------------------------------- define parameters
 
 
-model_type <- "best_model_20km_cw"
+model_type <- "best_model_20km_R0_3"
+
+var_to_fit <- "R0_3"
+
+pseudoAbsence_value <- 0.5
 
 niter <- 10
-
-dependent_variable <- "o_j"
 
 no_trees <- 500
 
@@ -51,19 +52,19 @@ min_node_size <- 20
 
 all_wgt <- 1
 
-pAbs_wgt <- 0.25
+pAbs_wgt <- 1
+
+pAbs_wgt_AUS <- 20
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
-pxl_dts_name <- "All_FOI_estimates_disaggreg_20km.rds"
+pxl_dts_name <- "covariates_and_foi_20km.rds"
 
 out_md_nm <- "best_model_20km_cw.rds"
 
 diag_t_nm <- "diagno_table.rds"
 
 map_nm <- "map"
-
-sq_pred_nm <- "dd_debug.rds"
 
 
 # ========================================
@@ -85,12 +86,6 @@ diag_t_pth <- file.path(
   model_type,
   "diagnostics")
 
-sq_pred_pth <- file.path(
-  "output", 
-  "EM_algorithm", 
-  model_type,
-  "square_predictions")
-
 map_pth <- file.path(
   "figures", 
   "EM_algorithm", 
@@ -108,11 +103,11 @@ sct_plt_pth <- file.path(
 
 
 foi_data <- read.csv(
-  file.path("output", "foi", "All_FOI_estimates_linear_env_var.csv"),
+  file.path("output", "foi", "All_FOI_estimates_linear_env_var_area.csv"),
   stringsAsFactors = FALSE) 
 
 pxl_dataset <- readRDS(
-  file.path("output", "EM_algorithm", "env_variables_foi", pxl_dts_name))
+  file.path("output", "EM_algorithm", paste0("env_variables_", var_to_fit, "_fit"), pxl_dts_name))
 
 predictor_rank <- read.csv(
   file.path("output", 
@@ -127,7 +122,6 @@ adm_dataset <- read.csv(
             "env_variables",
             "All_adm1_env_var.csv"),
   header = TRUE,
-  sep = ",", 
   stringsAsFactors = FALSE)
 
 
@@ -136,15 +130,19 @@ adm_dataset <- read.csv(
 
 my_predictors <- predictor_rank$variable[1:9]
 
+my_predictors <- c(my_predictors, "RFE_const_term", "pop_den")
+
 
 # ---------------------------------------- pre process the original foi data set
 
 
+names(foi_data)[names(foi_data) == var_to_fit] <- "o_j"
+
+foi_data[foi_data$type == "pseudoAbsence", "o_j"] <- pseudoAbsence_value
+
 foi_data$new_weight <- all_wgt
-
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
-
-names(foi_data)[names(foi_data) == "FOI"] <- dependent_variable
+foi_data[foi_data$type == "pseudoAbsence" & foi_data$ID_0 == 15, "new_weight"] <- pAbs_wgt_AUS
 
 
 # ---------------------------------------- pre process the admin data set
@@ -159,8 +157,6 @@ adm_dataset <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 names(pxl_dataset)[names(pxl_dataset) == "ADM_0"] <- grp_flds[1]
 names(pxl_dataset)[names(pxl_dataset) == "ADM_1"] <- grp_flds[2]
 
-#pxl_dataset[pxl_dataset$population > 0, "population"] <- 1
-
 pxl_dts_grp <- pxl_dataset %>% group_by_(.dots = grp_flds) 
 
 aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
@@ -170,14 +166,14 @@ pxl_dataset <- left_join(pxl_dataset, aa)
 pxl_dataset$pop_weight <- pxl_dataset$population / pxl_dataset$pop_sqr_sum
 
 pxl_dataset$new_weight <- all_wgt
-
 pxl_dataset[pxl_dataset$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
+pxl_dataset[pxl_dataset$type == "pseudoAbsence" & pxl_dataset$ID_0 == 15, "new_weight"] <- pAbs_wgt_AUS
 
 
 # ---------------------------------------- attach original data to square dataset
 
 
-pxl_dataset <- inner_join(pxl_dataset, foi_data[, c(grp_flds, dependent_variable)])
+pxl_dataset <- inner_join(pxl_dataset, foi_data[, c(grp_flds, "o_j")])
 
 
 # ---------------------------------------- submit job
@@ -191,8 +187,7 @@ if (CLUSTER) {
       orig_dataset = foi_data,
       pxl_dataset = pxl_dataset,
       pxl_dataset_full = pxl_dataset,
-      no_trees = no_trees, 
-      min_node_size = min_node_size,
+      l_f = pseudoAbsence_value,
       my_predictors = my_predictors, 
       grp_flds = grp_flds,
       RF_obj_path = RF_out_pth,
@@ -201,9 +196,8 @@ if (CLUSTER) {
       diagn_tab_name = diag_t_nm,
       map_path = map_pth, 
       map_name = map_nm,
-      sq_pr_path = sq_pred_pth, 
-      sq_pr_name = sq_pred_nm,
       sct_plt_path = sct_plt_pth,
+      var_to_fit = var_to_fit,
       adm_dataset = adm_dataset))
   
 } else {
@@ -213,8 +207,7 @@ if (CLUSTER) {
     orig_dataset = foi_data,
     pxl_dataset = pxl_dataset, 
     pxl_dataset_full = pxl_dataset,
-    no_trees = no_trees, 
-    min_node_size = min_node_size,
+    l_f = pseudoAbsence_value,
     my_predictors = my_predictors, 
     grp_flds = grp_flds,
     RF_obj_path = RF_out_pth,
@@ -223,9 +216,8 @@ if (CLUSTER) {
     diagn_tab_name = diag_t_nm,
     map_path = map_pth, 
     map_name = map_nm,
-    sq_pr_path = sq_pred_pth, 
-    sq_pr_name = sq_pred_nm,
     sct_plt_path = sct_plt_pth,
+    var_to_fit = var_to_fit,
     adm_dataset = adm_dataset)
 
 }
