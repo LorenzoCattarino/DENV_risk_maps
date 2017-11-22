@@ -24,7 +24,7 @@ filter_and_resample <- function(x, foi_dts, env_var_names, grp_flds, grid_size){
     
     dd <- inner_join(
       cc,
-      foi_dts[, c(grp_flds, "type", "adm_pop")])
+      foi_dts[, c(grp_flds, "type")])
     
     names(dd)[names(dd) == "lat.grid"] <- "latitude"
     
