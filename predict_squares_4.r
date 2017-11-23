@@ -1,9 +1,6 @@
 # Calculates, for each model fit and R0-Wolbachia effect assumption combinations
 # R0 values and burden, for different foi value (squares).
 
-# Takes the mean and confidence intervals, across models,  
-# of different measured variables (foi, R0, burden), for each tile. 
-
 
 # ----------------------------------------
 
@@ -34,15 +31,15 @@ context::parallel_cluster_start(8, ctx)
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_5" 
+model_tp <- "boot_model_20km_6" 
 
 no_fits <- 200
 
 ### NOTE BELOW: when fitting the R0 during the EM, the "FOI" var name refers to the predicted R0 values,
 ### while the "FOI_r" var name refers to the back transformed FOI. Confusing.
 
-var_names <- "FOI_r"
-#var_names <- c("FOI_r", "R0_r", "I_num", "C_num", "I_inc", "C_inc")
+#var_names <- "FOI_r"
+var_names <- c("R0_r", "I_num", "C_num", "I_inc", "C_inc")
 
 phi_set_id <- c(1, 3, 4)
 sf_vals <- c(1, 0.7, 0.3)
@@ -104,7 +101,7 @@ all_sqr_foi <- cbind(all_sqr_covariates[, base_info], all_sqr_foi)
 
 
 all_sqr_foi <- inner_join(
-  age_struct[, c("age_id", "country", "ADM_0")],
+  age_struct[, c("age_id", "ADM_0")],
   all_sqr_foi, 
   by = "ADM_0")
 
@@ -189,6 +186,12 @@ if(!file.exists(file.path(out_path, "FOI_to_C_lookup_tables.rds"))){
   FOI_to_C_list <- readRDS(file.path(out_path, "FOI_to_C_lookup_tables.rds"))
   
 }
+
+
+# ------------------------------------------ convert to matrix
+
+
+all_sqr_foi <- as.matrix(all_sqr_foi)
 
 
 # ------------------------------------------ submit jobs 
