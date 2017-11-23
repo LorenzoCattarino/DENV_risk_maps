@@ -5,7 +5,6 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "get_boot_sample_predict_and_save.r"),
   file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
   file.path("R", "utility_functions.r"))
 
@@ -20,7 +19,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-var_to_fit <- "R0_3"
+var_to_fit <- "FOI"
 
 no_fits <- 200
 
@@ -60,7 +59,7 @@ predictor_rank <- read.csv(
 
 my_predictors <- predictor_rank$variable[1:9]
 
-my_predictors <- c(my_predictors, "RFE_const_term")
+#my_predictors <- c(my_predictors, "RFE_const_term", "pop_den")
 
 
 # ---------------------------------------- submit one job 
