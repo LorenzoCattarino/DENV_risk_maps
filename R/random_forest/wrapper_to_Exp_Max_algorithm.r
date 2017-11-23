@@ -2,7 +2,7 @@ exp_max_algorithm_boot <- function(
   i, boot_samples, 
   pxl_dataset_orig, psAbs, my_preds, 
   no_trees, min_node_size, grp_flds, niter, 
-  all_wgt, pAbs_wgt,
+  all_wgt, pAbs_wgt, pAbs_wgt_AUS,
   RF_obj_path, RF_obj_name,
   diagn_tab_path, diagn_tab_name,
   map_path, map_name, 
@@ -53,8 +53,8 @@ exp_max_algorithm_boot <- function(
   foi_data_boot[foi_data_boot$type == "pseudoAbsence", "o_j"] <- psAbs
   
   foi_data_boot$new_weight <- all_wgt
-  
   foi_data_boot[foi_data_boot$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
+  foi_data_boot[foi_data_boot$type == "pseudoAbsence" & foi_data_boot$ID_0 == 15, "new_weight"] <- pAbs_wgt_AUS
   
   names(foi_data_boot)[names(foi_data_boot) == "ADM_0"] <- grp_flds[1]
   names(foi_data_boot)[names(foi_data_boot) == "ADM_1"] <- grp_flds[2]
@@ -75,8 +75,8 @@ exp_max_algorithm_boot <- function(
   pxl_dts_boot$pop_weight <- pxl_dts_boot$population / pxl_dts_boot$pop_sqr_sum
   
   pxl_dts_boot$new_weight <- all_wgt
-  
   pxl_dts_boot[pxl_dts_boot$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
+  pxl_dts_boot[pxl_dts_boot$type == "pseudoAbsence" & pxl_dts_boot$ID_0 == 15, "new_weight"] <- pAbs_wgt_AUS
   
   
   # ---------------------------------------- attach original data to square dataset
