@@ -61,3 +61,15 @@ wrapper_to_lookup <- function(i, age_struct, tags, FOI_values, my_fun, ...){
     ...)
   
 }
+
+fix_R0_lookup_limits <- function(i) {
+  
+  i[1, "y"] <- 1
+  
+  rbind(c(x = 0, y = 0), i)
+
+}
+
+cbind_FOI_to_R0 <- function(i) {
+  cbind(x = FOI_values, y = i)
+}
