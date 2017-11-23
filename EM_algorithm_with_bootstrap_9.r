@@ -28,13 +28,13 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-var_to_fit <- "R0_3"
+var_to_fit <- "FOI"
 
 model_type <- "boot_model_20km_6"
 
-no_fits <- 200
+pseudoAbsence_value <- -0.02
 
-pseudoAbsence_value <- 0
+no_fits <- 200
 
 grp_flds <- c("ADM_0", "ADM_1", "data_id")
 
