@@ -26,9 +26,9 @@ ctx <- context::context_save(path = "context",
 
 model_type <- "boot_model_20km_6"
 
-var_to_fit <- "R0_3"
+var_to_fit <- "FOI"
 
-pseudoAbsence_value <- 0
+pseudoAbsence_value <- -0.02
 
 no_fits <- 200
 
@@ -36,7 +36,9 @@ niter <- 10
 
 all_wgt <- 1
 
-pAbs_wgt <- 0.25
+pAbs_wgt <- 1
+
+pAbs_wgt_AUS <- 20
 
 grp_flds <- c("ID_0", "ID_1", "unique_id")
 
@@ -137,7 +139,7 @@ bt_samples <- readRDS(
 
 my_predictors <- predictor_rank$variable[1:9]
 
-my_predictors <- c(my_predictors, "RFE_const_term")
+#my_predictors <- c(my_predictors, "RFE_const_term", "pop_den")
 
 
 # ---------------------------------------- pre process the admin data set
@@ -160,6 +162,7 @@ adm_dts <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 #     niter = niter,
 #     all_wgt = all_wgt,
 #     pAbs_wgt = pAbs_wgt,
+#     pAbs_wgt_AUS = pAbs_wgt_AUS,
 #     RF_obj_path = RF_out_pth,
 #     RF_obj_name = RF_nm_all,
 #     diagn_tab_path = diag_t_pth,
@@ -189,6 +192,7 @@ if (CLUSTER) {
     niter = niter,
     all_wgt = all_wgt,
     pAbs_wgt = pAbs_wgt,
+    pAbs_wgt_AUS = pAbs_wgt_AUS,
     RF_obj_path = RF_out_pth,
     RF_obj_name = RF_nm_all,
     diagn_tab_path = diag_t_pth,
@@ -202,7 +206,7 @@ if (CLUSTER) {
 
 } else {
 
-  EM_alg_run <- lapply(
+  EM_alg_run_exp <- lapply(
     seq_len(no_fits)[1],
     exp_max_algorithm_boot,
     boot_samples = bt_samples,
@@ -213,6 +217,7 @@ if (CLUSTER) {
     niter = niter,
     all_wgt = all_wgt,
     pAbs_wgt = pAbs_wgt,
+    pAbs_wgt_AUS = pAbs_wgt_AUS,
     RF_obj_path = RF_out_pth,
     RF_obj_name = RF_nm_all,
     diagn_tab_path = diag_t_pth,
