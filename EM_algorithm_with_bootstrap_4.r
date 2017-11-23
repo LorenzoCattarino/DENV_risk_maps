@@ -6,9 +6,8 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "get_boot_sample_and_fit_RF.r"),
-  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
-  file.path("R", "utility_functions.r"))
+  file.path("R", "utility_functions.r"),
+  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"))
 
 my_pkgs <- "h2o"
 
@@ -21,15 +20,21 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-dependent_variable <- "R0_3"
+dependent_variable <- "FOI"
+
+pseudoAbsence_value <- -0.02
 
 no_fits <- 200
-
-pseudoAbsence_value <- 0
 
 no_trees <- 500
 
 min_node_size <- 20
+
+all_wgt <- 1
+
+pAbs_wgt <- 1
+
+pAbs_wgt_AUS <- 20
 
 out_pt <- file.path("output", "EM_algorithm", paste0("model_objects_", dependent_variable, "_fit"), "boot_samples")
 
@@ -71,7 +76,7 @@ predictor_rank <- read.csv(
 
 my_predictors <- predictor_rank$variable[1:9]
 
-my_predictors <- c(my_predictors, "RFE_const_term")
+#my_predictors <- c(my_predictors, "RFE_const_term", "pop_den")
 
 
 # ---------------------------------------- submit one job 
@@ -86,7 +91,9 @@ my_predictors <- c(my_predictors, "RFE_const_term")
 #     no_trees = no_trees,
 #     min_node_size = min_node_size,
 #     out_path = out_pt,
-#     psAb_val = pseudoAbsence_value))
+#     psAb_val = pseudoAbsence_value,
+#     all_wgt = all_wgt,
+#     pAbs_wgt = pAbs_wgt))
 
 
 # ---------------------------------------- submit all jobs
@@ -104,7 +111,10 @@ if (CLUSTER) {
     no_trees = no_trees,
     min_node_size = min_node_size,
     out_path = out_pt,
-    psAb_val = pseudoAbsence_value)
+    psAb_val = pseudoAbsence_value,
+    all_wgt = all_wgt,
+    pAbs_wgt = pAbs_wgt,
+    pAbs_wgt_AUS = pAbs_wgt_AUS)
 
 } else {
 
@@ -117,6 +127,9 @@ if (CLUSTER) {
     no_trees = no_trees,
     min_node_size = min_node_size,
     out_path = out_pt,
-    psAb_val = pseudoAbsence_value)
+    psAb_val = pseudoAbsence_value,
+    all_wgt = all_wgt,
+    pAbs_wgt = pAbs_wgt,
+    pAbs_wgt_AUS = pAbs_wgt_AUS)
 
 }
