@@ -83,3 +83,73 @@ wrapper_to_load_admin_dataset <- function(
   write_out_rds(foi, out_path, out_fl_nm)
   
 }
+
+get_boot_sample_and_fit_RF <- function(i, boot_ls, y_var, my_preds, no_trees, min_node_size, out_path, psAb_val, all_wgt, pAbs_wgt, pAbs_wgt_AUS) {
+  
+  adm_dts_boot <- boot_ls[[i]]
+  
+  adm_dts_boot[adm_dts_boot$type == "pseudoAbsence", y_var] <- psAb_val
+  
+  adm_dts_boot$new_weight <- all_wgt
+  adm_dts_boot[adm_dts_boot$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
+  adm_dts_boot[adm_dts_boot$type == "pseudoAbsence" & adm_dts_boot$ID_0 == 15, "new_weight"] <- pAbs_wgt_AUS
+  
+  training_dataset <- adm_dts_boot[, c(y_var, my_preds, "new_weight")]
+  
+  a <- paste0("RF_model_object_", i, ".rds")
+  
+  h2o.init()
+  
+  RF_obj <- fit_h2o_RF(dependent_variable = y_var, 
+                       predictors = my_preds, 
+                       training_dataset = training_dataset, 
+                       no_trees = no_trees, 
+                       min_node_size = min_node_size,
+                       my_weights = "new_weight",
+                       model_nm = a)
+  
+  h2o.saveModel(RF_obj, out_path, force = TRUE)
+  
+  h2o.shutdown(prompt = FALSE)
+  
+}
+
+load_predict_and_save <- function(
+  i, RF_obj_path, 
+  my_preds, no_fits, out_file_path){
+  
+  #browser()
+  
+  pxl_dts_path <- file.path("output", "EM_algorithm", "env_variables", "boot_samples")
+  
+  pxl_dts_nm <- paste0("env_vars_20km_sample_", i, ".rds")
+  
+  RF_obj_nm <- paste0("RF_model_object_", i, ".rds")
+  
+  pxl_dts_boot <- readRDS(file.path(pxl_dts_path, pxl_dts_nm))
+  
+  h2o.init()
+  
+  # RF_obj <- readRDS(file.path(RF_obj_path, RF_obj_nm))
+  RF_obj <- h2o.loadModel(file.path(RF_obj_path, RF_obj_nm))
+  
+  p_i <- make_h2o_predictions(
+    mod_obj = RF_obj, 
+    dataset = pxl_dts_boot, 
+    sel_preds = my_preds)
+  
+  pxl_dts_boot$p_i <- p_i
+  
+  
+  # ---------------------------------------- 
+  
+  
+  out_file_name <- paste0("covariates_and_foi_20km_", seq_len(no_fits), ".rds")
+  
+  a <- out_file_name[i]
+  
+  write_out_rds(pxl_dts_boot, out_file_path, a)
+  
+  h2o.shutdown(prompt = FALSE)
+  
+}
