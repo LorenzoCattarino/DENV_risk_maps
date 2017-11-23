@@ -3,6 +3,8 @@ average_foi_and_burden_predictions <- function(
   out_path, scenario_ids, col_names,
   base_info, dts_tag){
   
+  #browser()
+  
   my_var <- vars[j]
   
   if(j == 1) {
@@ -35,6 +37,8 @@ average_foi_and_burden_predictions <- function(
 calculate_mean_of_burden_predictions_for_different_scenarios <- function(
   i, in_path, my_var,
   col_names, base_info, out_path){
+  
+  #browser()
   
   root_name <- paste0(my_var, "_all_squares_0_1667_deg")
   
