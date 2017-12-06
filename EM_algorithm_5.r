@@ -38,11 +38,11 @@ if (CLUSTER) {
 # ---------------------------------------- define parameters
 
 
-model_type <- "best_model_20km_R0_3"
-
 var_to_fit <- "R0_3"
 
 pseudoAbsence_value <- 0.5
+
+model_type <- paste0("best_model_20km_", var_to_fit)
 
 niter <- 10
 
@@ -52,9 +52,7 @@ min_node_size <- 20
 
 all_wgt <- 1
 
-pAbs_wgt <- 1
-
-pAbs_wgt_AUS <- 20
+wgt_limits <- c(1, 25)
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
@@ -130,7 +128,7 @@ adm_dataset <- read.csv(
 
 my_predictors <- predictor_rank$variable[1:9]
 
-my_predictors <- c(my_predictors, "RFE_const_term", "pop_den")
+#my_predictors <- c(my_predictors, "RFE_const_term", "pop_den")
 
 
 # ---------------------------------------- pre process the original foi data set
@@ -141,8 +139,8 @@ names(foi_data)[names(foi_data) == var_to_fit] <- "o_j"
 foi_data[foi_data$type == "pseudoAbsence", "o_j"] <- pseudoAbsence_value
 
 foi_data$new_weight <- all_wgt
+pAbs_wgt <- get_area_scaled_wgts(foi_data, wgt_limits)
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
-foi_data[foi_data$type == "pseudoAbsence" & foi_data$ID_0 == 15, "new_weight"] <- pAbs_wgt_AUS
 
 
 # ---------------------------------------- pre process the admin data set
@@ -165,15 +163,11 @@ pxl_dataset <- left_join(pxl_dataset, aa)
 
 pxl_dataset$pop_weight <- pxl_dataset$population / pxl_dataset$pop_sqr_sum
 
-pxl_dataset$new_weight <- all_wgt
-pxl_dataset[pxl_dataset$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
-pxl_dataset[pxl_dataset$type == "pseudoAbsence" & pxl_dataset$ID_0 == 15, "new_weight"] <- pAbs_wgt_AUS
+
+# ---------------------------------------- attach original data and weigths to square dataset
 
 
-# ---------------------------------------- attach original data to square dataset
-
-
-pxl_dataset <- inner_join(pxl_dataset, foi_data[, c(grp_flds, "o_j")])
+pxl_dataset <- inner_join(pxl_dataset, foi_data[, c(grp_flds, "o_j", "new_weight")])
 
 
 # ---------------------------------------- submit job
