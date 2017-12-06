@@ -27,9 +27,7 @@ min_node_size <- 20
 
 all_wgt <- 1
 
-pAbs_wgt <- 1
-
-pAbs_wgt_AUS <- 20
+wgt_limits <- c(1, 25)
 
 out_path <- file.path("output", "EM_algorithm", paste0("model_objects_", dependent_variable, "_fit"))
 
@@ -65,7 +63,7 @@ predictor_rank <- read.csv(
 
 my_predictors <- predictor_rank$variable[1:9]
 
-my_predictors <- c(my_predictors, "RFE_const_term", "pop_den")
+#my_predictors <- c(my_predictors, "RFE_const_term", "pop_den")
 
 
 # ---------------------------------------- pre process the original foi dataset
@@ -76,8 +74,38 @@ foi_data[foi_data$type == "pseudoAbsence", dependent_variable] <- pseudoAbsence_
 
 # assign weights
 foi_data$new_weight <- all_wgt
+pAbs_wgt <- get_area_scaled_wgts(foi_data, wgt_limits)
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
-foi_data[foi_data$type == "pseudoAbsence" & foi_data$ID_0 == 15, "new_weight"] <- pAbs_wgt_AUS
+
+
+####
+# plot
+
+# library(ggplot2)
+# 
+# sub_foi <- foi_data[foi_data$type == "pseudoAbsence",]
+# 
+# png(file.path("figures", "wgt_area_relationship.png"),
+#     width = 10,
+#     height = 6,
+#     units = "in",
+#     pointsize = 12,
+#     res = 200)
+# 
+# p <- ggplot(sub_foi, aes(Shape_Area, new_weight)) +
+#   geom_point() +
+#   geom_text(aes(label = ISO), nudge_y = -0.5, size = 1.8) +
+#   scale_y_continuous(name = "Observation weight",
+#                      limits = c(0, max(wgt_limits)),
+#                      expand = c(0.1,0.1),
+#                      breaks = pretty(sub_foi$new_weight, 4),
+#                      labels = pretty(sub_foi$new_weight, 4)) +
+#   scale_x_continuous(name = expression("Pseudo absence admin unit area " ~ (10^{3} ~ "km"^{2})),
+#                      breaks = pretty(sub_foi$Shape_Area, 4),
+#                      labels = format(pretty(sub_foi$Shape_Area, 4) / 1000, scientific = FALSE))
+# 
+# print(p)
+# dev.off()
 
 
 # ---------------------------------------- create objects needed for run
