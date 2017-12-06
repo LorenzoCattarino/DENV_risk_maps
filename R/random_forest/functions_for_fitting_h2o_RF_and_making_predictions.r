@@ -84,15 +84,15 @@ wrapper_to_load_admin_dataset <- function(
   
 }
 
-get_boot_sample_and_fit_RF <- function(i, boot_ls, y_var, my_preds, no_trees, min_node_size, out_path, psAb_val, all_wgt, pAbs_wgt, pAbs_wgt_AUS) {
+get_boot_sample_and_fit_RF <- function(i, boot_ls, y_var, my_preds, no_trees, min_node_size, out_path, psAb_val, all_wgt, wgt_limits) {
   
   adm_dts_boot <- boot_ls[[i]]
   
   adm_dts_boot[adm_dts_boot$type == "pseudoAbsence", y_var] <- psAb_val
   
   adm_dts_boot$new_weight <- all_wgt
+  pAbs_wgt <- get_area_scaled_wgts(adm_dts_boot, wgt_limits)
   adm_dts_boot[adm_dts_boot$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
-  adm_dts_boot[adm_dts_boot$type == "pseudoAbsence" & adm_dts_boot$ID_0 == 15, "new_weight"] <- pAbs_wgt_AUS
   
   training_dataset <- adm_dts_boot[, c(y_var, my_preds, "new_weight")]
   
