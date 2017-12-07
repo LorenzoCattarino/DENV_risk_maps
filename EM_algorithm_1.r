@@ -58,7 +58,7 @@ predictor_rank <- read.csv(
   stringsAsFactors = FALSE)
 
 foi_data <- read.csv(
-  file.path("output", "foi", "All_FOI_estimates_linear_env_var.csv"),
+  file.path("output", "foi", "All_FOI_estimates_linear_env_var_area.csv"),
   stringsAsFactors = FALSE)
 
 
