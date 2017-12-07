@@ -32,9 +32,7 @@ min_node_size <- 20
 
 all_wgt <- 1
 
-pAbs_wgt <- 1
-
-pAbs_wgt_AUS <- 20
+wgt_limits <- c(1, 25)
 
 out_pt <- file.path("output", "EM_algorithm", paste0("model_objects_", dependent_variable, "_fit"), "boot_samples")
 
@@ -93,7 +91,7 @@ my_predictors <- predictor_rank$variable[1:9]
 #     out_path = out_pt,
 #     psAb_val = pseudoAbsence_value,
 #     all_wgt = all_wgt,
-#     pAbs_wgt = pAbs_wgt))
+#     wgt_limits = wgt_limits))
 
 
 # ---------------------------------------- submit all jobs
@@ -113,8 +111,7 @@ if (CLUSTER) {
     out_path = out_pt,
     psAb_val = pseudoAbsence_value,
     all_wgt = all_wgt,
-    pAbs_wgt = pAbs_wgt,
-    pAbs_wgt_AUS = pAbs_wgt_AUS)
+    wgt_limits = wgt_limits)
 
 } else {
 
@@ -129,7 +126,6 @@ if (CLUSTER) {
     out_path = out_pt,
     psAb_val = pseudoAbsence_value,
     all_wgt = all_wgt,
-    pAbs_wgt = pAbs_wgt,
-    pAbs_wgt_AUS = pAbs_wgt_AUS)
+    wgt_limits = wgt_limits)
 
 }

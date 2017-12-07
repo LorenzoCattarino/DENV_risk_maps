@@ -4,21 +4,20 @@
 # 2) admin unit observation vs population weighted average of the square predictions (within admin unit)
 # 3) admin unit observation vs population weighted average of the 1 km pixel predictions (within admin unit)
 #
-# NOTE: 1, 2 and 3 are for train and test sets separately (total of 6 plots)
+# NOTE: 1, 2 and 3 are for train and test sets separately (total of 6 plots per bootstrap sample)
 
 library(reshape2)
 library(ggplot2)
 library(plyr)
 
 source(file.path("R", "plotting", "plot_RF_preds_vs_obs_by_cv_dataset.r"))
-source(file.path("R", "random_forest", "get_lm_equation.r"))
 source(file.path("R", "utility_functions.r"))
 
 
 # ---------------------------------------- define parameters 
 
 
-model_type <- "boot_model_20km_6"
+model_type <- "boot_model_20km_2"
 
 no_fits <- 200
 
@@ -63,7 +62,7 @@ out_table_path <- file.path(
 
 
 foi_dataset <- read.csv(
-  file.path("output", "foi", "All_FOI_estimates_linear_env_var.csv"),
+  file.path("output", "foi", "All_FOI_estimates_linear_env_var_area.csv"),
   stringsAsFactors = FALSE) 
 
 
@@ -193,9 +192,4 @@ for (j in seq_along(tags)) {
     file_name = fl_nm_av,
     file_path = out_fig_path_av)
   
-  # percentiles_train <- t(apply(produc_train, 1, quantile, probs = c(0.025, 0.975)))
-  # percentiles_test <- t(apply(produc_test, 1, quantile, probs = c(0.025, 0.975)))
-  # colnames(percentiles_train) <- c("low_perc_train", "up_perc_train")
-  # colnames(percentiles_test) <- c("low_perc_test", "up_perc_test")
-
 }

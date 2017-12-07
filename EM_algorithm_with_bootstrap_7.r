@@ -11,7 +11,7 @@ library(ggplot2)
 # ---------------------------------------- define parameters
 
 
-model_type <- "boot_model_20km_6"
+model_type <- "boot_model_20km_2"
 
 no_fits <- 200
   

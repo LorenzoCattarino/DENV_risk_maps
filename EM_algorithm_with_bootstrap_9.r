@@ -14,8 +14,7 @@ my_resources <- c(
   file.path("R", "prepare_datasets", "average_up.r"),
   file.path("R", "prepare_datasets", "remove_NA_rows.R"),
   file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
-  file.path("R", "random_forest", "load_predict_filter.r"),
-  file.path("R", "random_forest", "attach_predictions_diff_scales_to_data.r"))
+  file.path("R", "random_forest", "load_predict_filter.r"))
 
 my_pkgs <- c("h2o", "dplyr", "data.table")
 
@@ -30,7 +29,7 @@ ctx <- context::context_save(path = "context",
 
 var_to_fit <- "FOI"
 
-model_type <- "boot_model_20km_6"
+model_type <- "boot_model_20km_2"
 
 pseudoAbsence_value <- -0.02
 
@@ -74,7 +73,7 @@ if (CLUSTER) {
 
 
 foi_dataset <- read.csv(
-  file.path("output", "foi", "All_FOI_estimates_linear_env_var.csv"),
+  file.path("output", "foi", "All_FOI_estimates_linear_env_var_area.csv"),
   stringsAsFactors = FALSE) 
 
 boot_samples <- readRDS(

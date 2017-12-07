@@ -38,7 +38,7 @@ new_res <- (1 / 120) * gr_size
 
 out_pt <- file.path("output", "EM_algorithm", "env_variables", "boot_samples")
 
-out_fl_nm_all <- paste0("env_vars_20km_sample_", seq_len(no_fits), ".rds")
+out_fl_nm_all <- paste0("env_vars_20km_", seq_len(no_fits), ".rds")
 
 
 # ---------------------------------------- are you using the cluster? 

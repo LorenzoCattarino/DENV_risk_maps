@@ -24,7 +24,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_type <- "boot_model_20km_6"
+model_type <- "boot_model_20km_2"
 
 var_to_fit <- "FOI"
 
@@ -36,9 +36,7 @@ niter <- 10
 
 all_wgt <- 1
 
-pAbs_wgt <- 1
-
-pAbs_wgt_AUS <- 20
+wgt_limits <- c(1, 25)
 
 grp_flds <- c("ID_0", "ID_1", "unique_id")
 
@@ -161,8 +159,7 @@ adm_dts <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 #     grp_flds = grp_flds,
 #     niter = niter,
 #     all_wgt = all_wgt,
-#     pAbs_wgt = pAbs_wgt,
-#     pAbs_wgt_AUS = pAbs_wgt_AUS,
+#     wgt_limits = wgt_limits,
 #     RF_obj_path = RF_out_pth,
 #     RF_obj_name = RF_nm_all,
 #     diagn_tab_path = diag_t_pth,
@@ -191,8 +188,7 @@ if (CLUSTER) {
     grp_flds = grp_flds,
     niter = niter,
     all_wgt = all_wgt,
-    pAbs_wgt = pAbs_wgt,
-    pAbs_wgt_AUS = pAbs_wgt_AUS,
+    wgt_limits = wgt_limits,
     RF_obj_path = RF_out_pth,
     RF_obj_name = RF_nm_all,
     diagn_tab_path = diag_t_pth,
@@ -216,8 +212,7 @@ if (CLUSTER) {
     grp_flds = grp_flds,
     niter = niter,
     all_wgt = all_wgt,
-    pAbs_wgt = pAbs_wgt,
-    pAbs_wgt_AUS = pAbs_wgt_AUS,
+    wgt_limits = wgt_limits,
     RF_obj_path = RF_out_pth,
     RF_obj_name = RF_nm_all,
     diagn_tab_path = diag_t_pth,
