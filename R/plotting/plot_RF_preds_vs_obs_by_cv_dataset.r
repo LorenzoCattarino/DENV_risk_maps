@@ -1,14 +1,6 @@
 RF_preds_vs_obs_plot_stratif <- function (
   df, x, y, facet_var, file_name, file_path) {
   
-  # y_values <- pretty(df[, y])
-  # max_y_value <- max(y_values)
-  # min_y_value <- min(y_values) 
-  # 
-  # x_values <- pretty(df[, x])
-  # max_x_value <- max(x_values)
-  # min_x_value <- min(x_values)
-  
   #browser()
   
   x_values <- pretty(df[, x], n = 5)
@@ -17,6 +9,8 @@ RF_preds_vs_obs_plot_stratif <- function (
   max_x_value <- max(x_values)
   min_y_value <- min(y_values)
   max_y_value <- max(y_values)
+  
+  corr_coeff <- ddply(df, as.formula(paste0("dataset ~", facet_var)), function(d.sub) round(cor(d.sub[,x], d.sub[,y]), 3))
   
   p <- ggplot(df, aes_string(x = x, y = y)) +
     facet_grid(as.formula(paste0("dataset ~", facet_var))) + 
@@ -38,17 +32,10 @@ RF_preds_vs_obs_plot_stratif <- function (
           strip.text.x = element_text(size = 12),
           strip.text.y = element_text(size = 12))
 
-  # p2 <- p + geom_smooth(method = "lm", formula = y ~ x - 1, se = FALSE) +    
-  #   coord_cartesian(xlim = c(min_x_value, max_x_value),
-  #                   ylim = c(min_y_value, max_y_value))
-  #   
-  # eq <- ddply(df, as.formula(paste0("dataset ~", facet_var)), lm_eqn, y = y, x = x)
-  # 
-  # p3 <- p2 + 
-  #   geom_text(data = eq, aes(x = 0.04, y = max_y_value, label = V1), 
-  #             parse = TRUE, 
-  #             inherit.aes = FALSE) +
-  #   facet_grid(as.formula(paste0("dataset ~", facet_var)))
+  p2 <- p +
+    geom_text(data = corr_coeff, aes(x = 0.04, y = max_y_value, label = (paste0("r = ", V1))),
+              inherit.aes = FALSE) +
+    facet_grid(as.formula(paste0("dataset ~", facet_var)))
   
   dir.create(file_path, FALSE, TRUE)
   
@@ -59,7 +46,7 @@ RF_preds_vs_obs_plot_stratif <- function (
       pointsize = 12,
       res = 200)
   
-  print(p)
+  print(p2)
   
   dev.off()
 }
