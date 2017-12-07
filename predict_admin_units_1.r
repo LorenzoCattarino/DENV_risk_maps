@@ -1,5 +1,5 @@
-# Makes foi predictions of all level 1 admin units, for each model fit. 
-# Save a n record x n fits matrix. 
+# Makes foi predictions of all level 1 admin units in the world, for each model fit. 
+# Save a n admin units x n fits matrix. 
 
 options(didehpc.cluster = "fi--didemrchnb")
 
