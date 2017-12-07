@@ -122,7 +122,7 @@ load_predict_and_save <- function(
   
   pxl_dts_path <- file.path("output", "EM_algorithm", "env_variables", "boot_samples")
   
-  pxl_dts_nm <- paste0("env_vars_20km_sample_", i, ".rds")
+  pxl_dts_nm <- paste0("env_vars_20km_", i, ".rds")
   
   RF_obj_nm <- paste0("RF_model_object_", i, ".rds")
   
@@ -144,7 +144,7 @@ load_predict_and_save <- function(
   # ---------------------------------------- 
   
   
-  out_file_name <- paste0("covariates_and_foi_20km_", seq_len(no_fits), ".rds")
+  out_file_name <- paste0("env_vars_and_foi_20km_", seq_len(no_fits), ".rds")
   
   a <- out_file_name[i]
   
