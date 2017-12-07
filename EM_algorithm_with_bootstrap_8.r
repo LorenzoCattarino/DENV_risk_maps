@@ -35,7 +35,7 @@ out_fl_nm <- "square_predictions_all_data.rds"
 # ---------------------------------------- define variables 
 
 
-out_pt <- file.path("output", "predictions_world", model_type)
+out_pt <- file.path("output", "EM_algorithm", model_type)
 
 
 # ---------------------------------------- rebuild the queue object?
