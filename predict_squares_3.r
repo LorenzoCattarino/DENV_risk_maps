@@ -1,5 +1,5 @@
-# Makes foi predictions of all squares, for each model fit. 
-# Save a n record x n fits matrix. 
+# Makes foi predictions for all the squares in the world, for each model fit. 
+# Save a n squares x n fits matrix. 
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -20,16 +20,11 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_6"
+model_tp <- "boot_model_20km_2"
 
 no_fits <- 200
 
-foi_out_fl_nm <- "FOI_all_squares_0_1667_deg.rds"
-
-out_pt <- file.path(
-  "output", 
-  "predictions_world",
-  model_tp)
+RF_mod_name <- "RF_obj_sample"
 
 
 # ---------------------------------------- are you using the cluster? 
@@ -37,7 +32,7 @@ out_pt <- file.path(
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "24Core")
+  config <- didehpc::didehpc_config(template = "12and16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -73,34 +68,44 @@ predictor_rank <- read.csv(
 
 my_predictors <- predictor_rank$variable[1:9]
 
-my_predictors <- c(my_predictors, "RFE_const_term")
+#my_predictors <- c(my_predictors, "RFE_const_term")
 
 
-# ---------------------------------------- make prediction for each square and model fit
+# ---------------------------------------- submit one job 
+
+
+# t <- obj$enqueue(
+#   wrapper_to_make_h2o_preds(
+#     seq_len(no_fits)[1],
+#     RF_mod_name = RF_mod_name,
+#     model_in_path = RF_obj_path, 
+#     dataset = all_sqr_covariates, 
+#     predictors = my_predictors))
+  
+
+# ---------------------------------------- submit all jobs
 
 
 if(CLUSTER){
   
-  t <- obj$enqueue(
-    wrapper_to_load_admin_dataset(
-      dat = all_sqr_covariates, 
-      sel_preds = my_predictors, 
-      parallel = FALSE, 
-      model_in_path = RF_obj_path, 
-      out_path = out_pt, 
-      out_fl_nm = foi_out_fl_nm,
-      no_fits = no_fits))
-  
-} else{
-  
-  wrapper_to_load_admin_dataset(
-    dat = all_sqr_covariates, 
-    sel_preds = my_predictors, 
-    parallel = FALSE, 
+  world_sqr_preds_all_fits <- queuer::qlapply(
+    seq_len(no_fits),
+    wrapper_to_make_h2o_preds,
+    obj,
+    RF_mod_name = RF_mod_name,
     model_in_path = RF_obj_path, 
-    out_path = out_pt, 
-    out_fl_nm = foi_out_fl_nm,
-    no_fits = no_fits)
+    dataset = all_sqr_covariates, 
+    predictors = my_predictors)
+  
+} else {
+  
+  world_sqr_preds_all_fits <- lapply(
+    seq_len(no_fits)[1],
+    wrapper_to_load_admin_dataset,
+    RF_mod_name = RF_mod_name,
+    model_in_path = RF_obj_path, 
+    dataset = all_sqr_covariates, 
+    predictors = my_predictors)
   
 }
-  
+ 
