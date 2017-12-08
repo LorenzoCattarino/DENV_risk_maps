@@ -35,24 +35,26 @@ average_foi_and_burden_predictions <- function(
 }
 
 average_boot_samples_dim2 <- function(dat){
-  out_names <- c("mean", "sd", "lCI", "uCI")
+  out_names <- c("mean", "sd", "lCI", "uCI", "interv")
   mean_val <- rowMeans(dat)
   st_dev <- apply(dat, 1, FUN = sd)
   percentiles <- apply(dat, 1, FUN = quantile, probs = c(0.025, 0.975))
   percentiles <- t(percentiles)
   l_b <- percentiles[, 1]
   u_b <- percentiles[, 2]
-  setNames(data.frame(mean_val, st_dev, l_b, u_b), out_names)
+  interv <- u_b - l_b
+  setNames(data.frame(mean_val, st_dev, l_b, u_b, interv), out_names)
 }
 
 average_boot_samples_dim1 <- function(dat){
-  out_names <- c("mean", "sd", "lCI", "uCI")
+  out_names <- c("mean", "sd", "lCI", "uCI", "interv")
   mean_val <- mean(dat)
   st_dev <- sd(dat)
   percentiles <- quantile(dat, probs = c(0.025, 0.975))
   l_b <- percentiles[1]
   u_b <- percentiles[2]
-  setNames(c(mean_val, st_dev, l_b, u_b), out_names)
+  interv <- u_b - l_b
+  setNames(c(mean_val, st_dev, l_b, u_b, interv), out_names)
 }
 
 
