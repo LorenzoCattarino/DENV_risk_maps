@@ -1,5 +1,4 @@
 # Makes foi predictions for all the squares in the world, for each model fit. 
-# Save a n squares x n fits matrix. 
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -101,7 +100,7 @@ if(CLUSTER){
   
   world_sqr_preds_all_fits <- lapply(
     seq_len(no_fits)[1],
-    wrapper_to_load_admin_dataset,
+    wrapper_to_make_h2o_preds,
     RF_mod_name = RF_mod_name,
     model_in_path = RF_obj_path, 
     dataset = all_sqr_covariates, 
