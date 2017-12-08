@@ -31,7 +31,7 @@ context::parallel_cluster_start(8, ctx)
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_6" 
+model_tp <- "boot_model_20km_2" 
 
 no_fits <- 200
 
@@ -72,7 +72,7 @@ all_sqr_foi <- readRDS(
     "output", 
     "predictions_world",
     model_tp,
-    "FOI_all_squares_0_1667_deg.rds"))
+    "FOI_all_squares.rds"))
 
 all_sqr_covariates <- readRDS(
   file.path(
@@ -199,7 +199,7 @@ all_sqr_foi <- as.matrix(all_sqr_foi)
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "12and16Core")
+  config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 }
@@ -207,7 +207,7 @@ if (CLUSTER) {
 if (CLUSTER) {
   
   R0_and_burden <- queuer::qlapply(
-    fctr_combs[3],
+    fctr_combs[1:3],
     wrapper_to_multi_factor_R0_and_burden,
     obj,
     foi_data = all_sqr_foi, 
@@ -224,7 +224,7 @@ if (CLUSTER) {
     no_fits = no_fits,
     out_path = out_path,
     base_info = base_info,
-    reverse = TRUE)
+    reverse = FALSE)
   
 } else {
   
@@ -245,7 +245,7 @@ if (CLUSTER) {
     no_fits = no_fits,
     out_path = out_path,
     base_info = base_info,
-    reverse = TRUE,
+    reverse = FALSE,
     parallel = FALSE)
   
 }
