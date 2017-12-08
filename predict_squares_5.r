@@ -3,12 +3,11 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "prepare_datasets", "calculate_mean_across_fits.r"),
-  file.path("R", "burden_and_interventions", "mean_of_predictions_for_diff_scenarios.r"))
+  file.path("R", "burden_and_interventions", "calculate_mean_across_fits.r"))
 
 my_pkgs <- NULL
 
@@ -23,8 +22,8 @@ ctx <- context::context_save(path = "context",
 
 model_tp <- "boot_model_20km_2"
 
-vars <- c("C_num", "C_num") 
-#vars <- c("FOI", "FOI_r")
+#vars <- c("C_num", "C_num") 
+vars <- c("FOI", "R0_r")
 #vars <- c("FOI", "R0_r", "I_inc", "C_inc") 
 
 scenario_ids <- 1:3
@@ -39,7 +38,7 @@ in_path <- file.path("output", "predictions_world", model_tp)
 
 out_path <- file.path("output", "predictions_world", model_tp, "means")
 
-dts_tag <- "all_squares_0_1667_deg"
+dts_tag <- "all_squares"
 
 
 # ----------------------------------------
@@ -62,51 +61,51 @@ if (CLUSTER) {
 # ---------------------------------------- run one job
 
 
-# t <- obj$enqueue(
-#   average_foi_and_burden_predictions(
-#     seq_along(vars)[2],
-#     vars = vars,
-#     in_path = in_path, 
-#     out_path = out_path, 
-#     scenario_ids = scenario_ids, 
-#     col_names = col_names,
-#     base_info = base_info
-#     dts_tag = dts_tag))
+t <- obj$enqueue(
+  average_foi_and_burden_predictions(
+    seq_along(vars)[2],
+    vars = vars,
+    in_path = in_path,
+    out_path = out_path,
+    scenario_ids = scenario_ids,
+    col_names = col_names,
+    base_info = base_info,
+    dts_tag = dts_tag))
   
   
 # ---------------------------------------- run
 
 
-if (CLUSTER) {
-
-  means_all_scenarios <- queuer::qlapply(
-    seq_along(vars),
-    average_foi_and_burden_predictions,
-    obj,
-    vars = vars,
-    in_path = in_path,
-    out_path = out_path,
-    scenario_ids = scenario_ids,
-    col_names = col_names,
-    base_info = base_info,
-    dts_tag = dts_tag)
-
-} else {
-
-  means_all_scenarios <- loop(
-    seq_along(vars)[2],
-    average_foi_and_burden_predictions,
-    vars = vars,
-    in_path = in_path,
-    out_path = out_path,
-    scenario_ids = scenario_ids,
-    col_names = col_names,
-    base_info = base_info,
-    dts_tag = dts_tag,
-    parallel = FALSE)
-
-}
-
-if(!CLUSTER){
-  context::parallel_cluster_stop()
-}
+# if (CLUSTER) {
+# 
+#   means_all_scenarios <- queuer::qlapply(
+#     seq_along(vars),
+#     average_foi_and_burden_predictions,
+#     obj,
+#     vars = vars,
+#     in_path = in_path,
+#     out_path = out_path,
+#     scenario_ids = scenario_ids,
+#     col_names = col_names,
+#     base_info = base_info,
+#     dts_tag = dts_tag)
+# 
+# } else {
+# 
+#   means_all_scenarios <- loop(
+#     seq_along(vars)[2],
+#     average_foi_and_burden_predictions,
+#     vars = vars,
+#     in_path = in_path,
+#     out_path = out_path,
+#     scenario_ids = scenario_ids,
+#     col_names = col_names,
+#     base_info = base_info,
+#     dts_tag = dts_tag,
+#     parallel = FALSE)
+# 
+# }
+# 
+# if(!CLUSTER){
+#   context::parallel_cluster_stop()
+# }
