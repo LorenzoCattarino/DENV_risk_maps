@@ -12,8 +12,16 @@ RF_preds_vs_obs_plot_stratif <- function (
   
   corr_coeff <- ddply(df, as.formula(paste0("dataset ~", facet_var)), function(d.sub) round(cor(d.sub[,x], d.sub[,y]), 3))
   
+  facet_plot_names_x <- as_labeller(c(admin = "Level 1 administrative unit",
+                                      cell = "20 km pixel"))
+
+  facet_plot_names_y <- as_labeller(c(train = "Train set",
+                                      test = "Test set"))
+  
   p <- ggplot(df, aes_string(x = x, y = y)) +
-    facet_grid(as.formula(paste0("dataset ~", facet_var))) + 
+    facet_grid(as.formula(paste0("dataset ~", facet_var)),
+               labeller = labeller(dataset = facet_plot_names_y,
+                                   scale = facet_plot_names_x)) + 
     geom_point(aes_string(x = x, y = y), size = 1) +
     geom_abline(slope = 1, intercept = 0, linetype = 2) +
     scale_x_continuous("Observations",  
@@ -33,9 +41,14 @@ RF_preds_vs_obs_plot_stratif <- function (
           strip.text.y = element_text(size = 12))
 
   p2 <- p +
-    geom_text(data = corr_coeff, aes(x = 0.04, y = max_y_value, label = (paste0("r = ", V1))),
-              inherit.aes = FALSE) +
-    facet_grid(as.formula(paste0("dataset ~", facet_var)))
+    geom_text(data = corr_coeff, 
+              aes(x = x_values[length(x_values)-1], y = min_y_value, hjust = 1, label = paste0("italic(r) == ", V1)),
+              parse = TRUE,
+              inherit.aes = FALSE,
+              size = 5) +
+    facet_grid(as.formula(paste0("dataset ~", facet_var)),
+               labeller = labeller(dataset = facet_plot_names_y,
+                                   scale = facet_plot_names_x))
   
   dir.create(file_path, FALSE, TRUE)
   
