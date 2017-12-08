@@ -22,7 +22,7 @@ ctx <- context::context_save(path = "context",
 
 model_tp <- "boot_model_20km_2"
 
-out_fl_nm <- "square_predictions_world.rds"
+out_fl_nm <- "FOI_all_squares.rds"
 
 out_pt <- file.path(
   "output", 
