@@ -61,51 +61,51 @@ if (CLUSTER) {
 # ---------------------------------------- run one job
 
 
-t <- obj$enqueue(
-  average_foi_and_burden_predictions(
-    seq_along(vars)[2],
+# t <- obj$enqueue(
+#   average_foi_and_burden_predictions(
+#     seq_along(vars)[2],
+#     vars = vars,
+#     in_path = in_path,
+#     out_path = out_path,
+#     scenario_ids = scenario_ids,
+#     col_names = col_names,
+#     base_info = base_info,
+#     dts_tag = dts_tag))
+  
+  
+# ---------------------------------------- run
+
+
+if (CLUSTER) {
+
+  means_all_scenarios <- queuer::qlapply(
+    seq_along(vars),
+    average_foi_and_burden_predictions,
+    obj,
     vars = vars,
     in_path = in_path,
     out_path = out_path,
     scenario_ids = scenario_ids,
     col_names = col_names,
     base_info = base_info,
-    dts_tag = dts_tag))
-  
-  
-# ---------------------------------------- run
+    dts_tag = dts_tag)
 
+} else {
 
-# if (CLUSTER) {
-# 
-#   means_all_scenarios <- queuer::qlapply(
-#     seq_along(vars),
-#     average_foi_and_burden_predictions,
-#     obj,
-#     vars = vars,
-#     in_path = in_path,
-#     out_path = out_path,
-#     scenario_ids = scenario_ids,
-#     col_names = col_names,
-#     base_info = base_info,
-#     dts_tag = dts_tag)
-# 
-# } else {
-# 
-#   means_all_scenarios <- loop(
-#     seq_along(vars)[2],
-#     average_foi_and_burden_predictions,
-#     vars = vars,
-#     in_path = in_path,
-#     out_path = out_path,
-#     scenario_ids = scenario_ids,
-#     col_names = col_names,
-#     base_info = base_info,
-#     dts_tag = dts_tag,
-#     parallel = FALSE)
-# 
-# }
-# 
-# if(!CLUSTER){
-#   context::parallel_cluster_stop()
-# }
+  means_all_scenarios <- loop(
+    seq_along(vars)[2],
+    average_foi_and_burden_predictions,
+    vars = vars,
+    in_path = in_path,
+    out_path = out_path,
+    scenario_ids = scenario_ids,
+    col_names = col_names,
+    base_info = base_info,
+    dts_tag = dts_tag,
+    parallel = FALSE)
+
+}
+
+if(!CLUSTER){
+  context::parallel_cluster_stop()
+}
