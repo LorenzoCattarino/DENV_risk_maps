@@ -107,6 +107,8 @@ for (j in seq_along(tags)) {
     
     dts_1 <- readRDS(file.path(in_path, dts_nm))
     
+    dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 0] <- 0
+    
     dts <- dts_1[dts_1$type %in% dt_typ, ]
     
     
