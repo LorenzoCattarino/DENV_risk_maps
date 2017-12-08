@@ -90,7 +90,7 @@ wrapper_to_multi_factor_R0_and_burden <- function(
 
     ret3 <- cbind(foi_data[, base_info], ret2)
     
-    fl_nm <- paste0(var_names[b], "_all_squares_0_1667_deg_", run_ID, ".rds")
+    fl_nm <- paste0(var_names[b], "_all_squares_", run_ID, ".rds")
     
     write_out_rds(ret3, out_path, fl_nm)
     
