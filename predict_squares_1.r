@@ -1,41 +1,29 @@
-# Resamples all the 1 km pixels, in each tile, to squares with a coarser resolution
+# Makes foi predictions for all the squares in the world, for each model fit. 
 
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "prepare_datasets", "resample.R"),
-  file.path("R", "prepare_datasets", "clean_and_resample.r"),
-  file.path("R", "prepare_datasets", "grid_up_foi_dataset.R"),
-  file.path("R", "prepare_datasets", "remove_NA_rows.r"),
-  file.path("R", "prepare_datasets", "average_up.R"))
+  file.path("R", "utility_functions.r"),
+  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"))
+  
+my_pkgs <- "h2o"
 
-my_pkgs <- c("data.table", "dplyr")
-
-lcf <- provisionr::package_sources(local = file.path("R_binaries", "data.table_1.10.5.zip"))
 context::context_log_start()
 ctx <- context::context_save(path = "context",
                              packages = my_pkgs,
-                             sources = my_resources,
-                             package_sources = lcf)
+                             sources = my_resources)
 
 
 # ---------------------------------------- define parameters
 
 
-in_pt <- file.path("data", "env_variables", "all_sets_gadm_codes")
+model_tp <- "boot_model_20km_4"
 
-group_fields <- c("cell", "lat.grid", "long.grid")
+no_fits <- 200
 
-gr_size <- 20
-
-new_res <- (1 / 120) * gr_size
-
-out_pt <- file.path(
-  "output",
-  "env_variables",
-  "all_sets_0_1667_deg")
+RF_mod_name <- "RF_obj_sample"
 
 
 # ---------------------------------------- are you using the cluster? 
@@ -43,7 +31,8 @@ out_pt <- file.path(
 
 if (CLUSTER) {
   
-  obj <- didehpc::queue_didehpc(ctx)
+  config <- didehpc::didehpc_config(template = "12and16Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
   
@@ -52,62 +41,70 @@ if (CLUSTER) {
 }
 
 
-# ---------------------------------------- load data 
+# ---------------------------------------- load data
 
 
-all_predictors <- read.table(
+all_sqr_covariates <- readRDS(file.path("output", "env_variables", "all_squares_env_var_0_1667_deg.rds"))
+
+RF_obj_path <- file.path(
+  "output",
+  "EM_algorithm",
+  model_tp,
+  "optimized_model_objects")
+
+# predicting variable rank
+predictor_rank <- read.csv(
   file.path("output", 
-            "datasets", 
-            "all_predictors.txt"), 
-  header = TRUE, 
+            "variable_selection", 
+            "metropolis_hastings", 
+            "exp_1", 
+            "variable_rank_final_fits_exp_1.csv"),
   stringsAsFactors = FALSE)
 
 
-# ---------------------------------------- pre processing
+# ---------------------------------------- get best predictor
 
 
-wanted_preds_ids <- grep("^lct", all_predictors$variable, invert = TRUE) 
+my_predictors <- predictor_rank$variable[1:9]
 
-var_names <- all_predictors$variable[wanted_preds_ids]
-
-fi <- list.files(in_pt, 
-                 pattern = "^tile",
-                 full.names = TRUE)
+#my_predictors <- c(my_predictors, "RFE_const_term")
 
 
-# ---------------------------------------- submit one job
+# ---------------------------------------- submit one job 
 
 
-t <- obj$enqueue(
-  resample(fi[185],
-  grp_flds = group_fields,
-  grid_size = new_res,
-  env_var_names = var_names,
-  out_path = out_pt))
-
+# t <- obj$enqueue(
+#   wrapper_to_make_h2o_preds(
+#     seq_len(no_fits)[1],
+#     RF_mod_name = RF_mod_name,
+#     model_in_path = RF_obj_path, 
+#     dataset = all_sqr_covariates, 
+#     predictors = my_predictors))
+  
 
 # ---------------------------------------- submit all jobs
 
 
-# if (CLUSTER) {
-# 
-#   resample_tiles <- queuer::qlapply(
-#     fi,
-#     resample,
-#     obj,
-#     grp_flds = group_fields,
-#     grid_size = new_res,
-#     env_var_names = var_names,
-#     out_path = out_pt)
-# 
-# }else{
-# 
-#   resample_tiles <- lapply(
-#     fi[185],
-#     resample,
-#     grp_flds = group_fields,
-#     grid_size = new_res,
-#     env_var_names = var_names,
-#     out_path = out_pt)
-# 
-# }
+if(CLUSTER){
+  
+  world_sqr_preds_all_fits <- queuer::qlapply(
+    seq_len(no_fits),
+    wrapper_to_make_h2o_preds,
+    obj,
+    RF_mod_name = RF_mod_name,
+    model_in_path = RF_obj_path, 
+    dataset = all_sqr_covariates, 
+    predictors = my_predictors)
+  
+} else {
+  
+  world_sqr_preds_all_fits <- lapply(
+    seq_len(no_fits)[1],
+    wrapper_to_make_h2o_preds,
+    RF_mod_name = RF_mod_name,
+    model_in_path = RF_obj_path, 
+    dataset = all_sqr_covariates, 
+    predictors = my_predictors)
+  
+}
+ 

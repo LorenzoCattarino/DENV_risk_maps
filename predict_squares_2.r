@@ -1,64 +1,64 @@
-# Binds all square tiles together 
+# Load back square predictions for the world, for each model fit 
+# Save a n squares x n fits matrix. 
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-my_resources <- c(
-  file.path("R", "utility_functions.r"))
+CLUSTER <- TRUE
 
-my_pkgs <- "data.table"
+my_resources <- c(
+  file.path("R", "utility_functions.r"),
+  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"))
+
+my_pkgs <- "h2o"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
-
-context::context_load(ctx)
-context::parallel_cluster_start(8, ctx)
+                             packages = my_pkgs,
+                             sources = my_resources)
 
 
-# ---------------------------------------- define parameters 
+# ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_cw" 
+model_tp <- "boot_model_20km_4"
 
-in_pt <- file.path(
-  "output", 
-  "env_variables",
-  "all_sets_0_1667_deg",
-  "gadm")
-
-out_fl_nm <- "all_squares_env_var_0_1667_deg.rds"
+out_fl_nm <- "FOI_all_squares.rds"
 
 out_pt <- file.path(
   "output", 
-  "env_variables")
+  "predictions_world",
+  model_tp)
 
 
-# ---------------------------------------- pre processing
+# ---------------------------------------- rebuild the queue object?
 
 
-fi <- list.files(in_pt, 
-                 pattern = "^tile",
-                 full.names = TRUE)
+if (CLUSTER) {
+  
+  config <- didehpc::didehpc_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
+  
+} else {
+  
+  context::context_load(ctx)
+  
+}
 
 
-# ---------------------------------------- combine all covariate tiles
+# ---------------------------------------- get results
 
 
-all_tiles <- loop(
-  fi, 
-  fread,
-  header = TRUE,
-  sep = ",",
-  na.strings = c("NA", "-1.#IND", "Peipsi", "Moskva", "IJsselmeer", "Zeeuwse meren"),
-  fill = TRUE, 
-  data.table = FALSE,
-  parallel = TRUE)
+# loads the LAST task bundle
+my_task_id <- obj$task_bundle_info()[nrow(obj$task_bundle_info()), "name"] 
 
-all_sqr_covariates <- do.call("rbind", all_tiles)
+world_sqr_preds_all_fits_t <- obj$task_bundle_get(my_task_id)
 
-all_sqr_covariates$cell <- seq_len(nrow(all_sqr_covariates))
+world_sqr_preds_all_fits <- world_sqr_preds_all_fits_t$results()
 
-write_out_rds(all_sqr_covariates, out_pt, out_fl_nm)
 
-context::parallel_cluster_stop()
+# ---------------------------------------- combine all results together
+
+
+world_sqr_preds <- do.call("cbind", world_sqr_preds_all_fits)
+
+write_out_rds(world_sqr_preds, out_pt, out_fl_nm)  

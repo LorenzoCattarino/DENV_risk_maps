@@ -1,5 +1,5 @@
-# Load back square predictions for the world, for each model fit 
-# Save a n squares x n fits matrix. 
+# Take mean, sd and 95% CI of foi, R0 and burden measures, for each 20 km square
+# THIS IS FOR THE MAPS!
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -7,9 +7,9 @@ CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"))
+  file.path("R", "burden_and_interventions", "calculate_mean_across_fits.r"))
 
-my_pkgs <- "h2o"
+my_pkgs <- NULL
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -22,43 +22,89 @@ ctx <- context::context_save(path = "context",
 
 model_tp <- "boot_model_20km_4"
 
-out_fl_nm <- "FOI_all_squares.rds"
+vars <- c("FOI", "FOI_r")
+#vars <- c("FOI", "R0_r", "I_inc", "C_inc") 
 
-out_pt <- file.path(
-  "output", 
-  "predictions_world",
-  model_tp)
+scenario_ids <- 2
+
+no_fits <- 200
+
+col_names <- as.character(seq_len(no_fits))
+
+base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2")
+
+in_path <- file.path("output", "predictions_world", model_tp)
+
+out_path <- file.path("output", "predictions_world", model_tp, "means")
+
+dts_tag <- "all_squares"
 
 
-# ---------------------------------------- rebuild the queue object?
+# ----------------------------------------
 
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "24Core")
+  config <- didehpc::didehpc_config(template = "12and16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
-} else {
+} else{
   
   context::context_load(ctx)
+  context::parallel_cluster_start(8, ctx)
   
 }
 
 
-# ---------------------------------------- get results
+
+# ---------------------------------------- run one job
 
 
-# loads the LAST task bundle
-my_task_id <- obj$task_bundle_info()[nrow(obj$task_bundle_info()), "name"] 
+# t <- obj$enqueue(
+#   average_foi_and_burden_predictions(
+#     seq_along(vars)[2],
+#     vars = vars,
+#     in_path = in_path,
+#     out_path = out_path,
+#     scenario_ids = scenario_ids,
+#     col_names = col_names,
+#     base_info = base_info,
+#     dts_tag = dts_tag))
+  
+  
+# ---------------------------------------- run
 
-world_sqr_preds_all_fits_t <- obj$task_bundle_get(my_task_id)
 
-world_sqr_preds_all_fits <- world_sqr_preds_all_fits_t$results()
+if (CLUSTER) {
 
+  means_all_scenarios <- queuer::qlapply(
+    seq_along(vars),
+    average_foi_and_burden_predictions,
+    obj,
+    vars = vars,
+    in_path = in_path,
+    out_path = out_path,
+    scenario_ids = scenario_ids,
+    col_names = col_names,
+    base_info = base_info,
+    dts_tag = dts_tag)
 
-# ---------------------------------------- combine all results together
+} else {
 
+  means_all_scenarios <- loop(
+    seq_along(vars)[2],
+    average_foi_and_burden_predictions,
+    vars = vars,
+    in_path = in_path,
+    out_path = out_path,
+    scenario_ids = scenario_ids,
+    col_names = col_names,
+    base_info = base_info,
+    dts_tag = dts_tag,
+    parallel = FALSE)
 
-world_sqr_preds <- do.call("cbind", world_sqr_preds_all_fits)
+}
 
-write_out_rds(world_sqr_preds, out_pt, out_fl_nm)  
+if(!CLUSTER){
+  context::parallel_cluster_stop()
+}
