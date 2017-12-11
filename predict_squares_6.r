@@ -1,146 +1,107 @@
-# Makes a pretty map of the square predictions
+# Take mean, sd and 95% CI of foi, R0 and burden measures, for each 20 km square
+# THIS IS FOR THE MAPS!
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "plotting", "functions_for_plotting_square_level_maps.r"))
+  file.path("R", "burden_and_interventions", "calculate_mean_across_fits.r"))
 
-my_pkgs <- c("data.table", "ggplot2", "colorRamps", "raster", "rgdal", "scales", "RColorBrewer")
+my_pkgs <- NULL
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
+                             packages = my_pkgs,
+                             sources = my_resources)
 
 
-# ---------------------------------------- define parameters 
+# ---------------------------------------- define parameters
 
 
 model_tp <- "boot_model_20km_4"
 
-vars <- c("FOI", "R0_r")
+vars <- c("FOI", "FOI_r")
+#vars <- c("FOI", "R0_r", "I_inc", "C_inc") 
 
-scenario_id <- 2
-  
-statistics <- c("mean", "interv")
-#statistics <- c("mean", "sd", "interv", "lCI", "uCI")
+scenario_ids <- 2
 
-map_size <- "small"
+no_fits <- 200
 
-out_pt <- file.path(
-  "figures", 
-  "predictions_world",
-  model_tp)
-  
-  
-# ---------------------------------------- are you using the cluster?
+col_names <- as.character(seq_len(no_fits))
 
+base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2")
 
-if (CLUSTER) {
-  
-  obj <- didehpc::queue_didehpc(ctx)
-  
-}else{
-  
-  context::context_load(ctx)
-  context::parallel_cluster_start(6, ctx)
-}
+in_path <- file.path("output", "predictions_world", model_tp)
 
+out_path <- file.path("output", "predictions_world", model_tp, "means")
 
-# ---------------------------------------- create combination of factors
-
-
-fact_comb_FOI <- expand.grid(vars = vars[vars == "FOI"], 
-                             scenario_id = 1, 
-                             statistics = statistics, 
-                             stringsAsFactors = FALSE)
-
-fact_comb_no_FOI <- expand.grid(vars = vars[vars != "FOI"], 
-                                scenario_id = scenario_id, 
-                                statistics = statistics, 
-                                stringsAsFactors = FALSE)
-
-fact_comb <- rbind(fact_comb_FOI, fact_comb_no_FOI)
-
-
-# ---------------------------------------- create color palette
-
-
-col_ls <- list(
-  c("red3", "orange", "chartreuse4"),
-  matlab.like(10),
-  colorRampPalette(c("green4", "yellow", "red"))(10))
-
-
-# ---------------------------------------- load data 
-
-
-country_shp <- readOGR(dsn = file.path("output", "shapefiles"), layer = "gadm28_adm0_eras")
-
-
-# ---------------------------------------- remove the Caspian Sea
-
-
-country_shp <- country_shp[!country_shp@data$NAME_ENGLI == "Caspian Sea", ]
-
-
-# ---------------------------------------- convert to ggplot-friendly object 
-
-
-shp_fort <- fortify(country_shp)
+dts_tag <- "all_squares"
 
 
 # ----------------------------------------
 
 
-fact_comb_ls <- df_to_list(fact_comb, use_names = TRUE)
+if (CLUSTER) {
+  
+  config <- didehpc::didehpc_config(template = "12and16Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
+  
+} else{
+  
+  context::context_load(ctx)
+  context::parallel_cluster_start(8, ctx)
+  
+}
+
+
+
+# ---------------------------------------- run one job
+
+
+# t <- obj$enqueue(
+#   average_foi_and_burden_predictions(
+#     seq_along(vars)[2],
+#     vars = vars,
+#     in_path = in_path,
+#     out_path = out_path,
+#     scenario_ids = scenario_ids,
+#     col_names = col_names,
+#     base_info = base_info,
+#     dts_tag = dts_tag))
   
   
-# ------------------------------------------ submit one job 
-
-
-# t1 <- obj$enqueue(
-#   wrapper_to_ggplot_map(
-#     fact_comb_ls,
-#     my_colors = col_ls,
-#     model_tp = model_tp,
-#     country_shp = country_shp,
-#     shp_fort = shp_fort,
-#     out_path = out_pt,
-#     map_size = map_size))
-
-
-# ---------------------------------------- submit all jobs
+# ---------------------------------------- run
 
 
 if (CLUSTER) {
 
-  maps <- queuer::qlapply(
-    fact_comb_ls,
-    wrapper_to_ggplot_map,
+  means_all_scenarios <- queuer::qlapply(
+    seq_along(vars),
+    average_foi_and_burden_predictions,
     obj,
-    my_colors = col_ls,
-    model_tp = model_tp,
-    country_shp = country_shp,
-    shp_fort = shp_fort,
-    out_path = out_pt,
-    map_size = map_size)
+    vars = vars,
+    in_path = in_path,
+    out_path = out_path,
+    scenario_ids = scenario_ids,
+    col_names = col_names,
+    base_info = base_info,
+    dts_tag = dts_tag)
 
 } else {
 
-  maps <- loop(
-    fact_comb_ls,
-    wrapper_to_ggplot_map,
-    my_colors = col_ls,
-    model_tp = model_tp,
-    country_shp = country_shp,
-    shp_fort = shp_fort,
-    out_path = out_pt,
-    map_size = map_size,
-    parallel = TRUE)
+  means_all_scenarios <- loop(
+    seq_along(vars)[2],
+    average_foi_and_burden_predictions,
+    vars = vars,
+    in_path = in_path,
+    out_path = out_path,
+    scenario_ids = scenario_ids,
+    col_names = col_names,
+    base_info = base_info,
+    dts_tag = dts_tag,
+    parallel = FALSE)
 
 }
 
