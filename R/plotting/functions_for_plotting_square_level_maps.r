@@ -1,8 +1,10 @@
 wrapper_to_ggplot_map <- function(
   x, my_colors, model_tp, 
   country_shp, shp_fort, out_path, 
-  plot_wdt, plot_hgt){
+  map_size, in_dts_tag){
   
+  
+  #browser()
   
   # ---------------------------------------- define parameters / variables
   
@@ -22,14 +24,25 @@ wrapper_to_ggplot_map <- function(
   
   col <- my_colors[[j]]
   
-  if(statsc == "mean"){
-    ttl <- "mean"
+  if(statsc == "mean" | statsc == "best"){
+    if(var == "FOI"){
+      ttl <- var
+    }
+    if(grepl("R0", var)){
+      ttl <- expression('R'[0])
+    }
+    if(grepl("I_", var)){
+      ttl <- "Annual infections"
+    }
+    if(grepl("C_", var)){
+      ttl <- "Annual cases"
+    }
   }
   if(statsc == "sd"){
     ttl <- "SD"
   }
   if(statsc == "interv"){
-    ttl <- "quantile_diff"
+    ttl <- "95% CI"
   }
   if(statsc == "lCI"){
     ttl <- "2.5_quantile"
@@ -37,56 +50,31 @@ wrapper_to_ggplot_map <- function(
   if(statsc == "uCI"){
     ttl <- "97.5_quantile"
   }
-  
+
   
   # ---------------------------------------- load data 
   
   
   if(var == "FOI"){
     
-    base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2")
+    out_fl_nm <- paste0(statsc, "_", var, ".png")
     
-    out_fl_nm <- paste0(statsc, "_", var,"_0_1667_deg.png")
-    
-    mean_pred_fl_nm <- paste0(var, "_mean_all_squares_0_1667_deg.rds")
-    
-    mean_preds <- readRDS(
-      file.path(
-        "output",
-        "predictions_world",
-        model_tp,
-        "means",
-        mean_pred_fl_nm))
-    
-    all_sqr_covariates <- readRDS(
-      file.path(
-        "output", 
-        "env_variables", 
-        "all_squares_env_var_0_1667_deg.rds"))
-    
-    df_long <- cbind(all_sqr_covariates[, base_info], mean_preds)
+    mean_pred_fl_nm <- paste0(var, "_", in_dts_tag, ".rds")
     
   } else {
     
-    out_fl_nm <- paste0(statsc, "_", var, "_0_1667_deg_", scenario_id, ".png")
+    out_fl_nm <- paste0(statsc, "_", var, "_", scenario_id, ".png")
     
-    mean_pred_fl_nm <- paste0(var, "_mean_all_squares_0_1667_deg_", scenario_id, ".rds")
-    
-    df_long <- readRDS(
-      file.path(
-        "output",
-        "predictions_world",
-        model_tp,
-        "means",
-        mean_pred_fl_nm))
-  
-  }
+    mean_pred_fl_nm <- paste0(var, "_", in_dts_tag, "_", scenario_id, ".rds")
 
+  }
   
-  # ---------------------------------------- calculate quantile difference 
-  
-  
-  #df_long$interv <- df_long$uCI - df_long$lCI 
+  df_long <- readRDS(
+    file.path(
+      "output",
+      "predictions_world",
+      model_tp,
+      mean_pred_fl_nm))
   
   
   # ---------------------------------------- create matrix of values
@@ -145,7 +133,7 @@ wrapper_to_ggplot_map <- function(
   # ---------------------------------------- plot differently NA values
   
   
-  if(var == "R0_r" & statsc == "mean") {
+  if(var == "R0_r" & (statsc == "mean" | statsc == "best")) {
     
     na_cutoff <- 1 
   
@@ -167,13 +155,46 @@ wrapper_to_ggplot_map <- function(
                         out_file_name = out_fl_nm,
                         my_col = col, 
                         ttl = ttl,
-                        plot_wdt = plot_wdt, 
-                        plot_hgt = plot_hgt,
+                        map_size = map_size,
                         statsc = statsc)
   
 }
 
-map_data_pixel_ggplot <- function(df, shp, out_path, out_file_name, my_col, ttl, plot_wdt, plot_hgt, statsc) {
+map_data_pixel_ggplot <- function(df, shp, out_path, out_file_name, my_col, ttl, map_size, statsc) {
+  
+  if(map_size == "small"){
+    plot_wdt <- 8
+    plot_hgt <- 4  
+    barwdt <- 1.5
+    barhgt <- 6.5
+    pol_brd_sz <- 0.1
+    leg_pos_x <- 0.15
+    leg_pos_y <- 0.3
+    leg_txt_sz <- 10 
+    leg_ttl_sz <- 12
+  }
+  if(map_size == "medium"){
+    plot_wdt <- 12
+    plot_hgt <- 6     
+    barwdt <- 0.15
+    barhgt <- 0.7
+    pol_brd_sz <- 0.1
+    leg_pos_x <- 0.025
+    leg_pos_y <- 0.09
+    leg_txt_sz <- 15 
+    leg_ttl_sz <- 22
+  }
+  if(map_size == "large"){
+    plot_wdt <- 28
+    plot_hgt <- 12
+    barwdt <- 0.15
+    barhgt <- 0.7
+    pol_brd_sz <- 0.1
+    leg_pos_x <- 0.025
+    leg_pos_y <- 0.09
+    leg_txt_sz <- 15 
+    leg_ttl_sz <- 22
+  }
   
   #browser()
   
@@ -199,21 +220,26 @@ map_data_pixel_ggplot <- function(df, shp, out_path, out_file_name, my_col, ttl,
                                              keyheight = 5))
   } else {
     
+    leg_val <- pretty(df$layer, 5)
+    
     p <- ggplot() +
       geom_tile(data = df, aes(x = x, y = y, fill = layer)) +
-      scale_fill_gradientn(colours = my_col, 
+      scale_fill_gradientn(breaks = leg_val,
+                           labels = leg_val,
+                           limits = c(min(leg_val), max(df$layer)),
+                           colours = my_col, 
                            guide = guide_colourbar(title = ttl, 
-                                                   barwidth = dev.size()[1] * 0.15, 
-                                                   barheight = dev.size()[1] * 0.7),
+                                                   barwidth = barwdt, 
+                                                   barheight = barhgt),
                            na.value = "grey70")
     
   }
   
-  p2 <- p + geom_path(data = shp,
-                      aes(x = long, y = lat, group = group),
-                      colour = "gray40",
-                      size = 0.1) +                                             # or: 0.3
-    coord_equal() +
+  # p2 <- p + geom_path(data = shp,
+  #                     aes(x = long, y = lat, group = group),
+  #                     colour = "gray40",
+  #                     size = pol_brd_sz) +
+  p2 <- p + coord_equal() +
     scale_x_continuous(labels = NULL, limits = c(-180, 180), expand = c(0, 0)) +
     scale_y_continuous(labels = NULL, limits = c(-60, 90), expand = c(0, 0)) +
     theme_void() + 
@@ -221,9 +247,9 @@ map_data_pixel_ggplot <- function(df, shp, out_path, out_file_name, my_col, ttl,
           axis.text.y = element_blank(),
           axis.ticks = element_blank(),
           plot.margin = unit(c(0, 0, 0, -0.09), "cm"),
-          legend.position = c(dev.size()[1] * 0.015, dev.size()[1] * 0.02),    # or: c(0.005, 0.008) 
-          legend.text = element_text(size = 15),                               # or: 25
-          legend.title = element_text(face = "bold", size = 22))#,             # or: 30
+          legend.position = c(leg_pos_x, leg_pos_y),    
+          legend.text = element_text(size = leg_txt_sz),                       
+          legend.title = element_text(face = "bold", size = leg_ttl_sz))#,       
   #legend.background = element_rect(fill = alpha("white", 0.2), colour = "gray50"),
   #panel.background = element_rect(fill = "#A6CEE3", colour = NA)) # lightblue2
   
