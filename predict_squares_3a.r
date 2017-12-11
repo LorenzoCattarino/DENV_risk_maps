@@ -20,7 +20,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_2"
+model_tp <- "boot_model_20km_4"
 
 out_fl_nm <- "FOI_all_squares.rds"
 

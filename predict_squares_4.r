@@ -31,15 +31,15 @@ context::parallel_cluster_start(8, ctx)
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_2" 
+model_tp <- "boot_model_20km_4" 
 
 no_fits <- 200
 
 ### NOTE BELOW: when fitting the R0 during the EM, the "FOI" var name refers to the predicted R0 values,
 ### while the "FOI_r" var name refers to the back transformed FOI. Confusing.
 
-#var_names <- "FOI_r"
-var_names <- c("R0_r", "I_num", "C_num", "I_inc", "C_inc")
+var_names <- c("FOI_r", "I_num", "C_num", "I_inc", "C_inc")
+#var_names <- "R0_r"
 
 phi_set_id <- c(1, 3, 4)
 sf_vals <- c(1, 0.7, 0.3)
@@ -197,6 +197,8 @@ all_sqr_foi <- as.matrix(all_sqr_foi)
 # ------------------------------------------ submit jobs 
 
 
+#all_sqr_foi <- all_sqr_foi[285510:285520,]
+
 if (CLUSTER) {
   
   config <- didehpc::didehpc_config(template = "24Core")
@@ -207,7 +209,7 @@ if (CLUSTER) {
 if (CLUSTER) {
   
   R0_and_burden <- queuer::qlapply(
-    fctr_combs[1:3],
+    fctr_combs[2],
     wrapper_to_multi_factor_R0_and_burden,
     obj,
     foi_data = all_sqr_foi, 
@@ -224,7 +226,7 @@ if (CLUSTER) {
     no_fits = no_fits,
     out_path = out_path,
     base_info = base_info,
-    reverse = FALSE)
+    reverse = TRUE)
   
 } else {
   

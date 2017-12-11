@@ -19,7 +19,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_2"
+model_tp <- "boot_model_20km_4"
 
 no_fits <- 200
 

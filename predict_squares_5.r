@@ -20,13 +20,12 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_2"
+model_tp <- "boot_model_20km_4"
 
-#vars <- c("C_num", "C_num") 
-vars <- c("FOI", "R0_r")
+vars <- c("FOI", "FOI_r")
 #vars <- c("FOI", "R0_r", "I_inc", "C_inc") 
 
-scenario_ids <- 1:3
+scenario_ids <- 2
 
 no_fits <- 200
 
