@@ -1,5 +1,6 @@
 fit_h2o_RF <- function(
-  dependent_variable, predictors, training_dataset, no_trees, min_node_size, my_weights, model_nm) {
+  dependent_variable, predictors, training_dataset, 
+  no_trees, min_node_size, my_weights, model_nm){
   
   train <- as.h2o(training_dataset)
   
@@ -27,62 +28,45 @@ make_h2o_predictions <- function(mod_obj, dataset, sel_preds){
   
 }
 
-wrapper_to_make_preds <- function(
-  no_fits, model_in_path, dataset, 
-  predictors, parallel){
+wrapper_to_make_h2o_preds <- function(
+  i, RF_mod_name, model_in_path, dataset, 
+  predictors){
   
   #browser()
   
-  
-  # -------------------------------------- start up h2o 
-  
-  
   h2o.init()
   
+  RF_obj_nm <- paste0(RF_mod_name, "_", i, ".rds")
   
-  # -------------------------------------- loop through model fits
+  RF_obj <- h2o.loadModel(file.path(model_in_path, RF_obj_nm))
   
+  out <- make_h2o_predictions(RF_obj, dataset, predictors)
   
-  out <- loop_simplify(
-    seq_len(no_fits),
-    function(i){
-      RF_obj_nm <- paste0("RF_obj_sample_", i, ".rds")
-      RF_obj <- h2o.loadModel(file.path(model_in_path, RF_obj_nm))
-      make_h2o_predictions(RF_obj, dataset, predictors)
-    },
-    parallel = parallel,
-    what = numeric(nrow(dataset)))
-  
-  
-  # -------------------------------------- close down h2o 
-  
+  out[out < 0] <- 0
   
   h2o.shutdown(prompt = FALSE)
-  
-  
-  # --------------------------------------
   
   out  
 
 }
 
-wrapper_to_load_admin_dataset <- function(
-  dat, sel_preds, parallel, 
-  model_in_path, 
-  out_path, out_fl_nm, no_fits){
-  
-  foi <- wrapper_to_make_preds(
-    no_fits = no_fits, 
-    model_in_path = model_in_path, 
-    dataset = dat, 
-    predictors = sel_preds, 
-    parallel = parallel)  
-  
-  foi[foi < 0] <- 0
-  
-  write_out_rds(foi, out_path, out_fl_nm)
-  
-}
+# wrapper_to_load_admin_dataset <- function(
+#   dat, sel_preds, parallel, 
+#   model_in_path, 
+#   out_path, out_fl_nm, no_fits){
+#   
+#   foi <- wrapper_to_make_preds(
+#     no_fits = no_fits, 
+#     model_in_path = model_in_path, 
+#     dataset = dat, 
+#     predictors = sel_preds, 
+#     parallel = parallel)  
+#   
+#   foi[foi < 0] <- 0
+#   
+#   write_out_rds(foi, out_path, out_fl_nm)
+#   
+# }
 
 get_boot_sample_and_fit_RF <- function(i, boot_ls, y_var, my_preds, no_trees, min_node_size, out_path, psAb_val, all_wgt, wgt_limits) {
   
