@@ -17,7 +17,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-var_to_fit <- "R0_3"
+var_to_fit <- "R0_1"
 
 aggr_dts_name <- "env_vars_20km.rds"
 

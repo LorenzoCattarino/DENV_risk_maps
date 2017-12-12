@@ -8,7 +8,6 @@ my_resources <- c(
   file.path("R", "utility_functions.R"),
   file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
   file.path("R", "random_forest", "Exp_Max_algorithm.R"),
-  file.path("R", "random_forest", "get_lm_equation.r"),
   file.path("R", "plotting", "quick_raster_map.r"),
   file.path("R", "plotting", "generic_scatter_plot.r"))  
 
@@ -38,11 +37,11 @@ if (CLUSTER) {
 # ---------------------------------------- define parameters
 
 
-var_to_fit <- "R0_3"
+model_type <- "best_model_20km_3c"
+
+var_to_fit <- "R0_1"
 
 pseudoAbsence_value <- 0.5
-
-model_type <- paste0("best_model_20km_", var_to_fit)
 
 niter <- 10
 
@@ -52,13 +51,13 @@ min_node_size <- 20
 
 all_wgt <- 1
 
-wgt_limits <- c(1, 25)
+wgt_limits <- c(1, 1000)
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
 pxl_dts_name <- "covariates_and_foi_20km.rds"
 
-out_md_nm <- "best_model_20km_cw.rds"
+out_md_nm <- "RF_obj.rds"
 
 diag_t_nm <- "diagno_table.rds"
 

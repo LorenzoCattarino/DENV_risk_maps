@@ -25,11 +25,11 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-var_to_fit <- "FOI"
+model_type <- "best_model_20km_3c"
 
-model_type <- "best_model_20km_2"
+var_to_fit <- "R0_1"
 
-pseudoAbsence_value <- -0.02
+pseudoAbsence_value <- 0.5
 
 grp_flds <- c("ADM_0", "ADM_1", "data_id")
 
@@ -166,7 +166,7 @@ fltr_adm <- inner_join(
 
 sqr_preds <- all_sqr_predictions
 
-sqr_dataset <- cbind(sqr_dataset[, c(grp_fields, "population")],
+sqr_dataset <- cbind(sqr_dataset[, c(grp_flds, "population")],
                      square = sqr_preds)
 
 average_sqr <- average_up(
