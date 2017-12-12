@@ -24,7 +24,7 @@ wrapper_to_ggplot_map <- function(
   
   col <- my_colors[[j]]
   
-  if(statsc == "mean" | statsc == "best"){
+  if(statsc == "mean" | statsc == "best" | statsc == "median"){
     if(var == "FOI"){
       ttl <- var
     }
@@ -133,7 +133,7 @@ wrapper_to_ggplot_map <- function(
   # ---------------------------------------- plot differently NA values
   
   
-  if(var == "R0_r" & (statsc == "mean" | statsc == "best")) {
+  if(var == "R0_r" & (statsc == "mean" | statsc == "best" | statsc == "median")) {
     
     na_cutoff <- 1 
   
