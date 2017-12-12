@@ -21,6 +21,8 @@ wrapper_to_multi_factor_R0_and_burden <- function(
   
   sf <- x$scaling_factor
     
+  phi_set_id <- x$phi_set_id
+  
   
   # ---------------------------------------- define variables
  
@@ -31,25 +33,35 @@ wrapper_to_multi_factor_R0_and_burden <- function(
   # ---------------------------------------- create FOI -> R0 look up tables
 
   
-  R0_values <- loop(seq_len(nrow(age_data)), 
-                    wrapper_to_lookup,
-                    age_struct = age_data, 
-                    tags = age_band_tags, 
-                    FOI_values = FOI_values, 
-                    my_fun = calculate_R0,
-                    N = 1,
-                    prob_fun = prob_fun,
-                    age_band_lower_bounds = age_band_lower_bounds, 
-                    age_band_upper_bounds = age_band_upper_bounds,
-                    vec_phis = vec_phis,
-                    parallel = TRUE)
+  if(!file.exists(file.path(out_path, paste0("FOI_to_R0_lookup_tables_", phi_set_id ,".rds")))){
+    
+    R0_values <- loop(seq_len(nrow(age_data)), 
+                      wrapper_to_lookup,
+                      age_struct = age_data, 
+                      tags = age_band_tags, 
+                      FOI_values = FOI_values, 
+                      my_fun = calculate_R0,
+                      N = 1,
+                      prob_fun = prob_fun,
+                      age_band_lower_bounds = age_band_lower_bounds, 
+                      age_band_upper_bounds = age_band_upper_bounds,
+                      vec_phis = vec_phis,
+                      parallel = TRUE)
+    
+    FOI_to_R0_list <- lapply(R0_values, function(i) cbind(x = FOI_values, y = i))
+    
+    FOI_to_R0_list <- lapply(FOI_to_R0_list, function(i) {
+      i[1, "y"] <- 1
+      rbind(c(x = 0, y = 0),i)})
   
-  FOI_to_R0_list <- lapply(R0_values, function(i) cbind(x = FOI_values, y = i))
-  
-  FOI_to_R0_list <- lapply(FOI_to_R0_list, function(i) {
-    i[1, "y"] <- 1
-    rbind(c(x = 0, y = 0),i)})
-  
+    saveRDS(FOI_to_R0_list, file.path(out_path, paste0("FOI_to_R0_lookup_tables_", phi_set_id ,".rds")))  
+    
+  } else {
+    
+    FOI_to_R0_list <- readRDS(file.path(out_path, paste0("FOI_to_R0_lookup_tables_", phi_set_id ,".rds")))
+    
+  } 
+    
   
   # ---------------------------------------- calculates R0 values for different pixels  
   
@@ -84,7 +96,7 @@ wrapper_to_multi_factor_R0_and_burden <- function(
   
   for (b in seq_along(var_names)){
 
-    ret1 <- lapply(burden_estimates, "[", b, TRUE)
+    ret1 <- lapply(burden_estimates, "[", var_names[b], TRUE)
 
     ret2 <- do.call("rbind", ret1)
 
