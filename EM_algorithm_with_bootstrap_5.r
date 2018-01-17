@@ -33,7 +33,7 @@ out_pth <- file.path("output", "EM_algorithm", paste0("env_variables_", var_to_f
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "12and16Core")
+  config <- didehpc::didehpc_config(template = "20Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {

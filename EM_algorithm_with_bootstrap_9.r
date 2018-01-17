@@ -27,9 +27,9 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-var_to_fit <- "FOI"
-
 model_type <- "boot_model_20km_2"
+
+var_to_fit <- "FOI"
 
 pseudoAbsence_value <- -0.02
 
@@ -59,7 +59,7 @@ out_pt <- file.path(
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "12and16Core")
+  config <- didehpc::didehpc_config(template = "20Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -123,7 +123,7 @@ NA_pixel_tiles <- read.table(
 
 all_sqr_predictions <- readRDS(
   file.path("output",
-            "predictions_world",
+            "EM_algorithm",
             model_type,
             "square_predictions_all_data.rds"))
 
@@ -155,7 +155,7 @@ tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]
 
 my_predictors <- predictor_rank$variable[1:9]
 
-my_predictors <- c(my_predictors, "RFE_const_term")
+#my_predictors <- c(my_predictors, "RFE_const_term")
 
 
 # ---------------------------------------- submit one job 

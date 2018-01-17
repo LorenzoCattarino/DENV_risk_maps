@@ -32,7 +32,7 @@ min_node_size <- 20
 
 all_wgt <- 1
 
-wgt_limits <- c(1, 25)
+wgt_limits <- c(1, 500)
 
 out_pt <- file.path("output", "EM_algorithm", paste0("model_objects_", dependent_variable, "_fit"), "boot_samples")
 
@@ -42,7 +42,7 @@ out_pt <- file.path("output", "EM_algorithm", paste0("model_objects_", dependent
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "12and16Core")
+  config <- didehpc::didehpc_config(template = "20Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {

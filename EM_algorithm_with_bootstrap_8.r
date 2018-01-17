@@ -12,7 +12,6 @@ my_resources <- c(
   file.path("R", "random_forest", "wrapper_to_Exp_Max_algorithm.r"),
   file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
   file.path("R", "random_forest", "Exp_Max_algorithm.r"),
-  file.path("R", "random_forest", "get_lm_equation.r"),
   file.path("R", "plotting", "quick_raster_map.r"),
   file.path("R", "plotting", "generic_scatter_plot.r"))
 
@@ -43,7 +42,7 @@ out_pt <- file.path("output", "EM_algorithm", model_type)
 
 if (CLUSTER) {
 
-  config <- didehpc::didehpc_config(template = "12and16Core")
+  config <- didehpc::didehpc_config(template = "20Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
 
 } else {

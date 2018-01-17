@@ -1,4 +1,4 @@
-# Take mean, sd and 95% CI of foi, R0 and burden measures, for each 20 km square
+# Take mean, median, sd and 95% CI of foi, R0 and burden measures, for each 20 km square
 # THIS IS FOR THE MAPS!
 
 options(didehpc.cluster = "fi--didemrchnb")
@@ -22,8 +22,9 @@ ctx <- context::context_save(path = "context",
 
 model_tp <- "boot_model_20km_4"
 
-vars <- c("FOI", "FOI_r")
-#vars <- c("FOI", "R0_r", "I_inc", "C_inc") 
+#vars <- c("FOI", "FOI_r")
+#vars <- c("FOI", "R0_r") 
+vars <- c("I_inc", "C_inc")
 
 scenario_ids <- 2
 
@@ -35,7 +36,7 @@ base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", 
 
 in_path <- file.path("output", "predictions_world", model_tp)
 
-out_path <- file.path("output", "predictions_world", model_tp, "means")
+out_path <- file.path("output", "predictions_world", model_tp)
 
 dts_tag <- "all_squares"
 
@@ -45,13 +46,13 @@ dts_tag <- "all_squares"
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "12and16Core")
+  config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else{
   
   context::context_load(ctx)
-  context::parallel_cluster_start(8, ctx)
+  context::parallel_cluster_start(6, ctx)
   
 }
 

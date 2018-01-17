@@ -19,7 +19,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_4"
+model_tp <- "boot_model_20km_2"
 
 no_fits <- 200
 
@@ -31,7 +31,7 @@ RF_mod_name <- "RF_obj_sample"
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "12and16Core")
+  config <- didehpc::didehpc_config(template = "20Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {

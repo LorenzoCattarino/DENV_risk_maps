@@ -2,7 +2,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
@@ -19,13 +19,13 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-model_tp <- "boot_model_20km_4"
+model_tp <- "boot_model_20km_3"
 
-vars <- c("FOI", "R0_r")
+vars <- c("I_inc")
 
-scenario_id <- 2
+scenario_id <- 1:3
   
-statistics <- c("mean", "interv")
+statistics <- c("median", "interv")
 #statistics <- c("mean", "sd", "interv", "lCI", "uCI")
 
 map_size <- "small"
@@ -35,7 +35,9 @@ out_pt <- file.path(
   "predictions_world",
   model_tp)
   
-  
+in_dts_tag <- "mean_all_squares"
+
+
 # ---------------------------------------- are you using the cluster?
 
 
@@ -46,7 +48,7 @@ if (CLUSTER) {
 }else{
   
   context::context_load(ctx)
-  context::parallel_cluster_start(6, ctx)
+  context::parallel_cluster_start(4, ctx)
 }
 
 
@@ -110,7 +112,8 @@ fact_comb_ls <- df_to_list(fact_comb, use_names = TRUE)
 #     country_shp = country_shp,
 #     shp_fort = shp_fort,
 #     out_path = out_pt,
-#     map_size = map_size))
+#     map_size = map_size,
+#     in_dts_tag = in_dts_tag))
 
 
 # ---------------------------------------- submit all jobs
@@ -127,7 +130,8 @@ if (CLUSTER) {
     country_shp = country_shp,
     shp_fort = shp_fort,
     out_path = out_pt,
-    map_size = map_size)
+    map_size = map_size,
+    in_dts_tag = in_dts_tag)
 
 } else {
 
@@ -140,6 +144,7 @@ if (CLUSTER) {
     shp_fort = shp_fort,
     out_path = out_pt,
     map_size = map_size,
+    in_dts_tag = in_dts_tag,
     parallel = TRUE)
 
 }

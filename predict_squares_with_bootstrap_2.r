@@ -20,7 +20,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_4"
+model_tp <- "boot_model_20km_2"
 
 out_fl_nm <- "FOI_all_squares.rds"
 
@@ -35,7 +35,7 @@ out_pt <- file.path(
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "24Core")
+  config <- didehpc::didehpc_config(template = "20Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {

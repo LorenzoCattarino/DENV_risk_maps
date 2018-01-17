@@ -31,15 +31,15 @@ context::parallel_cluster_start(8, ctx)
 # ---------------------------------------- define parameters
 
 
-model_tp <- "boot_model_20km_4" 
+model_tp <- "boot_model_20km_2" 
 
 no_fits <- 200
 
 ### NOTE BELOW: when fitting the R0 during the EM, the "FOI" var name refers to the predicted R0 values,
 ### while the "FOI_r" var name refers to the back transformed FOI. Confusing.
 
-var_names <- c("FOI_r", "I_num", "C_num", "I_inc", "C_inc")
-#var_names <- "R0_r"
+#var_names <- c("FOI_r", "I_num", "C_num", "I_inc", "C_inc")
+var_names <- c("R0_r", "I_num", "C_num", "I_inc", "C_inc")
 
 phi_set_id <- c(1, 3, 4)
 sf_vals <- c(1, 0.7, 0.3)
@@ -209,7 +209,7 @@ if (CLUSTER) {
 if (CLUSTER) {
   
   R0_and_burden <- queuer::qlapply(
-    fctr_combs[2],
+    fctr_combs[1:3],
     wrapper_to_multi_factor_R0_and_burden,
     obj,
     foi_data = all_sqr_foi, 
@@ -226,7 +226,7 @@ if (CLUSTER) {
     no_fits = no_fits,
     out_path = out_path,
     base_info = base_info,
-    reverse = TRUE)
+    reverse = FALSE)
   
 } else {
   
