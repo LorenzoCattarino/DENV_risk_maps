@@ -19,11 +19,11 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-model_tp <- "best_model_20km_4"
+model_tp <- "best_model_20km_3c"
 
 vars <- "R0_r"
 
-scenario_id <- 2
+scenario_id <- 1
   
 statistics <- "best"
 #statistics <- c("mean", "sd", "interv", "lCI", "uCI")

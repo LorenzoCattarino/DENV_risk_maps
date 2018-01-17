@@ -18,7 +18,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_tp <- "best_model_20km_4"
+model_tp <- "best_model_20km_3c"
 
 RF_mod_name <- "RF_obj.rds"
 
