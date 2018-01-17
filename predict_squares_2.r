@@ -19,7 +19,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-model_tp <- "best_model_20km_3c"
+model_tp <- "FOI_best_model"
 
 vars <- "R0_r"
 
