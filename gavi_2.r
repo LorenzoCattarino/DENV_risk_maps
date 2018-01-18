@@ -1,4 +1,5 @@
 library(dplyr)
+library(rgdal)
 
 source(file.path("R", "utility_functions.r"))
 
@@ -12,7 +13,7 @@ base_info <- c("cell", "population", "ADM_0") #"lat.grid", "long.grid",
   
 wanted_info <- c("FOI", "R0_1", "R0_2", "R0_3", "I_FOI", "C_FOI", "I_R0_3", "C_R0_3")
   
-out_pth <- file.path("output", "predictions_world", "predictions_for_vaccine_analysis")
+out_pth <- file.path("output", "predictions_world", "predictions_for_vaccine_analysis", "boot_samples")
   
   
 # load data -------------------------------------------------------------------
@@ -63,7 +64,7 @@ C_R0_3 <- as.data.frame(C_R0_3)
 # ---------------------------------------------
 
 
-my_ncol<- length(c(base_info, wanted_info[1:4]))
+my_ncol <- length(c(base_info, wanted_info[1:4]))
 my_nrow <- nrow(sqr_covariates)
   
 for (i in seq_len(no_fits)){
@@ -101,13 +102,10 @@ for (i in seq_len(no_fits)){
 }
 
 #test5 <- readRDS("output/predictions_world/predictions_for_vaccine_analysis/boot_sample_5.rds")
-library(rgdal)
 
 adm_0 <- readOGR(dsn = file.path("data", "shapefiles", "gadm28_levels.shp"), layer = "gadm28_adm0")
-#adm_1 <- readOGR(dsn = file.path("data", "shapefiles", "gadm28_levels.shp"), layer = "gadm28_adm1")
 
 adm_0_sub <- adm_0@data[!duplicated(adm_0@data[, c("ID_0", "NAME_ENGLI")]), c("ID_0", "NAME_ENGLI")]
-#adm_1_sub <- adm_1@data[!duplicated(adm_1@data[, c("ID_0", "NAME_0")]), c("ID_0", "NAME_0")]
 
 names(adm_0_sub)[names(adm_0_sub) == "ID_0"] <- "ADM_0"
 write.csv(adm_0_sub, "adm0_country_names.csv", row.names = FALSE)
