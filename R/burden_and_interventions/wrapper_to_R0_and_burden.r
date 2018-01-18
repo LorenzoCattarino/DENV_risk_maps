@@ -3,12 +3,11 @@ wrapper_to_R0_and_burden <- function(
   age_band_lower_bounds, age_band_upper_bounds,
   vec_phis, prob_fun, scaling_factor, 
   FOI_to_R0, FOI_to_Inf, FOI_to_C,
-  N, reverse){
+  N, var_to_fit){
 
   #browser()
   
-  out <- setNames(rep(0, length(vars)),
-                  vars)
+  out <- setNames(rep(0, length(vars)), vars)
   
   #cat("FOI =", FOI, "\n")
   #cat("scaling factor =", scaling_factor, "\n")
@@ -19,7 +18,7 @@ wrapper_to_R0_and_burden <- function(
     # ---------------------------------------- calculate R0
     
     
-    if(!reverse){
+    if(var_to_fit == "FOI"){
       
       R0 <- calculate_R0(
       FOI = FOI, 
