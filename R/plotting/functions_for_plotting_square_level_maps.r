@@ -80,11 +80,11 @@ wrapper_to_ggplot_map <- function(
   # ---------------------------------------- create matrix of values
   
   
-  df_long$lat.int=floor(df_long$lat.grid*6+0.5)
-  df_long$long.int=floor(df_long$long.grid*6+0.5)
+  df_long$lat.int <- floor(df_long$lat.grid * 6 + 0.5)
+  df_long$long.int <- floor(df_long$long.grid * 6 + 0.5)
   
-  lats.int=lats*6
-  lons.int=lons*6
+  lats.int <- lats * 6
+  lons.int <- lons * 6
   
   mat <- matrix(0, nrow = length(lons), ncol = length(lats))
   
@@ -235,11 +235,11 @@ map_data_pixel_ggplot <- function(df, shp, out_path, out_file_name, my_col, ttl,
     
   }
   
-  # p2 <- p + geom_path(data = shp,
-  #                     aes(x = long, y = lat, group = group),
-  #                     colour = "gray40",
-  #                     size = pol_brd_sz) +
-  p2 <- p + coord_equal() +
+  p2 <- p + geom_path(data = shp,
+                      aes(x = long, y = lat, group = group),
+                      colour = "gray40",
+                      size = pol_brd_sz) +
+    coord_equal() +
     scale_x_continuous(labels = NULL, limits = c(-180, 180), expand = c(0, 0)) +
     scale_y_continuous(labels = NULL, limits = c(-60, 90), expand = c(0, 0)) +
     theme_void() + 
