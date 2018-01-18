@@ -2,7 +2,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
@@ -19,14 +19,13 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-model_tp <- "FOI_best_model"
+model_tp <- "R0_3_best_model"
 
-vars <- "R0_r"
+scenario_id <- 3
 
-scenario_id <- 1
+vars <- c("FOI", "R0_r")
   
 statistics <- "best"
-#statistics <- c("mean", "sd", "interv", "lCI", "uCI")
 
 map_size <- "small"
 
@@ -136,7 +135,7 @@ if (CLUSTER) {
 } else {
 
   maps <- loop(
-    fact_comb_ls[1],
+    fact_comb_ls[2],
     wrapper_to_ggplot_map,
     my_colors = col_ls,
     model_tp = model_tp,

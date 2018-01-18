@@ -1,4 +1,4 @@
-# Makes foi predictions for all the squares in the world, for each model fit. 
+# Makes foi predictions for all the squares in the world.
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -18,7 +18,11 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_tp <- "best_model_20km_3c"
+var_to_fit <- "R0_3"
+
+fit_type <- "best"
+  
+model_tp <- paste0(var_to_fit, "_", fit_type, "_model")
 
 RF_mod_name <- "RF_obj.rds"
 
@@ -26,7 +30,7 @@ base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", 
 
 out_pt <- file.path("output", "predictions_world", model_tp)
   
-out_fl_nm <- "FOI_best_all_squares.rds"
+out_fl_nm <- paste0("FOI", "_", fit_type, "_all_squares.rds")
 
 
 # ---------------------------------------- are you using the cluster? 
