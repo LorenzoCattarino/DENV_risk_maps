@@ -25,11 +25,11 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-model_type <- "best_model_20km_3c"
-
-var_to_fit <- "R0_1"
+var_to_fit <- "R0_3"
 
 pseudoAbsence_value <- 0.5
+
+model_type <- paste0(var_to_fit, "_best_model")
 
 grp_flds <- c("ADM_0", "ADM_1", "data_id")
 

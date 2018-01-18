@@ -37,11 +37,11 @@ if (CLUSTER) {
 # ---------------------------------------- define parameters
 
 
-model_type <- "best_model_20km_3c"
-
-var_to_fit <- "R0_1"
+var_to_fit <- "R0_3"
 
 pseudoAbsence_value <- 0.5
+
+model_type <- paste0(var_to_fit, "_best_model")
 
 niter <- 10
 
@@ -51,7 +51,7 @@ min_node_size <- 20
 
 all_wgt <- 1
 
-wgt_limits <- c(1, 1000)
+wgt_limits <- c(1, 500)
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 

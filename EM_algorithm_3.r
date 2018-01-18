@@ -17,7 +17,7 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-dependent_variable <- "R0_1"
+dependent_variable <- "R0_3"
 
 pseudoAbsence_value <- 0.5
 
@@ -27,7 +27,7 @@ min_node_size <- 20
 
 all_wgt <- 1
 
-wgt_limits <- c(1, 1000)
+wgt_limits <- c(1, 500)
 
 out_path <- file.path("output", "EM_algorithm", paste0("model_objects_", dependent_variable, "_fit"))
 

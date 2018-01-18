@@ -22,7 +22,9 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_type <- "best_model_20km_3c"
+var_to_fit <- "R0_3"
+
+model_type <- paste0(var_to_fit, "_best_model")
 
 out_fl_nm <- "square_predictions_all_data.rds"
 

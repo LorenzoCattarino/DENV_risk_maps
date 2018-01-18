@@ -10,6 +10,10 @@ library(ggplot2)
 # ---------------------------------------- define parameters
 
 
+var_to_fit <- "R0_3"
+
+model_type <- paste0(var_to_fit, "_best_model")
+
 diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j")
 
 strip_labs <- c(
@@ -19,11 +23,11 @@ strip_labs <- c(
 
 strip_labs <- gsub('([[:punct:]])|\\s+','_', strip_labs)
 
-diag_t_pth <- file.path("output", "EM_algorithm", "diagnostics", "best_model_20km_cw")
+diag_t_pth <- file.path("output", "EM_algorithm", model_type, "diagnostics")
 
 fig_file_tag <- paste0(strip_labs, ".png")
   
-figure_out_path <- file.path("figures", "EM_algorithm", "best_model_20km_cw", "diagnostics")
+figure_out_path <- file.path("figures", "EM_algorithm", model_type, "diagnostics")
 
 
 # ---------------------------------------- get results 
