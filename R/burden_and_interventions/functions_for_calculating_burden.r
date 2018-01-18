@@ -70,6 +70,6 @@ fix_R0_lookup_limits <- function(i) {
 
 }
 
-cbind_FOI_to_R0 <- function(i) {
+cbind_FOI_to_lookup <- function(i, FOI_values) {
   cbind(x = FOI_values, y = i)
 }
