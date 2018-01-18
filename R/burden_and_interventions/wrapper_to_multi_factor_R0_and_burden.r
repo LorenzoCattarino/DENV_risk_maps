@@ -2,7 +2,7 @@ wrapper_to_multi_factor_R0_and_burden <- function(
   x, foi_data, age_data,
   age_band_tags, age_band_lower_bounds, age_band_upper_bounds,
   parallel_2, var_names, FOI_values, FOI_to_Inf_list, FOI_to_C_list, 
-  prob_fun, no_fits, out_path, base_info, reverse){
+  prob_fun, var_to_fit, fit_type, base_info, no_fits = NULL){
   
   
   #browser()
@@ -29,6 +29,10 @@ wrapper_to_multi_factor_R0_and_burden <- function(
 
   vec_phis <- c(phi_1, phi_2, phi_3, phi_4)
   
+  model_tp <- paste0(var_to_fit, "_", fit_type, "_model")
+  
+  out_path <- file.path("output", "predictions_world", model_tp)
+  
   
   # ---------------------------------------- create FOI -> R0 look up tables
 
@@ -48,11 +52,9 @@ wrapper_to_multi_factor_R0_and_burden <- function(
                       vec_phis = vec_phis,
                       parallel = TRUE)
     
-    FOI_to_R0_list <- lapply(R0_values, function(i) cbind(x = FOI_values, y = i))
+    FOI_to_R0_list <- lapply(R0_values, cbind_FOI_to_lookup, FOI_values)
     
-    FOI_to_R0_list <- lapply(FOI_to_R0_list, function(i) {
-      i[1, "y"] <- 1
-      rbind(c(x = 0, y = 0),i)})
+    FOI_to_R0_list <- lapply(FOI_to_R0_list, fix_R0_lookup_limits)
   
     saveRDS(FOI_to_R0_list, file.path(out_path, paste0("FOI_to_R0_lookup_tables_", phi_set_id ,".rds")))  
     
@@ -81,31 +83,44 @@ wrapper_to_multi_factor_R0_and_burden <- function(
     vec_phis = vec_phis, 
     prob_fun = prob_fun,
     no_fits = no_fits,
-    reverse = reverse,
+    var_to_fit = var_to_fit, 
+    fit_type = fit_type,
     parallel = parallel_2)
   
-  
+
   # ---------------------------------------- reshape and save
 
 
-  # out <- do.call("rbind", burden_estimates)
-  # 
-  # var_names <- paste(var_names, run_ID, sep = "_")
-  # 
-  # setNames(as.data.frame(out), var_names)
-  
-  for (b in seq_along(var_names)){
-
-    ret1 <- lapply(burden_estimates, "[", var_names[b], TRUE)
-
-    ret2 <- do.call("rbind", ret1)
-
-    ret3 <- cbind(foi_data[, base_info], ret2)
+  if(fit_type == "boot"){
     
-    fl_nm <- paste0(var_names[b], "_all_squares_", run_ID, ".rds")
+    for (b in seq_along(var_names)){
+      
+      ret1 <- lapply(burden_estimates, "[", var_names[b], TRUE)
+      
+      ret2 <- do.call("rbind", ret1)
+      
+      ret3 <- cbind(foi_data[, base_info], ret2)
+      
+      fl_nm <- paste0(var_names[b], "_all_squares_", run_ID, ".rds")
+      
+      write_out_rds(ret3, out_path, fl_nm)
+      
+    }
     
-    write_out_rds(ret3, out_path, fl_nm)
+  } else {
+    
+    for (b in seq_along(var_names)){
+      
+      ret2 <- do.call("rbind", burden_estimates)
+      
+      ret3 <- cbind(foi_data[, base_info], best = ret2[,var_names[b]])
+      
+      fl_nm <- paste0(var_names[b], "_best_all_squares_", run_ID, ".rds")
+      
+      write_out_rds(as.data.frame(ret3), out_path, fl_nm)
+      
+    }
     
   }
-
+  
 }
