@@ -35,7 +35,7 @@ in_pt <- file.path("data", "env_variables", "all_sets_gadm_codes")
 out_pt <- file.path(
   "output",
   "env_variables",
-  paste0("all_sets_", gr_size, "_km"))
+  paste0("tile_set_", gr_size, "_km"))
 
 
 # ---------------------------------------- are you using the cluster? 
