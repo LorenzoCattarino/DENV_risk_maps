@@ -1,6 +1,7 @@
-clean_and_resample <- function(
-  dat, env_vars, 
-  grid_size, grp_flds) {
+clean_and_resample <- function(dat, 
+                               env_vars, 
+                               grid_size, 
+                               grp_flds) {
   
   #browser()
   
@@ -22,6 +23,9 @@ clean_and_resample <- function(
     rnd_dist = FALSE)
   
   ret <- average_up(yy, c(grp_flds, "cell", "lat.grid", "long.grid"), env_vars)
+  
+  ret$lat.grid <- ret$lat.grid * grid_size
+  ret$long.grid <- ret$long.grid * grid_size
   
   sqr_area_km <- (grid_size * 111.32)^2
   
