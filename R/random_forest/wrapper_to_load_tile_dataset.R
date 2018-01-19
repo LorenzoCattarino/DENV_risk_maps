@@ -1,8 +1,8 @@
 wrapper_to_load_tile_dataset <- function(
   i, ids_vec, in_path, 
-  no_fits, model_in_path, predictors, 
-  burden, age_struct, var_names,
-  fctr_combs, age_band_tgs, 
+  no_fits, RF_mod_name, model_in_path, 
+  predictors, age_struct, 
+  var_names, fctr_combs, age_band_tgs, 
   age_band_lower_bounds, age_band_upper_bounds,
   w_1, w_2, w_3, base_info,
   out_path){
@@ -23,75 +23,53 @@ wrapper_to_load_tile_dataset <- function(
                 fill = TRUE,
                 data.table = FALSE)
   
-  foi <- wrapper_to_make_preds(
+  foi <- vapply(seq_len(no_fits),
+                wrapper_to_make_h2o_preds,
+                numeric(no_fits),
+                RF_mod_name = RF_mod_name,
+                model_in_path = model_in_path, 
+                dataset = tile, 
+                predictors = predictors)
+  
+  foi <- cbind(tile[, base_info], foi)
+  
+  foi <- inner_join(
+    age_struct[, c("age_id", "ADM_0")],
+    foi, 
+    by = "ADM_0")
+  
+  foi <- as.matrix(foi)
+  
+  R0_and_burden <- loop(
+    fctr_combs,
+    wrapper_to_multi_factor_R0_and_burden,
+    foi_data = foi, 
+    age_data = age_struct,
+    age_band_tags = age_band_tgs,
+    age_band_lower_bounds = age_band_L_bounds,
+    age_band_upper_bounds = age_band_U_bounds,
+    parallel_2 = TRUE,    
+    var_names = var_names, 
+    FOI_values = FOI_values,
+    FOI_to_Inf_list = FOI_to_Inf_list,
+    FOI_to_C_list = FOI_to_C_list,
+    prob_fun = prob_fun,
+    var_to_fit = var_to_fit,
+    fit_type = fit_type,
+    base_info = base_info,
     no_fits = no_fits,
-    model_in_path = model_in_path, 
-    dataset = tile, 
-    predictors = predictors, 
     parallel = FALSE)
-    
-  foi[foi < 0] <- 0
   
-  look_up <- inner_join(
-    age_struct,
-    tile[, c("cell", "ADM_0")], 
-    by = c("ID_0" = "ADM_0"))
-  
-  browser()
-  
-  if(burden & nrow(look_up)) {
-    
-    R0_and_burden <- loop(
-      fctr_combs,
-      burden_multi_factor_wrapper,
-      foi_data = foi, 
-      orig_data = tile,
-      age_band_tags = age_band_tgs,
-      age_band_lower_bounds = age_band_lower_bounds,
-      age_band_upper_bounds = age_band_upper_bounds,
-      w_1 = w_1, 
-      w_2 = w_2, 
-      w_3 = w_3,
-      look_up = look_up,
-      var_names = var_names,
-      parallel = TRUE)
-    
-    out_ls <- c(list(foi), unlist(R0_and_burden, recursive = FALSE))
-    
-    no_runs <- length(fctr_combs)
-    burden_tags <- vapply(var_names[2:length(var_names)], paste, character(4), 1:no_runs, sep = "_")
-    burden_tags <- as.vector(burden_tags)
-  
-  } else {
-    
-    out_ls <- list(foi)
-    
-    burden_tags <- NULL
-  
-  }
-  
-  exp_v_nms <- c(var_names[1], burden_tags)  
-  
-  ret <- loop(
-    seq_along(exp_v_nms),
-    wrapper_to_mean_across_fits,
-    exp_v_nms,
-    out_ls,
+  means_all_scenarios <- loop(
+    seq_along(vars)[2],
+    average_foi_and_burden_predictions,
+    vars = vars,
+    in_path = in_path,
+    out_path = out_path,
+    scenario_ids = scenario_ids,
+    col_names = col_names,
+    base_info = base_info,
+    dts_tag = dts_tag,
     parallel = TRUE)
-  
-  all_averaged_vars <- do.call("cbind", ret)
-  
-  out <- cbind(tile[, base_info], all_averaged_vars)
-  
-  zero_logic <- out$foi_mean == 0
-  
-  out_mz <- out[!zero_logic, ] 
-  
-  dir.create(out_path, FALSE, TRUE)
-  
-  write.table(out_mz,
-              file.path(out_path, file_name),
-              row.names = FALSE,
-              sep = ",")
-  
+
 }  
