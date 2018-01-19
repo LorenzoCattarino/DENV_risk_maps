@@ -7,7 +7,7 @@ CLUSTER <- TRUE
 my_resources <- c(
   file.path("R", "prepare_datasets", "resample.R"),
   file.path("R", "prepare_datasets", "clean_and_resample.r"),
-  file.path("R", "prepare_datasets", "grid_up_foi_dataset.R"),
+  file.path("R", "prepare_datasets", "grid_up.R"),
   file.path("R", "prepare_datasets", "remove_NA_rows.r"),
   file.path("R", "prepare_datasets", "average_up.R"))
 
@@ -24,18 +24,18 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-in_pt <- file.path("data", "env_variables", "all_sets_gadm_codes")
+gr_size <- 5 # kms
+
+new_res <- (1 / 120) * gr_size # decimal degrees
 
 group_fields <- c("cell", "lat.grid", "long.grid")
 
-gr_size <- 20
-
-new_res <- (1 / 120) * gr_size
+in_pt <- file.path("data", "env_variables", "all_sets_gadm_codes")
 
 out_pt <- file.path(
   "output",
   "env_variables",
-  "all_sets_0_1667_deg")
+  paste0("all_sets_", gr_size, "_km"))
 
 
 # ---------------------------------------- are you using the cluster? 
@@ -78,36 +78,36 @@ fi <- list.files(in_pt,
 # ---------------------------------------- submit one job
 
 
-t <- obj$enqueue(
-  resample(fi[185],
-  grp_flds = group_fields,
-  grid_size = new_res,
-  env_var_names = var_names,
-  out_path = out_pt))
+# t <- obj$enqueue(
+#   resample(fi[186],
+#   grp_flds = group_fields,
+#   grid_size = new_res,
+#   env_var_names = var_names,
+#   out_path = out_pt))
 
 
 # ---------------------------------------- submit all jobs
 
 
-# if (CLUSTER) {
-# 
-#   resample_tiles <- queuer::qlapply(
-#     fi,
-#     resample,
-#     obj,
-#     grp_flds = group_fields,
-#     grid_size = new_res,
-#     env_var_names = var_names,
-#     out_path = out_pt)
-# 
-# }else{
-# 
-#   resample_tiles <- lapply(
-#     fi[185],
-#     resample,
-#     grp_flds = group_fields,
-#     grid_size = new_res,
-#     env_var_names = var_names,
-#     out_path = out_pt)
-# 
-# }
+if (CLUSTER) {
+
+  resample_tiles <- queuer::qlapply(
+    fi,
+    resample,
+    obj,
+    grp_flds = group_fields,
+    grid_size = new_res,
+    env_var_names = var_names,
+    out_path = out_pt)
+
+}else{
+
+  resample_tiles <- lapply(
+    fi[185],
+    resample,
+    grp_flds = group_fields,
+    grid_size = new_res,
+    env_var_names = var_names,
+    out_path = out_pt)
+
+}
