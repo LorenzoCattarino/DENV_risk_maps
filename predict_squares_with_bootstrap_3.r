@@ -17,7 +17,7 @@ my_resources <- c(
   file.path("R", "burden_and_interventions", "functions_for_calculating_burden.r"),
   file.path("R", "prepare_datasets", "functions_for_calculating_R0.r"))
 
-my_pkgs <- c("data.table", "dplyr", "reshape2", "ggplot2")
+my_pkgs <- c("data.table", "dplyr")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
