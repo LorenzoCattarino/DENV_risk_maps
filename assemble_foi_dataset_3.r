@@ -1,166 +1,70 @@
-# For each original foi estimate, calculates the corresponding R0 (only one assumption)
+# Creates a map of the dataset point and dengue presence-absence mask 
 
 # load packages
-library(ggplot2)
-library(grid)
-
-# load functions 
-source(file.path("R", "prepare_datasets", "functions_for_calculating_R0.r"))
+library(rgdal) 
+library(dplyr)
+library(colorRamps)
 
 
-# ---------------------------------------- define parameters
-
-
-m_flds <- c("ID_0", "ID_1")
-
-base_info <- c("type", "ISO", "longitude", "latitude", "data_id", "ID_0", "ID_1", "FOI", "variance", "population")
-
-gamma_1 <- 0.45
-rho <- 0.85
-gamma_3 <- 0.15
-
-phi_combs <- list(
-  c(1, 1, 0, 0),
-  c(1, 1, 1, 1),
-  calculate_infectiousness_wgts_for_sym_asym_assumption(gamma_1, rho, gamma_3))
-
-prob_fun <- list("calculate_primary_infection_prob",
-                 "calculate_secondary_infection_prob",
-                 "calculate_tertiary_infection_prob",
-                 "calculate_quaternary_infection_prob")
-
-
-# ---------------------------------------- define variables
-
-
-comb_no <- length(phi_combs)
-
-var <- paste0("R0_", seq_len(comb_no))
-
-
-# ---------------------------------------- load data 
+# ---------------------------------------- load data
 
 
 All_FOI_estimates <- read.table(
-  file.path("output", "foi", "All_FOI_estimates_linear.txt"), 
+  file.path("output", 
+            "foi", 
+            "All_FOI_estimates_linear.txt"), 
   header = TRUE, 
-  sep = ",", 
-  stringsAsFactors = FALSE)
+  sep = ",")
 
-country_age_struc <- read.csv(
+pseudoAbsences <- read.csv(
   file.path("output", 
             "datasets", 
-            "country_age_structure.csv"))
+            "pseudo_absence_points_2.csv"), 
+  header = TRUE)
 
-adm_1_env_vars <- read.csv(
-  file.path("output", 
-            "env_variables", 
-            "All_adm1_env_var.csv"))
-
-
-# ---------------------------------------- extract info from age structure 
+world_shp_admin_1_dengue <- readOGR(dsn = file.path("output", "shapefiles"), 
+                                    layer = "gadm28_adm1_dengue")
 
 
-# Get names of age band columns
-age_band_tgs <- grep("band", names(country_age_struc), value = TRUE)
-
-# Get age band bounds
-age_band_bnds <- get_age_band_bounds(age_band_tgs)
-
-age_band_L_bounds <- age_band_bnds[, 1]
-
-age_band_U_bounds <- age_band_bnds[, 2] + 1
+# ---------------------------------------- pre processing
 
 
-# ---------------------------------------- preprocess admin dataset
+data_points <- SpatialPoints(All_FOI_estimates[, c("longitude", "latitude")])
+pseudoAbsence_points <- SpatialPoints(pseudoAbsences[, c("longitude","latitude")])
+
+data_points_list <- list(
+  "sp.points",
+  data_points,
+  pch = 21, fill = "black", col = NA, cex = 1)
+
+pseudoAbsence_points_list <- list(
+  "sp.points", 
+  pseudoAbsence_points,
+  pch = 21, fill = "yellow", col = NA, cex = 1)
 
 
-adm_1_env_vars <- adm_1_env_vars[!duplicated(adm_1_env_vars[, m_flds]), ]
+# ---------------------------------------- plot
 
 
-# ---------------------------------------- merge population data
-
-
-All_FOI_estimates_2 <- merge(
-  All_FOI_estimates, 
-  adm_1_env_vars[, c(m_flds, "population")], 
-  by = m_flds, 
-  all.y = FALSE)
-
-
-# ---------------------------------------- filter out data points with NA age structure data
-
-
-All_FOI_estimates_3 <- merge(
-  All_FOI_estimates_2, 
-  country_age_struc[, m_flds[1], drop = FALSE], 
-  by = m_flds[1], 
-  all.y = FALSE)
-
-
-# ---------------------------------------- calculate R0 for all 3 assumptions
-
-
-R_0 <- vapply(
-  phi_combs,
-  wrapper_to_multi_factor_R0,
-  numeric(nrow(All_FOI_estimates_3)),
-  foi_data = All_FOI_estimates_3, 
-  age_struct = country_age_struc, 
-  age_band_tags = age_band_tgs, 
-  age_band_lower_bounds = age_band_L_bounds, 
-  age_band_upper_bounds = age_band_U_bounds, 
-  prob_fun = prob_fun)
-
-
-# ---------------------------------------- attach base info
-
-
-All_R_0_estimates <- setNames(cbind(All_FOI_estimates_3[, base_info],
-                                    R_0),
-                              nm = c(base_info, var))
-
-
-# ---------------------------------------- save output
-
-
-write.table(All_R_0_estimates, 
-            file.path("output", "R_0", "All_R_0_estimates.csv"), 
-            row.names = FALSE, 
-            sep = ",")
-
-
-# ---------------------------------------- plot 
-
-
-All_R_0_estimates <- All_R_0_estimates[order(All_R_0_estimates$FOI), ]
-
-All_R_0_estimates$ID_point <- seq_len(nrow(All_R_0_estimates))
-
-png(file.path("figures", "reprod_number_plot.png"), 
-    width = 20, 
-    height = 14, 
+png(file.path("figures", "dengue_points_and_absence_mask.png"), 
+    width = 18, 
+    height = 10, 
     units = "in", 
     pointsize = 12,
     bg = "white", 
-    res = 300)
+    res = 200)
 
-lambda_plot <- ggplot(All_R_0_estimates, aes(x = ID_point, y = FOI, colour = type)) +
-               geom_point(size = 0.8) +
-               scale_x_continuous(name = "Country code", breaks = seq_len(nrow(All_R_0_estimates)), 
-                                  expand = c(0.002, 0)) +
-               scale_y_continuous(name = "FOI") +
-               theme(axis.text.x = element_text(size = 5, angle = 90, hjust = 0.5, vjust = 0.5),
-                     panel.grid.minor = element_blank())
+p <- spplot(world_shp_admin_1_dengue, "dengue", lwd = 0.5,
+            scales = list(x = list(draw = TRUE, 
+                                   at = seq(-150, 150, 50)), 
+                          y = list(draw = TRUE)),
+            xlab = "Longitude",
+            ylab = "Latitude", 
+            col.regions = c("palegreen3","red2"),
+            colorkey = FALSE,
+            sp.layout = list(data_points_list,
+                             pseudoAbsence_points_list))
 
-R_0_plot <- ggplot(All_R_0_estimates, aes(x = ID_point, y = R0_2, colour = type)) +
-            geom_point(size = 0.8) +
-            scale_x_continuous(name = "Country code", breaks = seq_len(nrow(All_R_0_estimates)), 
-                               expand = c(0.002, 0)) +
-            scale_y_continuous(name = "R_0") +
-            theme(axis.text.x = element_text(size = 5, angle = 90, hjust = 0.5, vjust = 0.5),
-                  panel.grid.minor = element_blank())
+print(p)
 
-grid.draw(rbind(ggplotGrob(lambda_plot), ggplotGrob(R_0_plot), size = "first"))
-                   
 dev.off()

@@ -1,70 +1,52 @@
-# Creates a map of the dataset point and dengue presence-absence mask 
+# Attach area (km2) of each admin unit AND population density
 
-# load packages
-library(rgdal) 
+library(rgdal)
 library(dplyr)
-library(colorRamps)
+
+
+# ---------------------------------------- define parameters
+
+
+winkel_tripel_crs <- CRS("+proj=wintri")
+
+foi_out_pt <- file.path("output", "foi")
+
+foi_out_nm <- "All_FOI_estimates_linear_env_var_area.csv"
 
 
 # ---------------------------------------- load data
 
 
-All_FOI_estimates <- read.table(
-  file.path("output", 
-            "foi", 
-            "All_FOI_estimates_linear.txt"), 
-  header = TRUE, 
-  sep = ",")
+foi_data <- read.csv(
+  file.path("output", "foi", "All_FOI_estimates_linear_env_var.csv"),
+  stringsAsFactors = FALSE) 
 
-pseudoAbsences <- read.csv(
-  file.path("output", 
-            "datasets", 
-            "pseudo_absence_points_2.csv"), 
-  header = TRUE)
-
-world_shp_admin_1_dengue <- readOGR(dsn = file.path("output", "shapefiles"), 
-                                    layer = "gadm28_adm1_dengue")
+shp <- readOGR(file.path("data", "shapefiles", "gadm28_levels.shp"), "gadm28_adm1")
 
 
-# ---------------------------------------- pre processing
+# ---------------------------------------- start
 
 
-data_points <- SpatialPoints(All_FOI_estimates[, c("longitude", "latitude")])
-pseudoAbsence_points <- SpatialPoints(pseudoAbsences[, c("longitude","latitude")])
+shp_pr <- spTransform(shp, winkel_tripel_crs)
 
-data_points_list <- list(
-  "sp.points",
-  data_points,
-  pch = 21, fill = "black", col = NA, cex = 1)
+all_areas <- sapply(shp_pr@polygons, function(x) x@area)
 
-pseudoAbsence_points_list <- list(
-  "sp.points", 
-  pseudoAbsence_points,
-  pch = 21, fill = "yellow", col = NA, cex = 1)
+# from sq m to sq km
+shp_pr@data$Shape_Area <- all_areas/1000000 
+
+shp_pr@data$ID_0 <- as.numeric(as.character(shp_pr@data$ID_0))
+shp_pr@data$ID_1 <- as.numeric(as.character(shp_pr@data$ID_1))
+
+shp_pr@data <- shp_pr@data[!duplicated(shp_pr@data[, c("ID_0", "ID_1")]), ]
+
+foi_data_2 <- left_join(foi_data, shp_pr@data[, c("ID_0", "ID_1", "Shape_Area")], by = c("ID_0", "ID_1"))
+
+foi_data_2$pop_den <- foi_data_2$population / foi_data_2$Shape_Area  
+  
+  
+# ---------------------------------------- save 
 
 
-# ---------------------------------------- plot
-
-
-png(file.path("figures", "dengue_points_and_absence_mask.png"), 
-    width = 18, 
-    height = 10, 
-    units = "in", 
-    pointsize = 12,
-    bg = "white", 
-    res = 200)
-
-p <- spplot(world_shp_admin_1_dengue, "dengue", lwd = 0.5,
-            scales = list(x = list(draw = TRUE, 
-                                   at = seq(-150, 150, 50)), 
-                          y = list(draw = TRUE)),
-            xlab = "Longitude",
-            ylab = "Latitude", 
-            col.regions = c("palegreen3","red2"),
-            colorkey = FALSE,
-            sp.layout = list(data_points_list,
-                             pseudoAbsence_points_list))
-
-print(p)
-
-dev.off()
+write.csv(foi_data_2, 
+          file.path(foi_out_pt, foi_out_nm), 
+          row.names = FALSE)
