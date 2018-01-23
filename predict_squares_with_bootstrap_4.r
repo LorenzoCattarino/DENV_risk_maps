@@ -41,7 +41,7 @@ out_path <- file.path("output", "predictions_world", model_tp)
 dts_tag <- "all_squares"
 
 
-# ----------------------------------------
+# ---------------------------------------- are you using the cluster ?
 
 
 if (CLUSTER) {
@@ -56,6 +56,15 @@ if (CLUSTER) {
   
 }
 
+
+# ---------------------------------------- load data
+
+
+all_sqr_covariates <- readRDS(
+  file.path(
+    "output", 
+    "env_variables", 
+    "all_squares_env_var_0_1667_deg.rds"))
 
 
 # ---------------------------------------- run one job
@@ -88,7 +97,8 @@ if (CLUSTER) {
     scenario_ids = scenario_ids,
     col_names = col_names,
     base_info = base_info,
-    dts_tag = dts_tag)
+    dts_tag = dts_tag,
+    covariate_dts = all_sqr_covariates)
 
 } else {
 
@@ -102,6 +112,7 @@ if (CLUSTER) {
     col_names = col_names,
     base_info = base_info,
     dts_tag = dts_tag,
+    covariate_dts = all_sqr_covariates,
     parallel = FALSE)
 
 }
