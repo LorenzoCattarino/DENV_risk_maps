@@ -28,13 +28,19 @@ make_h2o_predictions <- function(mod_obj, dataset, sel_preds){
   
 }
 
-wrapper_to_make_h2o_preds <- function(
-  i, RF_mod_name, model_in_path, dataset, 
-  predictors){
+wrapper_to_make_h2o_preds <- function(i, 
+                                      RF_mod_name, 
+                                      model_in_path, 
+                                      dataset,
+                                      predictors, 
+                                      start_h2o,
+                                      shut_h2o) {
   
   #browser()
   
-  h2o.init()
+  if(start_h2o) {
+    h2o.init()
+  }
   
   RF_obj_nm <- paste0(RF_mod_name, "_", i, ".rds")
   
@@ -44,7 +50,9 @@ wrapper_to_make_h2o_preds <- function(
   
   out[out < 0] <- 0
   
-  h2o.shutdown(prompt = FALSE)
+  if(shut_h2o) {
+    h2o.shutdown(prompt = FALSE)
+  }
   
   out  
 
