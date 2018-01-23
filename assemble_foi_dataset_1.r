@@ -123,16 +123,6 @@ final_age_struct_data[, numeric_columns] <- final_age_struct_data[, numeric_colu
 # fix NaNs
 final_age_struct_data[is.na(final_age_struct_data)] <- 0
 
-# get Channel Islands age structure
-#Ch_Isl_age_struc_data <- subset(age_struct_data, Major_area_region_country_or_area == "Channel Islands" & Reference_date == 2015)[, c("Reference_date", numeric_columns)]
-
-# fix NAs
-#Ch_Isl_age_struc_data[is.na(Ch_Isl_age_struc_data)] <- 0
-
-# assign Channel Islands age structure to Jersey and Guernsey records
-#final_age_struct_data[final_age_struct_data$country == "Jersey", c("Reference_date", numeric_columns)] <- Ch_Isl_age_struc_data
-#final_age_struct_data[final_age_struct_data$country == "Guernsey", c("Reference_date", numeric_columns)] <- Ch_Isl_age_struc_data
-
 # Sort by country name
 final_age_struct_data <- final_age_struct_data [order(final_age_struct_data$country), ]
 
