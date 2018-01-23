@@ -1,7 +1,12 @@
-average_foi_and_burden_predictions <- function(
-  j, vars, in_path, 
-  out_path, scenario_ids, col_names,
-  base_info, dts_tag){
+average_foi_and_burden_predictions <- function(j, 
+                                               vars, 
+                                               in_path, 
+                                               out_path, 
+                                               scenario_ids, 
+                                               col_names,
+                                               base_info, 
+                                               dts_tag,
+                                               covariate_dts){
   
   #browser()
   
@@ -9,19 +14,13 @@ average_foi_and_burden_predictions <- function(
   
   if(my_var == "FOI") {
     
-    all_sqr_covariates <- readRDS(
-      file.path(
-        "output", 
-        "env_variables", 
-        "all_squares_env_var_0_1667_deg.rds"))
-    
     root_name <- paste0(my_var, "_", dts_tag)
     
     dat <- readRDS(file.path(in_path, paste0(root_name, ".rds")))
     
     ret <- average_boot_samples_dim2(dat)
     
-    ret2 <- cbind(all_sqr_covariates[, base_info], ret)
+    ret2 <- cbind(covariate_dts[, base_info], ret)
     
     out_name <- paste0(my_var, "_", "mean_", dts_tag, ".rds")
     
