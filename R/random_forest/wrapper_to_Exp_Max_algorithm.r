@@ -1,13 +1,26 @@
-exp_max_algorithm_boot <- function(
-  i, boot_samples, 
-  pxl_dataset_orig, psAbs, my_preds, 
-  no_trees, min_node_size, grp_flds, niter, 
-  all_wgt, wgt_limits,
-  RF_obj_path, RF_obj_name,
-  diagn_tab_path, diagn_tab_name,
-  map_path, map_name, 
-  sct_plt_path, adm_dataset, pxl_dts_pt,
-  var_to_fit){
+exp_max_algorithm_boot <- function(i, 
+                                   boot_samples, 
+                                   pxl_dataset_orig, 
+                                   psAbs, 
+                                   my_preds, 
+                                   no_trees, 
+                                   min_node_size, 
+                                   grp_flds, 
+                                   niter, 
+                                   all_wgt, 
+                                   wgt_limits,
+                                   RF_obj_path, 
+                                   RF_obj_name,
+                                   diagn_tab_path, 
+                                   diagn_tab_name,
+                                   map_path, 
+                                   map_name, 
+                                   sct_plt_path,
+                                   adm_dataset, 
+                                   pxl_dts_pt,
+                                   var_to_fit, 
+                                   train_dts_path,
+                                   train_dts_name){
   
   
   #browser()
@@ -35,7 +48,7 @@ exp_max_algorithm_boot <- function(
   cc <- map_path[i]  
   ee <- map_name[i] 
   ff <- sct_plt_path[i]
-  
+  gg <- train_dts_name[i]
   
   # ---------------------------------------- pre process the bootstrapped foi data set
   
@@ -99,6 +112,8 @@ exp_max_algorithm_boot <- function(
                     map_name = ee,
                     sct_plt_path = ff,
                     var_to_fit = var_to_fit,
+                    train_dts_path = train_dts_path,
+                    train_dts_name = gg,
                     adm_dataset = adm_dataset)
   
 }
