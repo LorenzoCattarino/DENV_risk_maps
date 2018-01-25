@@ -49,3 +49,23 @@ extract_pd <- function(i, variables, all_tables){
              var = var)
   
 }
+
+extract_vi <- function(i, variables, all_tables){  
+  
+  #browser()
+  
+  var <- variables[i]
+  
+  out <- rep(0, length(all_tables))
+    
+  for (j in seq_along(all_tables)){
+    
+    tar <- all_tables[[j]]
+    id <- which(tar[,"variable"] == var)
+    out[j] <- tar[id, "percentage"]
+    
+  }
+
+  out
+
+}
