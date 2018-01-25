@@ -125,7 +125,7 @@ p <- ggplot(final_pd_df, aes(x, q50)) +
   geom_ribbon(data = final_pd_df, 
               mapping = aes(ymin = q05, ymax = q95), 
               fill = "gray70", 
-              alpha = 0.4) +
+              alpha = 0.5) +
   geom_line() +
   theme_bw(base_size = 11, base_family = "") +
   theme(plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "in"))+
