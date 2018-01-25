@@ -101,8 +101,11 @@ final_pd_df$var <- factor(final_pd_df$var,
 
 # plot ------------------------------------------------------------------------
 
+
 # create new name strips for facet plots
-new_names <- sprintf("%s (%s)", final_vi_df$var, paste0(round(final_vi_df$importance, 2),"%"))
+new_names <- sprintf("%s (%s)", 
+                     final_vi_df$var, 
+                     paste0(round(final_vi_df$importance * 100, 2),"%"))
 x_name_strips <- setNames(new_names, final_vi_df$var)
 
 dir.create(out_pt, FALSE, TRUE)
@@ -115,7 +118,10 @@ png(file.path(out_pt, "partial_dependence_plots.png"),
     res = 300)
 
 p <- ggplot(final_pd_df, aes(x, q50)) +
-  facet_wrap(~ var, scales = "free", ncol = 3, labeller = as_labeller(x_name_strips)) +
+  facet_wrap(facets = ~ var, 
+             ncol = 3,
+             scales = "free", 
+             labeller = as_labeller(x_name_strips)) +
   geom_ribbon(data = final_pd_df, 
               mapping = aes(ymin = q05, ymax = q95), 
               fill = "gray70", 
