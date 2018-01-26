@@ -1,8 +1,14 @@
-wrapper_to_admin_map <- function(
-  i, vars, statistics, my_colors, 
-  titles_vec, df_long, country_shp, 
-  out_path, do.p9.logic,
-  plot_wdt, plot_hgt){
+wrapper_to_admin_map <- function(i, 
+                                 vars, 
+                                 statistics, 
+                                 my_colors, 
+                                 titles_vec, 
+                                 df_long, 
+                                 country_shp, 
+                                 out_path, 
+                                 do.p9.logic,
+                                 plot_wdt, 
+                                 plot_hgt){
   
   
   # ----------------------------------------
@@ -32,10 +38,16 @@ wrapper_to_admin_map <- function(
   
 }
 
-map_predictions_admin_ggplot <- function(
-  df, shp, var_to_plot, out_path, 
-  out_file_name, my_col, ttl, 
-  do.p9, plot_wdt, plot_hgt) {
+map_predictions_admin_ggplot <- function(df, 
+                                         shp, 
+                                         var_to_plot, 
+                                         out_path, 
+                                         out_file_name, 
+                                         my_col, 
+                                         ttl, 
+                                         do.p9, 
+                                         plot_wdt, 
+                                         plot_hgt) {
   
   #browser()
   
