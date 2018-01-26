@@ -13,6 +13,7 @@ wrapper_to_admin_map <- function(i,
   
   # ----------------------------------------
 
+  
   statsc <- statistics[i]
   out_fl_nm <- paste0(statsc, "_", vars,"_adm_1.png")
   col <- my_colors[[2]]
