@@ -1,129 +1,96 @@
-# Makes a pretty map of the administrative unit predictions
+# Take mean, sd and 95% CI of foi for each admin unit 1
+# THIS IS FOR THE MAPS!
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-my_resources <- c(
-  file.path("R", "plotting", "functions_for_plotting_admin_level_maps.r"))
+CLUSTER <- FALSE
 
-my_pkgs <- c("rgdal", "dplyr", "colorRamps", "ggplot2")
+my_resources <- c(
+  file.path("R", "utility_functions.r"),
+  file.path("R", "burden_and_interventions", "calculate_mean_across_fits.r"))
+
+my_pkgs <- NULL
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
                              packages = my_pkgs,
                              sources = my_resources)
 
-CLUSTER <- TRUE
+
+# define parameters -----------------------------------------------------------
 
 
-# ---------------------------------------- define parameters 
+model_tp <- "R0_3_boot_model"
+
+vars <- "FOI" 
+
+scenario_ids <- 1
+
+no_fits <- 200
+
+col_names <- as.character(seq_len(no_fits))
+
+base_info <- c("OBJECTID", "ID_0", "country", "ID_1", "name1", "population")
+
+in_path <- file.path("output", "predictions_world", model_tp)
+
+out_path <- file.path("output", "predictions_world", model_tp)
+
+dts_tag <- "all_adm1"
 
 
-model_tp <- "boot_model_20km_2"
-
-vars <- "FOI"
-
-statistics <- c("mean", "sd", "interv", "lCI", "uCI")
-
-all_titles <- c("mean", "SD", "quantile_diff", "2.5_quantile", "97.5_quantile")
-
-do.p9.logic <- c(FALSE, FALSE, FALSE, FALSE, FALSE)
-
-plot_wdt <- 28 #or: 7
-plot_hgt <- 12 #or: 3
-
-out_pth <- file.path(
-  "figures", 
-  "predictions_world",
-  model_tp)
-
-
-# ---------------------------------------- are you using the cluster? 
+# are you using the cluster? --------------------------------------------------
 
 
 if (CLUSTER) {
   
-  obj <- didehpc::queue_didehpc(ctx)
+  config <- didehpc::didehpc_config(template = "20Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
   
-} else {
+} else{
   
   context::context_load(ctx)
   
 }
 
 
-# ---------------------------------------- create color palette
+# load data ------------------------------------------------------------------- 
 
 
-col_ls <- list(
-  c("red3", "orange", "chartreuse4"),
-  matlab.like(10),
-  colorRampPalette(c("green4", "yellow", "red"))(10),
-  rev(heat.colors(10)))
+prediction_datasets <- read.csv(
+  file.path("output", 
+            "env_variables", 
+            "All_adm1_env_var.csv"))
 
 
-# ---------------------------------------- load data
+# run ------------------------------------------------------------------------- 
 
 
-prediction_dat <- readRDS(
-  file.path(
-    "output", 
-    "predictions_world", 
-    model_tp, 
-    "means", 
-    "FOI_mean_all_adm_1.rds"))
-
-covariate_dat <- read.csv(
-  file.path(
-    "output", 
-    "env_variables", 
-    "All_adm1_env_var.csv"))
-
-country_shp <- readOGR(dsn = file.path("output", "shapefiles"), 
-                       layer = "gadm28_adm0_eras")
-
-adm_shp <- readOGR(dsn = file.path("output", "shapefiles"), 
-                   layer = "gadm28_adm1_eras")
-
-
-# ---------------------------------------- pre processing
-
-
-prediction_dat$interv <- prediction_dat$uCI - prediction_dat$lCI 
-
-prediction_dat <- cbind(OBJECTID = covariate_dat$OBJECTID, prediction_dat) 
-
-adm_shp_fort <- fortify(adm_shp, region = "OBJECTID") %>% 
-  mutate(id = as.numeric(id))
-
-df_to_plot <- left_join(adm_shp_fort, prediction_dat, by = c("id" = "OBJECTID"))
-
-na_logic <- apply(as.matrix(df_to_plot[, statistics]), 1, anyNA)
-
-df_to_plot[na_logic, statistics] <- rep(0, length(statistics))
-
-
-# ---------------------------------------- start
-
-
-if(CLUSTER){
+if (CLUSTER) {
   
-  admin_maps <- queuer::qlapply(
-    seq_along(statistics),
-    wrapper_to_admin_map,
-    obj,
-    vars = vars, 
-    statistics = statistics, 
-    my_colors = col_ls, 
-    titles_vec = all_titles, 
-    df_long = df_to_plot, 
-    country_shp = country_shp, 
-    out_path = out_pth, 
-    do.p9.logic = do.p9.logic,
-    plot_wdt = plot_wdt, 
-    plot_hgt = plot_hgt)
+  mean_foi <- obj$enqueue(
+    average_foi_and_burden_predictions(
+      seq_along(vars),
+      vars = vars,
+      in_path = in_path,
+      out_path = out_path,
+      scenario_ids = scenario_ids,
+      col_names = col_names,
+      base_info = base_info,
+      dts_tag = dts_tag,
+      covariate_dts = prediction_datasets))
   
 } else {
   
-  
+  mean_foi <- average_foi_and_burden_predictions(
+    seq_along(vars),
+    vars = vars,
+    in_path = in_path,
+    out_path = out_path,
+    scenario_ids = scenario_ids,
+    col_names = col_names,
+    base_info = base_info,
+    dts_tag = dts_tag,
+    covariate_dts = prediction_datasets)
   
 }

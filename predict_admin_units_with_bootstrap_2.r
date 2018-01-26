@@ -1,15 +1,14 @@
-# Take mean, sd and 95% CI of foi for each admin unit 1
-# THIS IS FOR THE MAPS!
+# Load back square predictions for the world, for each model fit 
+# Save a n squares x n fits matrix. 
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
-my_resources <- c(
-  file.path("R", "utility_functions.r"),
-  file.path("R", "burden_and_interventions", "calculate_mean_across_fits.r"))
+my_resources <- c(file.path("R", "utility_functions.R"),
+                  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"))
 
-my_pkgs <- NULL
+my_pkgs <- "h2o"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -17,29 +16,24 @@ ctx <- context::context_save(path = "context",
                              sources = my_resources)
 
 
-# define parameters -----------------------------------------------------------
+# define parameters ----------------------------------------------------------- 
 
 
-model_tp <- "R0_3_boot_model"
+var_to_fit <- "R0_3"
 
-vars <- "FOI" 
+fit_type <- "boot"
 
-scenario_ids <- 1
+model_tp <- paste0(var_to_fit, "_", fit_type, "_model")
 
-no_fits <- 200
+out_fl_nm <- "FOI_all_adm1.rds"
 
-col_names <- as.character(seq_len(no_fits))
-
-base_info <- c("OBJECTID", "ID_0", "country", "ID_1", "name1", "population")
-
-in_path <- file.path("output", "predictions_world", model_tp)
-
-out_path <- file.path("output", "predictions_world", model_tp)
-
-dts_tag <- "all_adm1"
+out_pt <- file.path(
+  "output", 
+  "predictions_world", 
+  model_tp)
 
 
-# are you using the cluster? --------------------------------------------------
+# are you using the cluster? --------------------------------------------------  
 
 
 if (CLUSTER) {
@@ -47,50 +41,32 @@ if (CLUSTER) {
   config <- didehpc::didehpc_config(template = "20Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
-} else{
+} else {
   
   context::context_load(ctx)
   
 }
 
 
-# load data ------------------------------------------------------------------- 
+# get results -----------------------------------------------------------------
 
 
-prediction_datasets <- read.csv(
-  file.path("output", 
-            "env_variables", 
-            "All_adm1_env_var.csv"))
+# loads the LAST task bundle
+my_task_id <- obj$task_bundle_info()[nrow(obj$task_bundle_info()), "name"] 
+
+world_sqr_preds_all_fits_t <- obj$task_bundle_get(my_task_id)
+
+world_sqr_preds_all_fits <- world_sqr_preds_all_fits_t$results()
 
 
-# run ------------------------------------------------------------------------- 
+# combine ---------------------------------------------------------------------
 
 
-if (CLUSTER) {
-  
-  mean_foi <- obj$enqueue(
-    average_foi_and_burden_predictions(
-      seq_along(vars),
-      vars = vars,
-      in_path = in_path,
-      out_path = out_path,
-      scenario_ids = scenario_ids,
-      col_names = col_names,
-      base_info = base_info,
-      dts_tag = dts_tag,
-      covariate_dts = prediction_datasets))
-  
-} else {
-  
-  mean_foi <- average_foi_and_burden_predictions(
-    seq_along(vars),
-    vars = vars,
-    in_path = in_path,
-    out_path = out_path,
-    scenario_ids = scenario_ids,
-    col_names = col_names,
-    base_info = base_info,
-    dts_tag = dts_tag,
-    covariate_dts = prediction_datasets)
-  
-}
+world_sqr_preds <- do.call("cbind", world_sqr_preds_all_fits)
+
+
+# save ------------------------------------------------------------------------
+
+
+write_out_rds(world_sqr_preds, out_pt, out_fl_nm)
+
