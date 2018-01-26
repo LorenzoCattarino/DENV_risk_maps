@@ -18,8 +18,8 @@ ctx <- context::context_save(path = "context",
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "24Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
+  #config <- didehpc::didehpc_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx)
   
 }else{
   
@@ -38,8 +38,6 @@ mean_pred_fl_nm <- "R0_r_mean_all_squares_3.rds"
 map_projs <- c(NA, "+proj=robin", "+proj=moll")
 
 out_file_names <- c("nice_map.png", "nice_map_robin.png", "nice_map_moll.png")
-
-my_col <- matlab.like(10)
 
 statsc <- "median"
 
@@ -76,46 +74,49 @@ countries <- countries[!countries@data$NAME_ENGLI == "Caspian Sea", ]
 # submit one job --------------------------------------------------------------
 
 
-v_nice_map <- obj$enqueue(
-    make_very_nice_map(seq_along(map_projs)[3],
-                       map_projs,
-                       countries,
-                       bbox,
-                       df_long,
-                       statsc,
-                       na_cutoff,
-                       out_path,
-                       out_file_names))
+# v_nice_map <- obj$enqueue(
+#     make_very_nice_map(seq_along(map_projs)[3],
+#                        map_projs,
+#                        countries,
+#                        bbox,
+#                        df_long,
+#                        statsc,
+#                        na_cutoff,
+#                        ttl,
+#                        out_path,
+#                        out_file_names))
 
   
 # submit bundle ---------------------------------------------------------------
 
 
-# if(CLUSTER){
-# 
-#   v_nice_map <- queuer::qlapply(
-#     seq_along(map_projs),
-#     make_very_nice_map,
-#     obj,
-#     map_projs,
-#     countries,
-#     bbox,
-#     df_long,
-#     statsc,
-#     na_cutoff,
-#     out_path,
-#     out_file_names)
-#   
-# } else {
-#   
-#   v_nice_map <- make_very_nice_map(seq_along(map_projs)[1],
-#                                    map_projs,
-#                                    countries,
-#                                    bbox,
-#                                    df_long,
-#                                    statsc,
-#                                    na_cutoff,
-#                                    out_path,
-#                                    out_file_names)
-#   
-# }
+if(CLUSTER){
+
+  v_nice_map <- queuer::qlapply(
+    seq_along(map_projs),
+    make_very_nice_map,
+    obj,
+    map_projs,
+    countries,
+    bbox,
+    df_long,
+    statsc,
+    na_cutoff,
+    ttl,
+    out_path,
+    out_file_names)
+
+} else {
+
+  v_nice_map <- make_very_nice_map(seq_along(map_projs)[1],
+                                   map_projs,
+                                   countries,
+                                   bbox,
+                                   df_long,
+                                   statsc,
+                                   na_cutoff,
+                                   ttl,
+                                   out_path,
+                                   out_file_names)
+
+}
