@@ -388,11 +388,14 @@ make_very_nice_map <- function(i,
                                                  barwidth = barwdt, 
                                                  barheight = barhgt),
                          na.value = "grey70") + 
-    # geom_path(data = shp,
-    #           aes(x = long, y = lat, group = group),
-    #           colour = "gray40",
-    #           size = pol_brd_sz) +
-    geom_path(data = bbox_df, aes(long, lat, group = group), colour = "black", size = 0.3) +
+    geom_path(data = countries_df,
+              aes(x = long, y = lat, group = group),
+              colour = "gray40",
+              size = pol_brd_sz) +
+    geom_path(data = bbox_df, 
+              aes(long, lat, group = group), 
+              colour = "black", 
+              size = 0.3) +
     coord_equal() +
     scale_x_continuous(labels = NULL, expand = c(0, 0)) +
     scale_y_continuous(labels = NULL, expand = c(0, 0)) +
@@ -400,7 +403,7 @@ make_very_nice_map <- function(i,
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank(),
           axis.ticks = element_blank(),
-          plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "in"),
+          plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), "in"),
           legend.position = c(leg_pos_x, leg_pos_y),    
           legend.text = element_text(size = leg_txt_sz),                       
           legend.title = element_text(face = "bold", size = leg_ttl_sz),
