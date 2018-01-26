@@ -160,7 +160,14 @@ wrapper_to_ggplot_map <- function(
   
 }
 
-map_data_pixel_ggplot <- function(df, shp, out_path, out_file_name, my_col, ttl, map_size, statsc) {
+map_data_pixel_ggplot <- function(df, 
+                                  shp, 
+                                  out_path, 
+                                  out_file_name, 
+                                  my_col, 
+                                  ttl, 
+                                  map_size, 
+                                  statsc) {
   
   if(map_size == "small"){
     plot_wdt <- 8
@@ -266,6 +273,7 @@ make_very_nice_map <- function(i,
                                df_long,
                                statsc,
                                na_cutoff,
+                               ttl,
                                out_path,
                                out_file_names){
   
@@ -355,6 +363,8 @@ make_very_nice_map <- function(i,
   leg_pos_y <- 0.25
   leg_txt_sz <- 10 
   leg_ttl_sz <- 12
+  
+  my_col <- matlab.like(10)
   
   dir.create(out_path, FALSE, TRUE)
   
