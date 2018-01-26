@@ -38,6 +38,8 @@ wrapper_to_make_h2o_preds <- function(i,
   
   #browser()
   
+  cat("model fit =", i, "\n")
+  
   if(start_h2o) {
     h2o.init()
   }
