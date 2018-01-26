@@ -17,7 +17,7 @@ ctx <- context::context_save(path = "context",
 context::context_load(ctx)
 
 
-# ---------------------------------------- define parameters
+# define parameters ----------------------------------------------------------- 
 
 
 adm_level <- 1
@@ -43,7 +43,7 @@ out_pt <- file.path(
   model_tp)
 
 
-# ---------------------------------------- load data
+# load data ------------------------------------------------------------------- 
 
 
 # predicting variable rank
@@ -62,7 +62,7 @@ prediction_datasets <- lapply(c(1, 2), function(x){
                      paste0("All_adm", x, "_env_var.csv")))})
 
 
-# ---------------------------------------- pre processing 
+# pre processing --------------------------------------------------------------  
 
 
 # get the vector of best predictors (from MH variable selection routine)
@@ -73,7 +73,7 @@ my_predictors <- c(my_predictors, "RFE_const_term")
 bse_infs <- list(bse_inf_1, bse_inf_2)
 
 
-# ---------------------------------------- make prediction for each square and model fit
+# make prediction for each square and model fit -------------------------------
 
 
 foi <- wrapper_to_make_preds(
