@@ -1,12 +1,14 @@
-wrapper_to_ggplot_map <- function(
-  x, my_colors, model_tp, 
-  country_shp, shp_fort, out_path, 
-  map_size, in_dts_tag){
+wrapper_to_square_map <- function(x, 
+                                  my_colors, 
+                                  model_tp, 
+                                  country_shp, 
+                                  shp_fort, 
+                                  out_path, 
+                                  map_size, 
+                                  in_dts_tag){
   
   
-  #browser()
-  
-  # ---------------------------------------- define parameters / variables
+  # define parameters / variables ----------------------------------------------- 
   
   
   var <- x$var 
@@ -52,7 +54,7 @@ wrapper_to_ggplot_map <- function(
   }
 
   
-  # ---------------------------------------- load data 
+  # load data -------------------------------------------------------------------  
   
   
   if(var == "FOI"){
@@ -77,7 +79,7 @@ wrapper_to_ggplot_map <- function(
       mean_pred_fl_nm))
   
   
-  # ---------------------------------------- create matrix of values
+  # create matrix of values ----------------------------------------------------- 
   
   
   df_long$lat.int <- floor(df_long$lat.grid * 6 + 0.5)
@@ -94,7 +96,7 @@ wrapper_to_ggplot_map <- function(
   mat[cbind(i.lon, i.lat)] <- df_long[, statsc]
   
 
-  # ---------------------------------------- convert matrix to raster object
+  # convert matrix to raster object --------------------------------------------- 
   
   
   mat_ls <- list(x = lons,
@@ -104,25 +106,25 @@ wrapper_to_ggplot_map <- function(
   r_mat <- raster(mat_ls)
   
   
-  #----------------------------------------- get raster extent 
+  # get raster extent ----------------------------------------------------------- 
   
   
   my_ext <- matrix(r_mat@extent[], nrow = 2, byrow = TRUE) 
   
   
-  # ---------------------------------------- apply same extent to the shape file 
+  # apply same extent to the shape file -----------------------------------------  
   
   
   country_shp@bbox <- my_ext
   
   
-  # ---------------------------------------- mask the raster to the shape file
+  # mask the raster to the shape file ------------------------------------------- 
   
   
   r_mat_msk <- mask(r_mat, country_shp)
   
   
-  # ---------------------------------------- convert to ggplot-friendly objects 
+  # convert to ggplot-friendly objects ------------------------------------------  
   
   
   r_spdf <- as(r_mat_msk, "SpatialPixelsDataFrame")
@@ -130,7 +132,7 @@ wrapper_to_ggplot_map <- function(
   r_df <- as.data.frame(r_spdf)
   
   
-  # ---------------------------------------- plot differently NA values
+  # plot differently NA values -------------------------------------------------- 
   
   
   if(var == "R0_r" & (statsc == "mean" | statsc == "best" | statsc == "median")) {
@@ -146,7 +148,7 @@ wrapper_to_ggplot_map <- function(
   r_df$layer[r_df$layer < na_cutoff] <- NA 
   
   
-  # ---------------------------------------- make map 
+  # make map --------------------------------------------------------------------  
   
 
   map_data_pixel_ggplot(df = r_df, 
@@ -167,7 +169,7 @@ map_data_pixel_ggplot <- function(df,
                                   my_col, 
                                   ttl, 
                                   map_size, 
-                                  statsc) {
+                                  statsc){
   
   if(map_size == "small"){
     plot_wdt <- 8
