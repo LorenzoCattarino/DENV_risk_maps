@@ -5,7 +5,7 @@ library(rgdal)
 library(ggplot2)
 
 
-# ---------------------------------------- load data
+# load data ------------------------------------------------------------------- 
 
 
 All_FOI_estimates <- read.table(
@@ -42,7 +42,8 @@ ind <- readOGR(dsn = file.path("data", "shapefiles", "IND_adm_shp"),
 aus <- readOGR(dsn = file.path("data", "shapefiles", "AUS_adm_shp"), 
                layer = "AUS_adm1")
 
-# ---------------------------------------- pre processing
+
+# pre processing -------------------------------------------------------------- 
 
 
 fort_shp <- fortify(world_shp_admin_1_dengue)
@@ -54,7 +55,8 @@ fort_mex <- fortify(mex)
 fort_ind <- fortify(ind)
 fort_aus <- fortify(aus)
 
-# ---------------------------------------- plot
+
+# plot ------------------------------------------------------------------------ 
 
 
 png(file.path("figures", "dengue_points.png"), 
