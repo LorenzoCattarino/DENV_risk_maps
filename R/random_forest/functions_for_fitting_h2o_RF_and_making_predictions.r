@@ -1,6 +1,10 @@
-fit_h2o_RF <- function(
-  dependent_variable, predictors, training_dataset, 
-  no_trees, min_node_size, my_weights, model_nm){
+fit_h2o_RF <- function(dependent_variable, 
+                       predictors, 
+                       training_dataset, 
+                       no_trees, 
+                       min_node_size, 
+                       my_weights, 
+                       model_nm){
   
   train <- as.h2o(training_dataset)
   
@@ -60,25 +64,16 @@ wrapper_to_make_h2o_preds <- function(i,
 
 }
 
-# wrapper_to_load_admin_dataset <- function(
-#   dat, sel_preds, parallel, 
-#   model_in_path, 
-#   out_path, out_fl_nm, no_fits){
-#   
-#   foi <- wrapper_to_make_preds(
-#     no_fits = no_fits, 
-#     model_in_path = model_in_path, 
-#     dataset = dat, 
-#     predictors = sel_preds, 
-#     parallel = parallel)  
-#   
-#   foi[foi < 0] <- 0
-#   
-#   write_out_rds(foi, out_path, out_fl_nm)
-#   
-# }
-
-get_boot_sample_and_fit_RF <- function(i, boot_ls, y_var, my_preds, no_trees, min_node_size, out_path, psAb_val, all_wgt, wgt_limits) {
+get_boot_sample_and_fit_RF <- function(i, 
+                                       boot_ls, 
+                                       y_var, 
+                                       my_preds, 
+                                       no_trees, 
+                                       min_node_size, 
+                                       out_path, 
+                                       psAb_val, 
+                                       all_wgt, 
+                                       wgt_limits) {
   
   adm_dts_boot <- boot_ls[[i]]
   
@@ -108,9 +103,11 @@ get_boot_sample_and_fit_RF <- function(i, boot_ls, y_var, my_preds, no_trees, mi
   
 }
 
-load_predict_and_save <- function(
-  i, RF_obj_path, 
-  my_preds, no_fits, out_file_path){
+load_predict_and_save <- function(i, 
+                                  RF_obj_path, 
+                                  my_preds, 
+                                  no_fits, 
+                                  out_file_path){
   
   #browser()
   
@@ -180,11 +177,17 @@ approx_one <- function(i, a, b){
   approx(a, b, xout = i)$y
 }
 
-attach_pred_different_scale_to_data <- function(
-  i, model_path, foi_data,
-  adm_dts, predictors, all_sqr_preds,
-  sqr_dts, tile_ids,
-  bt_samples, out_path, grp_fields){
+attach_pred_different_scale_to_data <- function(i, 
+                                                model_path, 
+                                                foi_data,
+                                                adm_dts, 
+                                                predictors, 
+                                                all_sqr_preds,
+                                                sqr_dts, 
+                                                tile_ids,
+                                                bt_samples,
+                                                out_path,
+                                                grp_fields){
   
   
   #browser()
