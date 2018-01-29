@@ -151,18 +151,18 @@ wrapper_to_square_map <- function(x,
   # make map --------------------------------------------------------------------  
   
 
-  map_data_pixel_ggplot(df = r_df, 
-                        shp = shp_fort, 
-                        out_path = out_path, 
-                        out_file_name = out_fl_nm,
-                        my_col = col, 
-                        ttl = ttl,
-                        map_size = map_size,
-                        statsc = statsc)
+  map_predictions_pixel_ggplot(df = r_df, 
+                               shp = shp_fort, 
+                               out_path = out_path, 
+                               out_file_name = out_fl_nm,
+                               my_col = col, 
+                               ttl = ttl,
+                               map_size = map_size,
+                               statsc = statsc)
   
 }
 
-map_data_pixel_ggplot <- function(df, 
+map_predictions_pixel_ggplot <- function(df, 
                                   shp, 
                                   out_path, 
                                   out_file_name, 
@@ -204,8 +204,6 @@ map_data_pixel_ggplot <- function(df,
     leg_txt_sz <- 15 
     leg_ttl_sz <- 22
   }
-  
-  browser()
   
   dir.create(out_path, FALSE, TRUE)
   
