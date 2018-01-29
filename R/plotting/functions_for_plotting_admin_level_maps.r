@@ -1,40 +1,95 @@
-wrapper_to_admin_map <- function(i, 
-                                 vars, 
-                                 statistics, 
+wrapper_to_admin_map <- function(x, 
                                  my_colors, 
-                                 titles_vec, 
                                  df_long, 
                                  country_shp, 
                                  out_path, 
-                                 do.p9.logic,
-                                 plot_wdt, 
-                                 plot_hgt){
+                                 map_size){
   
   
-  # ----------------------------------------
+  # define parameters / variables -----------------------------------------------
 
   
-  statsc <- statistics[i]
-  out_fl_nm <- paste0(statsc, "_", vars,"_adm_1.png")
+  var <- x$var 
+  scenario_id <- x$scenario_id
+  statsc <- x$statistic  
+  
   col <- my_colors[[2]]
-  ttl <- titles_vec[i]
-  do.p9 <- do.p9.logic[i]
+  
+  if(statsc == "mean" | statsc == "best" | statsc == "median"){
+    if(var == "FOI"){
+      ttl <- var
+    }
+    if(grepl("R0", var)){
+      ttl <- expression('R'[0])
+    }
+    if(grepl("I_", var)){
+      ttl <- "Annual infections"
+    }
+    if(grepl("C_", var)){
+      ttl <- "Annual cases"
+    }
+  }
+  if(statsc == "sd"){
+    ttl <- "SD"
+  }
+  if(statsc == "interv"){
+    ttl <- "95% CI"
+  }
+  if(statsc == "lCI"){
+    ttl <- "2.5_quantile"
+  }
+  if(statsc == "uCI"){
+    ttl <- "97.5_quantile"
+  }
+  
+  if(var == "FOI"){
+    
+    out_fl_nm <- paste0(statsc, "_", var, "_adm1.png")
+    
+  } else {
+    
+    out_fl_nm <- paste0(statsc, "_", var, "_", scenario_id, "_adm1.png")
+    
+  }
   
   
-  # ----------------------------------------
+  # replace NA values with zero to allow different 
+  # colour coding of below-threshold values        ------------------------------
   
   
-  map_predictions_admin_ggplot(
-    df = df_long, 
-    shp = country_shp,
-    var_to_plot = statsc,
-    out_path = out_path, 
-    out_file_name = out_fl_nm, 
-    my_col = col, 
-    ttl = ttl, 
-    do.p9 = do.p9, 
-    plot_wdt = plot_wdt, 
-    plot_hgt = plot_hgt)
+  na_logic <- apply(as.matrix(df_long[, statsc]), 1, anyNA)
+  
+  df_long[na_logic, statsc] <- 0
+  
+  
+  # plot differently NA values -------------------------------------------------- 
+  
+  
+  if(var == "R0_r" & (statsc == "mean" | statsc == "best" | statsc == "median")) {
+    
+    na_cutoff <- 1 
+    
+  } else {
+    
+    na_cutoff <- 0  
+    
+  }  
+  
+  df_long[df_long[, statsc] < na_cutoff, statsc] <- NA # Error if statsc is NA 
+  
+  
+  # make map --------------------------------------------------------------------  
+  
+  
+  map_predictions_admin_ggplot(df = df_long, 
+                               shp = country_shp,
+                               var_to_plot = statsc,
+                               out_path = out_path, 
+                               out_file_name = out_fl_nm, 
+                               my_col = col, 
+                               ttl = ttl, 
+                               map_size = map_size,
+                               statsc = statsc)
   
   
 }
@@ -45,12 +100,43 @@ map_predictions_admin_ggplot <- function(df,
                                          out_path, 
                                          out_file_name, 
                                          my_col, 
-                                         ttl, 
-                                         do.p9, 
-                                         plot_wdt, 
-                                         plot_hgt) {
+                                         ttl,
+                                         map_size,
+                                         statsc) {
   
-  #browser()
+  if(map_size == "small"){
+    plot_wdt <- 8
+    plot_hgt <- 4  
+    barwdt <- 1.5
+    barhgt <- 6.5
+    pol_brd_sz <- 0.1
+    leg_pos_x <- 0.15
+    leg_pos_y <- 0.3
+    leg_txt_sz <- 10 
+    leg_ttl_sz <- 12
+  }
+  if(map_size == "medium"){
+    plot_wdt <- 12
+    plot_hgt <- 6     
+    barwdt <- 0.15
+    barhgt <- 0.7
+    pol_brd_sz <- 0.1
+    leg_pos_x <- 0.025
+    leg_pos_y <- 0.09
+    leg_txt_sz <- 15 
+    leg_ttl_sz <- 22
+  }
+  if(map_size == "large"){
+    plot_wdt <- 28
+    plot_hgt <- 12
+    barwdt <- 0.15
+    barhgt <- 0.7
+    pol_brd_sz <- 0.1
+    leg_pos_x <- 0.025
+    leg_pos_y <- 0.09
+    leg_txt_sz <- 15 
+    leg_ttl_sz <- 22
+  }
   
   dir.create(out_path, FALSE, TRUE)
   
@@ -61,7 +147,7 @@ map_predictions_admin_ggplot <- function(df,
       pointsize = 12,
       res = 300)
   
-  if(do.p9){
+  if(statsc == "p9"){
     
     df$layer1 <- cut(df$layer, breaks = c(-Inf, 50, 70, Inf), right = FALSE)
     
@@ -74,6 +160,8 @@ map_predictions_admin_ggplot <- function(df,
                                              keyheight = 5))
   } else {
     
+    leg_val <- pretty(df[, var_to_plot], 5)
+    
     p <- ggplot() +
       geom_polygon(data = df, 
                    aes_string(x = "long", 
@@ -81,20 +169,21 @@ map_predictions_admin_ggplot <- function(df,
                               group = "group",
                               fill = var_to_plot),
                    color = NA) +
-      scale_fill_gradientn(colours = my_col, 
+      scale_fill_gradientn(breaks = leg_val,
+                           labels = leg_val,
+                           limits = c(min(leg_val), max(df[, var_to_plot])),
+                           colours = my_col, 
                            guide = guide_colourbar(title = ttl, 
-                                                   barwidth = dev.size()[1] * 0.15, 
-                                                   barheight = dev.size()[1] * 0.7),
-                           na.value = "grey60")
+                                                   barwidth = barwdt, 
+                                                   barheight = barhgt),
+                           na.value = "grey70")
     
   }
   
   p2 <- p + geom_path(data = shp,
-                      aes(x = long, 
-                          y = lat, 
-                          group = group),
+                      aes(x = long, y = lat, group = group),
                       colour = "gray40",
-                      size = 0.3) +
+                      size = pol_brd_sz) +
     coord_equal() +
     scale_x_continuous(labels = NULL, limits = c(-180, 180), expand = c(0, 0)) +
     scale_y_continuous(labels = NULL, limits = c(-60, 90), expand = c(0, 0)) +
@@ -103,9 +192,9 @@ map_predictions_admin_ggplot <- function(df,
           axis.text.y = element_blank(),
           axis.ticks = element_blank(),
           plot.margin = unit(c(0, 0, 0, -0.09), "cm"),
-          legend.position = c(dev.size()[1] * 0.005, dev.size()[1] * 0.008),
-          legend.text = element_text(size = 25),
-          legend.title = element_text(face = "bold", size = 30))#,
+          legend.position = c(leg_pos_x, leg_pos_y),
+          legend.text = element_text(size = leg_txt_sz),
+          legend.title = element_text(face = "bold", size = leg_ttl_sz))#,
   #legend.background = element_rect(fill = alpha("white", 0.2), colour = "gray50"),
   #panel.background = element_rect(fill = "#A6CEE3", colour = NA)) # lightblue2
   
