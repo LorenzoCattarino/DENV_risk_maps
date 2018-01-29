@@ -104,8 +104,8 @@ fact_comb_ls <- df_to_list(fact_comb, use_names = TRUE)
 # ------------------------------------------ submit one job 
 
 
-# t1 <- obj$enqueue(
-#   wrapper_to_ggplot_map(
+# t <- obj$enqueue(
+#   wrapper_to_square_map(
 #     fact_comb_ls,
 #     my_colors = col_ls,
 #     model_tp = model_tp,
@@ -123,7 +123,7 @@ if (CLUSTER) {
 
   maps <- queuer::qlapply(
     fact_comb_ls,
-    wrapper_to_ggplot_map,
+    wrapper_to_square_map,
     obj,
     my_colors = col_ls,
     model_tp = model_tp,
@@ -137,7 +137,7 @@ if (CLUSTER) {
 
   maps <- loop(
     fact_comb_ls,
-    wrapper_to_ggplot_map,
+    wrapper_to_square_map,
     my_colors = col_ls,
     model_tp = model_tp,
     country_shp = country_shp,
