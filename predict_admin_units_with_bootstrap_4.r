@@ -25,8 +25,9 @@ vars <- "R0_r"
 
 scenario_id <- 3
 
-pred_fl_name <- "R0_r_mean_all_adm1_3.rds"
-  
+#pred_fl_name <- "R0_r_mean_all_adm1_3.rds"
+pred_fl_name <- "R0_r_mean_all_squares_3.rds"
+
 statistics <- c("median", "interv")
 
 map_size <- "small"
