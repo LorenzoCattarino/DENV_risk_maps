@@ -16,3 +16,10 @@ average_up <- function(pxl_df, grp_flds, var_names){
   as.data.frame(aggreg_pixel_data)
 
 }
+
+average_data_points <- function(i){
+  
+  i %>%
+    group_by(ADM_0, ADM_1) %>%
+    summarise(o_j = mean(o_j), admin = mean(admin), square = mean(square))
+}
