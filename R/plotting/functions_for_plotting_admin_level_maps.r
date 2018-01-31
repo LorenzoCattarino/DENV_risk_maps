@@ -81,28 +81,49 @@ wrapper_to_admin_map <- function(x,
   # make map --------------------------------------------------------------------  
   
   
-  map_predictions_admin_ggplot(df = df_long, 
-                               shp = country_shp,
-                               var_to_plot = statsc,
-                               out_path = out_path, 
-                               out_file_name = out_fl_nm, 
-                               my_col = col, 
-                               ttl = ttl, 
-                               map_size = map_size,
-                               statsc = statsc)
+  if(map_size == "small"){
+    plot_wdt <- 8
+    plot_hgt <- 4  
+  }
+  if(map_size == "medium"){
+    plot_wdt <- 12
+    plot_hgt <- 6     
+  }
+  if(map_size == "large"){
+    plot_wdt <- 28
+    plot_hgt <- 12
+  }
   
+  dir.create(out_path, FALSE, TRUE)
   
+  png(file.path(out_path, out_fl_nm),
+      width = plot_wdt,
+      height = plot_hgt,
+      units = "in",
+      pointsize = 12,
+      res = 300)
+
+  p <- map_predictions_admin_ggplot(df = df_long, 
+                                    shp = country_shp,
+                                    var_to_plot = statsc,
+                                    out_path = out_path, 
+                                    out_file_name = out_fl_nm, 
+                                    my_col = col, 
+                                    ttl = ttl, 
+                                    map_size = map_size)
+  
+  print(p)
+  
+  dev.off()  
+
 }
 
 map_predictions_admin_ggplot <- function(df, 
                                          shp, 
                                          var_to_plot, 
-                                         out_path, 
-                                         out_file_name, 
                                          my_col, 
                                          ttl,
-                                         map_size,
-                                         statsc) {
+                                         map_size){
   
   if(map_size == "small"){
     plot_wdt <- 8
@@ -138,16 +159,7 @@ map_predictions_admin_ggplot <- function(df,
     leg_ttl_sz <- 22
   }
   
-  dir.create(out_path, FALSE, TRUE)
-  
-  png(file.path(out_path, out_file_name),
-      width = plot_wdt,
-      height = plot_hgt,
-      units = "in",
-      pointsize = 12,
-      res = 300)
-  
-  if(statsc == "p9"){
+  if(var_to_plot == "p9"){
     
     df$layer1 <- cut(df$layer, breaks = c(-Inf, 50, 70, Inf), right = FALSE)
     
@@ -180,10 +192,10 @@ map_predictions_admin_ggplot <- function(df,
     
   }
   
-  p2 <- p + geom_path(data = shp,
-                      aes(x = long, y = lat, group = group),
-                      colour = "gray40",
-                      size = pol_brd_sz) +
+  p + geom_path(data = shp,
+                aes(x = long, y = lat, group = group),
+                colour = "gray40",
+                size = pol_brd_sz) +
     coord_equal() +
     scale_x_continuous(labels = NULL, limits = c(-180, 180), expand = c(0, 0)) +
     scale_y_continuous(labels = NULL, limits = c(-60, 90), expand = c(0, 0)) +
@@ -194,11 +206,72 @@ map_predictions_admin_ggplot <- function(df,
           plot.margin = unit(c(0, 0, 0, -0.09), "cm"),
           legend.position = c(leg_pos_x, leg_pos_y),
           legend.text = element_text(size = leg_txt_sz),
-          legend.title = element_text(face = "bold", size = leg_ttl_sz))#,
-  #legend.background = element_rect(fill = alpha("white", 0.2), colour = "gray50"),
-  #panel.background = element_rect(fill = "#A6CEE3", colour = NA)) # lightblue2
+          legend.title = element_text(face = "bold", size = leg_ttl_sz))
+
+}
+
+map_obs_and_preds <- function(df,
+                              var_to_plot,
+                              out_path, 
+                              out_file_name, 
+                              my_col, 
+                              ttl, 
+                              map_size){
   
-  print(p2)
+  if(map_size == "small"){
+    plot_wdt <- 8
+    plot_hgt <- 8  
+    barwdt <- 1.5
+    barhgt <- 6.5
+    pol_brd_sz <- 0.1
+    leg_txt_sz <- 12 
+    leg_ttl_sz <- 15
+  }
+  
+  leg_val <- pretty(df[, var_to_plot], 5)
+  
+  p <- ggplot() +
+    geom_polygon(data = df, 
+                 aes_string(x = "long", 
+                            y = "lat", 
+                            group = "group",
+                            fill = var_to_plot),
+                 color = NA) +
+    scale_fill_gradientn(breaks = leg_val,
+                         labels = leg_val,
+                         limits = c(min(leg_val), max(df[, var_to_plot])),
+                         colours = my_col, 
+                         guide = guide_colourbar(title = ttl, 
+                                                 barwidth = barwdt, 
+                                                 barheight = barhgt),
+                         na.value = "grey70") + 
+    geom_path(data = countries,
+              aes(x = long, y = lat, group = group),
+              colour = "gray40",
+              size = pol_brd_sz) +
+    facet_wrap(~variable, ncol = 1) +
+    coord_equal() +
+    scale_x_continuous(labels = NULL, limits = c(-180, 180), expand = c(0, 0)) +
+    scale_y_continuous(labels = NULL, limits = c(-60, 90), expand = c(0, 0)) +
+    theme_void() + 
+    theme(axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks = element_blank(),
+          plot.margin = unit(c(0, 0, 0, 0), "in"),
+          legend.position = "left",
+          legend.text = element_text(size = leg_txt_sz),
+          legend.title = element_text(face = "bold", size = leg_ttl_sz))
+  
+  dir.create(out_path, FALSE, TRUE)
+  
+  png(file.path(out_path, out_file_name),
+      width = plot_wdt,
+      height = plot_hgt,
+      units = "in",
+      pointsize = 12,
+      res = 300)
+  
+  print(p)
   
   dev.off()
   
