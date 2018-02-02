@@ -211,6 +211,7 @@ map_predictions_admin_ggplot <- function(df,
 }
 
 map_obs_and_preds <- function(df,
+                              shp,
                               var_to_plot,
                               out_path, 
                               out_file_name, 
@@ -245,7 +246,7 @@ map_obs_and_preds <- function(df,
                                                  barwidth = barwdt, 
                                                  barheight = barhgt),
                          na.value = "grey70") + 
-    geom_path(data = countries,
+    geom_path(data = shp,
               aes(x = long, y = lat, group = group),
               colour = "gray40",
               size = pol_brd_sz) +
