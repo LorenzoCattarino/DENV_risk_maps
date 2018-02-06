@@ -19,7 +19,7 @@ age_bounds_num <- sub("^[^_]+_", "", age_band_tgs)
 
 age_bounds_num_2 <- sub("_", "-",age_bounds_num)
 
-names(age_distr) [names(age_distr) %in% age_band_tgs] <- age_bounds_num_2
+names(age_distr)[names(age_distr) %in% age_band_tgs] <- age_bounds_num_2
 
 xx <- strsplit(age_bounds_num_2, "-")
 zz <- lapply(xx, as.numeric)
