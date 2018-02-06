@@ -40,6 +40,10 @@ get_admin_name <- function(x, country_code_fld){
   location_str <- ifelse(country_name != location, paste(location, country_name, sep = ", "), location)
   #cat("location string = ", location_str, "\n")
   
+  
+  # geocode to find spatial coordinates using name of location ---------------
+  
+  
   geocode_run <- geocode(enc2utf8(location_str), output = "all") # take care of funny characters 
   
   if(geocode_run$status!="OK") {stop("no match!")}
@@ -67,6 +71,11 @@ get_admin_name <- function(x, country_code_fld){
                                  "shapefiles", 
                                  shp_folder, 
                                  shp_name))
+  
+  
+  # map overlay to find admin unit name using spatial coordinates ------------- 
+  
+  
   overlay <- over(SpatialPoints(location_xy),shp)
   
   admin_name <- as.character(overlay$NAME_1)
