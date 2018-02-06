@@ -1,4 +1,7 @@
-# Combines the foi estimates from different studies / sources  into a single data frame
+# 1) Geocode and map overlay to find the admin unit of each data point 
+#    in each source dataset
+# 2) Combine different source datasets (serology, case surveillance) 
+#    into a single data frame
 
 # install dev version of ggmap
 devtools::install_github("dkahle/ggmap")
