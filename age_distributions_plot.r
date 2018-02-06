@@ -69,8 +69,8 @@ for (j in 1:13){
   my_name <- sprintf("%s_page_%d%s", out_file_name, j, ".png")
   
   png(file.path(out_path, my_name),
-      width = 30, # original: 7
-      height = 20, # original: 3
+      width = 30,
+      height = 20,
       units = "in",
       pointsize = 12,
       res = 200)
