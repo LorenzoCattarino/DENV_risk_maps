@@ -1,141 +1,118 @@
-# Makes a pretty map of the square predictions
+# Take mean, median, sd and 95% CI of foi, R0 and burden measures, for each 20 km square
+# THIS IS FOR THE MAPS!
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "plotting", "functions_for_plotting_square_level_maps.r"))
+  file.path("R", "burden_and_interventions", "calculate_mean_across_fits.r"))
 
-my_pkgs <- c("data.table", "ggplot2", "colorRamps", "raster", "rgdal", "scales", "RColorBrewer")
+my_pkgs <- NULL
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
+                             packages = my_pkgs,
+                             sources = my_resources)
 
 
-# ---------------------------------------- define parameters 
+# ---------------------------------------- define parameters
 
 
-model_tp <- "R0_3_boot_model"
+model_tp <- "boot_model_20km_4"
 
-vars <- c("FOI")
+#vars <- c("FOI", "FOI_r")
+#vars <- c("FOI", "R0_r") 
+vars <- c("I_inc", "C_inc")
 
-scenario_id <- NA
-  
-statistics <- c("median", "interv")
-#statistics <- c("mean", "median, "sd", "interv", "lCI", "uCI")
+scenario_ids <- 2
 
-map_size <- "small"
+no_fits <- 200
 
-out_pt <- file.path(
-  "figures", 
-  "predictions_world",
-  model_tp)
-  
-in_dts_tag <- "mean_all_squares"
+col_names <- as.character(seq_len(no_fits))
+
+base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2")
+
+in_path <- file.path("output", "predictions_world", model_tp)
+
+out_path <- file.path("output", "predictions_world", model_tp)
+
+dts_tag <- "all_squares"
 
 
-# ---------------------------------------- are you using the cluster?
+# ---------------------------------------- are you using the cluster ?
 
 
 if (CLUSTER) {
   
-  obj <- didehpc::queue_didehpc(ctx)
+  config <- didehpc::didehpc_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
   
-}else{
+} else{
   
   context::context_load(ctx)
-  #context::parallel_cluster_start(4, ctx)
+  context::parallel_cluster_start(6, ctx)
+  
 }
 
 
-# ---------------------------------------- create combination of factors
+# ---------------------------------------- load data
 
 
-fact_comb_FOI <- expand.grid(vars = vars[vars == "FOI"], 
-                             scenario_id = 1, 
-                             statistics = statistics, 
-                             stringsAsFactors = FALSE)
-
-fact_comb_no_FOI <- expand.grid(vars = vars[vars != "FOI"], 
-                                scenario_id = scenario_id, 
-                                statistics = statistics, 
-                                stringsAsFactors = FALSE)
-
-fact_comb <- rbind(fact_comb_FOI, fact_comb_no_FOI)
+all_sqr_covariates <- readRDS(
+  file.path(
+    "output", 
+    "env_variables", 
+    "all_squares_env_var_0_1667_deg.rds"))
 
 
-# ---------------------------------------- create color palette
-
-
-col_ls <- list(
-  c("red3", "orange", "chartreuse4"),
-  matlab.like(10),
-  colorRampPalette(c("green4", "yellow", "red"))(10))
-
-
-# ---------------------------------------- load data 
-
-
-countries <- readOGR(dsn = file.path("output", "shapefiles"), layer = "gadm28_adm0_eras")
-
-
-# ---------------------------------------- remove the Caspian Sea
-
-
-countries <- countries[!countries@data$NAME_ENGLI == "Caspian Sea", ]
-
-
-# ----------------------------------------
-
-
-fact_comb_ls <- df_to_list(fact_comb, use_names = TRUE)
-  
-  
-# ------------------------------------------ submit one job 
+# ---------------------------------------- run one job
 
 
 # t <- obj$enqueue(
-#   wrapper_to_square_map(
-#     fact_comb_ls[[1]],
-#     my_colors = col_ls,
-#     model_tp = model_tp,
-#     shp_fl = countries,
-#     out_path = out_pt,
-#     map_size = map_size,
-#     in_dts_tag = in_dts_tag))
-
-
-# ---------------------------------------- submit all jobs
+#   average_foi_and_burden_predictions(
+#     seq_along(vars)[2],
+#     vars = vars,
+#     in_path = in_path,
+#     out_path = out_path,
+#     scenario_ids = scenario_ids,
+#     col_names = col_names,
+#     base_info = base_info,
+#     dts_tag = dts_tag))
+  
+  
+# ---------------------------------------- run
 
 
 if (CLUSTER) {
 
-  maps <- queuer::qlapply(
-    fact_comb_ls,
-    wrapper_to_square_map,
+  means_all_scenarios <- queuer::qlapply(
+    seq_along(vars),
+    average_foi_and_burden_predictions,
     obj,
-    my_colors = col_ls,
-    model_tp = model_tp,
-    shp_fl = countries,
-    out_path = out_pt,
-    map_size = map_size,
-    in_dts_tag = in_dts_tag)
+    vars = vars,
+    in_path = in_path,
+    out_path = out_path,
+    scenario_ids = scenario_ids,
+    col_names = col_names,
+    base_info = base_info,
+    dts_tag = dts_tag,
+    covariate_dts = all_sqr_covariates)
 
 } else {
 
-  maps <- loop(
-    fact_comb_ls[1],
-    wrapper_to_square_map,
-    my_colors = col_ls,
-    model_tp = model_tp,
-    shp_fl = countries,
-    out_path = out_pt,
-    map_size = map_size,
-    in_dts_tag = in_dts_tag,
+  means_all_scenarios <- loop(
+    seq_along(vars)[2],
+    average_foi_and_burden_predictions,
+    vars = vars,
+    in_path = in_path,
+    out_path = out_path,
+    scenario_ids = scenario_ids,
+    col_names = col_names,
+    base_info = base_info,
+    dts_tag = dts_tag,
+    covariate_dts = all_sqr_covariates,
     parallel = FALSE)
 
 }
