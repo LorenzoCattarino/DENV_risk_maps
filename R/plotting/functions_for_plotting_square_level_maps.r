@@ -1,8 +1,7 @@
 wrapper_to_square_map <- function(x, 
                                   my_colors, 
                                   model_tp, 
-                                  country_shp, 
-                                  shp_fort, 
+                                  shp_fl, 
                                   out_path, 
                                   map_size, 
                                   in_dts_tag){
@@ -115,13 +114,13 @@ wrapper_to_square_map <- function(x,
   # apply same extent to the shape file -----------------------------------------  
   
   
-  country_shp@bbox <- my_ext
+  shp_fl@bbox <- my_ext
   
   
   # mask the raster to the shape file ------------------------------------------- 
   
   
-  r_mat_msk <- mask(r_mat, country_shp)
+  r_mat_msk <- mask(r_mat, shp_fl)
   
   
   # convert to ggplot-friendly objects ------------------------------------------  
@@ -130,6 +129,8 @@ wrapper_to_square_map <- function(x,
   r_spdf <- as(r_mat_msk, "SpatialPixelsDataFrame")
   
   r_df <- as.data.frame(r_spdf)
+  
+  shp_fl_fort <- fortify(shp_fl)
   
   
   # plot differently NA values -------------------------------------------------- 
@@ -145,14 +146,14 @@ wrapper_to_square_map <- function(x,
   
   }  
   
-  r_df$layer[r_df$layer < na_cutoff] <- NA 
+  r_df$layer[r_df$layer < na_cutoff] <- NA
   
   
   # make map --------------------------------------------------------------------  
   
 
   map_predictions_pixel_ggplot(df = r_df, 
-                               shp = shp_fort, 
+                               shp = shp_fl_fort, 
                                out_path = out_path, 
                                out_file_name = out_fl_nm,
                                my_col = col, 
@@ -163,13 +164,13 @@ wrapper_to_square_map <- function(x,
 }
 
 map_predictions_pixel_ggplot <- function(df, 
-                                  shp, 
-                                  out_path, 
-                                  out_file_name, 
-                                  my_col, 
-                                  ttl, 
-                                  map_size, 
-                                  statsc){
+                                         shp, 
+                                         out_path, 
+                                         out_file_name, 
+                                         my_col, 
+                                         ttl, 
+                                         map_size, 
+                                         statsc){
   
   if(map_size == "small"){
     plot_wdt <- 8
@@ -229,36 +230,37 @@ map_predictions_pixel_ggplot <- function(df,
     
     leg_val <- pretty(df$layer, 5)
     
+    #max_leg_val <- max(df$layer)
+    max_leg_val <- 0.05
+    
     p <- ggplot() +
       geom_tile(data = df, aes(x = x, y = y, fill = layer)) +
       scale_fill_gradientn(breaks = leg_val,
                            labels = leg_val,
-                           limits = c(min(leg_val), max(df$layer)),
+                           limits = c(min(leg_val), max_leg_val),
                            colours = my_col, 
                            guide = guide_colourbar(title = ttl, 
                                                    barwidth = barwdt, 
                                                    barheight = barhgt),
-                           na.value = "grey70")
+                           na.value = "grey90")
     
   }
   
-  p2 <- p + geom_path(data = shp,
-                      aes(x = long, y = lat, group = group),
-                      colour = "gray40",
-                      size = pol_brd_sz) +
-    coord_equal() +
+  # p2 <- p + geom_path(data = shp,
+  #                     aes(x = long, y = lat, group = group),
+  #                     colour = "gray40",
+  #                     size = pol_brd_sz) +
+    p2 <- p + coord_equal() +
     scale_x_continuous(labels = NULL, limits = c(-180, 180), expand = c(0, 0)) +
     scale_y_continuous(labels = NULL, limits = c(-60, 90), expand = c(0, 0)) +
     theme_void() + 
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank(),
           axis.ticks = element_blank(),
-          plot.margin = unit(c(0, 0, 0, -0.09), "cm"),
+          plot.margin = unit(c(0, 0, 0, 0), "in"),
           legend.position = c(leg_pos_x, leg_pos_y),    
           legend.text = element_text(size = leg_txt_sz),                       
-          legend.title = element_text(face = "bold", size = leg_ttl_sz))#,       
-  #legend.background = element_rect(fill = alpha("white", 0.2), colour = "gray50"),
-  #panel.background = element_rect(fill = "#A6CEE3", colour = NA)) # lightblue2
+          legend.title = element_text(face = "bold", size = leg_ttl_sz))
   
   print(p2)
   
