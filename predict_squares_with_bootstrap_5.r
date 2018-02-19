@@ -2,7 +2,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
@@ -19,14 +19,14 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters 
 
 
-model_tp <- "boot_model_20km_3"
+model_tp <- "R0_3_boot_model"
 
-vars <- c("I_inc")
+vars <- c("FOI")
 
-scenario_id <- 1:3
+scenario_id <- NA
   
 statistics <- c("median", "interv")
-#statistics <- c("mean", "sd", "interv", "lCI", "uCI")
+#statistics <- c("mean", "median, "sd", "interv", "lCI", "uCI")
 
 map_size <- "small"
 
@@ -48,7 +48,7 @@ if (CLUSTER) {
 }else{
   
   context::context_load(ctx)
-  context::parallel_cluster_start(4, ctx)
+  #context::parallel_cluster_start(4, ctx)
 }
 
 
@@ -80,19 +80,13 @@ col_ls <- list(
 # ---------------------------------------- load data 
 
 
-country_shp <- readOGR(dsn = file.path("output", "shapefiles"), layer = "gadm28_adm0_eras")
+countries <- readOGR(dsn = file.path("output", "shapefiles"), layer = "gadm28_adm0_eras")
 
 
 # ---------------------------------------- remove the Caspian Sea
 
 
-country_shp <- country_shp[!country_shp@data$NAME_ENGLI == "Caspian Sea", ]
-
-
-# ---------------------------------------- convert to ggplot-friendly object 
-
-
-shp_fort <- fortify(country_shp)
+countries <- countries[!countries@data$NAME_ENGLI == "Caspian Sea", ]
 
 
 # ----------------------------------------
@@ -106,11 +100,10 @@ fact_comb_ls <- df_to_list(fact_comb, use_names = TRUE)
 
 # t <- obj$enqueue(
 #   wrapper_to_square_map(
-#     fact_comb_ls,
+#     fact_comb_ls[[1]],
 #     my_colors = col_ls,
 #     model_tp = model_tp,
-#     country_shp = country_shp,
-#     shp_fort = shp_fort,
+#     shp_fl = countries,
 #     out_path = out_pt,
 #     map_size = map_size,
 #     in_dts_tag = in_dts_tag))
@@ -127,8 +120,7 @@ if (CLUSTER) {
     obj,
     my_colors = col_ls,
     model_tp = model_tp,
-    country_shp = country_shp,
-    shp_fort = shp_fort,
+    shp_fl = countries,
     out_path = out_pt,
     map_size = map_size,
     in_dts_tag = in_dts_tag)
@@ -136,16 +128,15 @@ if (CLUSTER) {
 } else {
 
   maps <- loop(
-    fact_comb_ls,
+    fact_comb_ls[1],
     wrapper_to_square_map,
     my_colors = col_ls,
     model_tp = model_tp,
-    country_shp = country_shp,
-    shp_fort = shp_fort,
+    shp_fl = countries,
     out_path = out_pt,
     map_size = map_size,
     in_dts_tag = in_dts_tag,
-    parallel = TRUE)
+    parallel = FALSE)
 
 }
 
