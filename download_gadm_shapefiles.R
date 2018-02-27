@@ -10,7 +10,6 @@ all_adm1_countries <- read.csv(
 
 all_ISO_codes_admin_1 <- as.character(all_adm1_countries$ISO)
 
-
 no_cores <- parallel::detectCores()
 
 cl <- parallel::makePSOCKcluster(no_cores)
