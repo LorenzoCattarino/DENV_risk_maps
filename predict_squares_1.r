@@ -30,7 +30,7 @@ base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", 
 
 out_pt <- file.path("output", "predictions_world", model_tp)
   
-out_fl_nm <- paste0("FOI", "_", fit_type, "_all_squares.rds")
+out_fl_nm <- paste0("FOI", "_", fit_type, "_20km.rds")
 
 
 # ---------------------------------------- are you using the cluster? 
