@@ -73,7 +73,11 @@ p <- ggplot(new_foi_data, aes(distance)) +
   geom_histogram(binwidth = 40) +
   scale_x_continuous("distance (km)")
 
-ggsave(file.path("figures", "closest_distance_hist.png"), p, width = 15, height = 8, units = "cm")
+ggsave(file.path("figures", "closest_distance_hist.png"), 
+       p, 
+       width = 15, 
+       height = 8, 
+       units = "cm")
 
 
 # fit -------------------------------------------------------------------------
@@ -137,4 +141,8 @@ p2 <- ggplot(output, aes(k, V1)) +
   scale_x_continuous("distance class") +
   scale_y_continuous("correlation coefficient")
 
-ggsave(file.path("figures", "correlation_vs_distance_class.png"), p2, width = 15, height = 8, units = "cm")
+ggsave(file.path("figures", "correlation_vs_distance_class.png"), 
+       p2, 
+       width = 15, 
+       height = 8, 
+       units = "cm")
