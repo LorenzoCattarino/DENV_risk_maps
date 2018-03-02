@@ -15,11 +15,9 @@ geo_crs <- CRS("+proj=longlat +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WG
 prj_crs <- CRS("+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
 
 dependent_variable <- "FOI"
-pseudoAbsence_value <- -0.02
 no_trees <- 500
 min_node_size <- 20
 all_wgt <- 1
-wgt_limits <- c(1, 500)
 
 
 # load data ------------------------------------------------------------------- 
