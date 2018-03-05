@@ -23,11 +23,11 @@ ctx <- context::context_save(path = "context",
 # ---------------------------------------- define parameters
 
 
-model_type <- "boot_model_20km_2"
+var_to_fit <- "R0_3"
 
-var_to_fit <- "FOI"
+pseudoAbsence_value <- 0.5
 
-pseudoAbsence_value <- -0.02
+model_type <- paste0(var_to_fit, "_boot_model")
 
 no_fits <- 200
 
@@ -51,6 +51,8 @@ diag_t_nm_all <- paste0("diagno_table_", seq_len(no_fits), ".rds")
 
 map_nm_all <- paste0("map_", seq_len(no_fits))
 
+tra_dts_nm_all <- paste0("train_dts_", seq_len(no_fits), ".rds")
+  
 RF_out_pth <- file.path(
   "output", 
   "EM_algorithm", 
@@ -62,6 +64,12 @@ diag_t_pth <- file.path(
   "EM_algorithm", 
   model_type,
   "diagnostics")
+
+train_dts_pth <- file.path(
+  "output",
+  "EM_algorithm",
+  model_type,
+  "training_datasets")
 
 map_pth <- file.path(
   "figures", 
@@ -168,7 +176,9 @@ adm_dts <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 #     sct_plt_path = sct_plt_pth,
 #     adm_dataset = adm_dts,
 #     pxl_dts_pt = sqr_dts_pth,
-#     var_to_fit = var_to_fit))
+#     var_to_fit = var_to_fit,
+#     train_dts_path = train_dts_pth,
+#     train_dts_name = tra_dts_nm_all))
 
 
 # ---------------------------------------- submit all jobs
@@ -197,7 +207,9 @@ if (CLUSTER) {
     sct_plt_path = sct_plt_pth,
     adm_dataset = adm_dts,
     pxl_dts_pt = sqr_dts_pth,
-    var_to_fit = var_to_fit)
+    var_to_fit = var_to_fit,
+    train_dts_path = train_dts_pth,
+    train_dts_name = tra_dts_nm_all)
 
 } else {
 
@@ -221,7 +233,9 @@ if (CLUSTER) {
     sct_plt_path = sct_plt_pth,
     adm_dataset = adm_dts,
     pxl_dts_pt = sqr_dts_pth,
-    var_to_fit = var_to_fit)
+    var_to_fit = var_to_fit,
+    train_dts_path = train_dts_pth,
+    train_dts_name = tra_dts_nm_all)
 
 }
 
