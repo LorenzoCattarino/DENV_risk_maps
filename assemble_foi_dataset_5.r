@@ -7,7 +7,7 @@ library(dplyr)
 # ---------------------------------------- define parameters
 
 
-winkel_tripel_crs <- CRS("+proj=wintri")
+prj_crs <- CRS("+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
 
 foi_out_pt <- file.path("output", "foi")
 
@@ -27,7 +27,7 @@ shp <- readOGR(file.path("data", "shapefiles", "gadm28_levels.shp"), "gadm28_adm
 # ---------------------------------------- start
 
 
-shp_pr <- spTransform(shp, winkel_tripel_crs)
+shp_pr <- spTransform(shp, prj_crs)
 
 all_areas <- sapply(shp_pr@polygons, function(x) x@area)
 
