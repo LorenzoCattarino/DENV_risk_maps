@@ -35,18 +35,18 @@ pseudoAbsence_points <- SpatialPoints(pseudoAbsences[, c("longitude","latitude")
 data_points_list <- list(
   "sp.points",
   data_points,
-  pch = 21, fill = "black", col = NA, cex = 1)
+  pch = 21, fill = "dodgerblue", col = NA, cex = 0.7)
 
 pseudoAbsence_points_list <- list(
   "sp.points", 
   pseudoAbsence_points,
-  pch = 21, fill = "yellow", col = NA, cex = 1)
+  pch = 21, fill = "yellow", col = NA, cex = 0.7)
 
 
 # ---------------------------------------- plot
 
 
-png(file.path("figures", "dengue_points_and_absence_mask.png"), 
+png(file.path("figures", "data", "dengue_points_and_absence_mask.png"), 
     width = 18, 
     height = 10, 
     units = "in", 
