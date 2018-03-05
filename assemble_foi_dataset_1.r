@@ -3,12 +3,14 @@
 # 2) Combine different source datasets (serology, case surveillance) 
 #    into a single data frame
 
-# install dev version of ggmap
-devtools::install_github("dkahle/ggmap")
+# install dev version of ggmap for geocode()
+if(!require("ggmap", character.only = TRUE)) {
+  devtools::install_github("dkahle/ggmap")
+}
 
 # load packages
-library(ggmap) # for geocode()
-library(maptools)
+library(rgdal)
+library(geosphere) # for areaPolygon() 
 
 
 # ===================================================================
@@ -34,21 +36,28 @@ my_api_key <- "AIzaSyBuHLASHGLaorGdZidB5sNa-9C2fxXYj1c"
 
 datasets <- c("NonSerotypeSpecificDatasets",
               "SerotypeSpecificDatasets",
+              "All_caseReport_datasets",
               "additional serology",
-              "additional_India_sero_data_Garg",
               "additional_India_sero_data_Shah",
-              "All_caseReport_datasets")  
+              "additional_India_sero_data_Garg",
+              "additional_sero_data_feb2018")  
 
-fields <- c("type", "ID_0", "ISO",
-            "country", "ID_1", "adm1",
-            "FOI", "variance", "latitude",
-            "longitude", "reference", "date")
+fields <- c("type", 
+            "ID_0", 
+            "ISO",
+            "country", 
+            "ID_1", 
+            "FOI", 
+            "variance", 
+            "latitude",
+            "longitude", 
+            "reference", 
+            "date")
 
 foi_out_pt <- file.path("output", "foi")
 foi_out_nm <- "All_FOI_estimates_linear.txt"
 
-deng_count_pt <- file.path("output", "datasets") 
-deng_count_nm <- "dengue_point_countries.csv"
+info_names <- c("latitude", "longitude", "ID_0", "ID_1")
 
 
 # ---------------------------------------- register your api key
@@ -73,38 +82,32 @@ dts_paths <- sapply(dts_names, function(x) file.path("data", "foi", x), USE.NAME
 all_dts <- lapply(dts_paths, read.csv, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 
 
-# ---------------------------------------- run 
+# loop ------------------------------------------------------------------------ 
 
 
 for (i in 1:length(datasets)){
 
   one_dts <- all_dts[[i]]  
-  
-  # Add `type` field
-  if(i == length(datasets)){
+
+  dts_name <- datasets[i]
+    
+  if(dts_name == "All_caseReport_datasets"){
     
     one_dts$type <- "caseReport"
     
-  }else{
+  } else {
     
     one_dts$type <- "serology"
     
   }
   
-  # convert dfs to lists 
   one_dts_ls <- df_to_list(one_dts, use_names = TRUE)  
   
-  # get shp file info
-  shp_info <- sapply(one_dts_ls, get_admin_name, country_code_fld = "ISO")  
+  n <- length(info_names)
   
-  # attach to main datasets 
-  one_dts$latitude <- shp_info[3,]
-  one_dts$longitude <- shp_info[2,]
-  one_dts$adm1 <- shp_info[1,]
-  one_dts$ID_0 <- shp_info[4,]
-  one_dts$ID_1 <- shp_info[5,]
+  admin_info <- vapply(one_dts_ls, get_admin_info, numeric(n), info_names)  
   
-  output_dts[[i]] <- one_dts
+  output_dts[[i]] <- cbind(one_dts, t(admin_info))
   
 }
 
@@ -120,20 +123,16 @@ All_FOI_estimates <- subset(All_FOI_estimates, !is.na(FOI))
 # remove outliers 
 All_FOI_estimates <- subset(All_FOI_estimates, ISO != "PYF" & ISO != "HTI")
 
-dengue_point_countries <- All_FOI_estimates[!duplicated(All_FOI_estimates[, c("country", "ID_0")]), c("country", "ID_0")]
+#dengue_point_countries <- All_FOI_estimates[!duplicated(All_FOI_estimates[, c("country", "ID_0")]), c("country", "ID_0")]
 
 
-# ---------------------------------------- save 
+# save ------------------------------------------------------------------------  
 
 
 write.table(All_FOI_estimates, 
             file.path(foi_out_pt, foi_out_nm), 
             row.names = FALSE, 
             sep = ",")
-
-write.csv(dengue_point_countries[order(as.character(dengue_point_countries$country)), ], 
-          file.path(deng_count_pt, deng_count_nm), 
-          row.names = FALSE)
 
 
 # # ---------------------------------------- Calculate FOI^2  
