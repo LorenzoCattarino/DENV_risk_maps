@@ -67,6 +67,7 @@ foi_data_ls <- df_to_list(foi_data, use_names = TRUE)
 
 # ---------------------------------------- run 
 
+
 #extract env variables 
 extracted_var_values <- sapply(
   foi_data_ls, 
@@ -78,7 +79,7 @@ extracted_var_values <- sapply(
   FT_data = FTs_dt, 
   LC_vars = LandCover_var, 
   admin_level = 1,
-  my_path = file.path("data", "env_variables"))
+  my_path = file.path("output", "env_variables"))
 
 foi_data_with_env_variables <- cbind(foi_data, t(extracted_var_values))
 
