@@ -8,12 +8,20 @@ library(grid)
 source(file.path("R", "prepare_datasets", "functions_for_calculating_R0.r"))
 
 
-# ---------------------------------------- define parameters
+# define parameters ----------------------------------------------------------- 
 
 
 m_flds <- c("ID_0", "ID_1")
 
-base_info <- c("type", "ISO", "longitude", "latitude", "data_id", "ID_0", "ID_1", "FOI", "variance", "population")
+base_info <- c("type", 
+               "ISO", 
+               "longitude", 
+               "latitude", 
+               "ID_0", 
+               "ID_1", 
+               "FOI", 
+               "variance", 
+               "population")
 
 gamma_1 <- 0.45
 rho <- 0.85
@@ -30,7 +38,7 @@ prob_fun <- list("calculate_primary_infection_prob",
                  "calculate_quaternary_infection_prob")
 
 
-# ---------------------------------------- define variables
+# define variables ------------------------------------------------------------ 
 
 
 comb_no <- length(phi_combs)
@@ -38,7 +46,7 @@ comb_no <- length(phi_combs)
 var <- paste0("R0_", seq_len(comb_no))
 
 
-# ---------------------------------------- load data 
+# load data -------------------------------------------------------------------  
 
 
 All_FOI_estimates <- read.table(
@@ -58,7 +66,7 @@ adm_1_env_vars <- read.csv(
             "All_adm1_env_var.csv"))
 
 
-# ---------------------------------------- extract info from age structure 
+# extract info from age structure ---------------------------------------------  
 
 
 # Get names of age band columns
@@ -72,13 +80,13 @@ age_band_L_bounds <- age_band_bnds[, 1]
 age_band_U_bounds <- age_band_bnds[, 2] + 1
 
 
-# ---------------------------------------- preprocess admin dataset
+# preprocess admin dataset ---------------------------------------------------- 
 
 
 adm_1_env_vars <- adm_1_env_vars[!duplicated(adm_1_env_vars[, m_flds]), ]
 
 
-# ---------------------------------------- merge population data
+# merge population data ------------------------------------------------------- 
 
 
 All_FOI_estimates_2 <- merge(
@@ -88,7 +96,7 @@ All_FOI_estimates_2 <- merge(
   all.y = FALSE)
 
 
-# ---------------------------------------- filter out data points with NA age structure data
+# filter out data points with NA age structure data ---------------------------
 
 
 All_FOI_estimates_3 <- merge(
@@ -98,7 +106,7 @@ All_FOI_estimates_3 <- merge(
   all.y = FALSE)
 
 
-# ---------------------------------------- calculate R0 for all 3 assumptions
+# calculate R0 for all 3 assumptions ------------------------------------------ 
 
 
 R_0 <- vapply(
@@ -113,7 +121,7 @@ R_0 <- vapply(
   prob_fun = prob_fun)
 
 
-# ---------------------------------------- attach base info
+# attach base info ------------------------------------------------------------ 
 
 
 All_R_0_estimates <- setNames(cbind(All_FOI_estimates_3[, base_info],
@@ -121,7 +129,7 @@ All_R_0_estimates <- setNames(cbind(All_FOI_estimates_3[, base_info],
                               nm = c(base_info, var))
 
 
-# ---------------------------------------- save output
+# save output ----------------------------------------------------------------- 
 
 
 write.table(All_R_0_estimates, 
@@ -130,14 +138,14 @@ write.table(All_R_0_estimates,
             sep = ",")
 
 
-# ---------------------------------------- plot 
+# plot ------------------------------------------------------------------------ 
 
 
 All_R_0_estimates <- All_R_0_estimates[order(All_R_0_estimates$FOI), ]
 
 All_R_0_estimates$ID_point <- seq_len(nrow(All_R_0_estimates))
 
-png(file.path("figures", "reprod_number_plot.png"), 
+png(file.path("figures", "data", "reprod_number_plot.png"), 
     width = 20, 
     height = 14, 
     units = "in", 
@@ -145,9 +153,11 @@ png(file.path("figures", "reprod_number_plot.png"),
     bg = "white", 
     res = 300)
 
-lambda_plot <- ggplot(All_R_0_estimates, aes(x = ID_point, y = FOI, colour = type)) +
+lambda_plot <- ggplot(All_R_0_estimates, 
+                      aes(x = ID_point, y = FOI, colour = type)) +
                geom_point(size = 0.8) +
-               scale_x_continuous(name = "Country code", breaks = seq_len(nrow(All_R_0_estimates)), 
+               scale_x_continuous(name = "Country code", 
+                                  breaks = seq_len(nrow(All_R_0_estimates)), 
                                   expand = c(0.002, 0)) +
                scale_y_continuous(name = "FOI") +
                theme(axis.text.x = element_text(size = 5, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -155,7 +165,8 @@ lambda_plot <- ggplot(All_R_0_estimates, aes(x = ID_point, y = FOI, colour = typ
 
 R_0_plot <- ggplot(All_R_0_estimates, aes(x = ID_point, y = R0_2, colour = type)) +
             geom_point(size = 0.8) +
-            scale_x_continuous(name = "Country code", breaks = seq_len(nrow(All_R_0_estimates)), 
+            scale_x_continuous(name = "Country code", 
+                               breaks = seq_len(nrow(All_R_0_estimates)), 
                                expand = c(0.002, 0)) +
             scale_y_continuous(name = "R_0") +
             theme(axis.text.x = element_text(size = 5, angle = 90, hjust = 0.5, vjust = 0.5),
