@@ -73,7 +73,9 @@ get_boot_sample_and_fit_RF <- function(i,
                                        out_path, 
                                        psAb_val, 
                                        all_wgt, 
-                                       wgt_limits) {
+                                       wgt_limits,
+                                       start_h2o,
+                                       shut_h2o) {
   
   adm_dts_boot <- boot_ls[[i]]
   
@@ -87,7 +89,9 @@ get_boot_sample_and_fit_RF <- function(i,
   
   a <- paste0("RF_model_object_", i, ".rds")
   
-  h2o.init()
+  if(start_h2o) {
+    h2o.init()
+  }
   
   RF_obj <- fit_h2o_RF(dependent_variable = y_var, 
                        predictors = my_preds, 
@@ -99,7 +103,9 @@ get_boot_sample_and_fit_RF <- function(i,
   
   h2o.saveModel(RF_obj, out_path, force = TRUE)
   
-  h2o.shutdown(prompt = FALSE)
+  if(shut_h2o) {
+    h2o.shutdown(prompt = FALSE)
+  }
   
 }
 
@@ -107,19 +113,22 @@ load_predict_and_save <- function(i,
                                   RF_obj_path, 
                                   my_preds, 
                                   no_fits, 
-                                  out_file_path){
+                                  out_file_path,
+                                  in_path,
+                                  start_h2o,
+                                  shut_h2o){
   
   #browser()
-  
-  pxl_dts_path <- file.path("output", "EM_algorithm", "env_variables", "boot_samples")
   
   pxl_dts_nm <- paste0("env_vars_20km_", i, ".rds")
   
   RF_obj_nm <- paste0("RF_model_object_", i, ".rds")
   
-  pxl_dts_boot <- readRDS(file.path(pxl_dts_path, pxl_dts_nm))
+  pxl_dts_boot <- readRDS(file.path(in_path, pxl_dts_nm))
   
-  h2o.init()
+  if(start_h2o) {
+    h2o.init()
+  }
   
   # RF_obj <- readRDS(file.path(RF_obj_path, RF_obj_nm))
   RF_obj <- h2o.loadModel(file.path(RF_obj_path, RF_obj_nm))
@@ -141,7 +150,9 @@ load_predict_and_save <- function(i,
   
   write_out_rds(pxl_dts_boot, out_file_path, a)
   
-  h2o.shutdown(prompt = FALSE)
+  if(shut_h2o) {
+    h2o.shutdown(prompt = FALSE)
+  }
   
 }
 
