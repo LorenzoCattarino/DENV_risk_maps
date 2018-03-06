@@ -1,7 +1,12 @@
-filter_resample_and_combine <- function(
-  i, boot_samples, tile_ls, 
-  grp_flds, new_res, predictors, 
-  out_file_path, out_file_name){
+filter_resample_and_combine <- function(i, 
+                                        boot_samples, 
+                                        tile_ls, 
+                                        grp_flds, 
+                                        new_res, 
+                                        predictors, 
+                                        out_file_path, 
+                                        out_file_name,
+                                        parallel_2){
   
   #browser()
   
@@ -16,7 +21,7 @@ filter_resample_and_combine <- function(
     env_var_names = predictors, 
     grp_flds = grp_flds, 
     grid_size = new_res,
-    parallel = TRUE)
+    parallel = parallel_2)
   
   pxl_dataset <- do.call("rbind", pxl_job)
   
