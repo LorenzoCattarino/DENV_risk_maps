@@ -13,11 +13,11 @@ quick_raster_map <- function(pred_df, out_pt, out_name) {
   # ---------------------------------------- load data 
   
   
-  pred_df$lat.int <- floor(pred_df$latitude+0.5)
-  pred_df$long.int <- floor(pred_df$longitude+0.5)
+  pred_df$lat.int <- floor(pred_df$latitude * 6 + 0.5)
+  pred_df$long.int <- floor(pred_df$longitude * 6 + 0.5)
   
-  lats.int <- lats*6
-  lons.int <- lons*6
+  lats.int <- lats * 6
+  lons.int <- lons * 6
   
   mat <- matrix(NA, nrow = length(lons) - 1, ncol = length(lats) - 1)
   
@@ -29,8 +29,6 @@ quick_raster_map <- function(pred_df, out_pt, out_name) {
   dir.create(out_pt, FALSE, TRUE)
   
   png(file.path(out_pt, out_name), 
-      type = "cairo", 
-      antialias = "none", 
       width = 7, 
       height = 3, 
       units = "in",
