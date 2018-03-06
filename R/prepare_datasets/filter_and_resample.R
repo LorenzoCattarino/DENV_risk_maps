@@ -5,12 +5,12 @@ filter_and_resample <- function(x, foi_dts, env_var_names, grp_flds, grid_size){
   cat("tile path =", x, "\n")
   
   tile <- fread(x,
-              header = TRUE, 
-              sep = ",",              
-              na.strings = c("NA", "-1.#IND", "Peipsi", "Moskva", "IJsselmeer", "Zeeuwse meren"),
-              fill = TRUE, 
-              data.table = FALSE)
- 
+                header = TRUE, 
+                sep = ",",              
+                na.strings = c("NA", "-1.#IND", "Peipsi", "Moskva", "IJsselmeer", "Zeeuwse meren"),
+                fill = TRUE, 
+                data.table = FALSE)
+  
   #"Peipsi", "Moskva", "IJsselmeer", "Zeeuwse meren"
   if(is.character(tile$ADM_0)) stop("ADM_0 is a character")
   
@@ -22,9 +22,7 @@ filter_and_resample <- function(x, foi_dts, env_var_names, grp_flds, grid_size){
     
     cc <- clean_and_resample(aa, env_var_names, grid_size, grp_flds)
     
-    dd <- inner_join(
-      cc,
-      foi_dts[, c(grp_flds, "type")])
+    dd <- inner_join(cc, foi_dts[, c(grp_flds, "type")])
     
     names(dd)[names(dd) == "lat.grid"] <- "latitude"
     
