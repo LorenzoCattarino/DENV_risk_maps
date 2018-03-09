@@ -21,22 +21,22 @@ ctx <- context::context_save(path = "context",
                              sources = my_resources)
 
 
-# ---------------------------------------- define parameters 
+# define parameters -----------------------------------------------------------  
 
 
-out_pt <- file.path("output", "EM_algorithm", "env_variables")
+out_pt <- file.path("output", "EM_algorithm", "best_fit_models", "env_variables")
 
 out_fl_nm <- "env_vars_20km.rds"
 
 
-# ---------------------------------------- rebuild the queue
+# rebuild the queue ----------------------------------------------------------- 
 
 
 if (CLUSTER) {
   
   obj <- didehpc::queue_didehpc(ctx)
 
-}else{
+} else {
   
   context::context_load(ctx)
 
@@ -51,7 +51,7 @@ pxl_job_t <- obj$task_bundle_get(task_b_name)
 pxl_job <- pxl_job_t$results()
 
 
-# ---------------------------------------- run
+# run ------------------------------------------------------------------------- 
 
 
 all_pixel_df <- do.call("rbind", pxl_job)
