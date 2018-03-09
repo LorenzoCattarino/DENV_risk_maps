@@ -156,38 +156,6 @@ load_predict_and_save <- function(i,
   
 }
 
-get_area_scaled_wgts <- function(foi_data, wgt_limits){
-  
-  x <- foi_data[foi_data$type== "pseudoAbsence", "Shape_Area"]
-  
-  area_limits <- c(min(x), max(x))
-  
-  y <- rep(0, length(x))
-  
-  y[which(x==min(x))] <- wgt_limits[1]
-  y[which(x==max(x))] <- wgt_limits[2] 
-  
-  between_lims_ids <- which(y == 0) 
-  between_lims <- y[between_lims_ids]
-  
-  look_up_t <- cbind(x, y) 
-  
-  interp_wgts <- vapply(look_up_t[between_lims_ids, "x"], 
-                        approx_one,
-                        numeric(1),
-                        a = area_limits,
-                        b = wgt_limits)
-  
-  look_up_t[between_lims_ids, "y"] <- interp_wgts
-  
-  look_up_t[,"y"]
-  
-}
-
-approx_one <- function(i, a, b){
-  approx(a, b, xout = i)$y
-}
-
 attach_pred_different_scale_to_data <- function(i, 
                                                 model_path, 
                                                 foi_data,
@@ -198,7 +166,9 @@ attach_pred_different_scale_to_data <- function(i,
                                                 tile_ids,
                                                 bt_samples,
                                                 out_path,
-                                                grp_fields){
+                                                grp_fields,
+                                                start_h2o,
+                                                shut_h2o){
   
   
   #browser()
@@ -206,7 +176,9 @@ attach_pred_different_scale_to_data <- function(i,
   # -------------------------------------- start h2o up
   
   
-  h2o.init()
+  if(start_h2o) {
+    h2o.init()
+  }
   
   
   # -------------------------------------- define variables
@@ -311,7 +283,9 @@ attach_pred_different_scale_to_data <- function(i,
   # -------------------------------------- close h2o down 
   
   
-  h2o.shutdown(prompt = FALSE)
+  if(shut_h2o) {
+    h2o.shutdown(prompt = FALSE)
+  }
   
   
   # --------------------------------------
