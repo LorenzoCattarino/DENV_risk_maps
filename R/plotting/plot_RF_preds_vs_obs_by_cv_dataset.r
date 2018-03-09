@@ -1,7 +1,10 @@
-RF_preds_vs_obs_plot_stratif <- function (
-  df, x, y, facet_var, file_name, file_path) {
+RF_preds_vs_obs_plot_stratif <- function(df, x, y, facet_var, file_name, file_path) {
   
   #browser()
+  
+  calculate_wgt_cor <- function(d.sub){
+    round(wtd.cor(d.sub[,x], d.sub[,y], weight = d.sub[,"new_weight"]), 3)
+  }
   
   x_values <- pretty(df[, x], n = 5)
   y_values <- pretty(df[, y], n = 5)
@@ -10,7 +13,9 @@ RF_preds_vs_obs_plot_stratif <- function (
   min_y_value <- min(y_values)
   max_y_value <- max(y_values)
   
-  corr_coeff <- ddply(df, as.formula(paste0("dataset ~", facet_var)), function(d.sub) round(cor(d.sub[,x], d.sub[,y]), 3))
+  corr_coeff <- ddply(df, 
+                      as.formula(paste0("dataset ~", facet_var)), 
+                      calculate_wgt_cor)
   
   facet_plot_names_x <- as_labeller(c(admin = "Level 1 administrative unit",
                                       cell = "20 km pixel"))
@@ -42,7 +47,10 @@ RF_preds_vs_obs_plot_stratif <- function (
 
   p2 <- p +
     geom_text(data = corr_coeff, 
-              aes(x = x_values[length(x_values)-1], y = min_y_value, hjust = 1, label = paste0("italic(r) == ", V1)),
+              aes(x = x_values[length(x_values)-1], 
+                  y = min_y_value, 
+                  hjust = 1, 
+                  label = paste0("italic(r) == ", correlation)),
               parse = TRUE,
               inherit.aes = FALSE,
               size = 5) +
