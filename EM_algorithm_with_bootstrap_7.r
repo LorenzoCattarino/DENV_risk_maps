@@ -8,49 +8,56 @@
 library(ggplot2)
 
 
-# ---------------------------------------- define parameters
+# define parameters ----------------------------------------------------------- 
 
 
-model_type <- "boot_model_20km_2"
+var_to_fit <- "FOI"
 
 no_fits <- 200
   
+grid_size <- 10
+
 diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j")
 
-strip_labs <- c(
-  "internal RF mean square error", 
-  "pixel level sum of square", 
-  "admin unit level sum of square") 
+strip_labs <- c("internal RF mean square error", 
+                "pixel level sum of square", 
+                "admin unit level sum of square") 
 
 
-# ---------------------------------------- define variables
+# define variables ------------------------------------------------------------
 
+
+model_type <- paste0(var_to_fit, "_boot_model")
+
+my_dir <- paste0("grid_size_", grid_size)
 
 strip_labs <- gsub("([[:punct:]])|\\s+", "_", strip_labs)
 
-diag_t_pth <- file.path("output", "EM_algorithm", model_type, "diagnostics")
+diag_t_pth <- file.path("output", 
+                        "EM_algorithm", 
+                        "bootstrap_models", 
+                        my_dir, 
+                        model_type, 
+                        "diagnostics")
 
 fig_file_tag <- paste0(strip_labs, ".png")
 
 figure_out_path <- file.path("figures", 
-                             "EM_algorithm", 
+                             my_dir, 
                              model_type, 
                              "diagnostics",
                              paste0("sample_", seq_len(no_fits)))
 
 
-# ---------------------------------------- get results 
+# get results ----------------------------------------------------------------- 
 
 
-fi <- list.files(diag_t_pth, 
-                 pattern = ".*.rds",
-                 full.names = TRUE)
-
+fi <- list.files(diag_t_pth, pattern = ".*.rds", full.names = TRUE)
 
 EM_alg_run <- lapply(fi, readRDS) 
 
 
-# ---------------------------------------- plot 
+# plot ------------------------------------------------------------------------  
 
 
 for (j in seq_len(no_fits)){

@@ -23,31 +23,44 @@ ctx <- context::context_save(path = "context",
                              sources = my_resources)
 
 
-# ---------------------------------------- define parameters
+# define parameters ----------------------------------------------------------- 
 
 
 no_fits <- 200
   
-in_pt <- file.path("data", "env_variables", "all_sets_gadm_codes")
+grid_size <- 10
+
+resample_grid_size <- 20
+
+in_pt <- file.path("output", "env_variables", "all_sets_gadm_codes")
 
 group_fields <- c("unique_id", "data_id", "ADM_0", "ADM_1")
 
-gr_size <- 20
 
-new_res <- (1 / 120) * gr_size
+# define variables ------------------------------------------------------------
 
-out_pt <- file.path("output", "EM_algorithm", "env_variables", "boot_samples")
+
+new_res <- (1 / 120) * resample_grid_size
+
+my_dir <- paste0("grid_size_", grid_size)
+
+out_pt <- file.path("output", 
+                    "EM_algorithm",
+                    "bootstrap_models",
+                    my_dir, 
+                    "env_variables", 
+                    "boot_samples")
 
 out_fl_nm_all <- paste0("env_vars_20km_", seq_len(no_fits), ".rds")
 
 
-# ---------------------------------------- are you using the cluster? 
+# are you using the cluster? -------------------------------------------------- 
 
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "12and16Core")
-  obj <- didehpc::queue_didehpc(ctx, config)
+  #config <- didehpc::didehpc_config(template = "20Core")
+  obj <- didehpc::queue_didehpc(ctx)
   
 } else {
   
@@ -57,36 +70,32 @@ if (CLUSTER) {
 }
 
 
-# ---------------------------------------- load data
+# load data ------------------------------------------------------------------- 
 
 
-boot_samples <- readRDS(
-  file.path("output",
-            "EM_algorithm",
-            "bootstrap_samples.rds"))
+boot_samples <- readRDS(file.path("output", 
+                                  "EM_algorithm",
+                                  "bootstrap_models",
+                                  my_dir, 
+                                  "bootstrap_samples.rds"))
 
-predictor_rank <- read.csv(
-  file.path("output", 
-            "variable_selection", 
-            "metropolis_hastings", 
-            "exp_1", 
-            "variable_rank_final_fits_exp_1.csv"),
-  stringsAsFactors = FALSE)
+predictor_rank <- read.csv(file.path("output", 
+                                     "variable_selection", 
+                                     "metropolis_hastings", 
+                                     "exp_1", 
+                                     "variable_rank_final_fits_exp_1.csv"),
+                           stringsAsFactors = FALSE)
 
 
-# ---------------------------------------- pre processing
+# pre processing -------------------------------------------------------------- 
 
 
 my_predictors <- predictor_rank$variable[1:9]
 
-my_predictors <- c(my_predictors, "RFE_const_term")
-
-fi <- list.files(in_pt, 
-                 pattern = "^tile",
-                 full.names = TRUE)
+fi <- list.files(in_pt, pattern = "^tile", full.names = TRUE)
 
 
-# ---------------------------------------- submit one test job
+# submit one test job --------------------------------------------------------- 
 
 
 # t <- obj$enqueue(
@@ -98,10 +107,11 @@ fi <- list.files(in_pt,
 #     new_res = new_res,
 #     predictors = my_predictors,
 #     out_file_path = out_pt,
-#     out_file_name = out_fl_nm_all))
+#     out_file_name = out_fl_nm_all,
+#     parallel_2 = FALSE))
 
 
-# ---------------------------------------- submit all jobs
+# submit all jobs ------------------------------------------------------------- 
 
 
 if (CLUSTER) {
@@ -116,7 +126,8 @@ if (CLUSTER) {
     new_res = new_res,
     predictors = my_predictors,
     out_file_path = out_pt,
-    out_file_name = out_fl_nm_all)
+    out_file_name = out_fl_nm_all,
+    parallel_2 = FALSE)
 
 } else {
 
@@ -129,7 +140,8 @@ if (CLUSTER) {
     new_res = new_res,
     predictors = my_predictors,
     out_file_path = out_pt,
-    out_file_name = out_fl_nm_all)
+    out_file_name = out_fl_nm_all,
+    parallel_2 = FALSE)
 
 }
 

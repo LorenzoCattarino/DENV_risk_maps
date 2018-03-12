@@ -6,18 +6,25 @@
 source(file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samples.r"))
 source(file.path("R", "utility_functions.r"))
 
-boot_samples <- readRDS(
-  file.path("output",
-            "EM_algorithm",
-            "bootstrap_samples.rds"))
+grid_size <- 10
+
+my_dir <- paste0("grid_size_", grid_size)
+
+out_pth <- file.path("output", 
+                     "EM_algorithm", 
+                     "bootstrap_models", 
+                     my_dir)
+  
+boot_samples <- readRDS(file.path("output", 
+                                  "EM_algorithm", 
+                                  "bootstrap_models", 
+                                  my_dir, 
+                                  "bootstrap_samples.rds"))
 
 if (names(boot_samples[[1]])[1] != "unique_id") {
   
   test <- lapply(seq_along(boot_samples), attach_unique_id, boot_samples)
   
-  write_out_rds(test, 
-                file.path("output",
-                          "EM_algorithm"),
-                "bootstrap_samples.rds")
+  write_out_rds(test, out_pth, "bootstrap_samples.rds")
   
 }

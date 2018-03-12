@@ -7,18 +7,15 @@ my_resources <- c(
   file.path("R", "prepare_datasets", "grid_up.R"),
   file.path("R", "utility_functions.r"))
 
-my_pkgs <- c()
-
 context::context_log_start()
 ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
+                             sources = my_resources)
 
 context::context_load(ctx)
 context::parallel_cluster_start(8, ctx)
 
 
-# ---------------------------------------- define parameters
+# define parameters ----------------------------------------------------------- 
 
 
 no_fits <- 200
@@ -27,10 +24,16 @@ grid_size <- 5
 
 out_fl_nm <- "bootstrap_samples.rds"
 
-out_pt <- file.path("output", "EM_algorithm")
+
+# define variables ------------------------------------------------------------
 
 
-# ---------------------------------------- load data
+my_dir <- paste0("grid_size_", grid_size)
+
+out_pt <- file.path("output", "EM_algorithm", "bootstrap_models", my_dir)
+
+
+# load data ------------------------------------------------------------------- 
 
 
 foi_data <- read.csv(
@@ -38,7 +41,7 @@ foi_data <- read.csv(
   stringsAsFactors = FALSE) 
 
 
-# ---------------------------------------- pre process the original foi dataset
+# pre process the original foi dataset ---------------------------------------- 
 
 
 names(foi_data)[names(foi_data) == "ID_0"] <- "ADM_0"
@@ -46,7 +49,7 @@ names(foi_data)[names(foi_data) == "ID_0"] <- "ADM_0"
 names(foi_data)[names(foi_data) == "ID_1"] <- "ADM_1"
 
 
-# ---------------------------------------- submit jobs
+# submit jobs ----------------------------------------------------------------- 
 
 
 boot_samples <- loop(
@@ -57,13 +60,13 @@ boot_samples <- loop(
   parallel = TRUE)
 
 
-# ---------------------------------------- save
+# save ------------------------------------------------------------------------ 
 
 
 write_out_rds(boot_samples, out_pt, out_fl_nm)
 
 
-# ---------------------------------------- stop cluster
+# stop cluster ---------------------------------------------------------------- 
 
 
 context::parallel_cluster_stop()

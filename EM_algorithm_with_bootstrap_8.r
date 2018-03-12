@@ -23,21 +23,27 @@ ctx <- context::context_save(path = "context",
                              packages = my_pkgs)
 
 
-# ---------------------------------------- define parameters
+# define parameters ----------------------------------------------------------- 
 
 
-model_type <- "boot_model_20km_2"
+var_to_fit <- "FOI"
+
+grid_size <- 10
 
 out_fl_nm <- "square_predictions_all_data.rds"
 
 
-# ---------------------------------------- define variables 
+# define variables ------------------------------------------------------------  
 
 
-out_pt <- file.path("output", "EM_algorithm", model_type)
+model_type <- paste0(var_to_fit, "_boot_model")
+
+my_dir <- paste0("grid_size_", grid_size)
+
+out_pt <- file.path("output", "EM_algorithm", "bootstrap_models", my_dir, model_type)
 
 
-# ---------------------------------------- rebuild the queue object?
+# rebuild the queue object? --------------------------------------------------- 
 
 
 if (CLUSTER) {
@@ -52,7 +58,7 @@ if (CLUSTER) {
 }
 
 
-# ---------------------------------------- get results
+# get results ----------------------------------------------------------------- 
 
 
 # loads the LAST task bundle
@@ -63,7 +69,7 @@ EM_alg_run_t <- obj$task_bundle_get(my_task_id)
 EM_alg_run <- EM_alg_run_t$results()
 
 
-# ---------------------------------------- combine all results together
+# combine results ------------------------------------------------------------- 
 
 
 prediction_sets <- do.call("cbind", EM_alg_run)

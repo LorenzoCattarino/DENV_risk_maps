@@ -6,10 +6,9 @@ foi_data <- read.csv(
   file.path("output", "foi", "All_FOI_estimates_linear_env_var_area.csv"),
   stringsAsFactors = FALSE) 
 
-boot_samples <- readRDS(
-  file.path("output",
-            "disagg_data_20km",
-            "bootstrap_samples.rds"))
+boot_samples <- readRDS(file.path("output",
+                                  "disagg_data_20km",
+                                  "bootstrap_samples.rds"))
 
 all_points <- foi_data$data_id
   
