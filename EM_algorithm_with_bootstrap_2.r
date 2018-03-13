@@ -6,7 +6,7 @@
 source(file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samples.r"))
 source(file.path("R", "utility_functions.r"))
 
-grid_size <- 10
+grid_size <- 1
 
 my_dir <- paste0("grid_size_", grid_size)
 
