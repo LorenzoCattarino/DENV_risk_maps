@@ -4,6 +4,7 @@ options(didehpc.cluster = "fi--didemrchnb")
 
 my_resources <- c(
   file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samples.r"),
+  file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "prepare_datasets", "grid_up.R"),
   file.path("R", "utility_functions.r"))
 
@@ -20,9 +21,13 @@ context::parallel_cluster_start(8, ctx)
 
 no_fits <- 200
 
-grid_size <- 5
+grid_size <- 1
 
 out_fl_nm <- "bootstrap_samples.rds"
+
+all_wgt <- 1
+
+wgt_limits <- c(1, 500)
 
 
 # define variables ------------------------------------------------------------
@@ -47,6 +52,12 @@ foi_data <- read.csv(
 names(foi_data)[names(foi_data) == "ID_0"] <- "ADM_0"
 
 names(foi_data)[names(foi_data) == "ID_1"] <- "ADM_1"
+
+foi_data$new_weight <- all_wgt
+
+pAbs_wgt <- get_area_scaled_wgts(foi_data, wgt_limits)
+
+foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
 
 # submit jobs ----------------------------------------------------------------- 
