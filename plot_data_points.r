@@ -59,7 +59,7 @@ fort_aus <- fortify(aus)
 # plot ------------------------------------------------------------------------ 
 
 
-png(file.path("figures", "dengue_points.png"), 
+png(file.path("figures", "data", "dengue_points.png"), 
     width = 18, 
     height = 10, 
     units = "in", 
