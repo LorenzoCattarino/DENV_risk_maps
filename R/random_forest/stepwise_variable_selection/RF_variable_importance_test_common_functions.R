@@ -1,23 +1,6 @@
 ###
 # function for running different sets of random forest models, each set with a different combination of predictors
 ###
-predictor_combs_wrapper <- function(x, dataset, grid_size, no_fits, no_trees, cell_fraction, train_fraction)
-{
-  cat("Process ID = ", Sys.getpid(), "\n")
-  
-  combination.of.predictors <- x
-  cat("combination of predictors = ", combination.of.predictors, "\n")
-         
-  # run a set of random forest models (with spatially-stratified cross validation) with a specific combination of predictors
-  Run <- spatial.cv.rf (dataset,
-                        full_dataset = NULL,
-                        grid_size, 
-                        combination_of_predictors = combination.of.predictors, 
-                        no_fits, 
-                        no_trees, 
-                        cell_fraction, 
-                        train_fraction)
-}
 
 ###
 # function for calcualting the selection frequency of predictors selected across multiple runs of a variable selection routine 
