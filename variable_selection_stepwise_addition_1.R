@@ -43,8 +43,7 @@ FTs_data_names <- c("DayTemp", "EVI", "MIR", "NightTemp", "RFE")
 
 out_path <- file.path("output", 
                       "variable_selection", 
-                      "stepwise",
-                      "addition")
+                      "stepwise")
 
                       
 # define variables ------------------------------------------------------------
@@ -64,7 +63,7 @@ if (CLUSTER) {
 } else {
   
   context::context_load(ctx)
-  context::parallel_cluster_start(8, ctx)
+  context::parallel_cluster_start(4, ctx)
   
 }
 
@@ -129,7 +128,8 @@ if (CLUSTER) {
     parms = parameters,
     predictors = all_predictors,
     foi_data = foi_data,
-    out_path = out_path)
+    out_path = out_path,
+    addition = TRUE)
 
 } else {
 
@@ -141,7 +141,8 @@ if (CLUSTER) {
     parms = parameters,
     predictors = all_predictors,
     foi_data = foi_data,
-    out_path = out_path)
+    out_path = out_path,
+    addition = TRUE)
 
 }
 
