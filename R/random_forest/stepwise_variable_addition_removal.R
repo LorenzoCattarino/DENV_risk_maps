@@ -8,7 +8,8 @@ stepwise_addition_boot <- function(i,
                                    parms, 
                                    predictors, 
                                    foi_data,
-                                   out_path){
+                                   out_path,
+                                   addition){
   
   stepwise_addition <- function(j){
     
@@ -19,50 +20,53 @@ stepwise_addition_boot <- function(i,
     no_trees <- parms$no_trees
     min_node_size <- parms$min_node_size
     
+    stepwise_dir <- "addition"
+
+    my_out_path <- file.path(out_path, 
+                             paste("sample", ID_sample, sep="_"), 
+                             stepwise_dir,
+                             paste("run", ID_run, sep="_"))
+
     ret_level_1 <- multi_steps_wrapper(dataset = adm_dts_boot, 
                                        predictors = predictors, 
                                        no_steps = no_steps_L1, 
                                        level_num = 1,
-                                       addition = TRUE,
+                                       addition = addition,
                                        y_var = y_var, 
                                        no_trees = no_trees, 
                                        min_node_size = min_node_size, 
                                        foi_data = foi_data,
-                                       ID_sample = ID_sample,
-                                       ID_run = ID_run,
-                                       out_path = out_path)
+                                       out_path = my_out_path)
     
     subset_of_predictors <- ret_level_1$name
-    
-    ret_level_2 <- multi_steps_wrapper(dataset = adm_dts_boot, 
-                                       predictors = subset_of_predictors, 
-                                       no_steps = no_steps_L2, 
+
+    ret_level_2 <- multi_steps_wrapper(dataset = adm_dts_boot,
+                                       predictors = subset_of_predictors,
+                                       no_steps = no_steps_L2,
                                        level_num = 2,
-                                       addition = TRUE,
-                                       y_var = y_var, 
-                                       no_trees = no_trees, 
-                                       min_node_size = min_node_size, 
+                                       addition = addition,
+                                       y_var = y_var,
+                                       no_trees = no_trees,
+                                       min_node_size = min_node_size,
                                        foi_data = foi_data,
-                                       ID_sample = ID_sample,
-                                       ID_run = ID_run,
                                        out_path = out_path)
-    
-    # my_out_path <- file.path(out_path, 
-    #                          paste("sample", ID_sample, sep="_"), 
+
+    # my_out_path <- file.path(out_path,
+    #                          paste("sample", ID_sample, sep="_"),
     #                          paste("run", ID_run, sep="_"))
     # 
-    # df_name_level_1 <- sprintf("all_steps_output_%s%s", 
-    #                            paste0("level", 1, sep="_"), 
-    #                            ".csv")  
+    # df_name_level_1 <- sprintf("all_steps_output_%s%s",
+    #                            paste0("level", 1, sep="_"),
+    #                            ".csv")
     # 
     # write_out_csv(ret_level_1, my_out_path, df_name_level_1)
     # 
-    # df_name_level_2 <- sprintf("all_steps_output_%s%s", 
-    #                            paste0("level", 2, sep="_"), 
+    # df_name_level_2 <- sprintf("all_steps_output_%s%s",
+    #                            paste0("level", 2, sep="_"),
     #                            ".csv")
     # 
     # write_out_csv(ret_level_2, my_out_path, df_name_level_2)
-    
+
     list(ret_level_1, ret_level_2)
     
   }
@@ -88,21 +92,31 @@ stepwise_addition_boot <- function(i,
 
 multi_steps_wrapper <- function(dataset, 
                                 predictors, 
-                                no_steps, 
+                                no_steps = NULL, 
                                 level_num,
                                 addition,
                                 y_var, 
                                 no_trees, 
                                 min_node_size, 
                                 foi_data,
-                                ID_sample, 
-                                ID_run,
                                 out_path){
   
   #browser()
   
   # Transform character to numeric
   vector_of_predictors <- which(names(dataset) %in% predictors)
+  
+  if (addition) {
+    
+    stepwise_dir <- "addition"
+    
+  } else {
+    
+    stepwise_dir <- "removal"
+    
+    no_steps <- length(vector_of_predictors)-1
+  
+  }
   
   if (length(vector_of_predictors) < no_steps) {
     
@@ -117,12 +131,6 @@ multi_steps_wrapper <- function(dataset,
   # create empty vectors to store selected predictors and corr coeff value 
   changed_predictor <- NULL
   changed_predictor_rmse <- NULL
-  
-  if (addition) {
-    NULL
-  } else {
-    no_steps <- length(vector_of_predictors)-1
-  }
   
   for (i in seq_len(no_steps)) {
     
@@ -155,14 +163,15 @@ multi_steps_wrapper <- function(dataset,
       
     }
     
-    ret <- lapply(seq_along(combinations_of_predictors), 
-                  get_set_fit_predict_and_error, 
-                  predictor_sets = combinations_of_predictors,
-                  dataset = dataset, 
-                  y_var = y_var, 
-                  no_trees = no_trees, 
-                  min_node_size = min_node_size, 
-                  foi_data = foi_data)
+    ret <- loop(seq_along(combinations_of_predictors), 
+                get_set_fit_predict_and_error, 
+                predictor_sets = combinations_of_predictors,
+                dataset = dataset, 
+                y_var = y_var, 
+                no_trees = no_trees, 
+                min_node_size = min_node_size, 
+                foi_data = foi_data,
+                parallel = FALSE)
     
     # extract results 
     diagnostics <- do.call("rbind", ret)
@@ -212,11 +221,7 @@ multi_steps_wrapper <- function(dataset,
                            paste("step", i, sep="_"), 
                            ".rds")
     
-    my_out_path <- file.path(out_path, 
-                             paste("sample", ID_sample, sep="_"), 
-                             paste("run", ID_run, sep="_"))
-    
-    write_out_rds(final_output_df_sorted, my_out_path, df_name_ext)
+    write_out_rds(final_output_df_sorted, out_path, df_name_ext)
   
     h2o.removeAll()
     
@@ -225,6 +230,113 @@ multi_steps_wrapper <- function(dataset,
   data.frame(Step = seq_len(no_steps), 
              changed_predictor = changed_predictor, 
              name = names(dataset)[changed_predictor], 
-             rmse_valid = changed_predictor_rmse)
+             rmse_valid = changed_predictor_rmse,
+             stringsAsFactors = FALSE)
 
 }
+
+get_changed_predictors <- function(x, no_steps){
+  
+  ret1 <- lapply(x, "[[", 2)
+  
+  vapply(ret1, "[[", numeric(no_steps), "changed_predictor")
+  
+}
+
+calculate_sel_freq <- function(predictors, top_ones){
+  
+  sel_freq <- table(predictors)
+  
+  sel_freq_sorted <- sel_freq[order(sel_freq, decreasing = TRUE)]
+  
+  n <- length(sel_freq_sorted)
+  
+  top_ones <- ifelse(top_ones > n, n, top_ones) 
+  
+  as.numeric(names(sel_freq_sorted[1:top_ones]))
+  
+}
+
+save_addition_best_preds <- function(i, results, names, out_pth){
+  
+  one_boot_results <- results[[i]]
+  
+  ret1 <- names[one_boot_results]  
+  
+  out <- data.frame(predictor = one_boot_results, name = ret1, stringsAsFactors = FALSE)
+  
+  out_nm <- "best_predictors_from_addition.rds"
+  
+  out_pth <- file.path(out_pth, paste0("sample_", i), "addition")
+  
+  write_out_rds(out, out_pth, out_nm)
+  
+}
+
+stepwise_removal_boot <- function(i, 
+                                  boot_ls, 
+                                  y_var, 
+                                  parms, 
+                                  predictors,
+                                  foi_data,
+                                  out_path,
+                                  addition){
+  
+  stepwise_dir <- "removal"
+  
+  psAb_val <- parms$pseudoAbs.value
+  
+  ID_sample <- i  
+  
+  my_out_path <- file.path(out_path, 
+                           paste("sample", ID_sample, sep="_"), 
+                           stepwise_dir)
+  
+  adm_dts_boot <- boot_ls[[ID_sample]]
+  
+  adm_dts_boot[adm_dts_boot$type == "pseudoAbsence", y_var] <- psAb_val
+  
+  if(is.null(predictors)){
+    
+    predictor_file <- readRDS(file.path(out_path, 
+                                        paste0("sample_", ID_sample), 
+                                        "addition", 
+                                        "best_predictors_from_addition.rds"))
+    
+    predictors <- predictor_file$name
+    
+  } 
+  
+  no_trees <- parms$no_trees
+  min_node_size <- parms$min_node_size
+  
+  h2o.init(max_mem_size = "20G")
+  
+  ret <- multi_steps_wrapper(dataset = adm_dts_boot, 
+                             predictors = predictors, 
+                             level_num = 1,
+                             addition = addition,
+                             y_var = y_var, 
+                             no_trees = no_trees, 
+                             min_node_size = min_node_size, 
+                             foi_data = foi_data,
+                             out_path = my_out_path)
+  
+  h2o.shutdown(prompt = FALSE)
+  
+  removed_predictors <- ret$name
+  not_removed_predictor <- predictors[!predictors %in% removed_predictors] 
+  
+  list(not_removed_predictor, ret)
+
+}
+
+get_removal_results <- function(x){
+  
+  minimum <- which(x[[2]]$rmse_valid == min(x[[2]]$rmse_valid))   
+  
+  end <- nrow(x[[2]])
+  
+  c(x[[1]], x[[2]]$name[minimum:end])
+  
+}  
