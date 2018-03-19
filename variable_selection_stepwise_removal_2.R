@@ -1,61 +1,144 @@
-rm(list=ls())
 
-# load packages
-library(context)
-library(queuer)
-library(didewin)
-library(ggplot2)
+options(didehpc.cluster = "fi--didemrchnb")
 
-#### Rebuild queue from variable removal jobs #### 
-root <- "context"
-ctx <- context::context_save(packages=c("ranger", "weights"),
-                             sources=c(file.path("R", "random_forest", "spatial_sampK_cv_rng2_stratif_pred.R"), 
-                                       file.path("R", "random_forest", "RF_variable_importance_test", "RF_variable_importance_test_common_functions.R"),
-                                       file.path("R", "random_forest", "RF_variable_importance_test", "multi_steps_wrapper_DideParallel.R"),
-                                       file.path("R", "random_forest", "RF_variable_importance_test", "stepwise_RF_variable_removal", "stepwise_RF_variable_removal_functions.R")), 
-                             root=root)
-obj <- didewin::queue_didewin(ctx)
+CLUSTER <- TRUE
 
-stepwise_addition_gs_1_task_bundle_id <- "impending_wobbegongshark"
-stepwise_addition_gs_5_task_bundle_id <- "rapid_lungfish"
-stepwise_addition_gs_10_task_bundle_id <- "grownup_cow"
+my_resources <- c(
+  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
+  file.path("R", "random_forest", "stepwise_variable_addition_removal.R"),
+  file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
+  file.path("R", "utility_functions.R"))
 
-stepwise_addition_gs_1_task_bundle <- obj$task_bundle_get(stepwise_addition_gs_1_task_bundle_id)
-stepwise_addition_gs_5_task_bundle <- obj$task_bundle_get(stepwise_addition_gs_5_task_bundle_id)
-stepwise_addition_gs_10_task_bundle <- obj$task_bundle_get(stepwise_addition_gs_10_task_bundle_id)
+my_pkgs <- c("h2o", "ggplot2")
 
-# get stepwise addition results
-stepwise_addition_results_gs_1 <- stepwise_addition_gs_1_task_bundle$results()[[1]][[2]]
-stepwise_addition_results_gs_5 <- stepwise_addition_gs_5_task_bundle$results()[[1]][[2]]
-stepwise_addition_results_gs_10 <- stepwise_addition_gs_10_task_bundle$results()[[1]][[2]]
+context::context_log_start()
+ctx <- context::context_save(path = "context",
+                             sources = my_resources,
+                             packages = my_pkgs)
 
-stepwise_addition_results_gs_1_BP <- stepwise_addition_gs_1_task_bundle$results()[[1]][[1]]
-stepwise_addition_results_gs_5_BP <- stepwise_addition_gs_5_task_bundle$results()[[1]][[1]]
-stepwise_addition_results_gs_10_BP <- stepwise_addition_gs_10_task_bundle$results()[[1]][[1]]
 
-# load data
-dengue_dataset <- read.csv(file.path("data", "foi", "All_FOI_estimates_env_var.csv")) 
+# define parameters ----------------------------------------------------------- 
 
-# remove NA and outliers
-dengue_dataset <- dengue_dataset[!is.na(dengue_dataset$FOI),]
-dengue_dataset <- dengue_dataset[!(dengue_dataset$country=="French Polynesia"|dengue_dataset$country=="Haiti"),]
 
-# calculate weights 
-#dengue_dataset$new.weight <- 1/dengue_dataset$variance
-dengue_dataset$new.weight <- 1
-dengue_dataset[dengue_dataset$FOI==0,"new.weight"] <- 0.25
+top_ones <- 26 # all of them
 
-plotting_results.removal (df_to_plot = stepwise_addition_results_gs_1, 
-                          best_predictor = stepwise_addition_results_gs_1_BP, 
-                          y = "rmse_valid", 
-                          x = "Step")
+parameters <- list(
+  grid_size = 1,
+  no_trees = 500,
+  min_node_size = 20,
+  no_steps_L1 = 20,   # 20
+  no_steps_L2 = 10,   # 10
+  pseudoAbs.value = -0.02,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
+  no_reps = 10)       # 10
 
-plotting_results.removal (df_to_plot = stepwise_addition_results_gs_5, 
-                          best_predictor = stepwise_addition_results_gs_5_BP, 
-                          y = "rmse_valid", 
-                          x = "Step")
+no_fits <- 50
 
-plotting_results.removal (df_to_plot = stepwise_addition_results_gs_10, 
-                          best_predictor = stepwise_addition_results_gs_10_BP, 
-                          y = "rmse_valid", 
-                          x = "Step")
+var_to_fit <- "FOI"
+
+out_fig_name <- "Frequency_of_the_numbers_of_selected_preds.png"
+
+out_fig_path <- file.path("figures", 
+                          "variable_selection", 
+                          "stepwise")
+
+out_tab_name <- "predictor_rank.csv"
+
+out_tab_path <- file.path("output", 
+                          "variable_selection", 
+                          "stepwise")
+
+
+# define variables ------------------------------------------------------------
+
+
+my_dir <- paste0("grid_size_", parameters$grid_size)
+
+
+# rebuild the queue object? --------------------------------------------------- 
+
+
+if (CLUSTER) {
+  
+  config <- didehpc::didehpc_config(template = "20Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
+  
+} else {
+  
+  context::context_load(ctx)
+  context::parallel_cluster_start(8, ctx)
+  
+}
+
+
+# load data -------------------------------------------------------------------
+
+
+boot_samples <- readRDS(file.path("output", 
+                                  "EM_algorithm",
+                                  "bootstrap_models",
+                                  my_dir, 
+                                  "bootstrap_samples.rds"))
+
+
+# get results ----------------------------------------------------------------- 
+
+
+bundles <- obj$task_bundle_info()
+
+my_task_id <- bundles[nrow(bundles), "name"] 
+
+bsample_step_removal_t <- obj$task_bundle_get(my_task_id)
+
+bsample_step_removal <- bsample_step_removal_t$results()
+
+
+#  get predictor names --------------------------------------------------------
+
+
+# predictors are ranked according to the selection frequency 
+# across bootstrap samples 
+
+all_preds <- lapply(bsample_step_removal, get_removal_results)
+
+all_predictors <- names(boot_samples[[1]])
+
+all_preds_n <- lapply(all_preds, function(x) which(all_predictors %in% x))
+
+all_preds_sel_freq_rank <- calculate_sel_freq(unlist(all_preds_n), top_ones)
+
+out <- data.frame(predictor = all_preds_sel_freq_rank, 
+                  name = all_predictors[all_preds_sel_freq_rank],
+                  stringsAsFactors = FALSE)
+
+write_out_csv(out, out_tab_path, out_tab_name)
+
+
+# get optimal number of predictors --------------------------------------------
+
+
+# it creates and save the frequency distribution (across bootstrap samples) of 
+# the minimum number of predictors contributing to increse the RMSE during removal 
+
+all_numbers <- vapply(all_preds, length, 1)
+
+all_no_sel_vars <- data.frame(no_sel_vars = all_numbers)
+
+p <- ggplot(all_no_sel_vars, aes(no_sel_vars)) +
+  geom_histogram() + 
+  scale_y_continuous("Frequency") +
+  scale_x_continuous("Number of selected variables")
+
+dir.create(out_fig_path, FALSE, TRUE)
+
+png(file.path(out_fig_path, out_fig_name), 
+    width = 10, 
+    height = 10, 
+    units = "cm",
+    pointsize = 12,
+    res = 200)
+
+print(p)
+
+dev.off()
