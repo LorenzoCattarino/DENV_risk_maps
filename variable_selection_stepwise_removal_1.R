@@ -35,9 +35,15 @@ no_fits <- 50
 
 var_to_fit <- "FOI"
 
+altitude_var_names <- "altitude"
+
+fourier_transform_elements <- c("const_term",	"Re0",	"Im0",	"Re1",	"Im1")
+
+FTs_data_names <- c("DayTemp", "EVI", "MIR", "NightTemp", "RFE")
+
 out_path <- file.path("output", 
                       "variable_selection", 
-                      "stepwise")
+                      "stepwise_pure")
 
 
 # define variables ------------------------------------------------------------
@@ -79,6 +85,12 @@ boot_samples <- readRDS(file.path("output",
 # pre process -----------------------------------------------------------------
 
 
+all_FT_names <- apply(expand.grid(fourier_transform_elements, FTs_data_names), 
+                      1, 
+                      function(x) paste(x[2], x[1], sep="_"))
+
+all_predictors <- c(altitude_var_names, all_FT_names)
+
 foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- parameters$pseudoAbs.value
 
 foi_data$new_weight <- parameters$all_wgt
@@ -97,6 +109,7 @@ foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 #     boot_ls = boot_samples,
 #     y_var = var_to_fit,
 #     parms = parameters,
+#     predictors = all_predictors,
 #     foi_data = foi_data,
 #     out_path = out_path,
 #     addition = FALSE))
@@ -114,6 +127,7 @@ if (CLUSTER) {
     boot_ls = boot_samples,
     y_var = var_to_fit,
     parms = parameters,
+    predictors = all_predictors,
     foi_data = foi_data,
     out_path = out_path,
     addition = FALSE)
@@ -126,6 +140,7 @@ if (CLUSTER) {
     boot_ls = boot_samples,
     y_var = var_to_fit,
     parms = parameters,
+    predictors = all_predictors,
     foi_data = foi_data,
     out_path = out_path,
     addition = FALSE)
