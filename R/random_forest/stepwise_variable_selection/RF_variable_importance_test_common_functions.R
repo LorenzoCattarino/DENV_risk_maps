@@ -2,25 +2,6 @@
 # function for running different sets of random forest models, each set with a different combination of predictors
 ###
 
-###
-# function for calcualting the selection frequency of predictors selected across multiple runs of a variable selection routine 
-###
-sorting.sel.freq <- function(all_predictors, top_predictor_number)
-{
-  # get selection frequency
-  selection_frequency <- table(all_predictors)
-  
-  # sort predictors by decreasing selection frequency value
-  selection_frequency_sorted <- selection_frequency[order(selection_frequency, decreasing = TRUE)]
-  
-  top_predictor_number <- ifelse(top_predictor_number>length(selection_frequency_sorted), 
-                                 length(selection_frequency_sorted), top_predictor_number) 
-  
-  # get values of top predictors 
-  best_predictors <- as.numeric(names(selection_frequency_sorted[1:top_predictor_number]))
-  
-  best_predictors
-}
 
 ###
 # function for plotting results of stepwise variable removal   
