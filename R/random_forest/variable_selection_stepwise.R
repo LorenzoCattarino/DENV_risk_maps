@@ -27,29 +27,29 @@ stepwise_addition_boot <- function(i,
                              stepwise_dir,
                              paste("run", ID_run, sep="_"))
 
-    ret_level_1 <- multi_steps_wrapper(dataset = adm_dts_boot, 
-                                       predictors = predictors, 
-                                       no_steps = no_steps_L1, 
-                                       level_num = 1,
-                                       addition = addition,
-                                       y_var = y_var, 
-                                       no_trees = no_trees, 
-                                       min_node_size = min_node_size, 
-                                       foi_data = foi_data,
-                                       out_path = my_out_path)
+    multi_steps_wrapper(dataset = adm_dts_boot, 
+                        predictors = predictors, 
+                        no_steps = no_steps_L1, 
+                        level_num = 1,
+                        addition = addition,
+                        y_var = y_var, 
+                        no_trees = no_trees, 
+                        min_node_size = min_node_size, 
+                        foi_data = foi_data,
+                        out_path = my_out_path)
     
-    subset_of_predictors <- ret_level_1$name
-
-    ret_level_2 <- multi_steps_wrapper(dataset = adm_dts_boot,
-                                       predictors = subset_of_predictors,
-                                       no_steps = no_steps_L2,
-                                       level_num = 2,
-                                       addition = addition,
-                                       y_var = y_var,
-                                       no_trees = no_trees,
-                                       min_node_size = min_node_size,
-                                       foi_data = foi_data,
-                                       out_path = out_path)
+    # subset_of_predictors <- ret_level_1$name
+    # 
+    # ret_level_2 <- multi_steps_wrapper(dataset = adm_dts_boot,
+    #                                    predictors = subset_of_predictors,
+    #                                    no_steps = no_steps_L2,
+    #                                    level_num = 2,
+    #                                    addition = addition,
+    #                                    y_var = y_var,
+    #                                    no_trees = no_trees,
+    #                                    min_node_size = min_node_size,
+    #                                    foi_data = foi_data,
+    #                                    out_path = out_path)
 
     # my_out_path <- file.path(out_path,
     #                          paste("sample", ID_sample, sep="_"),
@@ -67,7 +67,7 @@ stepwise_addition_boot <- function(i,
     # 
     # write_out_csv(ret_level_2, my_out_path, df_name_level_2)
 
-    list(ret_level_1, ret_level_2)
+    # list(ret_level_1, ret_level_2)
     
   }
   
