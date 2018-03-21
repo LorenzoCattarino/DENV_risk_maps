@@ -72,18 +72,12 @@ get_boot_sample_and_fit_RF <- function(i,
                                        min_node_size, 
                                        out_path, 
                                        psAb_val, 
-                                       all_wgt, 
-                                       wgt_limits,
                                        start_h2o,
                                        shut_h2o) {
   
   adm_dts_boot <- boot_ls[[i]]
   
   adm_dts_boot[adm_dts_boot$type == "pseudoAbsence", y_var] <- psAb_val
-  
-  adm_dts_boot$new_weight <- all_wgt
-  pAbs_wgt <- get_area_scaled_wgts(adm_dts_boot, wgt_limits)
-  adm_dts_boot[adm_dts_boot$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
   
   training_dataset <- adm_dts_boot[, c(y_var, my_preds, "new_weight")]
   
@@ -109,19 +103,13 @@ get_boot_sample_and_fit_RF <- function(i,
   
 }
 
-get_set_fit_predict_and_error <- function(i,
-                                          predictor_sets,
-                                          dataset, 
-                                          y_var, 
-                                          no_trees, 
-                                          min_node_size,
-                                          foi_data) {
+fit_predict_and_error <- function(dataset, 
+                                  y_var, 
+                                  my_preds,
+                                  no_trees, 
+                                  min_node_size,
+                                  foi_data) {
   
-  x <- predictor_sets[[i]]
-  
-  cat("combination of predictors =", x, "\n") 
-  
-  my_preds <- names(dataset)[x]
   
   train_set <- dataset[, c(y_var, my_preds, "new_weight")]
   
