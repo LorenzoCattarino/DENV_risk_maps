@@ -110,7 +110,6 @@ fit_predict_and_error <- function(dataset,
                                   min_node_size,
                                   foi_data) {
   
-  
   train_set <- dataset[, c(y_var, my_preds, "new_weight")]
   
   RF_obj <- fit_h2o_RF(dependent_variable = y_var, 
