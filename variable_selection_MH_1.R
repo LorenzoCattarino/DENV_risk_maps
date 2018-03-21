@@ -1,166 +1,156 @@
-rm(list = ls())
+
+options(didehpc.cluster = "fi--didemrchnb")
+
+CLUSTER <- FALSE
 
 my_resources <- c(
-  file.path("R", "convert_df_to_list.R"),
   file.path("R", "random_forest", "wrapper_to_multi_factor_MH_var_sel.R"),
-  file.path("R", "random_forest", "grid_up_foi_dataset.R"),
-  file.path("R", "random_forest", "bootstrap_foi_dataset.R"),
-  file.path("R", "random_forest", "fit_random_forest_model.R"),
-  file.path("R", "random_forest", "get_1_0_point_position.R"),
-  file.path("R", "random_forest", "calculate_sum_squared_errors.R"),
-  file.path("R", "random_forest", "spatial_sampK_cv_rng3.R"),
-  file.path("R", "random_forest", "plot_MH_var_sel_outputs.R"),
-  file.path("R", "random_forest", "write_out_rds.R"))
+  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.R"),
+  file.path("R", "random_forest", "wrapper_to_multi_factor_MH_var_sel.R"),
+  file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
+  file.path("R", "utility_functions.R"))
 
-my_pkgs <- c("ranger", "weights", "gridExtra")
+my_pkgs <- c("h2o", "ggplot2", "gridExtra")
 
-CLUSTER <- TRUE
-
-analysis_tag <- "variable_selection_MH"
-
-exp_id <- 1
+context::context_log_start()
+ctx <- context::context_save(path = "context",
+                             sources = my_resources,
+                             packages = my_pkgs)
 
 
-# ------------------------------------- Are you using the cluster?
+# define parameters ----------------------------------------------------------- 
 
 
-if(CLUSTER) {
+parameters <- list(
+  grid_size = 1,
+  no_trees = 500,
+  min_node_size = 20,
+  pseudoAbs_value = -0.02,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
+  it = 10,
+  scaling_factor = 10000,
+  var_scale = 0)
+
+no_fits <- 50
+
+var_to_fit <- "FOI"
+
+altitude_var_names <- "altitude"
+
+fourier_transform_elements <- c("const_term",	"Re0",	"Im0",	"Re1",	"Im1")
+
+FTs_data_names <- c("DayTemp", "EVI", "MIR", "NightTemp", "RFE")
+
+out_fig_path <- file.path("figures", 
+                          "variable_selection", 
+                          "metropolis_hastings")
+
+out_tab_path <- file.path("output", 
+                          "variable_selection", 
+                          "metropolis_hastings")
+
+
+
+# define variables ------------------------------------------------------------
+
+
+my_dir <- paste0("grid_size_", parameters$grid_size)
+
+
+# are you using the cluster? -------------------------------------------------- 
+
+
+if (CLUSTER) {
   
-  # install.packages("didewin",
-  #                  repos = c(CRAN = "https://cran.rstudio.com",
-  #                            drat = "https://richfitz.github.io/drat"))
+  config <- didehpc::didehpc_config(template = "20Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
   
-  # Load packages
-  library(context)
-  library(queuer)
-  library(didewin)
+} else {
   
-  my_workdir <- "Q:/dengue_risk_mapping"
-  
-  didewin::didewin_config_global(cluster = "fi--didemrchnb", workdir = my_workdir)
-  
-  root <- file.path(my_workdir, "context")
-  
-  ctx <- context::context_save(packages = my_pkgs,
-                               sources = my_resources,
-                               root = root)
-  
-  obj <- didewin::queue_didewin(ctx, sync = "R")
-  
-}else{
-  
-  # Load packages
-  sapply(my_pkgs, library, character.only = TRUE)
-  
-  # Load functions 
-  sapply(my_resources, source)
+  context::context_load(ctx)
+  context::parallel_cluster_start(4, ctx)
   
 }
 
 
-# ---------------------------------------- Load data
+# load data -------------------------------------------------------------------
 
 
-# load dataset for RF training/validating (model dataset)
-dengue_dataset <- read.csv(file.path("data", "foi", "All_FOI_estimates_linear_env_var.csv")) 
+foi_data <- read.csv(
+  file.path("output", "foi", "All_FOI_estimates_linear_env_var_area.csv"),
+  stringsAsFactors = FALSE) 
 
-# predicting variable names
-all_predictors <- read.table(file.path("output", "datasets", "all_predictors.txt"), 
-                             header = TRUE, 
-                             stringsAsFactors = FALSE)
-
-
-# ---------------------------------------- Pre-processing the datasets
-
-
-# remove NA and outliers from model dataset
-dengue_dataset <- dengue_dataset[!is.na(dengue_dataset$FOI), ]
-dengue_dataset <- subset(dengue_dataset, country != "French Polynesia" & country != "Haiti")
-
-# sort data in decreasing FOI value
-dengue_dataset <- dengue_dataset[order(dengue_dataset$FOI, decreasing = TRUE), ]
-
-# assign case weights 
-dengue_dataset$new.weight <- 1
-dengue_dataset[dengue_dataset$type == "pseudoAbsence", "new.weight"] <- 0.25
-
-# add an ID for each data point
-dengue_dataset <- cbind(id = seq_len(nrow(dengue_dataset)), dengue_dataset)
-
-# get all predictor names except land use classes
-all_predictors_no_LC <- all_predictors$variable[1:26]
+boot_samples <- readRDS(file.path("output", 
+                                  "EM_algorithm",
+                                  "bootstrap_models",
+                                  my_dir, 
+                                  "bootstrap_samples.rds"))
 
 
-# ---------------------------------------- Set up simulation framework
+# pre process -----------------------------------------------------------------
 
 
-bootstrap_runs <- 200
+all_FT_names <- apply(expand.grid(fourier_transform_elements, FTs_data_names), 
+                      1, 
+                      function(x) paste(x[2], x[1], sep="_"))
 
-factor_combinations <- expand.grid(run_ID = seq_len(bootstrap_runs),
-                                   exp_ID = exp_id, 
-                                   scaling_factor = 10000)
+all_predictors <- c(altitude_var_names, all_FT_names)
 
-factor_combinations_list <- df_to_list(factor_combinations, use_names = TRUE)
+foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- parameters$pseudoAbs_value
 
-nt <- 500
-ns <- 20
-gs <- 5
-pa <- 0
-it <- 100000
-ctof <- it * 0.3
-top_it <- 10
+foi_data$new_weight <- parameters$all_wgt
+
+pAbs_wgt <- get_area_scaled_wgts(foi_data, parameters$wgt_limits)
+
+foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
 
-# ---------------------------------------- Run Metropolis Hastings algorithm
+# submit one test job ---------------------------------------------------------
 
 
-# # try one job
 # t <- obj$enqueue(
-#   wrapper_to_multi_factor_MH_var_sel(
-#     factor_combinations_list[[1]],
-#     model_dataset = dengue_dataset,
-#     predictors = all_predictors_no_LC,
-#     dependent_variable = "FOI",
-#     no_trees = nt,
-#     min_node_size = ns,
-#     grid_size = gs,
-#     pseudoAbs_value = pa,
-#     Niter = it,
-#     var_scale = 0)
+#   MH_variable_selection_boot(boot_ls = boot_samples,
+#                              foi_data = foi_data, 
+#                              predictors = all_predictors,
+#                              dependent_variable = var_to_fit, 
+#                              parms = parameters,
+#                              out_fig_pth = out_fig_path,
+#                              out_tab_pth = out_tab_path))
+
+
+# submit all jobs -------------------------------------------------------------
+
 
 if (CLUSTER) {
   
-  task_b_name <- paste(analysis_tag, exp_id, sep = "_exp_")
-  
-  chains <- queuer::qlapply(
-    factor_combinations_list, 
-    wrapper_to_multi_factor_MH_var_sel,
+  MH_chains <- queuer::qlapply(
+    seq_len(no_fits),
+    MH_variable_selection_boot,
     obj,
-    model_dataset = dengue_dataset, 
-    predictors = all_predictors_no_LC,
-    dependent_variable = "FOI", 
-    no_trees = nt,
-    min_node_size = ns,
-    grid_size = gs,
-    pseudoAbs_value = pa,
-    Niter = it, 
-    var_scale = 0,
-    timeout = 0,
-    name = task_b_name)
+    boot_ls = boot_samples,
+    foi_data = foi_data, 
+    predictors = all_predictors,
+    dependent_variable = var_to_fit, 
+    parms = parameters,
+    out_fig_pth = out_fig_path,
+    out_tab_pth = out_tab_path)
   
 } else {
   
-  chains <- lapply(
-    factor_combinations_list[1],
-    wrapper_to_multi_factor_MH_var_sel,
-    model_dataset = dengue_dataset, 
-    predictors = all_predictors_no_LC,
-    dependent_variable = "FOI", 
-    no_trees = nt,
-    min_node_size = ns,
-    grid_size = gs,
-    pseudoAbs_value = pa,
-    Niter = it, 
-    var_scale = 0)
+  MH_chains <- lapply(
+    seq_len(no_fits)[1],
+    MH_variable_selection_boot,
+    boot_ls = boot_samples,
+    foi_data = foi_data, 
+    predictors = all_predictors,
+    dependent_variable = var_to_fit, 
+    parms = parameters,
+    out_fig_pth = out_fig_path,
+    out_tab_pth = out_tab_path)
   
+}
+
+if (!CLUSTER) {
+  context::parallel_cluster_stop()
 }
