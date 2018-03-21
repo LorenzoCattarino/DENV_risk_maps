@@ -7,8 +7,6 @@ exp_max_algorithm_boot <- function(i,
                                    min_node_size, 
                                    grp_flds, 
                                    niter, 
-                                   all_wgt, 
-                                   wgt_limits,
                                    RF_obj_path, 
                                    RF_obj_name,
                                    diagn_tab_path, 
@@ -65,10 +63,6 @@ exp_max_algorithm_boot <- function(i,
     
   foi_data_boot[foi_data_boot$type == "pseudoAbsence", "o_j"] <- psAbs
   
-  foi_data_boot$new_weight <- all_wgt
-  pAbs_wgt <- get_area_scaled_wgts(foi_data_boot, wgt_limits)
-  foi_data_boot[foi_data_boot$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
-
   names(foi_data_boot)[names(foi_data_boot) == "ADM_0"] <- grp_flds[1]
   names(foi_data_boot)[names(foi_data_boot) == "ADM_1"] <- grp_flds[2]
   
