@@ -28,7 +28,7 @@ parameters <- list(
   min_node_size = 20,
   no_steps_L1 = 20,   # 20
   no_steps_L2 = 10,   # 10
-  pseudoAbs.value = -0.02,
+  pseudoAbs_value = -0.02,
   all_wgt = 1,
   wgt_limits = c(1, 500),
   no_reps = 10)       # 10
@@ -37,7 +37,7 @@ no_fits <- 50
 
 var_to_fit <- "FOI"
 
-out_fig_name <- "Frequency_of_the_numbers_of_selected_preds.png"
+out_fig_name <- "Frequency_of_the_numbers_of_selected_preds_pure.png"
 
 out_fig_path <- file.path("figures", 
                           "variable_selection", 
@@ -47,7 +47,7 @@ out_tab_name <- "predictor_rank.csv"
 
 out_tab_path <- file.path("output", 
                           "variable_selection", 
-                          "stepwise")
+                          "stepwise_pure")
 
 
 # define variables ------------------------------------------------------------
