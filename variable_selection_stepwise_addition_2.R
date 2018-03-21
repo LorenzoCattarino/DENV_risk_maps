@@ -28,7 +28,7 @@ parameters <- list(
   min_node_size = 20,
   no_steps_L1 = 20,   # 20
   no_steps_L2 = 10,   # 10
-  pseudoAbs.value = -0.02,
+  pseudoAbs_value = -0.02,
   all_wgt = 1,
   wgt_limits = c(1, 500),
   no_reps = 10)       # 10
