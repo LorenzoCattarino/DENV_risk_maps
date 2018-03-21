@@ -71,7 +71,7 @@ stepwise_addition_boot <- function(i,
     
   }
   
-  psAb_val <- parms$pseudoAbs.value
+  psAb_val <- parms$pseudoAbs_value
   no_reps <- parms$no_reps
     
   ID_sample <- i
@@ -163,9 +163,8 @@ multi_steps_wrapper <- function(dataset,
       
     }
     
-    ret <- loop(seq_along(combinations_of_predictors), 
-                get_set_fit_predict_and_error, 
-                predictor_sets = combinations_of_predictors,
+    ret <- loop(combinations_of_predictors, 
+                combs_predictor_wrapper, 
                 dataset = dataset, 
                 y_var = y_var, 
                 no_trees = no_trees, 
@@ -284,7 +283,7 @@ stepwise_removal_boot <- function(i,
   
   stepwise_dir <- "removal"
   
-  psAb_val <- parms$pseudoAbs.value
+  psAb_val <- parms$pseudoAbs_value
   
   ID_sample <- i  
   
@@ -340,3 +339,23 @@ get_removal_results <- function(x){
   c(x[[1]], x[[2]]$name[minimum:end])
   
 }  
+
+combs_predictor_wrapper <- function(i, 
+                                    dataset,
+                                    y_var,
+                                    no_trees,
+                                    min_node_size,
+                                    foi_data) {
+  
+  cat("combination of predictors =", i, "\n") 
+  
+  my_preds <- names(dataset)[i]
+  
+  fit_predict_and_error(dataset = dataset, 
+                        y_var = y_var, 
+                        my_preds = my_preds,
+                        no_trees = no_trees, 
+                        min_node_size = min_node_size, 
+                        foi_data = foi_data)
+  
+}
