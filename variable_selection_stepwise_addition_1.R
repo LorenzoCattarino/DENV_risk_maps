@@ -24,14 +24,16 @@ parameters <- list(
   grid_size = 1,
   no_trees = 500,
   min_node_size = 20,
-  no_steps_L1 = 20,   # 20
-  no_steps_L2 = 10,   # 10
+  no_steps_L1 = 20,   
+  no_steps_L2 = 10,   
   pseudoAbs_value = -0.02,
   all_wgt = 1,
   wgt_limits = c(1, 500),
-  no_reps = 10)       # 10
+  no_reps = 10)   
 
 no_fits <- 50
+
+addition <- TRUE
 
 var_to_fit <- "FOI"
 
@@ -111,7 +113,8 @@ foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 #     parms = parameters,
 #     predictors = all_predictors,
 #     foi_data = foi_data,
-#     out_path = out_path))
+#     out_path = out_path,
+#     addition = addition))
 
 
 # submit all jobs -------------------------------------------------------------
@@ -119,7 +122,7 @@ foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
 if (CLUSTER) {
 
-  bsample_step_addition <- queuer::qlapply(
+  stepwise_addition <- queuer::qlapply(
     seq_len(no_fits),
     stepwise_addition_boot,
     obj,
@@ -129,11 +132,11 @@ if (CLUSTER) {
     predictors = all_predictors,
     foi_data = foi_data,
     out_path = out_path,
-    addition = TRUE)
+    addition = addition)
 
 } else {
 
-  bsample_step_addition <- lapply(
+  stepwise_addition <- lapply(
     seq_len(no_fits)[1],
     stepwise_addition_boot,
     boot_ls = boot_samples,
@@ -142,7 +145,7 @@ if (CLUSTER) {
     predictors = all_predictors,
     foi_data = foi_data,
     out_path = out_path,
-    addition = TRUE)
+    addition = addition)
 
 }
 
