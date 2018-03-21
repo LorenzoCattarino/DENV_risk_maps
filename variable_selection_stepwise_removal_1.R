@@ -26,7 +26,7 @@ parameters <- list(
   min_node_size = 20,
   no_steps_L1 = 20,   # 20
   no_steps_L2 = 10,   # 10
-  pseudoAbs.value = -0.02,
+  pseudoAbs_value = -0.02,
   all_wgt = 1,
   wgt_limits = c(1, 500),
   no_reps = 10)       # 10
@@ -91,7 +91,7 @@ all_FT_names <- apply(expand.grid(fourier_transform_elements, FTs_data_names),
 
 all_predictors <- c(altitude_var_names, all_FT_names)
 
-foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- parameters$pseudoAbs.value
+foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- parameters$pseudoAbs_value
 
 foi_data$new_weight <- parameters$all_wgt
 
