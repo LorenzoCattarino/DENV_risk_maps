@@ -154,7 +154,7 @@ for (i in 1:length(set_names)){
   # extract the number of selected predictors 
   no_sel_vars <- lapply(chain_results, function(x) {x[a:b, "cur.n.sel"]})
   
-  var_rank <- data.frame(variable = names(mean_sel_freq), 
+  var_rank <- data.frame(name = names(mean_sel_freq), 
                          mean_sf = mean_sel_freq,
                          sd_mean_sf = sd_of_mean_sel_freq)
   
