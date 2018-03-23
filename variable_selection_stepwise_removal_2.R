@@ -4,8 +4,8 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
-  file.path("R", "random_forest", "stepwise_variable_addition_removal.R"),
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"),
+  file.path("R", "random_forest", "variable_selection_stepwise.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "utility_functions.R"))
 
@@ -20,34 +20,32 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-top_ones <- 26 # all of them
-
 parameters <- list(
   grid_size = 1,
   no_trees = 500,
   min_node_size = 20,
-  no_steps_L1 = 20,   # 20
-  no_steps_L2 = 10,   # 10
+  no_steps_L1 = 26, 
+  no_steps_L2 = 0, 
   pseudoAbs_value = -0.02,
   all_wgt = 1,
   wgt_limits = c(1, 500),
-  no_reps = 10)       # 10
+  no_samples = 200)     
 
-no_fits <- 50
+top_ones <- 26 # all of them
 
 var_to_fit <- "FOI"
 
-out_fig_name <- "Frequency_of_the_numbers_of_selected_preds_pure.png"
+out_fig_name <- "Frequency_of_the_numbers_of_selected_preds.png"
+
+out_tab_name <- "predictor_rank.csv"
 
 out_fig_path <- file.path("figures", 
                           "variable_selection", 
                           "stepwise")
 
-out_tab_name <- "predictor_rank.csv"
-
 out_tab_path <- file.path("output", 
                           "variable_selection", 
-                          "stepwise_pure")
+                          "stepwise")
 
 
 # define variables ------------------------------------------------------------

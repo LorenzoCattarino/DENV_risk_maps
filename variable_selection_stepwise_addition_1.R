@@ -4,8 +4,8 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.R"),
-  file.path("R", "random_forest", "stepwise_variable_addition_removal.R"),
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "random_forest", "variable_selection_stepwise.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "utility_functions.R"))
 
@@ -24,14 +24,13 @@ parameters <- list(
   grid_size = 1,
   no_trees = 500,
   min_node_size = 20,
-  no_steps_L1 = 20,   
-  no_steps_L2 = 10,   
+  no_steps_L1 = 26,   
+  no_steps_L2 = 0,   
   pseudoAbs_value = -0.02,
   all_wgt = 1,
   wgt_limits = c(1, 500),
-  no_reps = 10)   
-
-no_fits <- 50
+  no_reps = 10,
+  no_samples = 200)   
 
 addition <- TRUE
 
@@ -101,13 +100,15 @@ pAbs_wgt <- get_area_scaled_wgts(foi_data, parameters$wgt_limits)
 
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
+no_samples <- parameters$no_samples
+
 
 # submit one test job ---------------------------------------------------------
 
 
 # t <- obj$enqueue(
 #   stepwise_addition_boot(
-#     seq_len(no_fits)[1],
+#     seq_len(no_samples)[1],
 #     boot_ls = boot_samples,
 #     y_var = var_to_fit,
 #     parms = parameters,
@@ -123,7 +124,7 @@ foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 if (CLUSTER) {
 
   stepwise_addition <- queuer::qlapply(
-    seq_len(no_fits),
+    seq_len(no_samples),
     stepwise_addition_boot,
     obj,
     boot_ls = boot_samples,
@@ -137,7 +138,7 @@ if (CLUSTER) {
 } else {
 
   stepwise_addition <- lapply(
-    seq_len(no_fits)[1],
+    seq_len(no_samples)[1],
     stepwise_addition_boot,
     boot_ls = boot_samples,
     y_var = var_to_fit,

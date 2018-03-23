@@ -4,8 +4,8 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
-  file.path("R", "random_forest", "stepwise_variable_addition_removal.R"),
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"),
+  file.path("R", "random_forest", "variable_selection_stepwise.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "utility_functions.R"))
 
@@ -20,20 +20,20 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-top_ones <- 20
-
 parameters <- list(
   grid_size = 1,
   no_trees = 500,
   min_node_size = 20,
-  no_steps_L1 = 20,   # 20
-  no_steps_L2 = 10,   # 10
+  no_steps_L1 = 26, 
+  no_steps_L2 = 0,   
   pseudoAbs_value = -0.02,
   all_wgt = 1,
   wgt_limits = c(1, 500),
-  no_reps = 10)       # 10
+  no_reps = 10,
+  no_samples = 200)     
 
-no_fits <- 50
+top_ones_within_reps <- 10
+top_ones_across_reps <- 20
 
 var_to_fit <- "FOI"
 
@@ -91,17 +91,19 @@ bsample_step_addition_t <- obj$task_bundle_get(my_task_id)
 
 bsample_step_addition <- bsample_step_addition_t$results()
 
-# get predictors added during the second level of addition 
-# by boot sample (list slot) and replicate (matrix columns) 
-ret1 <- lapply(bsample_step_addition, get_changed_predictors, parameters$no_steps_L2)
+all_preds <- lapply(bsample_step_addition, get_changed_predictors, parameters$no_steps_L1)
 
-# get the most frequently selected predictors
-ret2 <- lapply(ret1, calculate_sel_freq, top_ones)
+all_preds_top <- lapply(all_preds, get_top_from_replicates, top_ones_within_reps)
+  
+# calculate selection frequency of all 26 predictors across replicates
+ret1 <- lapply(all_preds_top, calculate_sel_freq, top_ones_across_reps)
+
+no_samples <- parameters$no_samples
 
 # save best predictors from stepwise addition - for each bootstrap sample
-lapply(seq(no_fits),
+lapply(seq(no_samples),
        save_addition_best_preds,
-       results = ret2, 
+       results = ret1, 
        names = names(boot_samples[[1]]), 
        out_path)
   
