@@ -236,10 +236,14 @@ multi_steps_wrapper <- function(dataset,
 
 get_changed_predictors <- function(x, no_steps){
   
-  ret1 <- lapply(x, "[[", 2)
+  vapply(x, "[[", numeric(no_steps), "changed_predictor")
   
-  vapply(ret1, "[[", numeric(no_steps), "changed_predictor")
+}
+
+get_top_from_replicates <- function(x,tops){
   
+  x[1:tops,]
+
 }
 
 calculate_sel_freq <- function(predictors, top_ones){
