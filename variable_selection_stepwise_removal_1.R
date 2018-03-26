@@ -44,7 +44,7 @@ FTs_data_names <- c("DayTemp", "EVI", "MIR", "NightTemp", "RFE")
 
 out_path <- file.path("output", 
                       "variable_selection", 
-                      "stepwise")
+                      "stepwise_pure")
 
 
 # define variables ------------------------------------------------------------
@@ -130,7 +130,7 @@ if (CLUSTER) {
     boot_ls = boot_samples,
     y_var = var_to_fit,
     parms = parameters,
-    predictors = NULL,
+    predictors = all_predictors,
     foi_data = foi_data,
     out_path = out_path,
     addition = addition)
@@ -143,7 +143,7 @@ if (CLUSTER) {
     boot_ls = boot_samples,
     y_var = var_to_fit,
     parms = parameters,
-    predictors = NULL,
+    predictors = all_predictors,
     foi_data = foi_data,
     out_path = out_path,
     addition = addition)

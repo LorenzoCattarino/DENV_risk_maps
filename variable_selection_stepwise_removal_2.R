@@ -35,7 +35,7 @@ top_ones <- 26 # all of them
 
 var_to_fit <- "FOI"
 
-out_fig_name <- "Frequency_of_the_numbers_of_selected_preds.png"
+out_fig_name <- "Frequency_of_the_numbers_of_selected_preds_pure.png"
 
 out_tab_name <- "predictor_rank.csv"
 
@@ -45,7 +45,7 @@ out_fig_path <- file.path("figures",
 
 out_tab_path <- file.path("output", 
                           "variable_selection", 
-                          "stepwise")
+                          "stepwise_pure")
 
 
 # define variables ------------------------------------------------------------
