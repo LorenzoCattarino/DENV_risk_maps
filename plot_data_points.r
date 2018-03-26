@@ -3,6 +3,13 @@
 # load packages
 library(rgdal) 
 library(ggplot2)
+#library(mapproj) # coord_map()
+
+
+# define parameters -----------------------------------------------------------
+
+
+poly_fill <- "gray90"
 
 
 # load data ------------------------------------------------------------------- 
@@ -60,51 +67,53 @@ fort_aus <- fortify(aus)
 
 
 png(file.path("figures", "data", "dengue_points.png"), 
-    width = 18, 
+    width = 24, 
     height = 10, 
-    units = "in", 
+    units = "cm", 
     pointsize = 12,
     res = 200)
 
 p <- ggplot() +
-  geom_polygon(data = fort_shp, 
+  geom_polygon(data = fort_shp,
                aes(x = long, y = lat, group = group),
                colour = "black",
-               fill = "gray80",
-               size = 0.2) + 
-  geom_polygon(data = fort_bra, 
+               fill = poly_fill,
+               size = 0.1) +
+  geom_polygon(data = fort_bra,
                aes(x = long, y = lat, group = group),
                colour = "black",
-               fill = "gray80",
-               size = 0.2) + 
-  geom_polygon(data = fort_ind, 
+               fill = poly_fill,
+               size = 0.1) +
+  geom_polygon(data = fort_ind,
                aes(x = long, y = lat, group = group),
                colour = "black",
-               fill = "gray80",
-               size = 0.2) + 
-  geom_polygon(data = fort_mex, 
+               fill = poly_fill,
+               size = 0.1) +
+  geom_polygon(data = fort_mex,
                aes(x = long, y = lat, group = group),
                colour = "black",
-               fill = "gray80",
-               size = 0.2) + 
-  geom_polygon(data = fort_col, 
+               fill = poly_fill,
+               size = 0.1) +
+  geom_polygon(data = fort_col,
                aes(x = long, y = lat, group = group),
                colour = "black",
-               fill = "gray80",
-               size = 0.2) + 
-  geom_polygon(data = fort_ven, 
+               fill = poly_fill,
+               size = 0.1) +
+  geom_polygon(data = fort_ven,
                aes(x = long, y = lat, group = group),
                colour = "black",
-               fill = "gray80",
-               size = 0.2) + 
-  geom_polygon(data = fort_aus, 
+               fill = poly_fill,
+               size = 0.1) +
+  geom_polygon(data = fort_aus,
                aes(x = long, y = lat, group = group),
                colour = "black",
-               fill = "gray80",
-               size = 0.2) + 
-  geom_point(data = All_FOI_estimates, aes(x = longitude, y = latitude)) +
-  coord_equal() +
-  scale_y_continuous(labels = NULL, limits = c(-60, 60)) +
+               fill = poly_fill,
+               size = 0.1) +
+  geom_point(data = All_FOI_estimates, 
+             aes(x = longitude, y = latitude), 
+             size = 0.6,
+             colour = "blue") +
+  coord_equal(ylim = c(-55, 60)) + # does not change underlying data
   theme_void() +
   theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
 
