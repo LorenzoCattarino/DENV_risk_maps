@@ -4,7 +4,7 @@ library(rgeos)
 library(ggplot2)
 library(h2o)
 
-source(file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"))
+source(file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"))
 
 
 # define parameters ----------------------------------------------------------- 
@@ -69,9 +69,14 @@ new_foi_data$distance <- new_foi_data$distance / 1000
 # histogram -------------------------------------------------------------------
 
 
+pretty_x_vals <- pretty(new_foi_data$distance, 15)
+
 p <- ggplot(new_foi_data, aes(distance)) +
   geom_histogram(binwidth = 40) +
-  scale_x_continuous("distance (km)")
+  scale_x_continuous("distance (km)",
+                     breaks = pretty_x_vals,
+                     labels = pretty_x_vals,
+                     limits = c(min(pretty_x_vals), max(pretty_x_vals)))
 
 ggsave(file.path("figures", "closest_distance_hist.png"), 
        p, 
