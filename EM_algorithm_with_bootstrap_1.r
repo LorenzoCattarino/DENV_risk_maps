@@ -28,7 +28,7 @@ ctx <- context::context_save(path = "context",
 
 no_fits <- 200
   
-grid_size <- 10
+grid_size <- 1
 
 resample_grid_size <- 20
 
@@ -81,16 +81,15 @@ boot_samples <- readRDS(file.path("output",
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection", 
-                                     "metropolis_hastings", 
-                                     "exp_1", 
-                                     "variable_rank_final_fits_exp_1.csv"),
+                                     "stepwise", 
+                                     "predictor_rank.csv"),
                            stringsAsFactors = FALSE)
 
 
 # pre processing -------------------------------------------------------------- 
 
 
-my_predictors <- predictor_rank$variable[1:9]
+my_predictors <- predictor_rank$name[1:13]
 
 fi <- list.files(in_pt, pattern = "^tile", full.names = TRUE)
 

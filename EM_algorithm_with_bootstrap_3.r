@@ -23,7 +23,7 @@ var_to_fit <- "FOI"
 
 no_fits <- 200
 
-grid_size <- 10
+grid_size <- 1
 
 
 # define variables ------------------------------------------------------------
@@ -72,31 +72,30 @@ if (CLUSTER) {
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection", 
-                                     "metropolis_hastings", 
-                                     "exp_1", 
-                                     "variable_rank_final_fits_exp_1.csv"),
+                                     "stepwise", 
+                                     "predictor_rank.csv"),
                            stringsAsFactors = FALSE)
 
 
 # pre processing -------------------------------------------------------------- 
 
 
-my_predictors <- predictor_rank$variable[1:9]
+my_predictors <- predictor_rank$name[1:13]
 
 
 # submit one job -------------------------------------------------------------- 
 
 
-t <- obj$enqueue(
-  load_predict_and_save(
-    seq_len(no_fits)[1],
-    RF_obj_path = RF_obj_path,
-    my_preds = my_predictors,
-    no_fits = no_fits,
-    out_file_path = out_pth,
-    in_path = in_path,
-    start_h2o = TRUE,
-    shut_h2o = TRUE))
+# t <- obj$enqueue(
+#   load_predict_and_save(
+#     seq_len(no_fits)[1],
+#     RF_obj_path = RF_obj_path,
+#     my_preds = my_predictors,
+#     no_fits = no_fits,
+#     out_file_path = out_pth,
+#     in_path = in_path,
+#     start_h2o = TRUE,
+#     shut_h2o = TRUE))
 
 
 # submit all jobs ------------------------------------------------------------- 

@@ -28,7 +28,7 @@ ctx <- context::context_save(path = "context",
 
 var_to_fit <- "FOI"
 
-grid_size <- 10
+grid_size <- 1
 
 out_fl_nm <- "square_predictions_all_data.rds"
 
@@ -61,8 +61,9 @@ if (CLUSTER) {
 # get results ----------------------------------------------------------------- 
 
 
-# loads the LAST task bundle
-my_task_id <- obj$task_bundle_info()[nrow(obj$task_bundle_info()), "name"] 
+bundles <- obj$task_bundle_info()
+
+my_task_id <- bundles[nrow(bundles), "name"] 
 
 EM_alg_run_t <- obj$task_bundle_get(my_task_id)
 

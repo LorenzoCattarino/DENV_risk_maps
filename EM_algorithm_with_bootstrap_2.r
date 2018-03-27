@@ -27,15 +27,11 @@ pseudoAbsence_value <- -0.02
 
 no_fits <- 200
 
-grid_size <- 10
+grid_size <- 1
 
 no_trees <- 500
 
 min_node_size <- 20
-
-all_wgt <- 1
-
-wgt_limits <- c(1, 500)
 
 
 # define variables ------------------------------------------------------------
@@ -77,16 +73,15 @@ boot_samples <- readRDS(file.path("output",
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection", 
-                                     "metropolis_hastings", 
-                                     "exp_1", 
-                                     "variable_rank_final_fits_exp_1.csv"),
+                                     "stepwise", 
+                                     "predictor_rank.csv"),
                            stringsAsFactors = FALSE)
 
 
 # pre processing -------------------------------------------------------------- 
 
 
-my_predictors <- predictor_rank$variable[1:9]
+my_predictors <- predictor_rank$name[1:13]
 
 
 # submit one job --------------------------------------------------------------  
@@ -102,8 +97,6 @@ my_predictors <- predictor_rank$variable[1:9]
 #     min_node_size = min_node_size,
 #     out_path = out_pt,
 #     psAb_val = pseudoAbsence_value,
-#     all_wgt = all_wgt,
-#     wgt_limits = wgt_limits,
 #     start_h2o = TRUE,
 #     shut_h2o = TRUE))
 
@@ -124,8 +117,6 @@ if (CLUSTER) {
     min_node_size = min_node_size,
     out_path = out_pt,
     psAb_val = pseudoAbsence_value,
-    all_wgt = all_wgt,
-    wgt_limits = wgt_limits,
     start_h2o = TRUE,
     shut_h2o = TRUE)
   
@@ -143,8 +134,6 @@ if (CLUSTER) {
     min_node_size = min_node_size,
     out_path = out_pt,
     psAb_val = pseudoAbsence_value,
-    all_wgt = all_wgt,
-    wgt_limits = wgt_limits,
     start_h2o = FALSE,
     shut_h2o = FALSE)
   

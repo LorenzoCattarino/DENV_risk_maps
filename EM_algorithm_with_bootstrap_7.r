@@ -28,7 +28,7 @@ ctx <- context::context_save(path = "context",
 
 var_to_fit <- "FOI"
 
-grid_size <- 10
+grid_size <- 1
 
 pseudoAbsence_value <- -0.02
 
@@ -100,12 +100,10 @@ adm_dataset <- read.csv(file.path("output",
                         header = TRUE,
                         stringsAsFactors = FALSE)
 
-# predicting variable rank
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection", 
-                                     "metropolis_hastings", 
-                                     "exp_1", 
-                                     "variable_rank_final_fits_exp_1.csv"),
+                                     "stepwise", 
+                                     "predictor_rank.csv"),
                            stringsAsFactors = FALSE)
 
 # tiles
@@ -155,7 +153,7 @@ NA_pixel_tile_ids <- NA_pixel_tiles$tile_id
 
 tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]  
 
-my_predictors <- predictor_rank$variable[1:9]
+my_predictors <- predictor_rank$name[1:13]
 
 
 # submit one job --------------------------------------------------------------

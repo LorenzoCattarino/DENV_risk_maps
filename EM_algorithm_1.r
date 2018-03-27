@@ -59,9 +59,8 @@ foi_data <- read.csv(
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection", 
-                                     "metropolis_hastings", 
-                                     "exp_1", 
-                                     "variable_rank_final_fits_exp_1.csv"),
+                                     "stepwise", 
+                                     "predictor_rank.csv"),
                            stringsAsFactors = FALSE)
 
 
@@ -72,7 +71,7 @@ names(foi_data)[names(foi_data) == "ID_0"] <- "ADM_0"
 names(foi_data)[names(foi_data) == "ID_1"] <- "ADM_1"
 names(foi_data)[names(foi_data) == "population"] <- "adm_pop"
 
-my_predictors <- predictor_rank$variable[1:9]
+my_predictors <- predictor_rank$name[1:13]
 
 fi <- list.files(in_pt, pattern = "^tile", full.names = TRUE)
 

@@ -22,11 +22,11 @@ source(file.path("R", "utility_functions.r"))
 
 var_to_fit <- "FOI"
 
-grid_size <- 10
+grid_size <- 1
 
 no_fits <- 200
 
-mes_vars <- c("admin", "cell", "admin_sd", "cell_sd")
+mes_vars <- c("admin", "cell")
 
 tags <- c("all_data", "no_psAb")
 
@@ -53,12 +53,14 @@ in_path <- file.path("output",
                      "predictions_data") 
 
 out_fig_path <- file.path("figures",
+                          "EM_algorithm",
                           my_dir,
                           model_type,
                           "scatter_plots",
                           "boot_samples")
 
 out_fig_path_av <- file.path("figures",
+                             "EM_algorithm",
                              my_dir,
                              model_type,
                              "scatter_plots")
@@ -221,12 +223,11 @@ for (j in seq_along(tags)) {
   
   ret <- dplyr::left_join(all_av_preds_mlt, foi_dataset[, c("data_id", "new_weight")])
   
-  # RF_preds_vs_obs_plot_stratif(
-  #   df = ret,
-  #   x = "o_j",
-  #   y = "value",
-  #   facet_var = "scale",
-  #   file_name = fl_nm_av,
-  #   file_path = out_fig_path_av)
+  RF_preds_vs_obs_plot_stratif(df = ret,
+                               x = "o_j",
+                               y = "value",
+                               facet_var = "scale",
+                               file_name = fl_nm_av,
+                               file_path = out_fig_path_av)
   
 }

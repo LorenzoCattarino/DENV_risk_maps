@@ -15,7 +15,7 @@ var_to_fit <- "FOI"
 
 no_fits <- 200
   
-grid_size <- 10
+grid_size <- 1
 
 diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j")
 
@@ -43,6 +43,7 @@ diag_t_pth <- file.path("output",
 fig_file_tag <- paste0(strip_labs, ".png")
 
 figure_out_path <- file.path("figures", 
+                             "EM_algorithm",
                              my_dir, 
                              model_type, 
                              "diagnostics",

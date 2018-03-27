@@ -2,18 +2,16 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "wrapper_to_Exp_Max_algorithm.r"),
-  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
-  file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
-  file.path("R", "random_forest", "Exp_Max_algorithm.r"),
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"),
+  file.path("R", "random_forest", "exp_max_algorithm.r"),
   file.path("R", "plotting", "quick_raster_map.r"),
   file.path("R", "plotting", "generic_scatter_plot.r"))
 
-my_pkgs <- c("h2o", "dplyr", "fields", "ggplot2")
+my_pkgs <- c("h2o", "dplyr", "fields", "ggplot2", "weights")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -24,39 +22,54 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
+parameters <- list(
+  grid_size = 1,
+  no_trees = 500,
+  min_node_size = 20,
+  pseudoAbs_value = -0.02,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
+  no_samples = 200,
+  EM_iter = 10,
+  no_predictors = 9)   
+
 var_to_fit <- "FOI"
-
-pseudoAbsence_value <- -0.02
-
-no_fits <- 200
-
-grid_size <- 10
-
-niter <- 10
-
-all_wgt <- 1
-
-wgt_limits <- c(1, 500)
 
 grp_flds <- c("ID_0", "ID_1", "unique_id")
 
 full_pxl_df_name <- "env_vars_20km.rds"
 
+predictor_path <- file.path("output", 
+                            "variable_selection",
+                            "metropolis_hastings",
+                            "exp_1",
+                            "variable_rank_final_fits_exp_1.csv")
+
+# number_of_predictors <- 13
+# predictor_path <- file.path("output", 
+#                             "variable_selection", 
+#                             "stepwise", 
+#                             "predictor_rank.csv")
+
 
 # define variables ------------------------------------------------------------  
 
 
+no_samples <- parameters$no_samples
+
+grid_size <- parameters$grid_size
+  
 model_type <- paste0(var_to_fit, "_boot_model")
 
 my_dir <- paste0("grid_size_", grid_size)
 
-RF_nm_all <- paste0("RF_obj_sample_", seq_len(no_fits), ".rds")
+RF_nm_all <- paste0("RF_obj_sample_", seq_len(no_samples), ".rds")
 
-diag_t_nm_all <- paste0("diagno_table_", seq_len(no_fits), ".rds")
+diag_t_nm_all <- paste0("diagno_table_", seq_len(no_samples), ".rds")
 
-map_nm_all <- paste0("map_", seq_len(no_fits))
+map_nm_all <- paste0("map_", seq_len(no_samples))
 
-tra_dts_nm_all <- paste0("train_dts_", seq_len(no_fits), ".rds")
+tra_dts_nm_all <- paste0("train_dts_", seq_len(no_samples), ".rds")
   
 RF_out_pth <- file.path("output", 
                         "EM_algorithm",
@@ -80,16 +93,18 @@ train_dts_pth <- file.path("output",
                            "training_datasets")
 
 map_pth <- file.path("figures", 
+                     "EM_algorithm",
                      my_dir, 
                      model_type, 
                      "maps", 
-                     paste0("sample_", seq_len(no_fits)))
+                     paste0("sample_", seq_len(no_samples)))
 
 sct_plt_pth <- file.path("figures", 
+                         "EM_algorithm",
                          my_dir, 
                          model_type,
                          "iteration_fits",
-                         paste0("sample_", seq_len(no_fits)))
+                         paste0("sample_", seq_len(no_samples)))
 
 sqr_dts_pth <- file.path("output", 
                          "EM_algorithm",
@@ -124,12 +139,7 @@ full_pxl_df <- readRDS(file.path("output",
                                  "env_variables", 
                                  full_pxl_df_name))
 
-predictor_rank <- read.csv(file.path("output", 
-                                     "variable_selection", 
-                                     "metropolis_hastings", 
-                                     "exp_1", 
-                                     "variable_rank_final_fits_exp_1.csv"),
-                           stringsAsFactors = FALSE)
+predictor_rank <- read.csv(predictor_path, stringsAsFactors = FALSE)
 
 adm_dataset <- read.csv(file.path("output",
                                   "env_variables",
@@ -147,7 +157,9 @@ bt_samples <- readRDS(file.path("output",
 # pre process ----------------------------------------------------------------- 
 
 
-my_predictors <- predictor_rank$variable[1:9]
+number_of_predictors <- parameters$no_predictors
+  
+my_predictors <- predictor_rank$name[1:number_of_predictors]
 
 adm_dts <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 
@@ -157,15 +169,12 @@ adm_dts <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 
 # t <- obj$enqueue(
 #   exp_max_algorithm_boot(
-#     seq_len(no_fits)[1],
+#     seq_len(no_samples)[1],
+#     parms = parameters,
 #     boot_samples = bt_samples,
 #     pxl_dataset_orig = full_pxl_df,
-#     psAbs = pseudoAbsence_value,
 #     my_preds = my_predictors,
 #     grp_flds = grp_flds,
-#     niter = niter,
-#     all_wgt = all_wgt,
-#     wgt_limits = wgt_limits,
 #     RF_obj_path = RF_out_pth,
 #     RF_obj_name = RF_nm_all,
 #     diagn_tab_path = diag_t_pth,
@@ -186,17 +195,14 @@ adm_dts <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 if (CLUSTER) {
 
   EM_alg_run_exp <- queuer::qlapply(
-    seq_len(no_fits),
+    seq_len(no_samples),
     exp_max_algorithm_boot,
     obj,
+    parms = parameters,
     boot_samples = bt_samples,
     pxl_dataset_orig = full_pxl_df,
-    psAbs = pseudoAbsence_value,
     my_preds = my_predictors,
     grp_flds = grp_flds,
-    niter = niter,
-    all_wgt = all_wgt,
-    wgt_limits = wgt_limits,
     RF_obj_path = RF_out_pth,
     RF_obj_name = RF_nm_all,
     diagn_tab_path = diag_t_pth,
@@ -213,16 +219,13 @@ if (CLUSTER) {
 } else {
 
   EM_alg_run_exp <- lapply(
-    seq_len(no_fits)[1],
+    seq_len(no_samples)[1],
     exp_max_algorithm_boot,
+    parms = parameters,
     boot_samples = bt_samples,
     pxl_dataset_orig = full_pxl_df,
-    psAbs = pseudoAbsence_value,
     my_preds = my_predictors,
     grp_flds = grp_flds,
-    niter = niter,
-    all_wgt = all_wgt,
-    wgt_limits = wgt_limits,
     RF_obj_path = RF_out_pth,
     RF_obj_name = RF_nm_all,
     diagn_tab_path = diag_t_pth,
