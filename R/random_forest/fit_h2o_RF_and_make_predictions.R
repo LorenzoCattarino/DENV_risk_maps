@@ -42,7 +42,7 @@ wrapper_to_make_h2o_preds <- function(i,
   
   #browser()
   
-  cat("model fit =", i, "\n")
+  cat("bootstrap sample =", i, "\n")
   
   if(start_h2o) {
     h2o.init()
@@ -65,15 +65,17 @@ wrapper_to_make_h2o_preds <- function(i,
 }
 
 get_boot_sample_and_fit_RF <- function(i, 
+                                       parms,
                                        boot_ls, 
                                        y_var, 
                                        my_preds, 
-                                       no_trees, 
-                                       min_node_size, 
                                        out_path, 
-                                       psAb_val, 
                                        start_h2o,
                                        shut_h2o) {
+  
+  no_trees <- parms$no_trees
+  min_node_size <- parms$min_node_size
+  psAb_val <- parms$pseudoAbs_value
   
   adm_dts_boot <- boot_ls[[i]]
   
