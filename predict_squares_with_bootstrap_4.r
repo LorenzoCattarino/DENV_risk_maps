@@ -1,10 +1,6 @@
 # Calculates, for each model fit and R0-Wolbachia effect assumption combinations
 # R0 values and burden, for different foi value (squares).
 
-
-# ----------------------------------------
-
-
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
@@ -28,7 +24,7 @@ context::context_load(ctx)
 context::parallel_cluster_start(8, ctx)
 
 
-# ---------------------------------------- define parameters
+# define parameters ----------------------------------------------------------- 
 
 
 model_tp <- "boot_model_20km_2" 
@@ -64,7 +60,7 @@ out_path <- file.path("output", "predictions_world", model_tp)
 base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2")
 
 
-# ---------------------------------------- load data
+# load data ------------------------------------------------------------------- 
 
 
 all_sqr_foi <- readRDS(
@@ -87,8 +83,13 @@ age_struct <- read.csv(
   header = TRUE) 
 
 
-# ---------------------------------------- 
+# pre processing --------------------------------------------------------------
 
+
+age_band_tgs <- grep("band", names(age_struct), value = TRUE)
+age_band_bnds <- get_age_band_bounds(age_band_tgs)
+age_band_L_bounds <- age_band_bnds[, 1]
+age_band_U_bounds <- age_band_bnds[, 2] + 1
 
 age_struct$age_id <- seq_len(nrow(age_struct))
 
@@ -97,16 +98,14 @@ names(age_struct)[names(age_struct) == "ID_0"] <- "ADM_0"
 all_sqr_foi <- cbind(all_sqr_covariates[, base_info], all_sqr_foi)
 
 
-# ---------------------------------------- keep onle the FOI for which there is age data available
-
-
+# keep onle the FOI for which there is age data available
 all_sqr_foi <- inner_join(
   age_struct[, c("age_id", "ADM_0")],
   all_sqr_foi, 
   by = "ADM_0")
 
 
-# ---------------------------------------- create table of scenarios 
+# create table of scenarios --------------------------------------------------- 
 
 
 v4 <- calculate_infectiousness_wgts_for_sym_asym_assumption(gamma_1, rho, gamma_3)
@@ -126,16 +125,7 @@ write.csv(fct_c_2,
 fctr_combs <- df_to_list(fct_c_2, use_names = TRUE)
 
 
-# ----------------------------------------
-
-
-age_band_tgs <- grep("band", names(age_struct), value = TRUE)
-age_band_bnds <- get_age_band_bounds(age_band_tgs)
-age_band_L_bounds <- age_band_bnds[, 1]
-age_band_U_bounds <- age_band_bnds[, 2] + 1
-
-
-# ---------------------------------------- create FOI -> Inf and FOI -> C lookup tables 
+# create FOI -> Inf and FOI -> C lookup tables -------------------------------- 
 
 
 if(!file.exists(file.path(out_path, "FOI_to_I_lookup_tables.rds"))){
@@ -151,7 +141,7 @@ if(!file.exists(file.path(out_path, "FOI_to_I_lookup_tables.rds"))){
                            age_band_upper_bounds = age_band_U_bounds,
                            parallel = TRUE)
   
-  FOI_to_Inf_list <- lapply(Infection_values, function(i) cbind(x = FOI_values, y = i))
+  FOI_to_Inf_list <- lapply(Infection_values, cbind_FOI_to_lookup, FOI_values)
   
   saveRDS(FOI_to_Inf_list, file.path(out_path, "FOI_to_I_lookup_tables.rds"))
   
@@ -177,7 +167,7 @@ if(!file.exists(file.path(out_path, "FOI_to_C_lookup_tables.rds"))){
                       gamma_3 = gamma_3,
                       parallel = TRUE)
   
-  FOI_to_C_list <- lapply(Case_values, function(i) cbind(x = FOI_values, y = i))
+  FOI_to_C_list <- lapply(Case_values, cbind_FOI_to_lookup, FOI_values)
   
   saveRDS(FOI_to_C_list, file.path(out_path, "FOI_to_C_lookup_tables.rds"))
   
@@ -188,13 +178,13 @@ if(!file.exists(file.path(out_path, "FOI_to_C_lookup_tables.rds"))){
 }
 
 
-# ------------------------------------------ convert to matrix
+# convert to matrix -----------------------------------------------------------
 
 
 all_sqr_foi <- as.matrix(all_sqr_foi)
 
 
-# ------------------------------------------ submit jobs 
+# submit jobs -----------------------------------------------------------------
 
 
 #all_sqr_foi <- all_sqr_foi[285510:285520,]
