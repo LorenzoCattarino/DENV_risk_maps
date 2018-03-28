@@ -6,9 +6,18 @@
 source(file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samples.r"))
 source(file.path("R", "utility_functions.r"))
 
-grid_size <- 1
+parameters <- list(
+  grid_size = 1,
+  no_trees = 500,
+  min_node_size = 20,
+  pseudoAbs_value = -0.02,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
+  no_samples = 200,
+  EM_iter = 10,
+  no_predictors = 9)   
 
-my_dir <- paste0("grid_size_", grid_size)
+my_dir <- paste0("grid_size_", parameters$grid_size)
 
 out_pth <- file.path("output", 
                      "EM_algorithm", 

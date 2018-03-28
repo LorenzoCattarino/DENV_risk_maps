@@ -19,21 +19,24 @@ context::parallel_cluster_start(8, ctx)
 # define parameters ----------------------------------------------------------- 
 
 
-no_fits <- 200
-
-grid_size <- 1
+parameters <- list(
+  grid_size = 1,
+  no_trees = 500,
+  min_node_size = 20,
+  pseudoAbs_value = -0.02,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
+  no_samples = 200,
+  EM_iter = 10,
+  no_predictors = 9)   
 
 out_fl_nm <- "bootstrap_samples.rds"
-
-all_wgt <- 1
-
-wgt_limits <- c(1, 500)
 
 
 # define variables ------------------------------------------------------------
 
 
-my_dir <- paste0("grid_size_", grid_size)
+my_dir <- paste0("grid_size_", parameters$grid_size)
 
 out_pt <- file.path("output", "EM_algorithm", "bootstrap_models", my_dir)
 
@@ -46,28 +49,30 @@ foi_data <- read.csv(
   stringsAsFactors = FALSE) 
 
 
-# pre process the original foi dataset ---------------------------------------- 
+# pre processing --------------------------------------------------------------
 
 
 names(foi_data)[names(foi_data) == "ID_0"] <- "ADM_0"
 
 names(foi_data)[names(foi_data) == "ID_1"] <- "ADM_1"
 
-foi_data$new_weight <- all_wgt
+foi_data$new_weight <- parameters$all_wgt
 
-pAbs_wgt <- get_area_scaled_wgts(foi_data, wgt_limits)
+pAbs_wgt <- get_area_scaled_wgts(foi_data, parameters$wgt_limits)
 
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
+
+no_samples <- parameters$no_samples
 
 
 # submit jobs ----------------------------------------------------------------- 
 
 
 boot_samples <- loop(
-  seq_len(no_fits),
+  seq_len(no_samples),
   grid_and_boot,
   a = foi_data,
-  b = grid_size,
+  b = parameters$grid_size,
   parallel = TRUE)
 
 
@@ -81,4 +86,3 @@ write_out_rds(boot_samples, out_pt, out_fl_nm)
 
 
 context::parallel_cluster_stop()
-
