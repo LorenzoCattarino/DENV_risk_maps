@@ -8,6 +8,7 @@ source(file.path("R", "utility_functions.r"))
 
 parameters <- list(
   grid_size = 1,
+  resample_grid_size = 20,
   no_trees = 500,
   min_node_size = 20,
   pseudoAbs_value = -0.02,
