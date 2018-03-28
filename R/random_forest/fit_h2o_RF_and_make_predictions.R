@@ -151,7 +151,6 @@ fit_predict_and_error <- function(dataset,
 load_predict_and_save <- function(i, 
                                   RF_obj_path, 
                                   my_preds, 
-                                  no_fits, 
                                   out_file_path,
                                   in_path,
                                   start_h2o,
@@ -183,11 +182,9 @@ load_predict_and_save <- function(i,
   # ---------------------------------------- 
   
   
-  out_file_name <- paste0("env_vars_and_foi_20km_", seq_len(no_fits), ".rds")
+  out_file_name <- paste0("env_vars_and_foi_20km_", i, ".rds")
   
-  a <- out_file_name[i]
-  
-  write_out_rds(pxl_dts_boot, out_file_path, a)
+  write_out_rds(pxl_dts_boot, out_file_path, out_file_name)
   
   if(shut_h2o) {
     h2o.shutdown(prompt = FALSE)
