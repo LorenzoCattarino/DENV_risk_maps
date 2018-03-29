@@ -13,7 +13,7 @@ my_resources <- c(
   file.path("R", "utility_functions.r"),
   file.path("R", "prepare_datasets", "average_up.r"),
   file.path("R", "prepare_datasets", "remove_NA_rows.R"),
-  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"))
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"))
 
 my_pkgs <- c("h2o", "dplyr", "data.table")
 
@@ -26,13 +26,19 @@ ctx <- context::context_save(path = "context",
 # define parameters -----------------------------------------------------------  
 
 
+parameters <- list(
+  grid_size = 1,
+  resample_grid_size = 20,
+  no_trees = 500,
+  min_node_size = 20,
+  pseudoAbs_value = -0.02,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
+  no_samples = 200,
+  EM_iter = 10,
+  no_predictors = 9)   
+
 var_to_fit <- "FOI"
-
-grid_size <- 1
-
-pseudoAbsence_value <- -0.02
-
-no_fits <- 200
 
 grp_flds <- c("ADM_0", "ADM_1", "data_id")
 
@@ -42,7 +48,7 @@ grp_flds <- c("ADM_0", "ADM_1", "data_id")
 
 model_type <- paste0(var_to_fit, "_boot_model")
 
-my_dir <- paste0("grid_size_", grid_size)
+my_dir <- paste0("grid_size_", parameters$grid_size)
 
 RF_obj_path <- file.path("output",
                          "EM_algorithm",
@@ -101,9 +107,10 @@ adm_dataset <- read.csv(file.path("output",
                         stringsAsFactors = FALSE)
 
 predictor_rank <- read.csv(file.path("output", 
-                                     "variable_selection", 
-                                     "stepwise", 
-                                     "predictor_rank.csv"),
+                                     "variable_selection",
+                                     "metropolis_hastings",
+                                     "exp_1",
+                                     "variable_rank_final_fits_exp_1.csv"), 
                            stringsAsFactors = FALSE)
 
 # tiles
@@ -135,7 +142,7 @@ names(foi_dataset)[names(foi_dataset) == var_to_fit] <- "o_j"
 names(foi_dataset)[names(foi_dataset) == "ID_0"] <- grp_flds[1]
 names(foi_dataset)[names(foi_dataset) == "ID_1"] <- grp_flds[2]
 
-foi_dataset[foi_dataset$type == "pseudoAbsence", "o_j"] <- pseudoAbsence_value
+foi_dataset[foi_dataset$type == "pseudoAbsence", "o_j"] <- parameters$pseudoAbs_value
 
 
 # pre process admin predictions ----------------------------------------------- 
@@ -153,7 +160,9 @@ NA_pixel_tile_ids <- NA_pixel_tiles$tile_id
 
 tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]  
 
-my_predictors <- predictor_rank$name[1:13]
+my_predictors <- predictor_rank$name[1:parameters$no_predictors]
+
+no_samples <- parameters$no_samples
 
 
 # submit one job --------------------------------------------------------------
@@ -161,7 +170,7 @@ my_predictors <- predictor_rank$name[1:13]
 
 # t <- obj$enqueue(
 #   attach_pred_different_scale_to_data(
-#     seq_len(no_fits)[1],
+#     seq_len(no_samples)[1],
 #     model_path = RF_obj_path,
 #     foi_data = foi_dataset,
 #     adm_dts = adm_dataset,
@@ -179,12 +188,10 @@ my_predictors <- predictor_rank$name[1:13]
 # submit all jobs ------------------------------------------------------------- 
 
 
-
-
 if (CLUSTER) {
 
   bsamples_preds <- queuer::qlapply(
-    seq_len(no_fits),
+    seq_len(no_samples),
     attach_pred_different_scale_to_data,
     obj,
     model_path = RF_obj_path,
@@ -205,7 +212,7 @@ if (CLUSTER) {
   h2o.init()
   
   bsamples_preds <- lapply(
-    seq_len(no_fits),
+    seq_len(no_samples),
     attach_pred_different_scale_to_data,
     model_path = RF_obj_path,
     foi_data = foi_dataset,

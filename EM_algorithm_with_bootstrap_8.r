@@ -20,11 +20,19 @@ source(file.path("R", "utility_functions.r"))
 # define parameters -----------------------------------------------------------  
 
 
+parameters <- list(
+  grid_size = 1,
+  resample_grid_size = 20,
+  no_trees = 500,
+  min_node_size = 20,
+  pseudoAbs_value = -0.02,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
+  no_samples = 200,
+  EM_iter = 10,
+  no_predictors = 9)   
+
 var_to_fit <- "FOI"
-
-grid_size <- 1
-
-no_fits <- 200
 
 mes_vars <- c("admin", "cell")
 
@@ -33,17 +41,13 @@ tags <- c("all_data", "no_psAb")
 data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
                        c("serology", "caseReport"))
 
-all_wgt <- 1
-
-wgt_limits <- c(1, 500)
-
 
 # define variables ------------------------------------------------------------
 
 
 model_type <- paste0(var_to_fit, "_boot_model")
 
-my_dir <- paste0("grid_size_", grid_size)
+my_dir <- paste0("grid_size_", parameters$grid_size)
 
 in_path <- file.path("output",
                      "EM_algorithm",
@@ -81,8 +85,10 @@ foi_dataset <- read.csv(
   stringsAsFactors = FALSE) 
 
 
-# create some objects --------------------------------------------------------- 
+# pre processing --------------------------------------------------------------
 
+
+no_samples <- parameters$no_samples
 
 no_datapoints <- nrow(foi_dataset)
 
@@ -90,13 +96,9 @@ no_pseudoAbs <- sum(foi_dataset$type == "pseudoAbsence")
 
 no_pnts_vec <- c(no_datapoints, no_datapoints - no_pseudoAbs) 
 
+foi_dataset$new_weight <- parameters$all_wgt
 
-# calculate weights -----------------------------------------------------------
-
-
-foi_dataset$new_weight <- all_wgt
-
-pAbs_wgt <- get_area_scaled_wgts(foi_dataset, wgt_limits)
+pAbs_wgt <- get_area_scaled_wgts(foi_dataset, parameters$wgt_limits)
 
 foi_dataset[foi_dataset$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
@@ -116,17 +118,17 @@ for (j in seq_along(tags)) {
   #### create objects for matrix algebric operations
   
   
-  all_adm_preds <- matrix(0, nrow = no_pnts, ncol = no_fits)
-  all_sqr_preds <- matrix(0, nrow = no_pnts, ncol = no_fits)
-  #all_pxl_preds <- matrix(0, nrow = no_pnts, ncol = no_fits)
-  train_ids <- matrix(0, nrow = no_pnts, ncol = no_fits)
-  test_ids <- matrix(0, nrow = no_pnts, ncol = no_fits)
+  all_adm_preds <- matrix(0, nrow = no_pnts, ncol = no_samples)
+  all_sqr_preds <- matrix(0, nrow = no_pnts, ncol = no_samples)
+  #all_pxl_preds <- matrix(0, nrow = no_pnts, ncol = no_samples)
+  train_ids <- matrix(0, nrow = no_pnts, ncol = no_samples)
+  test_ids <- matrix(0, nrow = no_pnts, ncol = no_samples)
   
   
   #### second loop
   
   
-  for (i in seq_len(no_fits)) {
+  for (i in seq_len(no_samples)) {
     
     dts_nm <- paste0("all_scale_predictions_", i, ".rds")
     

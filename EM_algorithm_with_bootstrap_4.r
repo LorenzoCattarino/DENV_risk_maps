@@ -2,7 +2,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
@@ -24,6 +24,7 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   grid_size = 1,
+  resample_grid_size = 20,
   no_trees = 500,
   min_node_size = 20,
   pseudoAbs_value = -0.02,
@@ -38,18 +39,6 @@ var_to_fit <- "FOI"
 grp_flds <- c("ID_0", "ID_1", "unique_id")
 
 full_pxl_df_name <- "env_vars_20km.rds"
-
-predictor_path <- file.path("output", 
-                            "variable_selection",
-                            "metropolis_hastings",
-                            "exp_1",
-                            "variable_rank_final_fits_exp_1.csv")
-
-# number_of_predictors <- 13
-# predictor_path <- file.path("output", 
-#                             "variable_selection", 
-#                             "stepwise", 
-#                             "predictor_rank.csv")
 
 
 # define variables ------------------------------------------------------------  
@@ -139,7 +128,12 @@ full_pxl_df <- readRDS(file.path("output",
                                  "env_variables", 
                                  full_pxl_df_name))
 
-predictor_rank <- read.csv(predictor_path, stringsAsFactors = FALSE)
+predictor_rank <- read.csv(file.path("output", 
+                                     "variable_selection",
+                                     "metropolis_hastings",
+                                     "exp_1",
+                                     "variable_rank_final_fits_exp_1.csv"), 
+                           stringsAsFactors = FALSE)
 
 adm_dataset <- read.csv(file.path("output",
                                   "env_variables",

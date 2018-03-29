@@ -11,11 +11,19 @@ library(ggplot2)
 # define parameters ----------------------------------------------------------- 
 
 
-var_to_fit <- "FOI"
+parameters <- list(
+  grid_size = 1,
+  resample_grid_size = 20,
+  no_trees = 500,
+  min_node_size = 20,
+  pseudoAbs_value = -0.02,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
+  no_samples = 200,
+  EM_iter = 10,
+  no_predictors = 9)   
 
-no_fits <- 200
-  
-grid_size <- 1
+var_to_fit <- "FOI"
 
 diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j")
 
@@ -27,9 +35,11 @@ strip_labs <- c("internal RF mean square error",
 # define variables ------------------------------------------------------------
 
 
+no_samples <- parameters$no_samples
+
 model_type <- paste0(var_to_fit, "_boot_model")
 
-my_dir <- paste0("grid_size_", grid_size)
+my_dir <- paste0("grid_size_", parameters$grid_size)
 
 strip_labs <- gsub("([[:punct:]])|\\s+", "_", strip_labs)
 
@@ -47,7 +57,7 @@ figure_out_path <- file.path("figures",
                              my_dir, 
                              model_type, 
                              "diagnostics",
-                             paste0("sample_", seq_len(no_fits)))
+                             paste0("sample_", seq_len(no_samples)))
 
 
 # get results ----------------------------------------------------------------- 
@@ -61,7 +71,7 @@ EM_alg_run <- lapply(fi, readRDS)
 # plot ------------------------------------------------------------------------  
 
 
-for (j in seq_len(no_fits)){
+for (j in seq_len(no_samples)){
   
   my_path <- figure_out_path[j]
   

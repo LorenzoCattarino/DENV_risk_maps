@@ -9,9 +9,8 @@ CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "wrapper_to_Exp_Max_algorithm.r"),
-  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
-  file.path("R", "random_forest", "Exp_Max_algorithm.r"),
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"),
+  file.path("R", "random_forest", "exp_max_algorithm.r"),
   file.path("R", "plotting", "quick_raster_map.r"),
   file.path("R", "plotting", "generic_scatter_plot.r"))
 
@@ -26,9 +25,19 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-var_to_fit <- "FOI"
+parameters <- list(
+  grid_size = 1,
+  resample_grid_size = 20,
+  no_trees = 500,
+  min_node_size = 20,
+  pseudoAbs_value = -0.02,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
+  no_samples = 200,
+  EM_iter = 10,
+  no_predictors = 9)   
 
-grid_size <- 1
+var_to_fit <- "FOI"
 
 out_fl_nm <- "square_predictions_all_data.rds"
 
@@ -38,7 +47,7 @@ out_fl_nm <- "square_predictions_all_data.rds"
 
 model_type <- paste0(var_to_fit, "_boot_model")
 
-my_dir <- paste0("grid_size_", grid_size)
+my_dir <- paste0("grid_size_", parameters$grid_size)
 
 out_pt <- file.path("output", "EM_algorithm", "bootstrap_models", my_dir, model_type)
 
