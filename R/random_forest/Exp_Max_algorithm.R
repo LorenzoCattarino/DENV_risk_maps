@@ -1,8 +1,7 @@
-exp_max_algorithm <- function(niter, 
+exp_max_algorithm <- function(parms, 
                               orig_dataset, 
                               pxl_dataset,
                               pxl_dataset_full, 
-                              l_f,
                               my_predictors, 
                               grp_flds, 
                               RF_obj_path, 
@@ -18,10 +17,16 @@ exp_max_algorithm <- function(niter,
                               adm_dataset = NULL){
   
   
+  niter <- parms$EM_iter
+  l_f <- parms$pseudoAbs_value
+  no_trees <- parms$no_trees
+  min_node_size <- parms$min_node_size
+  
+  
   # ---------------------------------------------------------------------------
   
   
-  diagnostics <- c("RF_ms_i", "ss_i", "ss_j", "min_wgt", "max_wgt", "n_NA_pred")
+  diagnostics <- c("RF_ms_i", "ss_i", "ss_j", "min_wgt", "max_wgt", "n_NA_pred", "r_av_sqr", "r_adm")
   
   out_mat <- matrix(0, nrow = niter, ncol = length(diagnostics))
   
@@ -87,8 +92,8 @@ exp_max_algorithm <- function(niter,
     RF_obj <- fit_h2o_RF(dependent_variable = "u_i", 
                          predictors = my_predictors, 
                          training_dataset = training_dataset, 
-                         no_trees = 500, 
-                         min_node_size = 20, 
+                         no_trees = no_trees, 
+                         min_node_size = min_node_size, 
                          my_weights = "wgt_prime", 
                          model_nm = RF_obj_name)
     
@@ -186,7 +191,7 @@ exp_max_algorithm <- function(niter,
     
     # plot of observed admin values vs pop-wgt average predicted square values   
     
-    
+
     av_sqr_sp_nm <- paste0("pred_vs_obs_av_sqr_iter_", i, ".png")
     
     generic_scatter_plot(df = aa, 
@@ -195,6 +200,8 @@ exp_max_algorithm <- function(niter,
                          file_name = av_sqr_sp_nm, 
                          file_path = sct_plt_path)  
     
+    r_av_sqr <- wtd.cor(aa[, "o_j"], aa[, "mean_p_i"], weight = aa[, "new_weight"])[,"correlation"]
+      
     
     # plot of observed vs predicted admin values ------------------------------ 
     
@@ -207,6 +214,8 @@ exp_max_algorithm <- function(niter,
                          file_name = adm_sp_nm, 
                          file_path = sct_plt_path)  
     
+    r_adm <- wtd.cor(aa[, "o_j"], aa[, "adm_pred"], weight = aa[, "new_weight"])[,"correlation"]
+    
     
     # 8. calculate admin unit level sum of square ----------------------------- 
     
@@ -216,8 +225,8 @@ exp_max_algorithm <- function(niter,
     
     # --------------------------------------
     
-    
-    out_mat[i,] <- c(RF_ms_i, ss_i, ss_j, min_wgt, max_wgt, n_NA_pred)
+  
+    out_mat[i,] <- c(RF_ms_i, ss_i, ss_j, min_wgt, max_wgt, n_NA_pred, r_av_sqr, r_adm)
     
     pxl_dataset$p_i <- dd$p_i
     
@@ -235,14 +244,11 @@ exp_max_algorithm <- function(niter,
 }
 
 exp_max_algorithm_boot <- function(i, 
+                                   parms,
                                    boot_samples, 
                                    pxl_dataset_orig, 
-                                   psAbs, 
                                    my_preds, 
-                                   no_trees, 
-                                   min_node_size, 
                                    grp_flds, 
-                                   niter, 
                                    RF_obj_path, 
                                    RF_obj_name,
                                    diagn_tab_path, 
@@ -263,6 +269,8 @@ exp_max_algorithm_boot <- function(i,
   # ---------------------------------------- define variables
   
   
+  psAbs <- parms$pseudoAbs_value
+    
   pxl_dts_nm <- paste0("env_vars_and_foi_20km_", i, ".rds")
   
   
@@ -327,11 +335,10 @@ exp_max_algorithm_boot <- function(i,
   # ---------------------------------------- run the EM 
   
   
-  exp_max_algorithm(niter = niter, 
+  exp_max_algorithm(parms = parms, 
                     orig_dataset = foi_data_boot, 
                     pxl_dataset = pxl_dts_boot,
                     pxl_dataset_full = pxl_dataset_orig,
-                    l_f = psAbs,
                     my_predictors = my_preds, 
                     grp_flds = grp_flds, 
                     RF_obj_path = RF_obj_path,
