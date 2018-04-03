@@ -39,20 +39,31 @@ quick_raster_map <- function(pred_df, y_var, out_pt, out_name) {
   
   par(mar = c(0,0,0,0), oma = c(0,0,0,0))
   
-  ticks <- pretty(pred_df[, y_var], n = 5)
+  #ticks <- pretty(pred_df[, y_var], n = 5)
+  ticks <- seq(0, 0.015, 0.005)
   
-  image(lons, lats, mat, col = my_col, ylim = c(-60, 90), asp = 1)
+  image(lons, 
+        lats, 
+        mat, 
+        col = my_col, 
+        zlim = c(min(ticks), max(ticks)), 
+        ylim = c(-60, 90), 
+        asp = 1)
+  
   image.plot(lons,
              lats,
              mat,
-             legend.only = TRUE,
              col = my_col,
+             zlim = c(min(ticks), max(ticks)),
+             legend.only = TRUE,
              legend.width = 1,
              legend.shrink = 0.5,
              axis.args = list(at = ticks, 
                               labels = ticks),
              smallplot = c(0.04, 0.08, 0.04, 0.4))
+  
   par(mar = par("mar"))
+  
   dev.off()
 
 }
