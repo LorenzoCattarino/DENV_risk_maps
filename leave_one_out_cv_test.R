@@ -1,6 +1,6 @@
 
 library(rgdal)
-library(rgeos)
+library(rgeos) # for gDistance()
 library(ggplot2)
 library(h2o)
 
