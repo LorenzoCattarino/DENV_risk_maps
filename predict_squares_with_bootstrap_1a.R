@@ -38,13 +38,9 @@ predictions_all_gr_szs <- lapply(in_path, readRDS)
 
 N <- nrow(all_sqr_covariates)
 
-col_names <- as.character(seq.int(no_samples))
-  
 new_predictions <- matrix(0, nrow = N, ncol = no_samples)
   
-all_sqr_covariates_s <- all_sqr_covariates[order(all_sqr_covariates[, "distance"], decreasing = FALSE), ]
-
-all_distances <- all_sqr_covariates_s[, "distance"]
+all_distances <- all_sqr_covariates[, "distance"]
   
 bin_ids <- 1 + findInterval(all_distances, distance_bins)
              
@@ -60,10 +56,4 @@ for (i in seq_len(N)){
 
 }
 
-interim <- cbind(all_sqr_covariates_s, new_predictions)
-
-interim_s <- interim[order(interim[, "cell"], decreasing = FALSE), ]
-
-new_predictions_correct <- interim_s[, col_names]
-
-saveRDS(new_predictions_correct, file.path(out_path, out_name))
+saveRDS(new_predictions, file.path(out_path, out_name))
