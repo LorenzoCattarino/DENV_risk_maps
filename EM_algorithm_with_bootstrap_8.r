@@ -14,6 +14,7 @@ library(weights) # for wtd.cor()
 source(file.path("R", "plotting", "plot_RF_preds_vs_obs_by_cv_dataset.r"))
 source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
 source(file.path("R", "prepare_datasets", "calculate_sd.R"))
+source(file.path("R", "prepare_datasets", "calculate_wgt_corr.R"))
 source(file.path("R", "utility_functions.r"))
 
 
