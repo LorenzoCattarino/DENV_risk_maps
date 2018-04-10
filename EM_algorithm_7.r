@@ -6,8 +6,8 @@ CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.R"),
-  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
-  file.path("R", "random_forest", "Exp_Max_algorithm.R"),
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"),
+  file.path("R", "random_forest", "exp_max_algorithm.R"),
   file.path("R", "plotting", "quick_raster_map.r"),
   file.path("R", "plotting", "generic_scatter_plot.r"))  
 
@@ -19,19 +19,23 @@ ctx <- context::context_save(path = "context",
                              packages = my_pkgs)
 
 
-# ---------------------------------------- define parameters
+# define parameters ----------------------------------------------------------- 
 
 
-var_to_fit <- "R0_3"
+var_to_fit <- "FOI"
+
+
+# define variables ------------------------------------------------------------
+
 
 model_type <- paste0(var_to_fit, "_best_model")
 
 out_fl_nm <- "square_predictions_all_data.rds"
 
-out_pt <- file.path("output", "EM_algorithm", model_type)
+out_pt <- file.path("output", "EM_algorithm", "best_fit_models", model_type)
 
 
-# ---------------------------------------- rebuild the queue object?
+# rebuild the queue object? --------------------------------------------------- 
 
 
 if (CLUSTER) {
@@ -46,18 +50,20 @@ if (CLUSTER) {
 }
 
 
-# ---------------------------------------- get results
+# get results ----------------------------------------------------------------- 
 
+
+all_tasks <- obj$task_times()
 
 # loads the LAST task
-my_task_id <- obj$task_times()[nrow(obj$task_times()), "task_id"]
+my_task_id <- all_tasks[nrow(all_tasks), "task_id"]
 
 EM_alg_run_t <- obj$task_get(my_task_id)
 
 prediction_set <- EM_alg_run_t$result()
 
 
-# ---------------------------------------- save
+# save ------------------------------------------------------------------------
 
 
 write_out_rds(prediction_set, out_pt, out_fl_nm)

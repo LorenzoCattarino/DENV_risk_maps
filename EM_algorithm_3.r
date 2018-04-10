@@ -4,7 +4,8 @@ options(didehpc.cluster = "fi--didemrchnb")
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"))
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"),
+  file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
 
 my_pkgs <- "h2o"
 
@@ -14,12 +15,12 @@ ctx <- context::context_save(path = "context",
                              packages = my_pkgs)
 
 
-# ---------------------------------------- define parameters
+# define parameters ----------------------------------------------------------- 
 
 
-dependent_variable <- "R0_3"
+var_to_fit <- "FOI"
 
-pseudoAbsence_value <- 0.5
+pseudoAbsence_value <- -0.02
 
 no_trees <- 500
 
@@ -29,53 +30,55 @@ all_wgt <- 1
 
 wgt_limits <- c(1, 500)
 
-out_path <- file.path("output", "EM_algorithm", paste0("model_objects_", dependent_variable, "_fit"))
+number_of_predictors <- 9
+
+out_path <- file.path("output", 
+                      "EM_algorithm", 
+                      "best_fit_models", 
+                      paste0("model_objects_", var_to_fit, "_fit"))
 
 out_name <- "all_data.rds"   
 
 
-# ---------------------------------------- start up
+# start up -------------------------------------------------------------------- 
 
 
 context::context_load(ctx)
 
 
-# ---------------------------------------- load data
+# load data ------------------------------------------------------------------- 
 
 
 # load FOI dataset
-foi_data <- read.csv(
-  file.path("output", "foi", "All_FOI_estimates_linear_env_var_area.csv"),
-  stringsAsFactors = FALSE)
+foi_data <- read.csv(file.path("output", 
+                               "foi", 
+                               "All_FOI_estimates_linear_env_var_area.csv"),
+                     stringsAsFactors = FALSE)
 
 # predicting variable rank
-predictor_rank <- read.csv(
-  file.path("output", 
-            "variable_selection", 
-            "metropolis_hastings", 
-            "exp_1", 
-            "variable_rank_final_fits_exp_1.csv"),
-  stringsAsFactors = FALSE)
+predictor_rank <- read.csv(file.path("output", 
+                                     "variable_selection", 
+                                     "metropolis_hastings", 
+                                     "exp_1", 
+                                     "variable_rank_final_fits_exp_1.csv"),
+                           stringsAsFactors = FALSE)
 
 
-# ---------------------------------------- get the vector of best predictors
+# pre processing -------------------------------------------------------------- 
 
 
-my_predictors <- predictor_rank$variable[1:9]
-
-#my_predictors <- c(my_predictors, "RFE_const_term", "pop_den")
-
-
-# ---------------------------------------- pre process the original foi dataset
-
+my_predictors <- predictor_rank$name[1:number_of_predictors]
 
 # set pseudo absence value
-foi_data[foi_data$type == "pseudoAbsence", dependent_variable] <- pseudoAbsence_value
+foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- pseudoAbsence_value
 
 # assign weights
 foi_data$new_weight <- all_wgt
 pAbs_wgt <- get_area_scaled_wgts(foi_data, wgt_limits)
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
+
+# get training dataset (full dataset - no bootstrap)
+training_dataset <- foi_data[, c(var_to_fit, my_predictors, "new_weight")]
 
 
 ####
@@ -108,19 +111,12 @@ foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 # dev.off()
 
 
-# ---------------------------------------- create objects needed for run
-
-
-# get training dataset (full dataset - no bootstrap)
-training_dataset <- foi_data[, c(dependent_variable, my_predictors, "new_weight")]
-
-
-# ---------------------------------------- # run job
+# run job --------------------------------------------------------------------- 
 
 
 h2o.init()
 
-RF_obj <- fit_h2o_RF(dependent_variable = dependent_variable, 
+RF_obj <- fit_h2o_RF(dependent_variable = var_to_fit, 
                      predictors = my_predictors, 
                      training_dataset = training_dataset, 
                      no_trees = no_trees, 

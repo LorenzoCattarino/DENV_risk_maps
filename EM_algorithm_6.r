@@ -1,5 +1,6 @@
 # Creates and saves one plot for each of three diagnostics 
 # of the EM algorithm output:
+#
 # 1) pixel level sum of squares
 # 2) admin unit levele sum of square
 # 3) mean square error of the RF object
@@ -7,30 +8,41 @@
 library(ggplot2)
 
 
-# ---------------------------------------- define parameters
+# define parameters ----------------------------------------------------------- 
 
 
-var_to_fit <- "R0_3"
-
-model_type <- paste0(var_to_fit, "_best_model")
+var_to_fit <- "FOI"
 
 diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j")
 
-strip_labs <- c(
-  "internal RF mean square error", 
-  "pixel level sum of square", 
-  "admin unit level sum of square") 
+strip_labs <- c("internal RF mean square error", 
+                "pixel level sum of square", 
+                "admin unit level sum of square") 
+
+
+# define variables ------------------------------------------------------------
+
+
+model_type <- paste0(var_to_fit, "_best_model")
 
 strip_labs <- gsub('([[:punct:]])|\\s+','_', strip_labs)
 
-diag_t_pth <- file.path("output", "EM_algorithm", model_type, "diagnostics")
+diag_t_pth <- file.path("output", 
+                        "EM_algorithm", 
+                        "best_fit_models",
+                        model_type, 
+                        "diagnostics")
 
 fig_file_tag <- paste0(strip_labs, ".png")
   
-figure_out_path <- file.path("figures", "EM_algorithm", model_type, "diagnostics")
+figure_out_path <- file.path("figures", 
+                             "EM_algorithm", 
+                             "best_fit_models",
+                             model_type, 
+                             "diagnostics")
 
 
-# ---------------------------------------- get results 
+# get results -----------------------------------------------------------------  
 
 
 fi <- list.files(diag_t_pth, 
@@ -41,7 +53,7 @@ fi <- list.files(diag_t_pth,
 EM_alg_run <- lapply(fi, readRDS) 
 
 
-# ---------------------------------------- plot 
+# plot ------------------------------------------------------------------------  
 
 
 data_to_plot <- as.data.frame(EM_alg_run[[1]])

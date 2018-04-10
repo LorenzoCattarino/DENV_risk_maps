@@ -11,8 +11,7 @@ my_resources <- c(
   file.path("R", "utility_functions.r"),
   file.path("R", "prepare_datasets", "average_up.r"),
   file.path("R", "prepare_datasets", "remove_NA_rows.R"),
-  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
-  file.path("R", "random_forest", "load_predict_filter.r"))
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"))
 
 my_pkgs <- c("h2o", "dplyr", "data.table")
 
@@ -22,95 +21,91 @@ ctx <- context::context_save(path = "context",
                              packages = my_pkgs)
 
 
-# ---------------------------------------- define parameters 
+# define parameters -----------------------------------------------------------
 
 
-var_to_fit <- "R0_3"
+var_to_fit <- "FOI"
 
-pseudoAbsence_value <- 0.5
+pseudoAbsence_value <- -0.02
 
-model_type <- paste0(var_to_fit, "_best_model")
+number_of_predictors <- 9
 
 grp_flds <- c("ADM_0", "ADM_1", "data_id")
 
-RF_obj_nm <- paste0("RF_obj.rds")
+RF_obj_nm <- "RF_obj.rds"
 
-out_name <- paste0("all_scale_predictions.rds")
-
-RF_obj_path <- file.path(
-  "output",
-  "EM_algorithm",
-  model_type,
-  "optimized_model_objects")
-
-out_pt <- file.path(
-  "output",
-  "EM_algorithm",
-  model_type,
-  "predictions_data")
+out_name <- "all_scale_predictions.rds"
 
 
-# ---------------------------------------- are you using the cluster? 
+# define variables ------------------------------------------------------------
+
+
+model_type <- paste0(var_to_fit, "_best_model")
+
+RF_obj_path <- file.path("output",
+                         "EM_algorithm",
+                         "best_fit_models",
+                         model_type,
+                         "optimized_model_objects")
+
+out_pt <- file.path("output",
+                    "EM_algorithm",
+                    "best_fit_models",
+                    model_type,
+                    "predictions_data")
+
+
+# are you using the cluster? -------------------------------------------------- 
 
 
 context::context_load(ctx)
 
 
-# ---------------------------------------- load data 
+# load data ------------------------------------------------------------------- 
 
 
-foi_dataset <- read.csv(
-  file.path("output", "foi", "All_FOI_estimates_linear_env_var_area.csv"),
-  stringsAsFactors = FALSE) 
+foi_dataset <- read.csv(file.path("output", 
+                                  "foi", 
+                                  "All_FOI_estimates_linear_env_var_area.csv"),
+                        stringsAsFactors = FALSE) 
 
-sqr_dataset <- readRDS(
-  file.path("output",
-            "EM_algorithm",
-            "env_variables",
-            "env_vars_20km.rds"))
+sqr_dataset <- readRDS(file.path("output",
+                                 "EM_algorithm",
+                                 "best_fit_models",
+                                 "env_variables",
+                                 "env_vars_20km.rds"))
 
-adm_dataset <- read.csv(  
-  file.path("output",
-            "env_variables",
-            "All_adm1_env_var.csv"),
-  header = TRUE,
-  sep = ",", 
-  stringsAsFactors = FALSE)
+adm_dataset <- read.csv(file.path("output",
+                                  "env_variables",
+                                  "All_adm1_env_var.csv"),
+                        stringsAsFactors = FALSE)
 
-# predicting variable rank
-predictor_rank <- read.csv(
-  file.path("output", 
-            "variable_selection", 
-            "metropolis_hastings", 
-            "exp_1", 
-            "variable_rank_final_fits_exp_1.csv"),
-  stringsAsFactors = FALSE)
+predictor_rank <- read.csv(file.path("output", 
+                                     "variable_selection", 
+                                     "metropolis_hastings", 
+                                     "exp_1", 
+                                     "variable_rank_final_fits_exp_1.csv"),
+                           stringsAsFactors = FALSE)
 
-# tiles
-tile_summary <- read.csv(
-  file.path("data", 
-            "env_variables", 
-            "plus60minus60_tiles.csv"), 
-  header = TRUE, 
-  sep = ",", 
-  stringsAsFactors = FALSE)
+tile_summary <- read.csv(file.path("data", 
+                                   "env_variables", 
+                                   "plus60minus60_tiles.csv"), 
+                         stringsAsFactors = FALSE)
 
-# NA pixel tiles 
-NA_pixel_tiles <- read.table(
-  file.path("output", 
-            "datasets", 
-            "NA_pixel_tiles_20km.txt"), 
-  sep = ",", 
-  header = TRUE)
+NA_pixel_tiles <- read.table(file.path("output", 
+                                       "datasets", 
+                                       "NA_pixel_tiles_20km.txt"), 
+                             sep = ",", 
+                             header = TRUE)
 
-all_sqr_predictions <- readRDS(
-  file.path("output",
-            "EM_algorithm",
-            model_type,
-            "square_predictions_all_data.rds"))
+all_sqr_predictions <- readRDS(file.path("output",
+                                         "EM_algorithm",
+                                         "best_fit_models",
+                                         model_type,
+                                         "square_predictions_all_data.rds"))
 
 
-# -------------------------------------- process the original data  
+# pre processing --------------------------------------------------------------
 
 
 names(foi_dataset)[names(foi_dataset) == var_to_fit] <- "o_j"
@@ -119,15 +114,7 @@ names(foi_dataset)[names(foi_dataset) == "ID_1"] <- grp_flds[2]
 
 foi_dataset[foi_dataset$type == "pseudoAbsence", "o_j"] <- pseudoAbsence_value
 
-
-# ---------------------------------------- pre process admin predictions
-
-
 adm_dataset <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
-
-
-# ---------------------------------------- create some objects 
-
 
 tile_ids <- tile_summary$tile.id
 
@@ -135,9 +122,7 @@ NA_pixel_tile_ids <- NA_pixel_tiles$tile_id
 
 tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]  
 
-my_predictors <- predictor_rank$variable[1:9]
-
-#my_predictors <- c(my_predictors, "RFE_const_term")
+my_predictors <- predictor_rank$name[1:number_of_predictors]
 
 
 # ---------------------------------------- submit one job 
@@ -156,27 +141,16 @@ adm_dataset_2$admin <- make_h2o_predictions(RF_obj, adm_dataset_2, my_predictors
 
 h2o.shutdown(prompt = FALSE)
 
-fltr_adm <- inner_join(
-  adm_dataset_2, 
-  foi_dataset[, grp_flds])
-
-
-# -------------------------------------- process square predictions
-
+fltr_adm <- inner_join(adm_dataset_2, foi_dataset[, grp_flds])
 
 sqr_preds <- all_sqr_predictions
 
 sqr_dataset <- cbind(sqr_dataset[, c(grp_flds, "population")],
                      square = sqr_preds)
 
-average_sqr <- average_up(
-  pxl_df = sqr_dataset,
-  grp_flds = grp_flds,
-  var_names = "square")
-
-
-# -------------------------------------- process 1 km predictions
-
+average_sqr <- average_up(pxl_df = sqr_dataset,
+                          grp_flds = grp_flds,
+                          var_names = "square")
 
 # #[c(140, 141, 170, 171)]
 # 
@@ -199,10 +173,6 @@ average_sqr <- average_up(
 # 
 # names(average_pxl)[names(average_pxl) == "pred"] <- "mean_pxl_pred"
 
-
-# -------------------------------------- join admin, square and pixel level predictions
-
-
 df_lst <- list(foi_dataset[, c(grp_flds, "type", "o_j")],
                fltr_adm[, c(grp_flds, "admin")],
                average_sqr[, c(grp_flds, "square")])#,
@@ -210,9 +180,4 @@ df_lst <- list(foi_dataset[, c(grp_flds, "type", "o_j")],
 
 join_all <- Reduce(function(...) left_join(...), df_lst)
 
-
-# -------------------------------------- save 
-
-
 write_out_rds(join_all, out_pt, out_name)
-

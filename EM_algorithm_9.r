@@ -8,17 +8,21 @@
 library(reshape2)
 library(ggplot2)
 library(plyr)
+library(weights) # for wtd.cor()
 
 source(file.path("R", "plotting", "plot_RF_preds_vs_obs_by_cv_dataset.r"))
-source(file.path("R", "utility_functions.r"))
+source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
+source(file.path("R", "prepare_datasets", "calculate_wgt_corr.R"))
+source(file.path("R", "utility_functions.R"))
+
+# define parameters -----------------------------------------------------------  
 
 
-# ---------------------------------------- define parameters 
+var_to_fit <- "FOI"
 
+all_wgt <- 1
 
-var_to_fit <- "R0_3"
-
-model_type <- paste0(var_to_fit, "_best_model")
+wgt_limits <- c(1, 500)
 
 mes_vars <- c("admin", "square")
 
@@ -28,37 +32,40 @@ data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
                        c("serology", "caseReport"))
 
 
-# ---------------------------------------- define variables
+# define variables ------------------------------------------------------------
 
 
-in_path <- file.path(
-  "output",
-  "EM_algorithm",
-  model_type,
-  "predictions_data") 
+model_type <- paste0(var_to_fit, "_best_model")
 
-out_fig_path_av <- file.path(
-  "figures",
-  "EM_algorithm",
-  model_type,
-  "scatter_plots")
+in_path <- file.path("output",
+                     "EM_algorithm",
+                     "best_fit_models",
+                     model_type,
+                     "predictions_data") 
 
-out_table_path <- file.path(
-  "output",
-  "EM_algorithm",
-  model_type,
-  "scatter_plots")
+out_fig_path_av <- file.path("figures",
+                             "EM_algorithm",
+                             "best_fit_models",
+                             model_type,
+                             "scatter_plots")
 
-
-# ---------------------------------------- load data 
-
-
-foi_dataset <- read.csv(
-  file.path("output", "foi", "All_FOI_estimates_linear_env_var_area.csv"),
-  stringsAsFactors = FALSE) 
+out_table_path <- file.path("output",
+                            "EM_algorithm",
+                            "best_fit_models",
+                            model_type,
+                            "scatter_plots")
 
 
-# ---------------------------------------- create some objects
+# load data ------------------------------------------------------------------- 
+
+
+foi_dataset <- read.csv(file.path("output", 
+                                  "foi", 
+                                  "All_FOI_estimates_linear_env_var_area.csv"),
+                        stringsAsFactors = FALSE) 
+
+
+# pre processing --------------------------------------------------------------
 
 
 no_datapoints <- nrow(foi_dataset)
@@ -67,8 +74,14 @@ no_pseudoAbs <- sum(foi_dataset$type == "pseudoAbsence")
 
 no_pnts_vec <- c(no_datapoints, no_datapoints - no_pseudoAbs) 
 
+foi_dataset$new_weight <- all_wgt
 
-# ---------------------------------------- first loop 
+pAbs_wgt <- get_area_scaled_wgts(foi_dataset, wgt_limits)
+
+foi_dataset[foi_dataset$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
+
+
+# start -----------------------------------------------------------------------
 
 
 for (j in seq_along(tags)) {
@@ -93,11 +106,13 @@ for (j in seq_along(tags)) {
     measure.vars = mes_vars,
     variable.name = "scale")
   
+  ret <- dplyr::left_join(all_av_preds_mlt, foi_dataset[, c("data_id", "new_weight")])
+  
   fl_nm_av <- paste0("pred_vs_obs_plot_averages_", tag, ".png")
   
   #browser()
   
-  df <- all_av_preds_mlt
+  df <- ret
   x <- "o_j"
   y <- "value"
   facet_var <- "scale" 
@@ -109,7 +124,7 @@ for (j in seq_along(tags)) {
   min_y_value <- min(y_values)
   max_y_value <- max(y_values)
   
-  corr_coeff <- ddply(df, "scale", function(d.sub) round(cor(d.sub[,x], d.sub[,y]), 3))
+  corr_coeff <- ddply(df, "scale", calculate_wgt_cor)
   
   facet_plot_names_x <- as_labeller(c(admin = "Level 1 administrative unit",
                                       square = "20 km pixel"))
@@ -137,7 +152,7 @@ for (j in seq_along(tags)) {
   
   p2 <- p +
     geom_text(data = corr_coeff, 
-              aes(x = x_values[length(x_values)-1], y = min_y_value, hjust = 1, label = paste0("italic(r) == ", V1)),
+              aes(x = x_values[length(x_values)-1], y = min_y_value, hjust = 1, label = paste0("italic(r) == ", correlation)),
               parse = TRUE,
               inherit.aes = FALSE,
               size = 5) +

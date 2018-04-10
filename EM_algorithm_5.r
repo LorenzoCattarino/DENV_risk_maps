@@ -6,12 +6,13 @@ CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.R"),
-  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
-  file.path("R", "random_forest", "Exp_Max_algorithm.R"),
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"),
+  file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
+  file.path("R", "random_forest", "exp_max_algorithm.R"),
   file.path("R", "plotting", "quick_raster_map.r"),
   file.path("R", "plotting", "generic_scatter_plot.r"))  
 
-my_pkgs <- c("h2o", "dplyr", "fields", "ggplot2")
+my_pkgs <- c("h2o", "dplyr", "fields", "ggplot2", "weights", "colorRamps")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -19,7 +20,7 @@ ctx <- context::context_save(path = "context",
                              packages = my_pkgs)
 
 
-# ---------------------------------------- are you using the cluster? 
+# are you using the cluster? --------------------------------------------------  
 
 
 if (CLUSTER) {
@@ -34,24 +35,21 @@ if (CLUSTER) {
 }
 
 
-# ---------------------------------------- define parameters
+# define parameters ----------------------------------------------------------- 
 
 
-var_to_fit <- "R0_3"
+parameters <- list(
+  resample_grid_size = 20,
+  no_trees = 500,
+  min_node_size = 20,
+  pseudoAbs_value = -0.02,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
+  no_samples = 200,
+  EM_iter = 10,
+  no_predictors = 9)   
 
-pseudoAbsence_value <- 0.5
-
-model_type <- paste0(var_to_fit, "_best_model")
-
-niter <- 10
-
-no_trees <- 500
-
-min_node_size <- 20
-
-all_wgt <- 1
-
-wgt_limits <- c(1, 500)
+var_to_fit <- "FOI"
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
@@ -63,75 +61,84 @@ diag_t_nm <- "diagno_table.rds"
 
 map_nm <- "map"
 
-
-# ========================================
-# 
-# output paths - IMPORTANT!
-# 
-# ========================================
+tra_dts_nm <- "train_dts.rds"
 
 
-RF_out_pth <- file.path(
-  "output", 
-  "EM_algorithm", 
-  model_type,
-  "optimized_model_objects")
-
-diag_t_pth <- file.path(
-  "output", 
-  "EM_algorithm", 
-  model_type,
-  "diagnostics")
-
-map_pth <- file.path(
-  "figures", 
-  "EM_algorithm", 
-  model_type,
-  "maps")
-
-sct_plt_pth <- file.path(
-  "figures", 
-  "EM_algorithm", 
-  model_type,
-  "iteration_fits")
+# define variables ------------------------------------------------------------
 
 
-# ---------------------------------------- load data
+number_of_predictors <- parameters$no_predictors
+
+pseudoAbsence_value <- parameters$pseudoAbs_value
+
+all_wgt <- parameters$all_wgt
+  
+wgt_limits <- parameters$wgt_limits
+
+model_type <- paste0(var_to_fit, "_best_model")
+
+RF_out_pth <- file.path("output", 
+                        "EM_algorithm", 
+                        "best_fit_models",
+                        model_type,
+                        "optimized_model_objects")
+
+diag_t_pth <- file.path("output", 
+                        "EM_algorithm", 
+                        "best_fit_models",
+                        model_type,
+                        "diagnostics")
+
+train_dts_pth <- file.path("output",
+                           "EM_algorithm",
+                           "best_fit_models",
+                           model_type,
+                           "training_datasets")
+
+map_pth <- file.path("figures", 
+                     "EM_algorithm", 
+                     "best_fit_models",
+                     model_type,
+                     "maps")
+
+sct_plt_pth <- file.path("figures", 
+                         "EM_algorithm", 
+                         "best_fit_models",
+                         model_type,
+                         "iteration_fits")
 
 
-foi_data <- read.csv(
-  file.path("output", "foi", "All_FOI_estimates_linear_env_var_area.csv"),
-  stringsAsFactors = FALSE) 
-
-pxl_dataset <- readRDS(
-  file.path("output", "EM_algorithm", paste0("env_variables_", var_to_fit, "_fit"), pxl_dts_name))
-
-predictor_rank <- read.csv(
-  file.path("output", 
-            "variable_selection", 
-            "metropolis_hastings", 
-            "exp_1", 
-            "variable_rank_final_fits_exp_1.csv"),
-  stringsAsFactors = FALSE)
-
-adm_dataset <- read.csv(  
-  file.path("output",
-            "env_variables",
-            "All_adm1_env_var.csv"),
-  header = TRUE,
-  stringsAsFactors = FALSE)
+# load data ------------------------------------------------------------------- 
 
 
-# ---------------------------------------- get the vector of best predictors
+foi_data <- read.csv(file.path("output", 
+                               "foi", 
+                               "All_FOI_estimates_linear_env_var_area.csv"),
+                     stringsAsFactors = FALSE) 
+
+pxl_dataset <- readRDS(file.path("output", 
+                                 "EM_algorithm", 
+                                 "best_fit_models",
+                                 paste0("env_variables_", var_to_fit, "_fit"), 
+                                 pxl_dts_name))
+
+predictor_rank <- read.csv(file.path("output", 
+                                     "variable_selection", 
+                                     "metropolis_hastings", 
+                                     "exp_1", 
+                                     "variable_rank_final_fits_exp_1.csv"),
+                           stringsAsFactors = FALSE)
+
+adm_dataset <- read.csv(file.path("output",
+                                  "env_variables",
+                                  "All_adm1_env_var.csv"),
+                        stringsAsFactors = FALSE)
 
 
-my_predictors <- predictor_rank$variable[1:9]
-
-#my_predictors <- c(my_predictors, "RFE_const_term", "pop_den")
+# pre processing --------------------------------------------------------------
 
 
-# ---------------------------------------- pre process the original foi data set
-
+my_predictors <- predictor_rank$name[1:number_of_predictors]
 
 names(foi_data)[names(foi_data) == var_to_fit] <- "o_j"
 
@@ -141,15 +148,7 @@ foi_data$new_weight <- all_wgt
 pAbs_wgt <- get_area_scaled_wgts(foi_data, wgt_limits)
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
-
-# ---------------------------------------- pre process the admin data set
-
-
 adm_dataset <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
-
-
-# ---------------------------------------- pre process the square data set
-
 
 names(pxl_dataset)[names(pxl_dataset) == "ADM_0"] <- grp_flds[1]
 names(pxl_dataset)[names(pxl_dataset) == "ADM_1"] <- grp_flds[2]
@@ -162,25 +161,20 @@ pxl_dataset <- left_join(pxl_dataset, aa)
 
 pxl_dataset$pop_weight <- pxl_dataset$population / pxl_dataset$pop_sqr_sum
 
-
-# ---------------------------------------- attach original data and weigths to square dataset
-
-
 pxl_dataset <- inner_join(pxl_dataset, foi_data[, c(grp_flds, "o_j", "new_weight")])
 
 
-# ---------------------------------------- submit job
+# submit job ------------------------------------------------------------------ 
 
 
 if (CLUSTER) {
   
   EM_alg_run <- obj$enqueue(
     exp_max_algorithm(
-      niter = niter, 
+      parms = parameters,
       orig_dataset = foi_data,
       pxl_dataset = pxl_dataset,
       pxl_dataset_full = pxl_dataset,
-      l_f = pseudoAbsence_value,
       my_predictors = my_predictors, 
       grp_flds = grp_flds,
       RF_obj_path = RF_out_pth,
@@ -191,16 +185,17 @@ if (CLUSTER) {
       map_name = map_nm,
       sct_plt_path = sct_plt_pth,
       var_to_fit = var_to_fit,
+      train_dts_path = train_dts_pth, 
+      train_dts_name = tra_dts_nm,
       adm_dataset = adm_dataset))
   
 } else {
   
   EM_alg_run <- exp_max_algorithm(
-    niter = niter, 
+    parms = parameters,
     orig_dataset = foi_data,
     pxl_dataset = pxl_dataset, 
     pxl_dataset_full = pxl_dataset,
-    l_f = pseudoAbsence_value,
     my_predictors = my_predictors, 
     grp_flds = grp_flds,
     RF_obj_path = RF_out_pth,
@@ -211,6 +206,8 @@ if (CLUSTER) {
     map_name = map_nm,
     sct_plt_path = sct_plt_pth,
     var_to_fit = var_to_fit,
+    train_dts_path = train_dts_pth, 
+    train_dts_name = tra_dts_nm,
     adm_dataset = adm_dataset)
 
 }
