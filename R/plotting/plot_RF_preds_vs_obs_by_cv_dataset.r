@@ -2,10 +2,6 @@ RF_preds_vs_obs_plot_stratif <- function(df, x, y, facet_var, file_name, file_pa
   
   #browser()
   
-  calculate_wgt_cor <- function(d.sub){
-    round(wtd.cor(d.sub[,x], d.sub[,y], weight = d.sub[,"new_weight"]), 3)
-  }
-  
   x_values <- pretty(df[, x], n = 5)
   y_values <- pretty(df[, y], n = 5)
   min_x_value <- min(x_values)
