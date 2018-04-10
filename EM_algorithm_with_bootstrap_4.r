@@ -11,7 +11,7 @@ my_resources <- c(
   file.path("R", "plotting", "quick_raster_map.r"),
   file.path("R", "plotting", "generic_scatter_plot.r"))
 
-my_pkgs <- c("h2o", "dplyr", "fields", "ggplot2", "weights")
+my_pkgs <- c("h2o", "dplyr", "fields", "ggplot2", "weights", "colorRamps")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
