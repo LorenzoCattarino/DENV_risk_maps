@@ -115,7 +115,7 @@ exp_max_algorithm <- function(parms,
     
     mp_nm <- sprintf("%s_iter_%s%s", map_name, i, ".png")
     
-    quick_raster_map(dd, map_path, mp_nm) 
+    quick_raster_map(dd, "p_i", map_path, mp_nm) 
     
     
     # create a copy for obs vs preds plot and SS calculation ------------------   
