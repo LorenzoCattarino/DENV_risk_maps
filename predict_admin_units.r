@@ -1,13 +1,13 @@
-# Makes foi predictions for all the squares in the world.
+# Makes predictions for all the level 1 admin units in the world.
 
 options(didehpc.cluster = "fi--didemrchnb")
 
 my_resources <- c(
   file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"),
-  file.path("R", "plotting", "functions_for_plotting_square_level_maps.r"))
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "prepare_datasets", "average_up.R"))
 
-my_pkgs <- "h2o"
+my_pkgs <- c("h2o", "dplyr")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -15,63 +15,75 @@ ctx <- context::context_save(path = "context",
                              sources = my_resources)
 
 
-# ---------------------------------------- define parameters
+# define parameters ----------------------------------------------------------- 
 
 
 var_to_fit <- "FOI"
 
-fit_type <- "best"
-
 adm_level <- 2
 
-model_tp <- paste0(var_to_fit, "_", fit_type, "_model")
+grp_fields <- c("ADM_0", "ADM_1", "ADM_2")
+
+number_of_predictors <- 9
 
 RF_mod_name <- "RF_obj.rds"
 
 base_info <- c("OBJECTID", "latitude", "longitude", "population", "ID_0", "ID_1")
 
-out_pt <- file.path("output", "predictions_world", model_tp)
 
-out_fl_nm <- paste0("FOI", "_", fit_type, "_adm", adm_level, ".rds")
+# define variables ------------------------------------------------------------
 
 
-# ---------------------------------------- are you using the cluster? 
+model_tp <- paste0(var_to_fit, "_best_model")
+
+out_pt <- file.path("output", 
+                    "predictions_world", 
+                    "best_fit_models",
+                    model_tp)
+
+out_fl_nm <- paste0("response_adm", adm_level, ".rds")
+
+
+# are you using the cluster? --------------------------------------------------  
 
 
 context::context_load(ctx)
 
 
-# ---------------------------------------- load data
+# load data ------------------------------------------------------------------- 
 
 
-prediction_datasets <- read.csv(
-  file.path("output", 
-            "env_variables", 
-            paste0("All_adm", adm_level, "_env_var.csv")))
+prediction_datasets <- read.csv(file.path("output", 
+                                          "env_variables", 
+                                          paste0("All_adm", adm_level, "_env_var.csv")))
 
-RF_obj_path <- file.path(
-  "output",
-  "EM_algorithm",
-  model_tp,
-  "optimized_model_objects")
+RF_obj_path <- file.path("output",
+                         "EM_algorithm",
+                         "best_fit_models",
+                         model_tp,
+                         "optimized_model_objects")
 
-# predicting variable rank
-predictor_rank <- read.csv(
-  file.path("output", 
-            "variable_selection", 
-            "metropolis_hastings", 
-            "exp_1", 
-            "variable_rank_final_fits_exp_1.csv"),
-  stringsAsFactors = FALSE)
+predictor_rank <- read.csv(file.path("output", 
+                                     "variable_selection", 
+                                     "metropolis_hastings", 
+                                     "exp_1", 
+                                     "variable_rank_final_fits_exp_1.csv"),
+                           stringsAsFactors = FALSE)
+
+square_predictions <- readRDS(file.path("output",
+                                        "predictions_world",
+                                        "best_fit_models",
+                                        model_tp,
+                                        "response.rds"))
+  
+  
+# get best predictor ---------------------------------------------------------- 
 
 
-# ---------------------------------------- get best predictor
+my_predictors <- predictor_rank$name[1:number_of_predictors]
 
 
-my_predictors <- predictor_rank$variable[1:9]
-
-
-# ---------------------------------------- submit one job 
+# submit one job -------------------------------------------------------------- 
 
 
 h2o.init()
@@ -86,4 +98,8 @@ p_i[p_i < 0] <- 0
 
 world_sqr_preds <- cbind(prediction_datasets[, base_info], best = p_i)
 
-write_out_rds(world_sqr_preds, out_pt, out_fl_nm)  
+#write_out_rds(world_sqr_preds, out_pt, out_fl_nm)  
+
+average_sqr <- average_up(pxl_df = square_predictions,
+                          grp_flds = grp_fields,
+                          var_names = "best")
