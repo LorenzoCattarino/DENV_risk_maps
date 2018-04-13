@@ -22,13 +22,17 @@ var_to_fit <- "FOI"
 
 adm_level <- 2
 
+#grp_fields <- c("ADM_0", "ADM_1")
 grp_fields <- c("ADM_0", "ADM_1", "ADM_2")
 
+#old_grp_fields <- c("ID_0", "ID_1")
+old_grp_fields <- c("ID_0", "ID_1", "ID_2")
+  
 number_of_predictors <- 9
 
 RF_mod_name <- "RF_obj.rds"
 
-base_info <- c("OBJECTID", "latitude", "longitude", "population", "ID_0", "ID_1")
+base_info <- c("OBJECTID", "latitude", "longitude", "population", old_grp_fields)
 
 
 # define variables ------------------------------------------------------------
@@ -96,10 +100,17 @@ h2o.shutdown(prompt = FALSE)
 
 p_i[p_i < 0] <- 0
 
-world_sqr_preds <- cbind(prediction_datasets[, base_info], best = p_i)
+world_adm_preds <- cbind(prediction_datasets[, base_info], adm = p_i)
 
-#write_out_rds(world_sqr_preds, out_pt, out_fl_nm)  
+world_adm_preds <- world_adm_preds %>% 
+  rename_at(vars(old_grp_fields), ~ grp_fields)
 
 average_sqr <- average_up(pxl_df = square_predictions,
                           grp_flds = grp_fields,
                           var_names = "best")
+
+names(average_sqr)[names(average_sqr) == "best"] <- "aver_sqr"
+
+res <- left_join(world_adm_preds, average_sqr[,-which(names(average_sqr) == "population")])
+
+write_out_rds(res, out_pt, out_fl_nm) 
