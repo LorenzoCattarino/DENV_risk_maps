@@ -1,4 +1,6 @@
 
+library(BAMMtools) # for getJenksBreaks()
+
 
 # define parameters -----------------------------------------------------------
 
@@ -7,8 +9,10 @@ no_samples <- 200
 
 grid_sizes <- c(0.5, 1, 2, 5, 10)
 
-distance_bins <- c(200, 500, 1000, 1500)
-  
+# distance_bins <- c(200, 500, 1000, 1500)
+
+# quant_probs <- c(0.2, 0.4, 0.6, 0.8)
+
 in_path <- file.path("output",
                      "predictions_world",
                      "bootstrap_models",
@@ -42,6 +46,11 @@ new_predictions <- matrix(0, nrow = N, ncol = no_samples)
   
 all_distances <- all_sqr_covariates[, "distance"]
   
+# distance_bins <- unname(quantile(all_distances, probs = quant_probs))
+
+distance_bins <- getJenksBreaks(all_distances, length(grid_sizes) + 1)
+distance_bins <- distance_bins[c(2,3,4,5)]
+
 bin_ids <- 1 + findInterval(all_distances, distance_bins)
              
              
