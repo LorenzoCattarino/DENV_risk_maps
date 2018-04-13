@@ -10,7 +10,7 @@ source(file.path("R", "utility_functions.r"))
 source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.r"))
 
 
-# ---------------------------------------- define parameters
+# define parameters ----------------------------------------------------------- 
 
 
 model_tp <- "boot_model_20km_2"
@@ -31,7 +31,7 @@ var_names <- c("infections", "cases")
 no_scenarios <- 9
 
 
-# ---------------------------------------- load data 
+# load data ------------------------------------------------------------------- 
 
 
 fct_c_2 <- read.csv(
@@ -49,13 +49,13 @@ age_struct <- read.csv(
   header = TRUE) 
 
 
-# ---------------------------------------- pre processing
+# pre processing -------------------------------------------------------------- 
 
 
 names(age_struct)[names(age_struct) == "ID_0"] <- "ADM_0" 
 
 
-# ---------------------------------------- aggreaggating
+# aggreaggating --------------------------------------------------------------- 
 
 
 for (j in seq_along(vars)){
@@ -101,7 +101,7 @@ for (j in seq_along(vars)){
 }
 
 
-# ---------------------------------------- plotting
+# plotting -------------------------------------------------------------------- 
 
 
 summary_table <- fct_c_2

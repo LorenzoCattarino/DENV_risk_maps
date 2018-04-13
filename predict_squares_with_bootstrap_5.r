@@ -17,31 +17,47 @@ ctx <- context::context_save(path = "context",
                              sources = my_resources)
 
 
-# ---------------------------------------- define parameters
+# define parameters ----------------------------------------------------------- 
 
 
-model_tp <- "boot_model_20km_4"
+parameters <- list(
+  grid_size = 2,
+  resample_grid_size = 20,
+  no_trees = 500,
+  min_node_size = 20,
+  pseudoAbs_value = -0.02,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
+  no_samples = 200,
+  EM_iter = 10,
+  no_predictors = 9)   
 
-#vars <- c("FOI", "FOI_r")
-#vars <- c("FOI", "R0_r") 
-vars <- c("I_inc", "C_inc")
+var_to_fit <- "FOI"
 
-scenario_ids <- 2
-
-no_fits <- 200
-
-col_names <- as.character(seq_len(no_fits))
+vars_to_average <- "response"
 
 base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2")
 
-in_path <- file.path("output", "predictions_world", model_tp)
 
-out_path <- file.path("output", "predictions_world", model_tp)
-
-dts_tag <- "all_squares"
+# define variables ------------------------------------------------------------
 
 
-# ---------------------------------------- are you using the cluster ?
+no_samples <- parameters$no_samples
+
+model_type <- paste0(var_to_fit, "_boot_model")
+
+my_dir <- paste0("grid_size_", parameters$grid_size)
+
+col_names <- as.character(seq_len(no_samples))
+
+in_path <- file.path("output", 
+                     "predictions_world", 
+                     "bootstrap_models")#,
+                     # my_dir,
+                     # model_type)
+
+
+# are you using the cluster? -------------------------------------------------- 
 
 
 if (CLUSTER) {
@@ -52,66 +68,59 @@ if (CLUSTER) {
 } else{
   
   context::context_load(ctx)
-  context::parallel_cluster_start(6, ctx)
+  context::parallel_cluster_start(7, ctx)
   
 }
 
 
-# ---------------------------------------- load data
+# load data ------------------------------------------------------------------- 
 
 
-all_sqr_covariates <- readRDS(
-  file.path(
-    "output", 
-    "env_variables", 
-    "all_squares_env_var_0_1667_deg.rds"))
+all_sqr_covariates <- readRDS(file.path("output", 
+                                        "env_variables", 
+                                        "all_squares_env_var_0_1667_deg.rds"))
 
 
-# ---------------------------------------- run one job
+# run one job -----------------------------------------------------------------
 
 
 # t <- obj$enqueue(
 #   average_foi_and_burden_predictions(
-#     seq_along(vars)[2],
-#     vars = vars,
+#     seq_along(vars_to_average)[1],
+#     vars = vars_to_average,
 #     in_path = in_path,
-#     out_path = out_path,
-#     scenario_ids = scenario_ids,
+#     out_path = in_path,
 #     col_names = col_names,
 #     base_info = base_info,
-#     dts_tag = dts_tag))
+#     covariate_dts = all_sqr_covariates))
   
   
-# ---------------------------------------- run
+# run -------------------------------------------------------------------------
 
 
 if (CLUSTER) {
 
   means_all_scenarios <- queuer::qlapply(
-    seq_along(vars),
+    seq_along(vars_to_average),
     average_foi_and_burden_predictions,
     obj,
-    vars = vars,
+    vars = vars_to_average,
     in_path = in_path,
-    out_path = out_path,
-    scenario_ids = scenario_ids,
+    out_path = in_path,
     col_names = col_names,
     base_info = base_info,
-    dts_tag = dts_tag,
     covariate_dts = all_sqr_covariates)
 
 } else {
 
   means_all_scenarios <- loop(
-    seq_along(vars)[2],
+    seq_along(vars_to_average),
     average_foi_and_burden_predictions,
-    vars = vars,
+    vars = vars_to_average,
     in_path = in_path,
-    out_path = out_path,
-    scenario_ids = scenario_ids,
+    out_path = in_path,
     col_names = col_names,
     base_info = base_info,
-    dts_tag = dts_tag,
     covariate_dts = all_sqr_covariates,
     parallel = FALSE)
 

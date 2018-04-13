@@ -97,12 +97,10 @@ names(age_struct)[names(age_struct) == "ID_0"] <- "ADM_0"
 
 all_sqr_foi <- cbind(all_sqr_covariates[, base_info], all_sqr_foi)
 
-
-# keep onle the FOI for which there is age data available
-all_sqr_foi <- inner_join(
-  age_struct[, c("age_id", "ADM_0")],
-  all_sqr_foi, 
-  by = "ADM_0")
+# keep only the predictions for which there is age data available
+all_sqr_foi <- inner_join(age_struct[, c("age_id", "ADM_0")],
+                          all_sqr_foi, 
+                          by = "ADM_0")
 
 
 # create table of scenarios --------------------------------------------------- 

@@ -20,7 +20,6 @@ parameters <- list(
 
 var_to_fit <- "FOI"
 
-
 model_tp <- "R0_1_boot_model" 
 
 scenario_id <- 1

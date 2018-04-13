@@ -6,8 +6,8 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.r"))
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "utility_functions.R"))
 
 my_pkgs <- "h2o"
 
@@ -17,20 +17,41 @@ ctx <- context::context_save(path = "context",
                              sources = my_resources)
 
 
-# ---------------------------------------- define parameters
+# define parameters ----------------------------------------------------------- 
 
 
-model_tp <- "boot_model_20km_2"
+parameters <- list(
+  grid_size = 2,
+  resample_grid_size = 20,
+  no_trees = 500,
+  min_node_size = 20,
+  pseudoAbs_value = -0.02,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
+  no_samples = 200,
+  EM_iter = 10,
+  no_predictors = 9)   
 
-out_fl_nm <- "FOI_all_squares.rds"
+var_to_fit <- "FOI"
 
-out_pt <- file.path(
-  "output", 
-  "predictions_world",
-  model_tp)
+out_fl_nm <- "response.rds"
 
 
-# ---------------------------------------- rebuild the queue object?
+# define variables ------------------------------------------------------------
+
+
+model_type <- paste0(var_to_fit, "_boot_model")
+
+my_dir <- paste0("grid_size_", parameters$grid_size)
+
+out_pt <- file.path("output", 
+                    "predictions_world", 
+                    "bootstrap_models",
+                    my_dir,
+                    model_type)
+
+
+# rebuild the queue object? --------------------------------------------------- 
 
 
 if (CLUSTER) {
@@ -45,20 +66,20 @@ if (CLUSTER) {
 }
 
 
-# ---------------------------------------- get results
+# get results ----------------------------------------------------------------- 
 
 
 # loads the LAST task bundle
 my_task_id <- obj$task_bundle_info()[nrow(obj$task_bundle_info()), "name"] 
 
-world_sqr_preds_all_fits_t <- obj$task_bundle_get(my_task_id)
+sqr_preds_boot_t <- obj$task_bundle_get(my_task_id)
 
-world_sqr_preds_all_fits <- world_sqr_preds_all_fits_t$results()
-
-
-# ---------------------------------------- combine all results together
+sqr_preds_boot <- sqr_preds_boot_t$results()
 
 
-world_sqr_preds <- do.call("cbind", world_sqr_preds_all_fits)
+# combine all results together ------------------------------------------------ 
 
-write_out_rds(world_sqr_preds, out_pt, out_fl_nm)  
+
+sqr_preds <- do.call("cbind", sqr_preds_boot)
+
+write_out_rds(sqr_preds, out_pt, out_fl_nm)  
