@@ -1,6 +1,6 @@
 quick_raster_map <- function(pred_df, y_var, out_pt, out_name) {
   
-  #browser()
+  # browser()
   
   gr_size <- 20
   
@@ -9,7 +9,7 @@ quick_raster_map <- function(pred_df, y_var, out_pt, out_name) {
   lats <- seq(-90, 90, by = res)
   lons <- seq(-180, 180, by = res)
   
-  my_col <- colorRamps::matlab.like(100)
+  my_col <- matlab.like(100)
   
   
   # ---------------------------------------- load data 
@@ -39,8 +39,9 @@ quick_raster_map <- function(pred_df, y_var, out_pt, out_name) {
   
   par(mar = c(0,0,0,0), oma = c(0,0,0,0))
   
-  #ticks <- pretty(pred_df[, y_var], n = 5)
-  ticks <- seq(0, 0.015, 0.005)
+  ticks <- pretty(pred_df[, y_var], n = 5)
+  # ticks <- seq(0, 0.015, 0.005)
+  # ticks <- seq(0, 0.06, 0.01)
   
   image(lons, 
         lats, 
