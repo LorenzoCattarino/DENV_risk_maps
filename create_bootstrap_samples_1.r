@@ -3,10 +3,10 @@
 options(didehpc.cluster = "fi--didemrchnb")
 
 my_resources <- c(
-  file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samples.r"),
+  file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samples.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "prepare_datasets", "grid_up.R"),
-  file.path("R", "utility_functions.r"))
+  file.path("R", "utility_functions.R"))
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -20,16 +20,10 @@ context::parallel_cluster_start(8, ctx)
 
 
 parameters <- list(
-  grid_size = 1,
-  resample_grid_size = 20,
-  no_trees = 500,
-  min_node_size = 20,
-  pseudoAbs_value = -0.02,
+  grid_size = 0.5,
   all_wgt = 1,
   wgt_limits = c(1, 500),
-  no_samples = 200,
-  EM_iter = 10,
-  no_predictors = 9)   
+  no_samples = 200)   
 
 out_fl_nm <- "bootstrap_samples.rds"
 
@@ -37,7 +31,9 @@ out_fl_nm <- "bootstrap_samples.rds"
 # define variables ------------------------------------------------------------
 
 
-my_dir <- paste0("grid_size_", parameters$grid_size)
+grid_size <- parameters$grid_size
+
+my_dir <- paste0("grid_size_", grid_size)
 
 out_pt <- file.path("output", "EM_algorithm", "bootstrap_models", my_dir)
 

@@ -3,20 +3,14 @@
 # the first instance in the bootstrap sample will have id = 1,
 # the second instance will have id = 2.
 
-source(file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samples.r"))
-source(file.path("R", "utility_functions.r"))
+source(file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samples.R"))
+source(file.path("R", "utility_functions.R"))
 
 parameters <- list(
-  grid_size = 1,
-  resample_grid_size = 20,
-  no_trees = 500,
-  min_node_size = 20,
-  pseudoAbs_value = -0.02,
+  grid_size = 0.5,
   all_wgt = 1,
   wgt_limits = c(1, 500),
-  no_samples = 200,
-  EM_iter = 10,
-  no_predictors = 9)   
+  no_samples = 200)   
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
