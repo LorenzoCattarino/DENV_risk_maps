@@ -1,6 +1,6 @@
 RF_preds_vs_obs_plot_stratif <- function(df, x, y, facet_var, file_name, file_path) {
   
-  #browser()
+  # browser()
   
   x_values <- pretty(df[, x], n = 5)
   y_values <- pretty(df[, y], n = 5)
@@ -11,7 +11,7 @@ RF_preds_vs_obs_plot_stratif <- function(df, x, y, facet_var, file_name, file_pa
   
   corr_coeff <- ddply(df, 
                       as.formula(paste0("dataset ~", facet_var)), 
-                      calculate_wgt_cor)
+                      calculate_wgt_cor, x, y)
   
   facet_plot_names_x <- as_labeller(c(admin = "Level 1 administrative unit",
                                       cell = "20 km pixel"))
@@ -46,7 +46,7 @@ RF_preds_vs_obs_plot_stratif <- function(df, x, y, facet_var, file_name, file_pa
               aes(x = x_values[length(x_values)-1], 
                   y = min_y_value, 
                   hjust = 1, 
-                  label = paste0("italic(r) == ", correlation)),
+                  label = paste0("italic(r) == ", V1)),
               parse = TRUE,
               inherit.aes = FALSE,
               size = 5) +
