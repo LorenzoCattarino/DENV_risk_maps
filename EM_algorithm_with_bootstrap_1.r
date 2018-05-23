@@ -7,13 +7,13 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "prepare_datasets", "filter_resample_and_combine.r"),
-  file.path("R", "prepare_datasets", "filter_and_resample.r"),
-  file.path("R", "prepare_datasets", "clean_and_resample.r"),
+  file.path("R", "prepare_datasets", "filter_resample_and_combine.R"),
+  file.path("R", "prepare_datasets", "filter_and_resample.R"),
+  file.path("R", "prepare_datasets", "clean_and_resample.R"),
   file.path("R", "prepare_datasets", "grid_up.R"),
-  file.path("R", "prepare_datasets", "average_up.r"),
-  file.path("R", "prepare_datasets", "remove_NA_rows.r"),
-  file.path("R", "utility_functions.r"))
+  file.path("R", "prepare_datasets", "average_up.R"),
+  file.path("R", "prepare_datasets", "remove_NA_rows.R"),
+  file.path("R", "utility_functions.R"))
 
 my_pkgs <- c("data.table", "dplyr")
 
@@ -27,15 +27,9 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  grid_size = 1,
+  grid_size = 0.5,
   resample_grid_size = 20,
-  no_trees = 500,
-  min_node_size = 20,
-  pseudoAbs_value = -0.02,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
   no_samples = 200,
-  EM_iter = 10,
   no_predictors = 9)   
 
 parallel_2 <- TRUE
@@ -48,6 +42,8 @@ group_fields <- c("unique_id", "data_id", "ADM_0", "ADM_1")
 # define variables ------------------------------------------------------------
 
 
+no_samples <- parameters$no_samples
+
 new_res <- (1 / 120) * parameters$resample_grid_size
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
@@ -59,7 +55,7 @@ out_pt <- file.path("output",
                     "env_variables", 
                     "boot_samples")
 
-out_fl_nm_all <- paste0("env_vars_20km_", seq_len(parameters$no_samples), ".rds")
+out_fl_nm_all <- paste0("env_vars_20km_", seq_len(no_samples), ".rds")
 
 
 # are you using the cluster? -------------------------------------------------- 
@@ -101,8 +97,6 @@ predictor_rank <- read.csv(file.path("output",
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 
 fi <- list.files(in_pt, pattern = "^tile", full.names = TRUE)
-
-no_samples <- parameters$no_samples
 
 
 # submit one test job --------------------------------------------------------- 

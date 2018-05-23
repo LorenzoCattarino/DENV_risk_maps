@@ -10,10 +10,10 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "utility_functions.r"),
-  file.path("R", "prepare_datasets", "average_up.r"),
+  file.path("R", "prepare_datasets", "average_up.R"),
   file.path("R", "prepare_datasets", "remove_NA_rows.R"),
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"))
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "utility_functions.R"))
 
 my_pkgs <- c("h2o", "dplyr", "data.table")
 
@@ -27,15 +27,10 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  grid_size = 1,
-  resample_grid_size = 20,
-  no_trees = 500,
-  min_node_size = 20,
+  dependent_variable = "FOI",
   pseudoAbs_value = -0.02,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
+  grid_size = 0.5,
   no_samples = 200,
-  EM_iter = 10,
   no_predictors = 9)   
 
 var_to_fit <- "FOI"
@@ -46,7 +41,7 @@ grp_flds <- c("ADM_0", "ADM_1", "data_id")
 # define variables ------------------------------------------------------------ 
 
 
-model_type <- paste0(var_to_fit, "_boot_model")
+model_type <- paste0(parameters$dependent_variable, "_boot_model")
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 

@@ -5,8 +5,8 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"),
-  file.path("R", "utility_functions.r"))
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "utility_functions.R"))
 
 my_pkgs <- "h2o"
 
@@ -20,18 +20,10 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  grid_size = 1,
-  resample_grid_size = 20,
-  no_trees = 500,
-  min_node_size = 20,
-  pseudoAbs_value = -0.02,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
+  dependent_variable = "FOI",
+  grid_size = 0.5,
   no_samples = 200,
-  EM_iter = 10,
   no_predictors = 9)   
-
-dependent_variable <- "FOI"
 
 
 # define variables ------------------------------------------------------------
@@ -50,14 +42,14 @@ RF_obj_path <- file.path("output",
                          "EM_algorithm",
                          "bootstrap_models",
                          my_dir, 
-                         paste0("model_objects_", dependent_variable, "_fit"), 
+                         paste0("model_objects_", parameters$dependent_variable, "_fit"), 
                          "boot_samples")
 
 out_pth <- file.path("output", 
                      "EM_algorithm",
                      "bootstrap_models",
                      my_dir, 
-                     paste0("env_variables_", dependent_variable, "_fit"), 
+                     paste0("env_variables_", parameters$dependent_variable, "_fit"), 
                      "boot_samples")
 
 
@@ -74,6 +66,7 @@ if (CLUSTER) {
   context::context_load(ctx)
   
 }
+
 
 # load data ------------------------------------------------------------------- 
 

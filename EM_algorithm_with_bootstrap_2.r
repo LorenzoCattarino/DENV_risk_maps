@@ -21,18 +21,13 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  grid_size = 1,
-  resample_grid_size = 20,
+  dependent_variable = "FOI",
+  pseudoAbs_value = -0.02,
+  grid_size = 0.5,
   no_trees = 500,
   min_node_size = 20,
-  pseudoAbs_value = -0.02,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
   no_samples = 200,
-  EM_iter = 10,
   no_predictors = 9)   
-
-dependent_variable <- "FOI"
 
 
 # define variables ------------------------------------------------------------
@@ -44,7 +39,7 @@ out_pt <- file.path("output",
                     "EM_algorithm",
                     "bootstrap_models",
                     my_dir, 
-                    paste0("model_objects_", dependent_variable, "_fit"), 
+                    paste0("model_objects_", parameters$dependent_variable, "_fit"), 
                     "boot_samples")
 
 
@@ -97,7 +92,6 @@ no_samples <- parameters$no_samples
 #     parms = parameters,
 #     boot_ls = boot_samples,
 #     my_preds = my_predictors,
-#     y_var = dependent_variable,
 #     out_path = out_pt,
 #     start_h2o = TRUE,
 #     shut_h2o = TRUE))
@@ -115,7 +109,6 @@ if (CLUSTER) {
     parms = parameters,
     boot_ls = boot_samples,
     my_preds = my_predictors,
-    y_var = dependent_variable,
     out_path = out_pt,
     start_h2o = TRUE,
     shut_h2o = TRUE)
@@ -125,12 +118,11 @@ if (CLUSTER) {
   h2o.init()
 
   RF_obj <- lapply(
-    seq_len(no_samples),
+    seq_len(no_samples)[1],
     get_boot_sample_and_fit_RF,
     parms = parameters,
     boot_ls = boot_samples,
     my_preds = my_predictors,
-    y_var = dependent_variable,
     out_path = out_pt,
     start_h2o = FALSE,
     shut_h2o = FALSE)

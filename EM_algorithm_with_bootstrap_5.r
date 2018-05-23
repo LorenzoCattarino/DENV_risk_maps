@@ -12,24 +12,24 @@ library(ggplot2)
 
 
 parameters <- list(
-  grid_size = 1,
-  resample_grid_size = 20,
+  dependent_variable = "FOI",
+  pseudoAbs_value = -0.02,
+  grid_size = 0.5,
   no_trees = 500,
   min_node_size = 20,
-  pseudoAbs_value = -0.02,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
   no_samples = 200,
   EM_iter = 10,
   no_predictors = 9)   
 
-var_to_fit <- "FOI"
+diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j", "r_av_sqr", "r_adm")
 
-diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j")
-
-strip_labs <- c("internal RF mean square error", 
+strip_labs <- c("mean square error", 
                 "pixel level sum of square", 
-                "admin unit level sum of square") 
+                "admin unit level sum of square",
+                "pixel level correlation",
+                "admin unit level correlation") 
+
+names(strip_labs) <- diagnostic_vars
 
 
 # define variables ------------------------------------------------------------
@@ -37,11 +37,11 @@ strip_labs <- c("internal RF mean square error",
 
 no_samples <- parameters$no_samples
 
-model_type <- paste0(var_to_fit, "_boot_model")
+model_type <- paste0(parameters$dependent_variable, "_boot_model")
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
-strip_labs <- gsub("([[:punct:]])|\\s+", "_", strip_labs)
+#strip_labs_2 <- gsub("([[:punct:]])|\\s+", "_", strip_labs)
 
 diag_t_pth <- file.path("output", 
                         "EM_algorithm", 
@@ -50,14 +50,14 @@ diag_t_pth <- file.path("output",
                         model_type, 
                         "diagnostics")
 
-fig_file_tag <- paste0(strip_labs, ".png")
+fig_file_tag <- "diagnostics.png"
 
 figure_out_path <- file.path("figures", 
                              "EM_algorithm",
+                             "bootstrap_models",
                              my_dir, 
                              model_type, 
-                             "diagnostics",
-                             paste0("sample_", seq_len(no_samples)))
+                             "diagnostics")
 
 
 # get results ----------------------------------------------------------------- 
@@ -73,38 +73,39 @@ EM_alg_run <- lapply(fi, readRDS)
 
 for (j in seq_len(no_samples)){
   
-  my_path <- figure_out_path[j]
-  
   one_data_set <- EM_alg_run[[j]]
   
   data_to_plot <- as.data.frame(one_data_set)
   
   data_to_plot$iter <- seq_len(nrow(data_to_plot))
   
-  dir.create(my_path, FALSE, TRUE)
+  data_to_plot_long <- reshape2::melt(data_to_plot, 
+                                      id.vars = "iter", 
+                                      measure.vars = diagnostic_vars)
   
-  for (i in seq_along(strip_labs)){
+  dir.create(figure_out_path, FALSE, TRUE)
     
-    p <- ggplot(data_to_plot, aes(iter, get(diagnostic_vars[i]))) +
-      geom_line() +
-      scale_x_continuous("Iterations") +
-      scale_y_continuous(strip_labs[i]) +
-      theme(axis.title.x = element_text(size = 12),
-            axis.title.y = element_text(size = 12),
-            axis.text.x = element_text(size = 12),
-            axis.text.y = element_text(size = 12))
-    
-    png(file.path(my_path, fig_file_tag[i]), 
-        width = 5, 
-        height = 4.5, 
-        units = "in",
-        pointsize = 12,
-        res = 200)
-    
-    print(p)
-    
-    dev.off()
-    
-  }
+  p <- ggplot(data_to_plot_long, aes(iter, value)) +
+    geom_line() +
+    scale_x_continuous("Iterations", breaks = seq_len(10), labels = seq_len(10)) +
+    scale_y_continuous(NULL) +
+    facet_wrap(~ variable, ncol = 2, scales = "free_y", labeller = labeller(variable = strip_labs)) +
+    theme(axis.title.x = element_text(size = 12),
+          axis.title.y = element_text(size = 12),
+          axis.text.x = element_text(size = 10),
+          axis.text.y = element_text(size = 10))
+  
+  fig_file_tag <- paste0("sample_", j, ".png")
+  
+  png(file.path(figure_out_path, fig_file_tag), 
+      width = 13, 
+      height = 13, 
+      units = "cm",
+      pointsize = 12,
+      res = 200)
+  
+  print(p)
+  
+  dev.off()
   
 }

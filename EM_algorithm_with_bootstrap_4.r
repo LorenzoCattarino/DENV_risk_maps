@@ -5,11 +5,12 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"),
-  file.path("R", "random_forest", "exp_max_algorithm.r"),
-  file.path("R", "plotting", "quick_raster_map.r"),
-  file.path("R", "plotting", "generic_scatter_plot.r"))
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "random_forest", "exp_max_algorithm.R"),
+  file.path("R", "plotting", "quick_raster_map.R"),
+  file.path("R", "plotting", "generic_scatter_plot.R"),
+  file.path("R", "prepare_datasets", "calculate_wgt_corr.R"),
+  file.path("R", "utility_functions.R"))
 
 my_pkgs <- c("h2o", "dplyr", "fields", "ggplot2", "weights", "colorRamps")
 
@@ -23,18 +24,14 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  grid_size = 1,
-  resample_grid_size = 20,
+  dependent_variable = "FOI",
+  pseudoAbs_value = -0.02,
+  grid_size = 0.5,
   no_trees = 500,
   min_node_size = 20,
-  pseudoAbs_value = -0.02,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
   no_samples = 200,
   EM_iter = 10,
   no_predictors = 9)   
-
-var_to_fit <- "FOI"
 
 grp_flds <- c("ID_0", "ID_1", "unique_id")
 
@@ -48,7 +45,7 @@ no_samples <- parameters$no_samples
 
 grid_size <- parameters$grid_size
   
-model_type <- paste0(var_to_fit, "_boot_model")
+model_type <- paste0(parameters$dependent_variable, "_boot_model")
 
 my_dir <- paste0("grid_size_", grid_size)
 
@@ -83,6 +80,7 @@ train_dts_pth <- file.path("output",
 
 map_pth <- file.path("figures", 
                      "EM_algorithm",
+                     "bootstrap_models",
                      my_dir, 
                      model_type, 
                      "maps", 
@@ -90,6 +88,7 @@ map_pth <- file.path("figures",
 
 sct_plt_pth <- file.path("figures", 
                          "EM_algorithm",
+                         "bootstrap_models",
                          my_dir, 
                          model_type,
                          "iteration_fits",
@@ -99,7 +98,7 @@ sqr_dts_pth <- file.path("output",
                          "EM_algorithm",
                          "bootstrap_models",
                          my_dir, 
-                         paste0("env_variables_", var_to_fit, "_fit"),
+                         paste0("env_variables_", parameters$dependent_variable, "_fit"),
                          "boot_samples")
 
 
@@ -178,7 +177,6 @@ adm_dts <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 #     sct_plt_path = sct_plt_pth,
 #     adm_dataset = adm_dts,
 #     pxl_dts_pt = sqr_dts_pth,
-#     var_to_fit = var_to_fit,
 #     train_dts_path = train_dts_pth,
 #     train_dts_name = tra_dts_nm_all))
 
@@ -206,7 +204,6 @@ if (CLUSTER) {
     sct_plt_path = sct_plt_pth,
     adm_dataset = adm_dts,
     pxl_dts_pt = sqr_dts_pth,
-    var_to_fit = var_to_fit,
     train_dts_path = train_dts_pth,
     train_dts_name = tra_dts_nm_all)
 
@@ -229,7 +226,6 @@ if (CLUSTER) {
     sct_plt_path = sct_plt_pth,
     adm_dataset = adm_dts,
     pxl_dts_pt = sqr_dts_pth,
-    var_to_fit = var_to_fit,
     train_dts_path = train_dts_pth,
     train_dts_name = tra_dts_nm_all)
 

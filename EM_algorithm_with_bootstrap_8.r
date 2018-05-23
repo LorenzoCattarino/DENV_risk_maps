@@ -11,29 +11,24 @@ library(ggplot2)
 library(plyr)
 library(weights) # for wtd.cor()
 
-source(file.path("R", "plotting", "plot_RF_preds_vs_obs_by_cv_dataset.r"))
+source(file.path("R", "plotting", "plot_RF_preds_vs_obs_by_cv_dataset.R"))
 source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
 source(file.path("R", "prepare_datasets", "calculate_sd.R"))
 source(file.path("R", "prepare_datasets", "calculate_wgt_corr.R"))
-source(file.path("R", "utility_functions.r"))
+source(file.path("R", "utility_functions.R"))
 
 
 # define parameters -----------------------------------------------------------  
 
 
 parameters <- list(
-  grid_size = 1,
-  resample_grid_size = 20,
-  no_trees = 500,
-  min_node_size = 20,
+  dependent_variable = "FOI",
   pseudoAbs_value = -0.02,
+  grid_size = 0.5,
   all_wgt = 1,
   wgt_limits = c(1, 500),
   no_samples = 200,
-  EM_iter = 10,
   no_predictors = 9)   
-
-var_to_fit <- "FOI"
 
 mes_vars <- c("admin", "cell")
 
@@ -46,7 +41,7 @@ data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(var_to_fit, "_boot_model")
+model_type <- paste0(parameters$dependent_variable, "_boot_model")
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
@@ -59,6 +54,7 @@ in_path <- file.path("output",
 
 out_fig_path <- file.path("figures",
                           "EM_algorithm",
+                          "bootstrap_models",
                           my_dir,
                           model_type,
                           "scatter_plots",
@@ -66,6 +62,7 @@ out_fig_path <- file.path("figures",
 
 out_fig_path_av <- file.path("figures",
                              "EM_algorithm",
+                             "bootstrap_models",
                              my_dir,
                              model_type,
                              "scatter_plots")
