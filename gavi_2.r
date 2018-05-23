@@ -101,7 +101,7 @@ for (i in seq_len(no_fits)){
 
 }
 
-#test5 <- readRDS("output/predictions_world/predictions_for_vaccine_analysis/boot_sample_5.rds")
+test5 <- readRDS("output/predictions_world/bootstrap_models/grid_size_5/predictions_for_vaccine_analysis/boot_samples/boot_sample_5.rds")
 
 adm_0 <- readOGR(dsn = file.path("data", "shapefiles", "gadm28_levels.shp"), layer = "gadm28_adm0")
 
