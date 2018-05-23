@@ -1,4 +1,4 @@
-# Makes foi predictions for all the squares in the world, for each model fit. 
+# Makes predictions for all the squares in the world, for each model fit. 
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -20,18 +20,10 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  grid_size = 2,
-  resample_grid_size = 20,
-  no_trees = 500,
-  min_node_size = 20,
-  pseudoAbs_value = -0.02,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
+  dependent_variable = "FOI",
+  grid_size = 0.5,
   no_samples = 200,
-  EM_iter = 10,
   no_predictors = 9)   
-
-var_to_fit <- "FOI"
 
 RF_mod_name <- "RF_obj_sample"
 
@@ -39,7 +31,7 @@ RF_mod_name <- "RF_obj_sample"
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(var_to_fit, "_boot_model")
+model_type <- paste0(parameters$dependent_variable, "_boot_model")
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
