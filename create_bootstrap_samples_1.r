@@ -20,7 +20,7 @@ context::parallel_cluster_start(8, ctx)
 
 
 parameters <- list(
-  grid_size = 0.5,
+  grid_size = 10,
   all_wgt = 1,
   wgt_limits = c(1, 500),
   no_samples = 200)   
