@@ -1,4 +1,4 @@
-# Load back in, from the EM algorithm, a vector of square-level predictions for the entire 20km dataset
+# Load back in from the context folder a vector of square-level predictions for the entire 20km dataset
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -22,13 +22,21 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-var_to_fit <- "FOI"
+parameters <- list(
+  dependent_variable = "R0_1",
+  pseudoAbs_value = 0.5,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
+  no_trees = 500,
+  min_node_size = 20,
+  EM_iter = 10,
+  no_predictors = 9)   
 
 
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(var_to_fit, "_best_model")
+model_type <- paste0(parameters$dependent_variable, "_best_model")
 
 out_fl_nm <- "square_predictions_all_data.rds"
 

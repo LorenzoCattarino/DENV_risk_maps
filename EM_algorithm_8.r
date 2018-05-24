@@ -8,10 +8,10 @@
 options(didehpc.cluster = "fi--didemrchnb")
 
 my_resources <- c(
-  file.path("R", "utility_functions.r"),
-  file.path("R", "prepare_datasets", "average_up.r"),
+  file.path("R", "prepare_datasets", "average_up.R"),
   file.path("R", "prepare_datasets", "remove_NA_rows.R"),
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"))
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "utility_functions.R"))
 
 my_pkgs <- c("h2o", "dplyr", "data.table")
 
@@ -24,7 +24,10 @@ ctx <- context::context_save(path = "context",
 # define parameters -----------------------------------------------------------
 
 
-var_to_fit <- "FOI"
+parameters <- list(
+  dependent_variable = "R0_1",
+  pseudoAbs_value = 0.5,
+  no_predictors = 9)   
 
 pseudoAbsence_value <- -0.02
 
@@ -40,6 +43,8 @@ out_name <- "all_scale_predictions.rds"
 # define variables ------------------------------------------------------------
 
 
+var_to_fit <- parameters$dependent_variable
+  
 model_type <- paste0(var_to_fit, "_best_model")
 
 RF_obj_path <- file.path("output",

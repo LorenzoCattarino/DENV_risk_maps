@@ -10,7 +10,7 @@ library(ggplot2)
 library(plyr)
 library(weights) # for wtd.cor()
 
-source(file.path("R", "plotting", "plot_RF_preds_vs_obs_by_cv_dataset.r"))
+source(file.path("R", "plotting", "plot_RF_preds_vs_obs_by_cv_dataset.R"))
 source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
 source(file.path("R", "prepare_datasets", "calculate_wgt_corr.R"))
 source(file.path("R", "utility_functions.R"))
@@ -18,11 +18,12 @@ source(file.path("R", "utility_functions.R"))
 # define parameters -----------------------------------------------------------  
 
 
-var_to_fit <- "FOI"
-
-all_wgt <- 1
-
-wgt_limits <- c(1, 500)
+parameters <- list(
+  dependent_variable = "R0_1",
+  pseudoAbs_value = 0.5,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
+  no_predictors = 9)   
 
 mes_vars <- c("admin", "square")
 
@@ -35,7 +36,7 @@ data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(var_to_fit, "_best_model")
+model_type <- paste0(parameters$dependent_variable, "_best_model")
 
 in_path <- file.path("output",
                      "EM_algorithm",
@@ -74,9 +75,9 @@ no_pseudoAbs <- sum(foi_dataset$type == "pseudoAbsence")
 
 no_pnts_vec <- c(no_datapoints, no_datapoints - no_pseudoAbs) 
 
-foi_dataset$new_weight <- all_wgt
+foi_dataset$new_weight <- parameters$all_wgt
 
-pAbs_wgt <- get_area_scaled_wgts(foi_dataset, wgt_limits)
+pAbs_wgt <- get_area_scaled_wgts(foi_dataset, parameters$wgt_limits)
 
 foi_dataset[foi_dataset$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
@@ -124,7 +125,7 @@ for (j in seq_along(tags)) {
   min_y_value <- min(y_values)
   max_y_value <- max(y_values)
   
-  corr_coeff <- ddply(df, "scale", calculate_wgt_cor)
+  corr_coeff <- ddply(df, "scale", calculate_wgt_cor, "o_j", "value")
   
   facet_plot_names_x <- as_labeller(c(admin = "Level 1 administrative unit",
                                       square = "20 km pixel"))
@@ -152,7 +153,7 @@ for (j in seq_along(tags)) {
   
   p2 <- p +
     geom_text(data = corr_coeff, 
-              aes(x = x_values[length(x_values)-1], y = min_y_value, hjust = 1, label = paste0("italic(r) == ", correlation)),
+              aes(x = x_values[length(x_values)-1], y = min_y_value, hjust = 1, label = paste0("italic(r) == ", V1)),
               parse = TRUE,
               inherit.aes = FALSE,
               size = 5) +

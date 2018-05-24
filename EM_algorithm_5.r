@@ -2,15 +2,16 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
-  file.path("R", "utility_functions.R"),
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"),
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "random_forest", "exp_max_algorithm.R"),
-  file.path("R", "plotting", "quick_raster_map.r"),
-  file.path("R", "plotting", "generic_scatter_plot.r"))  
+  file.path("R", "plotting", "quick_raster_map.R"),
+  file.path("R", "plotting", "generic_scatter_plot.R"),
+  file.path("R", "prepare_datasets", "calculate_wgt_corr.R"),
+  file.path("R", "utility_functions.R"))  
 
 my_pkgs <- c("h2o", "dplyr", "fields", "ggplot2", "weights", "colorRamps")
 
@@ -39,17 +40,14 @@ if (CLUSTER) {
 
 
 parameters <- list(
-  resample_grid_size = 20,
-  no_trees = 500,
-  min_node_size = 20,
-  pseudoAbs_value = -0.02,
+  dependent_variable = "R0_1",
+  pseudoAbs_value = 0.5,
   all_wgt = 1,
   wgt_limits = c(1, 500),
-  no_samples = 200,
+  no_trees = 500,
+  min_node_size = 20,
   EM_iter = 10,
   no_predictors = 9)   
-
-var_to_fit <- "FOI"
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
@@ -63,10 +61,14 @@ map_nm <- "map"
 
 tra_dts_nm <- "train_dts.rds"
 
+out_fl_nm <- "square_predictions_all_data.rds"
+
 
 # define variables ------------------------------------------------------------
 
 
+var_to_fit <- parameters$dependent_variable
+  
 number_of_predictors <- parameters$no_predictors
 
 pseudoAbsence_value <- parameters$pseudoAbs_value
@@ -106,6 +108,8 @@ sct_plt_pth <- file.path("figures",
                          "best_fit_models",
                          model_type,
                          "iteration_fits")
+
+out_pt <- file.path("output", "EM_algorithm", "best_fit_models", model_type)
 
 
 # load data ------------------------------------------------------------------- 
@@ -210,8 +214,10 @@ if (CLUSTER) {
     train_dts_name = tra_dts_nm,
     adm_dataset = adm_dataset)
 
+  write_out_rds(EM_alg_run, out_pt, out_fl_nm)
+  
 }
 
 if (!CLUSTER) {
-  context:::stop_parallel_cluster()
+  context::parallel_cluster_stop()
 }

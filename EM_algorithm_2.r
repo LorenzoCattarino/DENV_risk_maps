@@ -6,12 +6,12 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "prepare_datasets", "filter_and_resample.r"),
-  file.path("R", "prepare_datasets", "clean_and_resample.r"),
-  file.path("R", "prepare_datasets", "remove_NA_rows.r"),
+  file.path("R", "prepare_datasets", "filter_and_resample.R"),
+  file.path("R", "prepare_datasets", "clean_and_resample.R"),
+  file.path("R", "prepare_datasets", "remove_NA_rows.R"),
   file.path("R", "prepare_datasets", "grid_up.R"),
-  file.path("R", "prepare_datasets", "average_up.r"),
-  file.path("R", "utility_functions.r"))
+  file.path("R", "prepare_datasets", "average_up.R"),
+  file.path("R", "utility_functions.R"))
 
 my_pkgs <- c("data.table", "dplyr")
 
@@ -23,6 +23,10 @@ ctx <- context::context_save(path = "context",
 
 # define parameters -----------------------------------------------------------  
 
+
+parameters <- list(
+  resample_grid_size = 20,
+  no_predictors = 9)   
 
 out_pt <- file.path("output", "EM_algorithm", "best_fit_models", "env_variables")
 
