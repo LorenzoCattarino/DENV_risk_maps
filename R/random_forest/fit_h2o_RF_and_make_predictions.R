@@ -67,16 +67,18 @@ wrapper_to_make_h2o_preds <- function(i,
 get_boot_sample_and_fit_RF <- function(i, 
                                        parms,
                                        boot_ls, 
-                                       y_var, 
                                        my_preds, 
                                        out_path, 
                                        start_h2o,
                                        shut_h2o) {
   
+  # browser()
+  
   no_trees <- parms$no_trees
   min_node_size <- parms$min_node_size
   psAb_val <- parms$pseudoAbs_value
-  
+  y_var <- parms$dependent_variable
+    
   adm_dts_boot <- boot_ls[[i]]
   
   adm_dts_boot[adm_dts_boot$type == "pseudoAbsence", y_var] <- psAb_val
