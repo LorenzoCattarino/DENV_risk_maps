@@ -1,4 +1,4 @@
-quick_raster_map <- function(pred_df, y_var, out_pt, out_name) {
+quick_raster_map <- function(pred_df, variable, statistic, out_pt, out_name) {
   
   # browser()
   
@@ -9,7 +9,16 @@ quick_raster_map <- function(pred_df, y_var, out_pt, out_name) {
   lats <- seq(-90, 90, by = res)
   lons <- seq(-180, 180, by = res)
   
-  my_col <- matlab.like(100)
+  if(variable == "p9"){
+    
+    my_col <- c("red", "orange", "green")
+    pred_df[, statistic] <- cut(pred_df[, statistic], breaks = c(-Inf, 80, 90, Inf), right = FALSE, labels = FALSE)
+  
+  } else {
+    
+    my_col <- matlab.like(100)
+  
+  }
   
   
   # ---------------------------------------- load data 
@@ -26,7 +35,7 @@ quick_raster_map <- function(pred_df, y_var, out_pt, out_name) {
   i.lat <- findInterval(pred_df$lat.int, lats.int)
   i.lon <- findInterval(pred_df$long.int, lons.int)
   
-  mat[cbind(i.lon, i.lat)] <- pred_df[, y_var]
+  mat[cbind(i.lon, i.lat)] <- pred_df[, statistic]
   
   dir.create(out_pt, FALSE, TRUE)
   
@@ -39,7 +48,7 @@ quick_raster_map <- function(pred_df, y_var, out_pt, out_name) {
   
   par(mar = c(0,0,0,0), oma = c(0,0,0,0))
   
-  ticks <- pretty(pred_df[, y_var], n = 5)
+  ticks <- pretty(pred_df[, statistic], n = 5)
   # ticks <- seq(0, 0.015, 0.005)
   # ticks <- seq(0, 0.06, 0.01)
   
