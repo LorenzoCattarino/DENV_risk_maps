@@ -8,58 +8,51 @@ source(file.path("R", "utility_functions.r"))
 
 
 parameters <- list(
+  dependent_variable = "FOI",
   grid_size = 1,
-  no_trees = 500,
-  min_node_size = 20,
-  pseudoAbs_value = -0.02,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
-  no_samples = 10,
-  EM_iter = 10,
-  no_predictors = 9)   
+  no_samples = 200)   
 
-var_to_fit <- "FOI"
+age <- 9
 
-model_tp <- "R0_1_boot_model" 
+out_fl_nm <- "p9.rds"
 
-scenario_id <- 1
+prediction_fl_nm <- "response.rds"
   
-out_fl_nm <- "p9_all_squares.rds"
-
-out_pt <- file.path(
-  "output", 
-  "predictions_world",
-  model_tp)
-
-in_dts_tag <- "all_squares"
-
-
-# get name of file to load ----------------------------------------------------
-
-
-var_to_fit <- sub("_boot.*", "", model_tp)
   
-if(var_to_fit == "FOI") {
-  
-  mean_pred_fl_nm <- paste0(var_to_fit, "_", in_dts_tag, ".rds")
+# define variables ------------------------------------------------------------
 
-} else {
-  
-  mean_pred_fl_nm <- paste0("FOI_r", "_", in_dts_tag, "_", scenario_id, ".rds")
 
-}
+model_type <- paste0(parameters$dependent_variable, "_boot_model")
+
+my_dir <- paste0("grid_size_", parameters$grid_size)
+
+out_pt <- file.path("output", 
+                    "predictions_world",
+                    "bootstrap_models",
+                    my_dir,
+                    model_type)
+
+col_ids <- as.character(seq_len(parameters$no_samples))
 
 
 # load data ------------------------------------------------------------------- 
 
   
-all_sqr_foi <- readRDS(
-  file.path(
-    "output", 
-    "predictions_world",
-    model_tp,
-    mean_pred_fl_nm))
+sqr_preds <- readRDS(file.path("output", 
+                               "predictions_world",
+                               "bootstrap_models",
+                               my_dir,
+                               model_type,
+                               prediction_fl_nm))
 
-p9 <- 100 *(1 - exp(-36 * all_sqr_foi))
 
-write_out_rds(p9, out_pt, out_fl_nm)  
+# calculate p9 ----------------------------------------------------------------
+
+
+p9 <- 100 * (1 - exp(-4 * age * sqr_preds[, col_ids]))
+
+base_info <- sqr_preds[, setdiff(names(sqr_preds), col_ids)]
+  
+final_dts <- cbind(base_info, p9)
+
+write_out_rds(final_dts, out_pt, out_fl_nm)  

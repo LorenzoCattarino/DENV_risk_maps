@@ -21,7 +21,7 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   dependent_variable = "FOI",
-  grid_size = 0.5,
+  grid_size = 1,
   no_samples = 200,
   no_predictors = 9)   
 
@@ -49,6 +49,8 @@ if (CLUSTER) {
   context::context_load(ctx)
   
 }
+
+obj$enqueue(install.packages(file.path("R_sources", "h2o_3.18.0.8.tar.gz"), repos=NULL, type="source"))$wait(Inf)
 
 
 # load data ------------------------------------------------------------------- 

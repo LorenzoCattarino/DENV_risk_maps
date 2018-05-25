@@ -6,14 +6,11 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "utility_functions.r"),
-  file.path("R", "burden_and_interventions", "calculate_mean_across_fits.r"))
-
-my_pkgs <- NULL
+  file.path("R", "burden_and_interventions", "calculate_mean_across_fits.R"),
+  file.path("R", "utility_functions.R"))
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
-                             packages = my_pkgs,
                              sources = my_resources)
 
 
@@ -21,40 +18,27 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  grid_size = 2,
-  resample_grid_size = 20,
-  no_trees = 500,
-  min_node_size = 20,
-  pseudoAbs_value = -0.02,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
-  no_samples = 200,
-  EM_iter = 10,
-  no_predictors = 9)   
+  dependent_variable = "FOI",
+  grid_size = 1,
+  no_samples = 200)   
 
-var_to_fit <- "FOI"
-
-vars_to_average <- "response"
-
-base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2")
+vars_to_average <- c("response", "p9")
 
 
 # define variables ------------------------------------------------------------
 
 
-no_samples <- parameters$no_samples
-
-model_type <- paste0(var_to_fit, "_boot_model")
+model_type <- paste0(parameters$dependent_variable, "_boot_model")
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
-col_names <- as.character(seq_len(no_samples))
+col_names <- as.character(seq_len(parameters$no_samples))
 
 in_path <- file.path("output", 
-                     "predictions_world", 
-                     "bootstrap_models")#,
-                     # my_dir,
-                     # model_type)
+                     "predictions_world",
+                     "bootstrap_models",
+                     my_dir,
+                     model_type)
 
 
 # are you using the cluster? -------------------------------------------------- 
@@ -72,14 +56,14 @@ if (CLUSTER) {
   
 }
 
-
-# load data ------------------------------------------------------------------- 
-
-
-all_sqr_covariates <- readRDS(file.path("output", 
-                                        "env_variables", 
-                                        "all_squares_env_var_0_1667_deg.rds"))
-
+# 
+# # load data ------------------------------------------------------------------- 
+# 
+# 
+# all_sqr_covariates <- readRDS(file.path("output", 
+#                                         "env_variables", 
+#                                         "all_squares_env_var_0_1667_deg.rds"))
+# 
 
 # run one job -----------------------------------------------------------------
 
@@ -90,9 +74,7 @@ all_sqr_covariates <- readRDS(file.path("output",
 #     vars = vars_to_average,
 #     in_path = in_path,
 #     out_path = in_path,
-#     col_names = col_names,
-#     base_info = base_info,
-#     covariate_dts = all_sqr_covariates))
+#     col_names = col_names))
   
   
 # run -------------------------------------------------------------------------
@@ -107,9 +89,7 @@ if (CLUSTER) {
     vars = vars_to_average,
     in_path = in_path,
     out_path = in_path,
-    col_names = col_names,
-    base_info = base_info,
-    covariate_dts = all_sqr_covariates)
+    col_names = col_names)
 
 } else {
 
@@ -120,8 +100,6 @@ if (CLUSTER) {
     in_path = in_path,
     out_path = in_path,
     col_names = col_names,
-    base_info = base_info,
-    covariate_dts = all_sqr_covariates,
     parallel = FALSE)
 
 }
