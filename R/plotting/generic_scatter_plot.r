@@ -39,7 +39,7 @@ generic_scatter_plot <- function(
   
   eq_df <- data.frame(eq) 
     
-  x_text <- ifelse(max_x_value > 2, 1, 0.02)
+  x_text <- ifelse(max_x_value > 2, 3, 0.02)
     
   p <- ggplot(df, aes_string(x = x, y = y)) +
     geom_point(aes_string(x = x, y = y), size = 1) + 
