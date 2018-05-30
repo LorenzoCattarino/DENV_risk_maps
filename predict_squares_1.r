@@ -18,10 +18,11 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-var_to_fit <- "FOI"
+parameters <- list(
+  dependent_variable = "R0_3",
+  no_samples = 200,
+  no_predictors = 9)   
 
-number_of_predictors <- 9
-  
 RF_mod_name <- "RF_obj.rds"
 
 base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2")
@@ -30,7 +31,7 @@ base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", 
 # define variables ------------------------------------------------------------
 
 
-model_tp <- paste0(var_to_fit, "_best_model")
+model_tp <- paste0(parameters$dependent_variable, "_best_model")
 
 out_pt <- file.path("output", "predictions_world", "best_fit_models", model_tp)
   
@@ -68,7 +69,7 @@ predictor_rank <- read.csv(file.path("output",
 # get best predictor ---------------------------------------------------------- 
 
 
-my_predictors <- predictor_rank$name[1:number_of_predictors]
+my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 
 
 # submit one job -------------------------------------------------------------- 
