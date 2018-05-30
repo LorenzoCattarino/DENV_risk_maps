@@ -12,7 +12,7 @@ library(ggplot2)
 
 
 parameters <- list(
-  dependent_variable = "R0_1")   
+  dependent_variable = "R0_3")   
 
 diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j", "r_av_sqr", "r_adm")
 

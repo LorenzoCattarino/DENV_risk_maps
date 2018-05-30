@@ -25,13 +25,9 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "R0_1",
+  dependent_variable = "R0_3",
   pseudoAbs_value = 0.5,
   no_predictors = 9)   
-
-pseudoAbsence_value <- -0.02
-
-number_of_predictors <- 9
 
 grp_flds <- c("ADM_0", "ADM_1", "data_id")
 
@@ -117,7 +113,7 @@ names(foi_dataset)[names(foi_dataset) == var_to_fit] <- "o_j"
 names(foi_dataset)[names(foi_dataset) == "ID_0"] <- grp_flds[1]
 names(foi_dataset)[names(foi_dataset) == "ID_1"] <- grp_flds[2]
 
-foi_dataset[foi_dataset$type == "pseudoAbsence", "o_j"] <- pseudoAbsence_value
+foi_dataset[foi_dataset$type == "pseudoAbsence", "o_j"] <- parameters$pseudoAbs_value
 
 adm_dataset <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 
@@ -127,7 +123,7 @@ NA_pixel_tile_ids <- NA_pixel_tiles$tile_id
 
 tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]  
 
-my_predictors <- predictor_rank$name[1:number_of_predictors]
+my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 
 
 # ---------------------------------------- submit one job 

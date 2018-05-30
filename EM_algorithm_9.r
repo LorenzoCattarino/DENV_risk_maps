@@ -20,7 +20,7 @@ source(file.path("R", "utility_functions.R"))
 
 
 parameters <- list(
-  dependent_variable = "R0_1",
+  dependent_variable = "R0_3",
   pseudoAbs_value = 0.5,
   all_wgt = 1,
   wgt_limits = c(1, 500),
@@ -37,7 +37,11 @@ data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, "_best_model")
+var_to_fit <- parameters$dependent_variable
+
+psAbs_val <- parameters$pseudoAbs_value
+
+model_type <- paste0(var_to_fit, "_best_model")
 
 in_path <- file.path("output",
                      "EM_algorithm",
@@ -98,7 +102,15 @@ for (j in seq_along(tags)) {
   
   dts_1 <- readRDS(file.path(in_path, dts_nm))
   
-  dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 0] <- 0
+  if(var_to_fit == "FOI"){
+    
+    dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 0] <- 0
+    
+  } else {
+    
+    dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 1] <- psAbs_val
+    
+  }
   
   dts <- dts_1[dts_1$type %in% dt_typ, ]
   
@@ -137,7 +149,7 @@ for (j in seq_along(tags)) {
     geom_point(aes_string(x = x, y = y), size = 1) +
     geom_abline(slope = 1, intercept = 0, linetype = 2) +
     scale_x_continuous("Observations",  
-                       #limits = c(min_x_value, max_x_value), 
+                       limits = c(min_x_value, max_x_value), 
                        breaks = x_values,
                        labels = x_values) +
     scale_y_continuous("Predictions", 
@@ -157,16 +169,16 @@ for (j in seq_along(tags)) {
               aes(x = x_values[length(x_values)-1], y = min_y_value, hjust = 1, label = paste0("italic(r) == ", V1)),
               parse = TRUE,
               inherit.aes = FALSE,
-              size = 5) +
+              size = 4) +
     facet_grid(. ~ scale,
                labeller = labeller(scale = facet_plot_names_x))
   
   dir.create(out_fig_path_av, FALSE, TRUE)
   
   png(filename = file.path(out_fig_path_av, fl_nm_av), 
-      width = 10, 
-      height = 5, 
-      units = "in", 
+      width = 16, 
+      height = 8, 
+      units = "cm", 
       pointsize = 12,
       res = 200)
   

@@ -19,7 +19,7 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "R0_1",
+  dependent_variable = "R0_3",
   pseudoAbs_value = 0.5,
   all_wgt = 1,
   wgt_limits = c(1, 500),

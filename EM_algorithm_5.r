@@ -2,7 +2,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
@@ -21,26 +21,11 @@ ctx <- context::context_save(path = "context",
                              packages = my_pkgs)
 
 
-# are you using the cluster? --------------------------------------------------  
-
-
-if (CLUSTER) {
-  
-  config <- didehpc::didehpc_config(template = "24Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
-
-} else {
-  
-  context::context_load(ctx)
-
-}
-
-
 # define parameters ----------------------------------------------------------- 
 
 
 parameters <- list(
-  dependent_variable = "R0_1",
+  dependent_variable = "R0_3",
   pseudoAbs_value = 0.5,
   all_wgt = 1,
   wgt_limits = c(1, 500),
@@ -68,13 +53,13 @@ out_fl_nm <- "square_predictions_all_data.rds"
 
 
 var_to_fit <- parameters$dependent_variable
-  
+
 number_of_predictors <- parameters$no_predictors
 
 pseudoAbsence_value <- parameters$pseudoAbs_value
 
 all_wgt <- parameters$all_wgt
-  
+
 wgt_limits <- parameters$wgt_limits
 
 model_type <- paste0(var_to_fit, "_best_model")
@@ -110,6 +95,21 @@ sct_plt_pth <- file.path("figures",
                          "iteration_fits")
 
 out_pt <- file.path("output", "EM_algorithm", "best_fit_models", model_type)
+
+
+# are you using the cluster? --------------------------------------------------  
+
+
+if (CLUSTER) {
+  
+  config <- didehpc::didehpc_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
+
+} else {
+  
+  context::context_load(ctx)
+
+}
 
 
 # load data ------------------------------------------------------------------- 
