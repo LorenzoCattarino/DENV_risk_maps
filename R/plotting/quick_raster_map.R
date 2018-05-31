@@ -1,4 +1,4 @@
-quick_raster_map <- function(pred_df, variable, statistic, out_pt, out_name) {
+quick_raster_map <- function(pred_df, variable = NULL, statistic, out_pt, out_name) {
   
   # browser()
   
@@ -9,15 +9,16 @@ quick_raster_map <- function(pred_df, variable, statistic, out_pt, out_name) {
   lats <- seq(-90, 90, by = res)
   lons <- seq(-180, 180, by = res)
   
-  if(variable == "p9"){
-    
-    my_col <- c("red", "orange", "green")
-    pred_df[, statistic] <- cut(pred_df[, statistic], breaks = c(-Inf, 80, 90, Inf), right = FALSE, labels = FALSE)
+  my_col <- matlab.like(100)
   
-  } else {
+  if(!is.null(variable)){
     
-    my_col <- matlab.like(100)
-  
+    if(variable == "p9"){
+      
+      my_col <- c("red", "orange", "green")
+      pred_df[, statistic] <- cut(pred_df[, statistic], breaks = c(-Inf, 80, 90, Inf), right = FALSE, labels = FALSE)
+    }
+    
   }
   
   
@@ -40,8 +41,8 @@ quick_raster_map <- function(pred_df, variable, statistic, out_pt, out_name) {
   dir.create(out_pt, FALSE, TRUE)
   
   png(file.path(out_pt, out_name), 
-      width = 18, 
-      height = 8, 
+      width = 16, 
+      height = 5.5, 
       units = "cm",
       pointsize = 12,
       res = 300)
@@ -57,8 +58,9 @@ quick_raster_map <- function(pred_df, variable, statistic, out_pt, out_name) {
         mat, 
         col = my_col, 
         zlim = c(min(ticks), max(ticks)), 
-        ylim = c(-60, 90), 
-        asp = 1)
+        ylim = c(-60, 60), 
+        asp = 1,
+        axes = FALSE)
   
   image.plot(lons,
              lats,
@@ -67,10 +69,11 @@ quick_raster_map <- function(pred_df, variable, statistic, out_pt, out_name) {
              zlim = c(min(ticks), max(ticks)),
              legend.only = TRUE,
              legend.width = 1,
-             legend.shrink = 0.5,
+             legend.shrink = 0.75,
              axis.args = list(at = ticks, 
-                              labels = ticks),
-             smallplot = c(0.04, 0.08, 0.04, 0.4))
+                              labels = ticks,
+                              cex.axis = 0.8),
+             smallplot = c(0.04, 0.08, 0.1, 0.5))
   
   par(mar = par("mar"))
   
