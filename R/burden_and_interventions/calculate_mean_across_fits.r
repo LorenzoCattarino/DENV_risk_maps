@@ -1,43 +1,33 @@
-average_foi_and_burden_predictions <- function(j, 
-                                               vars, 
-                                               in_path, 
-                                               out_path, 
-                                               scenario_ids, 
-                                               col_names,
-                                               base_info, 
-                                               dts_tag,
-                                               covariate_dts){
+wrapper_to_average_bsamples <- function(j, 
+                                        vars, 
+                                        in_path, 
+                                        out_path, 
+                                        col_names){
   
-  #browser()
+  # browser()
   
   my_var <- vars[j]
   
-  if(my_var == "FOI") {
-    
-    root_name <- paste0(my_var, "_", dts_tag)
-    
-    dat <- readRDS(file.path(in_path, paste0(root_name, ".rds")))
-    
-    ret <- average_boot_samples_dim2(dat)
-    
-    ret2 <- cbind(covariate_dts[, base_info], ret)
-    
-    out_name <- paste0(my_var, "_", "mean_", dts_tag, ".rds")
-    
-    write_out_rds(ret2, out_path, out_name)
-    
-  } else {
-    
-    loop(scenario_ids,
-         calculate_mean_of_burden_predictions_for_different_scenarios,
-         in_path = in_path, 
-         my_var = my_var,
-         col_names = col_names, 
-         base_info = base_info, 
-         out_path = out_path,
-         parallel = TRUE)
-    
-  }
+  dat <- readRDS(file.path(in_path, paste0(my_var, ".rds")))
+  
+  ret <- average_boot_samples_dim2(dat[, col_names])
+  
+  base_info <- dat[, setdiff(names(dat), col_names)]
+  
+  ret2 <- cbind(base_info, ret)
+  
+  out_name <- paste0(my_var, "_mean.rds")
+  
+  write_out_rds(ret2, out_path, out_name)
+  
+  # loop(scenario_ids,
+  #      calculate_mean_of_burden_predictions_for_different_scenarios,
+  #      in_path = in_path, 
+  #      my_var = my_var,
+  #      col_names = col_names, 
+  #      base_info = base_info, 
+  #      out_path = out_path,
+  #      parallel = TRUE)
   
 }
 
@@ -84,4 +74,8 @@ calculate_mean_of_burden_predictions_for_different_scenarios <- function(
   
   write_out_rds(ret2, out_path, out_name)
   
+}
+
+get_grid_size_sd <- function(i, pred_ls){
+  pred_ls[[i]]$sd
 }
