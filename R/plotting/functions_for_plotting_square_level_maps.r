@@ -69,7 +69,7 @@ make_nice_map <- function(i,
   if (!is.na(map_proj)){
     r_mat <- projectRaster(r_mat, crs = map_proj)
   }
-  browser()
+  
   # my_ext <- matrix(r_mat@extent[], nrow = 2, byrow = TRUE) 
   # 
   # countries@bbox <- my_ext
@@ -82,9 +82,9 @@ make_nice_map <- function(i,
   
   r_df <- as.data.frame(r_spdf)
   
-  r_df$layer[r_df$layer < na_cutoff] <- NA
+  # r_df$layer[r_df$layer < na_cutoff] <- NA
   
-  r_df <- subset(r_df, !is.na(layer))
+  r_df <- subset(r_df, layer >= na_cutoff)
   
   
   # make map --------------------------------------------------------------------
@@ -115,6 +115,7 @@ make_nice_map <- function(i,
   
   p <- ggplot() +
     geom_polygon(data = bbox_df, aes(long, lat, group = group), fill = "aliceblue") +
+    geom_polygon(data = countries_df, aes(long, lat, group = group), fill = "grey70") +
     geom_tile(data = r_df, aes(x = x, y = y, fill = layer)) +
     scale_fill_gradientn(breaks = leg_val,
                          labels = leg_val,
@@ -122,29 +123,28 @@ make_nice_map <- function(i,
                          colours = my_col, 
                          guide = guide_colourbar(title = ttl, 
                                                  barwidth = barwdt, 
-                                                 barheight = barhgt),
-                         na.value = "grey70") + 
-    # geom_path(data = countries_df,
-    #           aes(x = long, y = lat, group = group),
-    #           colour = "gray40",
-    #           size = pol_brd_sz) +
-    geom_path(data = bbox_df, 
-              aes(long, lat, group = group), 
-              colour = "black", 
+                                                 barheight = barhgt)) +
+    geom_path(data = countries_df,
+              aes(x = long, y = lat, group = group),
+              colour = "gray40",
+              size = pol_brd_sz) +
+    geom_path(data = bbox_df,
+              aes(long, lat, group = group),
+              colour = "black",
               size = 0.3) +
     coord_equal() +
     scale_x_continuous(labels = NULL, expand = c(0, 0)) +
     scale_y_continuous(labels = NULL, expand = c(0, 0)) +
-    theme_void() + 
+    theme_void() +
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank(),
           axis.ticks = element_blank(),
           plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm"),
-          legend.position = c(leg_pos_x, leg_pos_y),    
-          legend.text = element_text(size = leg_txt_sz),                       
+          legend.position = c(leg_pos_x, leg_pos_y),
+          legend.text = element_text(size = leg_txt_sz),
           legend.title = element_text(face = "bold", size = leg_ttl_sz),
           legend.box.background = element_rect(fill = "white", colour = "black"))
-  
+
   print(p)
   
   dev.off()
