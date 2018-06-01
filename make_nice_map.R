@@ -1,7 +1,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "plotting", "functions_for_plotting_square_level_maps.R"))
@@ -44,7 +44,7 @@ out_file_names <- c("nice_map.png", "nice_map_robin.png", "nice_map_moll.png")
 
 statsc <- "best"
 
-ttl <- expression('R'[0])
+ttl <- expression("R"[0])
 
 na_cutoff <- 1
 
@@ -85,50 +85,50 @@ countries <- countries[!countries@data$NAME_ENGLI == "Caspian Sea", ]
 # submit one job --------------------------------------------------------------
 
 
-# v_nice_map <- obj$enqueue(
-#   make_nice_map(seq_along(map_projs)[3],
-#                 map_projs,
-#                 countries,
-#                 bbox,
-#                 df_long,
-#                 statsc,
-#                 na_cutoff,
-#                 ttl,
-#                 out_path,
-#                 out_file_names))
+v_nice_map <- obj$enqueue(
+  make_nice_map(seq_along(map_projs)[3],
+                map_projs,
+                countries,
+                bbox,
+                df_long,
+                statsc,
+                na_cutoff,
+                ttl,
+                out_path,
+                out_file_names))
 
 
 # submit bundle ---------------------------------------------------------------
 
 
-if(CLUSTER){
-
-  v_nice_map <- queuer::qlapply(
-    seq_along(map_projs),
-    make_nice_map,
-    obj,
-    map_projs,
-    countries,
-    bbox,
-    df_long,
-    statsc,
-    na_cutoff,
-    ttl,
-    out_path,
-    out_file_names)
-
-} else {
-
-  v_nice_map <- make_nice_map(
-    seq_along(map_projs)[3],
-    map_projs,
-    countries,
-    bbox,
-    df_long,
-    statsc,
-    na_cutoff,
-    ttl,
-    out_path,
-    out_file_names)
-  
-}
+# if(CLUSTER){
+# 
+#   v_nice_map <- queuer::qlapply(
+#     seq_along(map_projs),
+#     make_nice_map,
+#     obj,
+#     map_projs,
+#     countries,
+#     bbox,
+#     df_long,
+#     statsc,
+#     na_cutoff,
+#     ttl,
+#     out_path,
+#     out_file_names)
+# 
+# } else {
+# 
+#   v_nice_map <- make_nice_map(
+#     seq_along(map_projs)[3],
+#     map_projs,
+#     countries,
+#     bbox,
+#     df_long,
+#     statsc,
+#     na_cutoff,
+#     ttl,
+#     out_path,
+#     out_file_names)
+#   
+# }
