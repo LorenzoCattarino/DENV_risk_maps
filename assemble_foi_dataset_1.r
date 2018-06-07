@@ -29,7 +29,7 @@ source(file.path("R", "prepare_datasets", "functions_for_geolocating_admin_units
 source(file.path("R", "utility_functions.r"))
 
 
-# ---------------------------------------- define parameters 
+# define parameters -----------------------------------------------------------  
 
 
 my_api_key <- "AIzaSyBuHLASHGLaorGdZidB5sNa-9C2fxXYj1c"
@@ -60,13 +60,13 @@ foi_out_nm <- "All_FOI_estimates_linear.txt"
 info_names <- c("latitude", "longitude", "ID_0", "ID_1")
 
 
-# ---------------------------------------- register your api key
+# register your api key ------------------------------------------------------- 
 
 
 register_google(key = my_api_key, account_type = "premium", day_limit = 100000)
 
 
-# ---------------------------------------- pre processing
+# pre processing -------------------------------------------------------------- 
 
 
 output_dts <- vector("list", length = length(datasets))
@@ -76,7 +76,7 @@ dts_names <- sapply(datasets, function(x) paste(x, "csv", sep = "."), USE.NAMES 
 dts_paths <- sapply(dts_names, function(x) file.path("data", "foi", x), USE.NAMES = FALSE)
 
 
-# ---------------------------------------- load data
+# load data ------------------------------------------------------------------- 
 
 
 all_dts <- lapply(dts_paths, read.csv, header = TRUE, sep = ",", stringsAsFactors = FALSE)
