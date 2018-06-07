@@ -1,15 +1,32 @@
+
 library("ggplot2")
         
 source(file.path("R", "prepare_datasets", "grouped_data_stats.R"))
+source(file.path("R", "utility_functions.R"))
+
+
+# define parameters -----------------------------------------------------------
+
+
+dts_out_pt <- file.path("output", "datasets")
+  
+dts_out_nm <- "country_age_structure_mean.csv"
 
 out_path <- file.path("figures", "age_distribution_plots")
   
 out_file_name <- "country_age_distributions"
 
-age_distr <- read.csv(
-  file.path("output", 
-            "datasets", 
-            "country_age_structure.csv"))
+
+# load data -------------------------------------------------------------------
+
+
+age_distr <- read.csv(file.path("output", 
+                                "datasets", 
+                                "country_age_structure.csv"))
+
+
+# pre processing --------------------------------------------------------------
+
 
 age_distr <- age_distr[setdiff(names(age_distr), c("band_80_99", "band_85_99"))]
 
@@ -40,11 +57,21 @@ age_distr$mean <- mean_ages
 
 age_distr$sd <- sd
 
+age_distr <- age_distr[order(age_distr$mean), ]
+
+
+# save ------------------------------------------------------------------------
+
+
+write_out_csv(age_distr, dts_out_pt, dts_out_nm)
+
+
+# plot ------------------------------------------------------------------------
+
+
 age_distr$mean_label <- paste0("Mean = ", round(age_distr$mean, 2))
 
 age_distr$sd_label <- paste0("SD = ", round(age_distr$sd, 2))
-
-age_distr <- age_distr[order(age_distr$mean), ]
 
 dir.create(out_path, FALSE, TRUE)
 
