@@ -7,7 +7,7 @@ source(file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samp
 source(file.path("R", "utility_functions.R"))
 
 parameters <- list(
-  grid_size = 10,
+  grid_size = 1 / 120,
   all_wgt = 1,
   wgt_limits = c(1, 500),
   no_samples = 200)   
