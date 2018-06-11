@@ -37,6 +37,7 @@ out_path <- file.path("figures",
 
 if (CLUSTER) {
   
+  #config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx)
   
 } else {
