@@ -6,8 +6,8 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"),
-  file.path("R", "utility_functions.r"))
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "utility_functions.R"))
 
 my_pkgs <- "h2o"
 
@@ -23,7 +23,7 @@ ctx <- context::context_save(path = "context",
 parameters <- list(
   dependent_variable = "FOI",
   pseudoAbs_value = -0.02,
-  grid_size = 0.5,
+  grid_size = 1 / 120,
   no_trees = 500,
   min_node_size = 20,
   no_samples = 200,

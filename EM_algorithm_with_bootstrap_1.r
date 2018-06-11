@@ -27,7 +27,7 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  grid_size = 0.5,
+  grid_size = 1 / 120,
   resample_grid_size = 20,
   no_samples = 200,
   no_predictors = 9)   

@@ -24,7 +24,7 @@ source(file.path("R", "utility_functions.R"))
 parameters <- list(
   dependent_variable = "FOI",
   pseudoAbs_value = -0.02,
-  grid_size = 0.5,
+  grid_size = 1 / 120,
   all_wgt = 1,
   wgt_limits = c(1, 500),
   no_samples = 200,
@@ -41,7 +41,11 @@ data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, "_boot_model")
+var_to_fit <- parameters$dependent_variable
+
+psAbs_val <- parameters$pseudoAbs_value
+
+model_type <- paste0(var_to_fit, "_boot_model")
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
@@ -132,7 +136,15 @@ for (j in seq_along(tags)) {
     
     dts_1 <- readRDS(file.path(in_path, dts_nm))
     
-    dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 0] <- 0
+    if(var_to_fit == "FOI"){
+      
+      dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 0] <- 0
+      
+    } else {
+      
+      dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 1] <- psAbs_val
+      
+    }
     
     dts <- dts_1[dts_1$type %in% dt_typ, ]
     

@@ -14,7 +14,7 @@ library(ggplot2)
 parameters <- list(
   dependent_variable = "FOI",
   pseudoAbs_value = -0.02,
-  grid_size = 0.5,
+  grid_size = 1 / 120,
   no_trees = 500,
   min_node_size = 20,
   no_samples = 200,

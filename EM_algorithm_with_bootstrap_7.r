@@ -29,11 +29,9 @@ ctx <- context::context_save(path = "context",
 parameters <- list(
   dependent_variable = "FOI",
   pseudoAbs_value = -0.02,
-  grid_size = 0.5,
+  grid_size = 1 / 120,
   no_samples = 200,
   no_predictors = 9)   
-
-var_to_fit <- "FOI"
 
 grp_flds <- c("ADM_0", "ADM_1", "data_id")
 
@@ -74,6 +72,8 @@ if (CLUSTER) {
   context::parallel_cluster_start(8, ctx)
   
 }
+
+# obj$enqueue(install.packages(file.path("R_sources", "h2o_3.18.0.8.tar.gz"), repos=NULL, type="source"))$wait(Inf)
 
 
 # load data -------------------------------------------------------------------  
@@ -133,7 +133,7 @@ all_sqr_predictions <- readRDS(file.path("output",
 # process the original data ---------------------------------------------------
 
 
-names(foi_dataset)[names(foi_dataset) == var_to_fit] <- "o_j"
+names(foi_dataset)[names(foi_dataset) == parameters$dependent_variable] <- "o_j"
 names(foi_dataset)[names(foi_dataset) == "ID_0"] <- grp_flds[1]
 names(foi_dataset)[names(foi_dataset) == "ID_1"] <- grp_flds[2]
 
@@ -203,9 +203,9 @@ if (CLUSTER) {
     shut_h2o = TRUE)
 
 } else {
-  
+
   h2o.init()
-  
+
   bsamples_preds <- lapply(
     seq_len(no_samples),
     attach_pred_different_scale_to_data,
@@ -221,9 +221,9 @@ if (CLUSTER) {
     grp_fields = grp_flds,
     start_h2o = FALSE,
     shut_h2o = FALSE)
-  
+
   h2o.shutdown(prompt = FALSE)
-  
+
 }
 
 if (!CLUSTER) {
