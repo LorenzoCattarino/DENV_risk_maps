@@ -3,120 +3,73 @@
 # load packages
 library(rgdal) 
 library(ggplot2)
-#library(mapproj) # coord_map()
 
 
 # define parameters -----------------------------------------------------------
 
 
+adm1_i_want <- c("BRA", "COL", "VEN", "MEX", "IND", "AUS")
+
 poly_fill <- "gray90"
+
+poly_bd_sz <- 0.1
 
 
 # load data ------------------------------------------------------------------- 
 
 
-All_FOI_estimates <- read.table(
-  file.path("output", 
-            "foi", 
-            "All_FOI_estimates_linear.txt"), 
-  header = TRUE, 
-  sep = ",")
+All_FOI_estimates <- read.table(file.path("output", 
+                                          "foi", 
+                                          "All_FOI_estimates_linear.txt"), 
+                                header = TRUE, 
+                                sep = ",")
 
-pseudoAbsences <- read.csv(
-  file.path("output", 
-            "datasets", 
-            "pseudo_absence_points_2.csv"), 
-  header = TRUE)
+countries <- readOGR(dsn = file.path("output", "shapefiles"), 
+                     layer = "gadm28_adm0_eras")
 
-world_shp_admin_1_dengue <- readOGR(dsn = file.path("output", "shapefiles"), 
-                                    layer = "gadm28_adm0_eras")
-
-bra <- readOGR(dsn = file.path("data", "shapefiles", "BRA_adm_shp"), 
-               layer = "BRA_adm1")
-
-col <- readOGR(dsn = file.path("data", "shapefiles", "COL_adm_shp"), 
-               layer = "COL_adm1")
-
-ven <- readOGR(dsn = file.path("data", "shapefiles", "VEN_adm_shp"), 
-               layer = "VEN_adm1")
-
-mex <- readOGR(dsn = file.path("data", "shapefiles", "MEX_adm_shp"), 
-               layer = "MEX_adm1")
-
-ind <- readOGR(dsn = file.path("data", "shapefiles", "IND_adm_shp"), 
-               layer = "IND_adm1")
-
-aus <- readOGR(dsn = file.path("data", "shapefiles", "AUS_adm_shp"), 
-               layer = "AUS_adm1")
+adm1 <- readOGR(dsn = file.path("output", "shapefiles"), 
+                layer = "gadm28_adm1_eras")
 
 
 # pre processing -------------------------------------------------------------- 
 
 
-fort_shp <- fortify(world_shp_admin_1_dengue)
+adm1_sub <- subset(adm1, ISO %in% adm1_i_want)
 
-fort_bra <- fortify(bra)
-fort_col <- fortify(col)
-fort_ven <- fortify(ven)
-fort_mex <- fortify(mex)
-fort_ind <- fortify(ind)
-fort_aus <- fortify(aus)
+countries_fort <- fortify(countries)
+
+adm1_sub_fort <- fortify(adm1_sub)
 
 
 # plot ------------------------------------------------------------------------ 
 
 
 png(file.path("figures", "data", "dengue_points.png"), 
-    width = 24, 
-    height = 10, 
+    width = 16.5, 
+    height = 8, 
     units = "cm", 
     pointsize = 12,
-    res = 200)
+    res = 300)
 
 p <- ggplot() +
-  geom_polygon(data = fort_shp,
+  geom_polygon(data = countries_fort,
                aes(x = long, y = lat, group = group),
                colour = "black",
                fill = poly_fill,
-               size = 0.1) +
-  geom_polygon(data = fort_bra,
-               aes(x = long, y = lat, group = group),
-               colour = "black",
-               fill = poly_fill,
-               size = 0.1) +
-  geom_polygon(data = fort_ind,
-               aes(x = long, y = lat, group = group),
-               colour = "black",
-               fill = poly_fill,
-               size = 0.1) +
-  geom_polygon(data = fort_mex,
-               aes(x = long, y = lat, group = group),
-               colour = "black",
-               fill = poly_fill,
-               size = 0.1) +
-  geom_polygon(data = fort_col,
-               aes(x = long, y = lat, group = group),
-               colour = "black",
-               fill = poly_fill,
-               size = 0.1) +
-  geom_polygon(data = fort_ven,
-               aes(x = long, y = lat, group = group),
-               colour = "black",
-               fill = poly_fill,
-               size = 0.1) +
-  geom_polygon(data = fort_aus,
-               aes(x = long, y = lat, group = group),
-               colour = "black",
-               fill = poly_fill,
-               size = 0.1) +
+               size = poly_bd_sz) +
+  geom_path(data = adm1_sub_fort,
+            aes(x = long, y = lat, group = group),
+            colour = "black",
+            size = poly_bd_sz) +
   geom_point(data = All_FOI_estimates, 
              aes(x = longitude, y = latitude), 
-             size = 0.6,
+             size = 0.5,
              colour = "blue") +
-  coord_equal(ylim = c(-55, 60)) + # does not change underlying data
+  coord_equal() + # does not change underlying data
   theme_void() +
   theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
 
 print(p)
 
 dev.off()
+  
