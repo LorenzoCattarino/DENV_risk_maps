@@ -130,7 +130,7 @@ p <- ggplot(final_pd_df, aes(x, q50)) +
   theme_bw(base_size = 11, base_family = "") +
   theme(plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "in"))+
   labs(x = "Value of predictor",
-       y = "Response (and 90% CI)",
+       y = "Response (and 95% CI)",
        title = NULL)
 
 print(p)
