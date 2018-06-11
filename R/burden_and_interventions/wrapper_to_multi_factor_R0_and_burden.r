@@ -15,7 +15,7 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
                                                   base_info, 
                                                   lookup_path,
                                                   out_path, 
-                                                  no_fits = NULL) {
+                                                  no_fits = NULL){
   
   
   #browser()
