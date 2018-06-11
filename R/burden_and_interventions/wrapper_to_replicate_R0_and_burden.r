@@ -1,12 +1,18 @@
-wrapper_to_replicate_R0_and_burden <- function(
-  i, 
-  foi_data, age_struct, 
-  scaling_factor,
-  FOI_to_R0_list,
-  FOI_to_Inf_list,
-  FOI_to_C_list,
-  age_band_lower_bounds, age_band_upper_bounds, age_band_tags,
-  vec_phis, prob_fun, no_fits, var_to_fit, fit_type){
+wrapper_to_replicate_R0_and_burden <- function(i,
+                                               foi_data, 
+                                               age_struct,
+                                               scaling_factor,
+                                               FOI_to_R0_list,
+                                               FOI_to_Inf_list,
+                                               FOI_to_C_list,
+                                               age_band_lower_bounds, 
+                                               age_band_upper_bounds, 
+                                               age_band_tags,
+                                               vec_phis, 
+                                               prob_fun, 
+                                               no_fits, 
+                                               var_to_fit, 
+                                               fit_type){
   
   
   #browser()
@@ -47,7 +53,7 @@ wrapper_to_replicate_R0_and_burden <- function(
   # ---------------------------------------- calculates R0 values for different replicates of the same pixel  
   
   
-  vars <- c("FOI_r", "R0_r", "I_num", "C_num", "I_inc", "C_inc")
+  vars <- c("FOI_r", "R0_r", "I_num", "C_num")
   
   n <- length(vars)
   
