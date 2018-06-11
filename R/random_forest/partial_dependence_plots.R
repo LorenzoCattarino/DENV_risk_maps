@@ -1,10 +1,13 @@
 calculate_par_dep <- function(i, 
                               RF_mod_name, 
                               model_in_path, 
+                              train_dts_in_path,
                               model_type, 
                               variables, 
                               out_path_1,
                               out_path_2) {
+  
+  # browser()
   
   h2o.init()
   
@@ -14,11 +17,7 @@ calculate_par_dep <- function(i,
   
   var_importances <- RF_obj@model$variable_importances
   
-  dat <- readRDS(file.path("output", 
-                           "EM_algorithm",
-                           model_type,
-                           "training_datasets",
-                           paste0("train_dts_", i, ".rds")))
+  dat <- readRDS(file.path(train_dts_in_path, paste0("train_dts_", i, ".rds")))
   
   dat_h2o <- as.h2o(dat)
   
@@ -44,8 +43,8 @@ extract_pd <- function(i, variables, all_tables){
   
   data.frame(x = apply(all_x, 1, median),
              q50 = apply(all_y, 1, median),
-             q05 = apply(all_y, 1, quantile, 0.05),
-             q95 = apply(all_y, 1, quantile, 0.95),
+             q05 = apply(all_y, 1, quantile, 0.025),
+             q95 = apply(all_y, 1, quantile, 0.975),
              var = var)
   
 }
