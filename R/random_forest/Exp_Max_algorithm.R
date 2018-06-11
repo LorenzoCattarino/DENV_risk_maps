@@ -36,7 +36,7 @@ exp_max_algorithm <- function(parms,
   
   for (i in seq_len(niter)){
     
-    #browser()
+    # browser()
     
     cat("iteration =", i, "\n")
     
@@ -115,7 +115,10 @@ exp_max_algorithm <- function(parms,
     
     mp_nm <- sprintf("%s_iter_%s%s", map_name, i, ".png")
     
-    quick_raster_map(dd, "p_i", map_path, mp_nm) 
+    quick_raster_map(pred_df = dd, 
+                     statistic = "p_i", 
+                     out_pt = map_path, 
+                     out_name = mp_nm) 
     
     
     # create a copy for obs vs preds plot and SS calculation ------------------   
@@ -130,18 +133,22 @@ exp_max_algorithm <- function(parms,
     if(var_to_fit == "FOI"){
       
       dd_2$u_i[psAbs] <- 0 
+      dd_2$p_i[psAbs] <- ifelse(dd_2$p_i[psAbs] < 0, 0, dd_2$p_i[psAbs]) 
+      
+    } else {
+      
+      dd_2$u_i[psAbs] <- l_f
+      dd_2$p_i[psAbs] <- ifelse(dd_2$p_i[psAbs] < 1, l_f, dd_2$p_i[psAbs])
       
     }
     
-    dd_2$p_i[psAbs] <- ifelse(dd_2$p_i[psAbs] < 0, 0, dd_2$p_i[psAbs])
-    
-    sqr_sp_nm <- paste0("pred_vs_obs_sqr_iter_", i, ".png")
-    
-    generic_scatter_plot(df = dd_2, 
-                         x = "u_i", 
-                         y = "p_i", 
-                         file_name = sqr_sp_nm, 
-                         file_path = sct_plt_path)  
+    # sqr_sp_nm <- paste0("pred_vs_obs_sqr_iter_", i, ".png")
+    # 
+    # generic_scatter_plot(df = dd_2, 
+    #                      x = "u_i", 
+    #                      y = "p_i", 
+    #                      file_name = sqr_sp_nm, 
+    #                      file_path = sct_plt_path)  
     
     
     # 6. calculate pixel level sum of square ---------------------------------- 
@@ -171,13 +178,18 @@ exp_max_algorithm <- function(parms,
     
     if(var_to_fit == "FOI"){
       
-      cc$o_j[psAbs_adm] <- 0
+      cc$o_j[psAbs_adm] <- 0    
+      cc$adm_pred[psAbs_adm] <- ifelse(cc$adm_pred[psAbs_adm] < 0, 
+                                       0, 
+                                       cc$adm_pred[psAbs_adm])
+      
+    } else{
+      
+      cc$adm_pred[psAbs_adm] <- ifelse(cc$adm_pred[psAbs_adm] < 1, 
+                                       l_f, 
+                                       cc$adm_pred[psAbs_adm])
+      
     }
-    
-    cc$adm_pred[psAbs_adm] <- ifelse(cc$adm_pred[psAbs_adm] < 0, 
-                                     0, 
-                                     cc$adm_pred[psAbs_adm])
-    
     
     # 7. calculate population weighted mean of pixel level predictions -------- 
     
@@ -200,8 +212,6 @@ exp_max_algorithm <- function(parms,
                          file_name = av_sqr_sp_nm, 
                          file_path = sct_plt_path)  
     
-    r_av_sqr <- wtd.cor(aa[, "o_j"], aa[, "mean_p_i"], weight = aa[, "new_weight"])[,"correlation"]
-      
     
     # plot of observed vs predicted admin values ------------------------------ 
     
@@ -214,13 +224,18 @@ exp_max_algorithm <- function(parms,
                          file_name = adm_sp_nm, 
                          file_path = sct_plt_path)  
     
-    r_adm <- wtd.cor(aa[, "o_j"], aa[, "adm_pred"], weight = aa[, "new_weight"])[,"correlation"]
-    
     
     # 8. calculate admin unit level sum of square ----------------------------- 
     
-    
+      
     ss_j <- sum(aa$new_weight * (aa$mean_p_i - aa$o_j)^2)
+    
+    
+    # calculate correlation of obs vs pixel and adm predictions ---------------
+    
+    
+    r_av_sqr <- calculate_wgt_cor(aa, "o_j", "mean_p_i")
+    r_adm <- calculate_wgt_cor(aa, "o_j", "adm_pred")
     
     
     # --------------------------------------
@@ -258,19 +273,19 @@ exp_max_algorithm_boot <- function(i,
                                    sct_plt_path,
                                    adm_dataset, 
                                    pxl_dts_pt,
-                                   var_to_fit, 
                                    train_dts_path,
                                    train_dts_name){
   
-  
-  #browser()
+
+  # browser()
   
   
   # ---------------------------------------- define variables
   
   
   psAbs <- parms$pseudoAbs_value
-    
+  var_to_fit <- parms$dependent_variable
+  
   pxl_dts_nm <- paste0("env_vars_and_foi_20km_", i, ".rds")
   
   
@@ -291,6 +306,7 @@ exp_max_algorithm_boot <- function(i,
   ee <- map_name[i] 
   ff <- sct_plt_path[i]
   gg <- train_dts_name[i]
+  
   
   # ---------------------------------------- pre process the bootstrapped foi data set
   
