@@ -1,6 +1,6 @@
 quick_polygon_map <- function(adm_shp_fl, 
                               country, 
-                              y_var, 
+                              var, 
                               out_pt, 
                               out_name){
   
@@ -40,19 +40,21 @@ quick_polygon_map <- function(adm_shp_fl,
   
   #browser()
   
-  adm_shp_fl@data[is.na(adm_shp_fl@data[, y_var]), y_var] <- 0
+  adm_shp_fl@data[is.na(adm_shp_fl@data[, var]), var] <- 0
   
-  max_y <- max(adm_shp_fl@data[, y_var], na.rm = T)
+  max_var <- max(adm_shp_fl@data[, var], na.rm = T)
+  min_x <- adm_shp_fl@bbox[1,1]
+  max_x <- adm_shp_fl@bbox[1,2]
     
   p <- spplot(adm_shp_fl, 
-              y_var, 
-              at = seq(0, max_y, length.out = 100),
+              var, 
+              at = seq(0, max_var, length.out = 100),
               col = NA,
               scales = list(x = list(draw = FALSE, 
                                      at = seq(-150, 150, 50)), 
                             y = list(draw = FALSE,
                                      at = seq(-60, 60, 20))),
-              xlim = c(-180, 180),
+              xlim = c(min_x, max_x),
               ylim = c(-60, 90),
               col.regions = my_col,
               colorkey = list(space = "right", height = 0.4),
