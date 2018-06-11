@@ -105,45 +105,45 @@ variables <- predictor_rank$name[1:parameters$no_predictors]
 # submit one job --------------------------------------------------------------  
 
 
-t <- obj$enqueue(
-  calculate_par_dep(seq_len(no_samples)[1],
-                    RF_mod_name = RF_mod_name,
-                    model_in_path = model_in_pt,
-                    train_dts_in_path = train_dts_in_pt,
-                    model_type = model_type,
-                    variables = variables,
-                    out_path_1 = pdp_out_pt,
-                    out_path_2 = v_imp_out_pt))
+# t <- obj$enqueue(
+#   calculate_par_dep(seq_len(no_samples)[1],
+#                     RF_mod_name = RF_mod_name,
+#                     model_in_path = model_in_pt,
+#                     train_dts_in_path = train_dts_in_pt,
+#                     model_type = model_type,
+#                     variables = variables,
+#                     out_path_1 = pdp_out_pt,
+#                     out_path_2 = v_imp_out_pt))
 
 
 # submit all jobs -------------------------------------------------------------
 
 
-# if (CLUSTER) {
-# 
-#   pd_tables <- queuer::qlapply(
-#     seq_len(no_samples)[1],
-#     calculate_par_dep,
-#     obj,
-#     RF_mod_name = RF_mod_name,
-#     model_in_path = model_in_pt,
-#     train_dts_in_path = train_dts_in_pt,
-#     model_type = model_type,
-#     variables = variables,
-#     out_path_1 = pdp_out_pt,
-#     out_path_2 = v_imp_out_pt)
-# 
-# } else {
-# 
-#   pd_tables <- lapply(
-#     seq_len(no_samples)[1],
-#     calculate_par_dep,
-#     RF_mod_name = RF_mod_name,
-#     model_in_path = model_in_pt,
-#     train_dts_in_path = train_dts_in_pt,
-#     model_type = model_type,
-#     variables = variables,
-#     out_path_1 = pdp_out_pt,
-#     out_path_2 = v_imp_out_pt)
-# 
-# }
+if (CLUSTER) {
+
+  pd_tables <- queuer::qlapply(
+    seq_len(no_samples),
+    calculate_par_dep,
+    obj,
+    RF_mod_name = RF_mod_name,
+    model_in_path = model_in_pt,
+    train_dts_in_path = train_dts_in_pt,
+    model_type = model_type,
+    variables = variables,
+    out_path_1 = pdp_out_pt,
+    out_path_2 = v_imp_out_pt)
+
+} else {
+
+  pd_tables <- lapply(
+    seq_len(no_samples)[1],
+    calculate_par_dep,
+    RF_mod_name = RF_mod_name,
+    model_in_path = model_in_pt,
+    train_dts_in_path = train_dts_in_pt,
+    model_type = model_type,
+    variables = variables,
+    out_path_1 = pdp_out_pt,
+    out_path_2 = v_imp_out_pt)
+
+}
