@@ -41,7 +41,7 @@ make_nice_map <- function(parms,
   # plot predictions ------------------------------------------------------------
   
   
-  pred_mat <- prediction_df_to_matrix(gr_size, lats, lon, res, pred, "best")
+  pred_mat <- prediction_df_to_matrix(gr_size, lats, lons, pred, "best")
   
   pred_mat_ls <- list(x = lons,
                       y = lats,
@@ -98,7 +98,7 @@ make_nice_map <- function(parms,
   names(sd)[names(sd) == "latitude"] <- "lat.grid"
   names(sd)[names(sd) == "longitude"] <- "long.grid"
   
-  sd_mat <- prediction_df_to_matrix(gr_size, lats, lon, res, sd, "sd")
+  sd_mat <- prediction_df_to_matrix(gr_size, lats, lons, sd, "sd")
   
   sd_mat_ls <- list(x = lons,
                     y = lats,
@@ -152,8 +152,6 @@ make_nice_map <- function(parms,
           legend.title = element_text(face = "bold", size = leg_ttl_sz),
           legend.box.background = element_rect(fill = "white", colour = "black"))
   
-  pred_and_sd <- grid.arrange(pred_map, sd_map, nrow = 2)
-  
   
   # save ------------------------------------------------------------------------
   
@@ -167,7 +165,7 @@ make_nice_map <- function(parms,
       pointsize = 12,
       res = 300)
   
-  print(pred_and_sd)
+  grid.arrange(pred_map, sd_map, nrow = 2)
   
   dev.off()
   
@@ -443,7 +441,7 @@ map_predictions_pixel_ggplot <- function(df,
   
 }
 
-prediction_df_to_matrix <- function(gr_size, lats, lon, res, df_long, statsc){  
+prediction_df_to_matrix <- function(gr_size, lats, lons, df_long, statsc){  
   
   df_long$lat.int <- floor(df_long$lat.grid * 6 + 0.5)
   df_long$long.int <- floor(df_long$long.grid * 6 + 0.5)
