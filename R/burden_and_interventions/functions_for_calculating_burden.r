@@ -1,6 +1,8 @@
-calculate_infections <- function(
-  FOI, n_j, 
-  prob_fun, age_band_lower_bounds, age_band_upper_bounds){
+calculate_infections <- function(FOI, 
+                                 n_j, 
+                                 prob_fun, 
+                                 age_band_lower_bounds, 
+                                 age_band_upper_bounds){
   
   infection_probabilities <- lapply(
     prob_fun, 
@@ -17,14 +19,18 @@ calculate_infections <- function(
   
   total_infection_number <- vapply(infection_numbers_j, sum, numeric(1))
   
-  sum(total_infection_number)
+  sum(total_infection_number) * 4
   
 }
 
-calculate_cases <- function(
-  FOI, n_j, 
-  prob_fun, age_band_lower_bounds, age_band_upper_bounds,
-  rho, gamma_1, gamma_3){
+calculate_cases <- function(FOI, 
+                            n_j, 
+                            prob_fun, 
+                            age_band_lower_bounds, 
+                            age_band_upper_bounds,
+                            rho, 
+                            gamma_1, 
+                            gamma_3){
   
   infection_probabilities <- lapply(
     prob_fun, 
@@ -46,11 +52,15 @@ calculate_cases <- function(
   
   case_number_j <- calculate_case_number(tot_incid_rate_j, n_j)
   
-  sum(case_number_j)
+  sum(case_number_j) * 4
   
 }
 
-wrapper_to_lookup <- function(i, age_struct, tags, FOI_values, my_fun, ...){
+wrapper_to_lookup <- function(i, 
+                              age_struct, 
+                              tags, 
+                              FOI_values, 
+                              my_fun, ...){
   
   m_j <- age_struct[i, tags]
   vapply(
