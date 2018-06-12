@@ -9,10 +9,9 @@ wrapper_to_R0_and_burden <- function(FOI,
                                      FOI_to_R0, 
                                      FOI_to_Inf, 
                                      FOI_to_C,
-                                     N, 
                                      var_to_fit){
 
-  #browser()
+  browser()
   
   out <- setNames(rep(0, length(vars)), vars)
   
@@ -62,28 +61,24 @@ wrapper_to_R0_and_burden <- function(FOI,
     # ---------------------------------------- look up and linear interpolation to calculate burden measures
     
     
-    # for one serotype
     Infections_per_capita <- approx(FOI_to_Inf[, "x"], FOI_to_Inf[, "y"], xout = red_FOI)$y 
     Cases_per_capita <- approx(FOI_to_C[, "x"], FOI_to_C[, "y"], xout = red_FOI)$y
 
-    # for four serotypes
-    Infections_per_capita <- Infections_per_capita * 4
-    Cases_per_capita <- Cases_per_capita * 4
-    
-    Infections <- Infections_per_capita * N
-    Cases <- Cases_per_capita * N
-  
 
     # ----------------------------------------
     
-
-    #cat("number of infections =", Infections, "\n")
-    #cat("number of cases =", Cases, "\n")
-    #cat("incidence of infections =", Inc_infections, "\n")
-    #cat("incidence of cases =", Inc_cases, "\n")
     
-    out <- setNames(c(red_FOI, red_R0, Infections, Cases),
-                    vars)
+    if(var_to_fit == "FOI"){
+      
+      out <- setNames(c(red_FOI, red_R0, Infections_per_capita, Cases_per_capita),
+                      vars)
+      
+    } else {
+      
+      out <- setNames(c(red_R0, red_FOI, Infections_per_capita, Cases_per_capita),
+                      vars)
+      
+    }
     
   }
   
