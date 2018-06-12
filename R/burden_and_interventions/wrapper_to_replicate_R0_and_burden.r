@@ -12,7 +12,8 @@ wrapper_to_replicate_R0_and_burden <- function(i,
                                                prob_fun, 
                                                no_fits, 
                                                var_to_fit, 
-                                               fit_type){
+                                               fit_type,
+                                               vars){
   
   
   #browser()
@@ -35,9 +36,6 @@ wrapper_to_replicate_R0_and_burden <- function(i,
     col_ids <- as.character(seq_len(no_fits))
   }
   
-  sqr_pop <- foi_data[i, "population"]
-  #cat("square population =", sqr_pop, "\n")
-  
   m_j <- age_struct[age_struct$ADM_0 == foi_data[i, "ADM_0"], age_band_tags]
   
   if(fit_type == "boot") {
@@ -52,8 +50,6 @@ wrapper_to_replicate_R0_and_burden <- function(i,
   
   # ---------------------------------------- calculates R0 values for different replicates of the same pixel  
   
-  
-  vars <- c("FOI_r", "R0_r", "I_num", "C_num")
   
   n <- length(vars)
   
@@ -72,7 +68,6 @@ wrapper_to_replicate_R0_and_burden <- function(i,
            FOI_to_R0 = FOI_to_R0, 
            FOI_to_Inf = FOI_to_Inf, 
            FOI_to_C = FOI_to_C,
-           N = sqr_pop,
            var_to_fit = var_to_fit)
     
   } else {
@@ -88,7 +83,6 @@ wrapper_to_replicate_R0_and_burden <- function(i,
                              FOI_to_R0 = FOI_to_R0,
                              FOI_to_Inf = FOI_to_Inf,
                              FOI_to_C = FOI_to_C,
-                             N = sqr_pop,
                              var_to_fit = var_to_fit)
   }
 
