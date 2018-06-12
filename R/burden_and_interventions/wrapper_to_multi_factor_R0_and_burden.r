@@ -5,20 +5,22 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
                                                   age_band_lower_bounds, 
                                                   age_band_upper_bounds,
                                                   parallel_2, 
-                                                  var_names, 
                                                   FOI_values, 
                                                   FOI_to_Inf_list, 
                                                   FOI_to_C_list, 
                                                   prob_fun, 
-                                                  var_to_fit, 
-                                                  fit_type, 
+                                                  parms, 
                                                   base_info, 
-                                                  lookup_path,
-                                                  out_path, 
-                                                  no_fits = NULL){
+                                                  out_path){
   
   
   #browser()
+  
+  no_fits <- parms$no_samples
+  var_to_fit <- parms$dependent_variable
+  fit_type <- parms$fit_type
+  
+  var_names <- c("response_r", "transformed_r", "I_num", "C_num")
   
   
   # ---------------------------------------- Extract factor values
@@ -48,7 +50,7 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
   # ---------------------------------------- create FOI -> R0 look up tables
 
   
-  if(!file.exists(file.path(lookup_path, paste0("FOI_to_R0_lookup_tables_", phi_set_id ,".rds")))){
+  if(!file.exists(file.path(out_path, paste0("FOI_to_R0_lookup_tables_", phi_set_id ,".rds")))){
     
     R0_values <- loop(seq_len(nrow(age_data)), 
                       wrapper_to_lookup,
@@ -67,11 +69,11 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
     
     FOI_to_R0_list <- lapply(FOI_to_R0_list, fix_R0_lookup_limits)
   
-    saveRDS(FOI_to_R0_list, file.path(lookup_path, paste0("FOI_to_R0_lookup_tables_", phi_set_id ,".rds")))  
+    saveRDS(FOI_to_R0_list, file.path(out_path, paste0("FOI_to_R0_lookup_tables_", phi_set_id ,".rds")))  
     
   } else {
     
-    FOI_to_R0_list <- readRDS(file.path(lookup_path, paste0("FOI_to_R0_lookup_tables_", phi_set_id ,".rds")))
+    FOI_to_R0_list <- readRDS(file.path(out_path, paste0("FOI_to_R0_lookup_tables_", phi_set_id ,".rds")))
     
   } 
     
@@ -96,6 +98,7 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
     no_fits = no_fits,
     var_to_fit = var_to_fit, 
     fit_type = fit_type,
+    vars = var_names,
     parallel = parallel_2)
   
 
@@ -112,7 +115,7 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
       
       ret3 <- cbind(foi_data[, base_info], ret2)
       
-      fl_nm <- paste0(var_names[b], "_all_squares_", run_ID, ".rds")
+      fl_nm <- paste0(var_names[b], "_", run_ID, ".rds")
       
       write_out_rds(ret3, out_path, fl_nm)
       
@@ -126,7 +129,7 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
       
       ret3 <- cbind(foi_data[, base_info], best = ret2[,var_names[b]])
       
-      fl_nm <- paste0(var_names[b], "_best_all_squares_", run_ID, ".rds")
+      fl_nm <- paste0(var_names[b], "_best_", run_ID, ".rds")
       
       write_out_rds(as.data.frame(ret3), out_path, fl_nm)
       
