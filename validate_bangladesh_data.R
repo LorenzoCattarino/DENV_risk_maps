@@ -6,8 +6,8 @@ library(raster)
 library(dplyr)
 library(viridis)
 library(colorRamps)
+library(RColorBrewer)
 
-source(file.path("R", "prepare_datasets", "get_env_variables.R"))
 source(file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"))
 source(file.path("R", "prepare_datasets", "average_up.R"))
 source(file.path("R", "plotting", "functions_for_plotting_square_level_maps.R"))
@@ -24,7 +24,8 @@ if(packageVersion("h2o") != my_h2o_ver) install.packages(file.path("R_sources", 
 parameters <- list(no_predictors = 9,
                    resample_grid_size = 20)
 
-iso_code <- "BGD"
+alpha_iso_code <- "BGD"
+adm0 <- 20
 
 pop_var <- "pop"
 alt_var <- "altitude"
@@ -34,9 +35,18 @@ LC_var <- paste("lct1_2012001", c(seq(0, 16, 1), 254, 255), sep = "_")
 
 dts_out_pt <- file.path("output", "seroprevalence") 
   
+bng_map_out_pt <- file.path("figures", "env_variables", "Bangladesh")
+  
 dts_out_nm <- "ProportionPositive_bangladesh_salje_env_var.csv"
   
-  
+my_col <- matlab.like(10)
+my_col_cov = rev(colorRampPalette(brewer.pal(11, "RdBu"))(100))
+
+year.i <- 2007
+year.f <- 2014
+ppyear <- 64
+
+
 # load data -------------------------------------------------------------------
   
   
@@ -44,19 +54,10 @@ salje_data <- read.csv(file.path("data",
                                  "seroprevalence",
                                  "ProportionPositive_bangladesh_salje.csv"))
 
-shp <- readOGR(file.path("data", "shapefiles", "BGD_adm_shp"), paste0(iso_code, "_adm1"),
+shp <- readOGR(file.path("data", "shapefiles", "BGD_adm_shp"), "BGD_adm1",
                stringsAsFactors = FALSE,
                integer64 = "allow.loss")
 
-h2o.init()
-
-RF_obj <- h2o.loadModel(file.path("output",
-                                  "EM_algorithm",
-                                  "best_fit_models",
-                                  "FOI_best_model",
-                                  "optimized_model_objects",
-                                  "RF_obj.rds"))
-  
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection", 
                                      "metropolis_hastings", 
@@ -69,6 +70,20 @@ age_distr <- read.csv(file.path("output",
                                 "country_age_structure.csv"), 
                       header = TRUE) 
 
+pred <- readRDS(file.path("output",
+                          "predictions_world", 
+                          "best_fit_models",
+                          "FOI_best_model",
+                          "response.rds"))
+
+covariates <- readRDS(file.path("output",
+                                "env_variables",
+                                "all_squares_env_var_0_1667_deg_dis.rds"))
+
+foi_dataset <- read.csv(
+  file.path("output", "foi", "All_FOI_estimates_linear_env_var_area.csv"),
+  stringsAsFactors = FALSE) 
+
 
 # pre processing --------------------------------------------------------------
 
@@ -79,44 +94,28 @@ res <- (1 / 120) * gr_size
 lats <- seq(-90, 90, by = res)
 lons <- seq(-180, 180, by = res)
 
-my_predictors <- predictor_rank$name[1:parameters$no_predictors]
-
-salje_data$ISO <- iso_code
-  
-location_xy <- salje_data[, c("lon", "lat")]
-
-xy_spdf <- SpatialPoints(location_xy, proj4string = shp@proj4string)
-
 shp_fort <- fortify(shp)
 
-
-# map overlay -----------------------------------------------------------------
-
-
-overlay <- over(xy_spdf, shp)
-country_numeric_code <- overlay$ID_0
-adm_numeric_code <- overlay$ID_1
-adm1_name <- overlay$NAME_1
-
-salje_data$ID_0 <- country_numeric_code
-salje_data$ID_1 <- adm_numeric_code
-salje_data$adm1 <- adm1_name
-
-
-# remove na adm name ----------------------------------------------------------
-
-
-salje_data <- subset(salje_data, !is.na(ID_1))
 
 salje_data$id_point <- seq_len(nrow(salje_data))
 
 salje_data$o_j <- salje_data$nPos / salje_data$nAll
 
+names(covariates)[names(covariates) == "longitude"] <- "long.grid"
+names(covariates)[names(covariates) == "latitude"] <- "lat.grid"
 
-# plot the points -------------------------------------------------------------
-   
-   
-png(file.path("figures", "data", "salje_bangl_points_2.png"),
+covariates$pop_density <- covariates$population / 342
+covariates$pop_density <- log(1 + covariates$pop_density)
+
+our_foi_point <- foi_dataset[foi_dataset$ID_0 == adm0, ]
+
+salje_data$ISO <- alpha_iso_code
+
+
+# plot the original seroprevalence points -------------------------------------
+
+
+png(file.path("figures", "data", "salje_bangl_points_serop.png"),
     width = 12,
     height = 10,
     units = "cm",
@@ -129,7 +128,7 @@ p <- ggplot() +
   coord_equal() + 
   scale_color_viridis("seroprevalence") +
   theme_minimal()
-                     
+
 print(p)
 
 dev.off()
@@ -149,13 +148,7 @@ dev.off()
 # crop the global prediction map ----------------------------------------------
 
 
-preds <- readRDS(file.path("output",
-                           "predictions_world", 
-                           "best_fit_models",
-                           "FOI_best_model",
-                           "response.rds"))
-
-pred_mat <- prediction_df_to_matrix(gr_size, lats, lons, preds, "best")
+pred_mat <- prediction_df_to_matrix(lats, lons, pred, "best")
 
 pred_mat_ls <- list(x = lons,
                     y = lats,
@@ -171,9 +164,11 @@ pred_r_spdf <- as(pred_r_mat_msk, "SpatialPixelsDataFrame")
 
 pred_r_df <- as.data.frame(pred_r_spdf)
 
-my_col <- matlab.like(10)
 
-png(file.path("figures", "data", "bangl_predicted_FOI.png"),
+# plot the cropped global prediction map --------------------------------------
+
+
+png(file.path("figures", "data", "predicted_FOI_map.png"),
     width = 12,
     height = 10,
     units = "cm",
@@ -195,63 +190,163 @@ print(p)
 dev.off()
 
 
-# disaggregate salje data -----------------------------------------------------
+# extract foi at the sero points coordinates ----------------------------------
 
 
-all_sqr_covariates <- readRDS(file.path("output", 
-                                        "env_variables", 
-                                        "all_squares_env_var_0_1667_deg.rds"))
+my_points <- as.matrix(salje_data[,c("lon", "lat")])
 
-salje_data_sqr <- inner_join(all_sqr_covariates, 
-                             salje_data[, c("id_point", "ID_0", "ID_1")], 
-                             by = c("ADM_0" = "ID_0", "ADM_1" = "ID_1"))
+cell_ids_in_raster <- cellFromXY(pred_r_mat, my_points)
 
+raster_values <- pred_r_mat[cell_ids_in_raster]
 
-# make predictions ------------------------------------------------------------
+salje_data$foi <- raster_values
 
 
-salje_data_sqr$foi <- make_h2o_predictions(RF_obj, salje_data_sqr, my_predictors)
+# plot the 20 km foi at the sero points ---------------------------------------
 
 
-# join 20 km predictions to original data -------------------------------------
+png(file.path("figures", "data", "salje_bangl_points_20km_foi.png"),
+    width = 12,
+    height = 10,
+    units = "cm",
+    pointsize = 12,
+    res = 300)
+
+p <- ggplot() +
+  geom_path(data = shp_fort, aes(x = long, y = lat, group = group), size = 0.3) +
+  geom_point(data = salje_data, aes(x = lon, y = lat, colour = foi), size = 2) +
+  coord_equal() + 
+  scale_color_viridis("20 km FOI") +
+  theme_minimal()
+
+print(p)
+
+dev.off()
 
 
-salje_data_sqr_pred <- left_join(salje_data, 
-                                 salje_data_sqr[, c("id_point", "population", "foi")], 
-                                 by = "id_point")
+# find admin unit 1 ------------------------------------------------------------------
+
+
+location_xy <- salje_data[, c("lon", "lat")]
+xy_spdf <- SpatialPoints(location_xy, proj4string = shp@proj4string)
+
+overlay <- over(xy_spdf, shp)
+country_numeric_code <- overlay$ID_0
+adm_numeric_code <- overlay$ID_1
+adm1_name <- overlay$NAME_1
+
+salje_data$ID_0 <- country_numeric_code
+salje_data$ID_1 <- adm_numeric_code
+salje_data$adm1 <- adm1_name
+
+salje_data <- subset(salje_data, !is.na(ID_1))
 
 
 # save ------------------------------------------------------------------------
 
 
-write_out_csv(salje_data_sqr_pred, 
+write_out_csv(salje_data, 
               dts_out_pt, 
               "ProportionPositive_bangladesh_salje_sqr_pred.csv")
 
 
-# aggregate -------------------------------------------------------------------
+# subset covariate dataset (bangladesh) ---------------------------------------
 
 
-average_sqr <- average_up(salje_data_sqr, c("id_point", "ADM_0", "ADM_1"), "foi")
+covariates_bgd <- covariates[covariates$ADM_0 == adm0, ]
 
 
-# join adm averaged predictions to original data ------------------------------
+# rescale covariate -----------------------------------------------------------
 
 
-salje_data_2 <- left_join(salje_data, 
-                          average_sqr[, c("id_point", "foi")], 
-                          by = "id_point")
+all_predictors <- predictor_rank$name
+
+for (i in seq_along(all_predictors)){
+  
+  var <- all_predictors[i]
+  
+  scale <- 1
+  
+  if(grepl("Re.", var) | grepl("Im.", var)){
+    
+    scale <- ppyear * (year.f - year.i + 1) / 2 
+    
+  } 
+  
+  if(grepl("const_term$", var)){
+    
+    scale <- ppyear * (year.f - year.i + 1) 
+    
+  }  
+  
+  # message(scale)
+  
+  covariates_bgd[, var] <- covariates_bgd[, var] / scale
+  
+}
 
 
-# save ------------------------------------------------------------------------
+# map covariates --------------------------------------------------------------
 
 
-write_out_csv(salje_data_2, dts_out_pt, "ProportionPositive_bangladesh_salje_pred.csv")
+all_predictors <- c(all_predictors, "pop_density")
+
+dir.create(bng_map_out_pt, FALSE, TRUE)
+
+for (j in seq_along(all_predictors)){
+  
+  my_pred <- all_predictors[j]
+    
+  png(file.path(bng_map_out_pt, paste0(j, "_", my_pred,".png")),
+      width = 13,
+      height = 10,
+      units = "cm",
+      pointsize = 12,
+      res = 300)
+  
+  p <- ggplot() +
+    geom_tile(data = covariates_bgd, aes_string(x = "long.grid", y = "lat.grid", fill = my_pred)) +
+    geom_point(data = salje_data, aes(x = lon, y = lat, colour = o_j), size = 1.5) +
+    geom_point(data = our_foi_point, aes(x = longitude, y = latitude), colour = "red", size = 2) +
+    scale_fill_gradientn(colours = my_col_cov,
+                         guide = guide_colourbar(title = my_pred)) +
+    scale_color_viridis("seroprevalence") +
+    geom_path(data = shp_fort, aes(x = long, y = lat, group = group), size = 0.3) +
+    scale_x_continuous("longitude", limits = c(88, 93)) +
+    scale_y_continuous("latitude", limits = c(20, 27), breaks = seq(20, 27, 1), labels = seq(20, 27, 1)) +
+    coord_equal() +
+    theme_minimal()
+  
+  print(p)
+  
+  dev.off()
+  
+}
 
 
-# seroprevalence --------------------------------------------------------------
-
-
+# # aggregate -------------------------------------------------------------------
+# 
+# 
+# average_sqr <- average_up(salje_data_sqr, c("id_point", "ADM_0", "ADM_1"), "foi")
+# 
+# 
+# # join adm averaged predictions to original data ------------------------------
+# 
+# 
+# salje_data_2 <- left_join(salje_data, 
+#                           average_sqr[, c("id_point", "foi")], 
+#                           by = "id_point")
+# 
+# 
+# # save ------------------------------------------------------------------------
+# 
+# 
+# write_out_csv(salje_data_2, dts_out_pt, "ProportionPositive_bangladesh_salje_pred.csv")
+# 
+# 
+# # seroprevalence --------------------------------------------------------------
+# 
+# 
 # age_distr <- age_distr[setdiff(names(age_distr), c("band_80_99", "band_85_99"))]
 # 
 # age_band_tgs <- grep("band", names(age_distr), value = TRUE)
