@@ -8,8 +8,6 @@ library(viridis)
 library(colorRamps)
 library(RColorBrewer)
 
-source(file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"))
-source(file.path("R", "prepare_datasets", "average_up.R"))
 source(file.path("R", "plotting", "functions_for_plotting_square_level_maps.R"))
 source(file.path("R", "utility_functions.R"))
 
@@ -21,11 +19,14 @@ if(packageVersion("h2o") != my_h2o_ver) install.packages(file.path("R_sources", 
 # define parameters -----------------------------------------------------------
 
 
-parameters <- list(no_predictors = 9,
-                   resample_grid_size = 20)
+parameters <- list(resample_grid_size = 20)
 
 alpha_iso_code <- "BGD"
 adm0 <- 20
+
+year.i <- 2007
+year.f <- 2014
+ppyear <- 64
 
 pop_var <- "pop"
 alt_var <- "altitude"
@@ -39,10 +40,6 @@ dts_out_nm <- "ProportionPositive_bangladesh_salje_env_var.csv"
   
 my_col <- matlab.like(10)
 my_col_cov = rev(colorRampPalette(brewer.pal(11, "RdBu"))(100))
-
-year.i <- 2007
-year.f <- 2014
-ppyear <- 64
 
 
 # load data -------------------------------------------------------------------
