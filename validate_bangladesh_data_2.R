@@ -1,7 +1,16 @@
 
+library(rgdal)
+library(ggplot2)
+library(RColorBrewer)
+library(viridis)
+
 
 # define parameters -----------------------------------------------------------
 
+
+year.i <- 2007
+year.f <- 2014
+ppyear <- 64
 
 adm0 <- 20
 
@@ -10,6 +19,10 @@ bng_map_out_pt <- file.path("figures", "env_variables", "Bangladesh")
 
 # load data -------------------------------------------------------------------
 
+
+shp <- readOGR(file.path("data", "shapefiles", "BGD_adm_shp"), "BGD_adm1",
+               stringsAsFactors = FALSE,
+               integer64 = "allow.loss")
 
 covariates <- readRDS(file.path("output",
                                 "env_variables",
@@ -22,15 +35,31 @@ predictor_rank <- read.csv(file.path("output",
                                      "variable_rank_final_fits_exp_1.csv"),
                            stringsAsFactors = FALSE)
 
+salje_data <- read.csv(file.path("output", 
+                                 "seroprevalence",
+                                 "ProportionPositive_bangladesh_salje_sqr_pred.csv"),
+                       stringsAsFactors = FALSE)
+
+foi_dataset <- read.csv(file.path("output", 
+                                  "foi", 
+                                  "All_FOI_estimates_linear_env_var_area.csv"),
+                        stringsAsFactors = FALSE) 
+
 
 # pre process -----------------------------------------------------------------
 
+
+shp_fort <- fortify(shp)
+
+our_foi_point <- foi_dataset[foi_dataset$ID_0 == adm0, ]
 
 names(covariates)[names(covariates) == "longitude"] <- "long.grid"
 names(covariates)[names(covariates) == "latitude"] <- "lat.grid"
 
 covariates$pop_density <- covariates$population / 342
 covariates$pop_density <- log(1 + covariates$pop_density)
+
+my_col_cov <- rev(colorRampPalette(brewer.pal(11, "RdBu"))(100))
 
 
 # subset covariate dataset (bangladesh) ---------------------------------------

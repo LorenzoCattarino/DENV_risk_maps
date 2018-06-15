@@ -1,12 +1,11 @@
 
+library(ggplot2)
 library(rgdal)
 library(h2o)
-library(ggplot2)
 library(raster)
 library(dplyr)
-library(viridis)
 library(colorRamps)
-library(RColorBrewer)
+library(viridis)
 
 source(file.path("R", "plotting", "functions_for_plotting_square_level_maps.R"))
 source(file.path("R", "utility_functions.R"))
@@ -24,10 +23,6 @@ parameters <- list(resample_grid_size = 20)
 alpha_iso_code <- "BGD"
 adm0 <- 20
 
-year.i <- 2007
-year.f <- 2014
-ppyear <- 64
-
 pop_var <- "pop"
 alt_var <- "altitude"
 FT_elem <- c("const_term",	"Re0",	"Im0",	"Re1",	"Im1")
@@ -39,7 +34,6 @@ dts_out_pt <- file.path("output", "seroprevalence")
 dts_out_nm <- "ProportionPositive_bangladesh_salje_env_var.csv"
   
 my_col <- matlab.like(10)
-my_col_cov = rev(colorRampPalette(brewer.pal(11, "RdBu"))(100))
 
 
 # load data -------------------------------------------------------------------
@@ -59,10 +53,6 @@ pred <- readRDS(file.path("output",
                           "FOI_best_model",
                           "response.rds"))
 
-foi_dataset <- read.csv(
-  file.path("output", "foi", "All_FOI_estimates_linear_env_var_area.csv"),
-  stringsAsFactors = FALSE) 
-
 
 # pre processing --------------------------------------------------------------
 
@@ -75,12 +65,9 @@ lons <- seq(-180, 180, by = res)
 
 shp_fort <- fortify(shp)
 
-
 salje_data$id_point <- seq_len(nrow(salje_data))
 
 salje_data$o_j <- salje_data$nPos / salje_data$nAll
-
-our_foi_point <- foi_dataset[foi_dataset$ID_0 == adm0, ]
 
 salje_data$ISO <- alpha_iso_code
 
@@ -172,7 +159,7 @@ cell_ids_in_raster <- cellFromXY(pred_r_mat, my_points)
 
 raster_values <- pred_r_mat[cell_ids_in_raster]
 
-salje_data$foi <- raster_values
+salje_data$foi_sqr <- raster_values
 
 
 # plot the 20 km foi at the sero points ---------------------------------------
@@ -187,7 +174,7 @@ png(file.path("figures", "data", "salje_bangl_points_20km_foi.png"),
 
 p <- ggplot() +
   geom_path(data = shp_fort, aes(x = long, y = lat, group = group), size = 0.3) +
-  geom_point(data = salje_data, aes(x = lon, y = lat, colour = foi), size = 2) +
+  geom_point(data = salje_data, aes(x = lon, y = lat, colour = foi_sqr), size = 2) +
   coord_equal() + 
   scale_color_viridis("20 km FOI") +
   theme_minimal()

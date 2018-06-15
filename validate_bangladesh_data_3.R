@@ -1,5 +1,12 @@
 
 
+# define parameters -----------------------------------------------------------
+
+
+FOI_values <- seq(0, 0.2, by = 0.0002)
+
+
+
 # load data -------------------------------------------------------------------
 
 
@@ -8,6 +15,10 @@ age_distr <- read.csv(file.path("output",
                                 "country_age_structure.csv"), 
                       header = TRUE) 
 
+salje_data <- read.csv(file.path("output", 
+                                 "seroprevalence",
+                                 "ProportionPositive_bangladesh_salje_sqr_pred.csv"),
+                       stringsAsFactors = FALSE)
 
 
 # seroprevalence --------------------------------------------------------------
@@ -31,14 +42,17 @@ get_sero <- function(i, j){
   1 - (exp(-4 * i * j))
 }
 
-pred_serop <- t(vapply(salje_data_2$foi, get_sero, numeric(length(yy)), yy))
+pred_serop <- t(vapply(FOI_values, get_sero, numeric(length(yy)), yy))
 
-BGD_age_struct <- as.matrix(age_distr[age_distr$country == "Bangladesh", age_bounds_num_2])
+# BGD_age_struct <- as.matrix(age_distr[age_distr$country == "Bangladesh", age_bounds_num_2])
+# BGD_age_structure_all_points <- matrix(rep(BGD_age_struct, 69), ncol = 20, byrow = TRUE)
 
-BGD_age_structure_all_points <- matrix(rep(BGD_age_struct, 69), ncol = 20, byrow = TRUE)
+mean_pred_serop <- rowMeans(pred_serop)
 
-mean_pred_serop <- rowSums(BGD_age_structure_all_points * pred_serop)
+look_up <- data.frame(x = FOI_values, y = mean_pred_serop)
 
-salje_data_2$p_j <- mean_pred_serop
+henrik_sero <- salje_data$o_j
+  
+henrik_foi <- approx(look_up[, "y"], look_up[, "x"], xout = henrik_sero)$y
 
-salje_data_2$o_j <- salje_data_2$nPos / salje_data_2$nAll
+salje_data$foi <- henrik_foi 
