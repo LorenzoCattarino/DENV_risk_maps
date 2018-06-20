@@ -1,4 +1,6 @@
 
+# plot a map of each covariate with the Salje's points overlaid
+
 library(rgdal)
 library(ggplot2)
 library(RColorBrewer)

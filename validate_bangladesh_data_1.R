@@ -1,4 +1,9 @@
 
+# plot the Salje's seroprevalence points
+# plot our cropped global prediction map
+# extract and plot foi at the sero points coordinates
+# find the admin unit 1 for each of sero points
+
 library(ggplot2)
 library(rgdal)
 library(h2o)

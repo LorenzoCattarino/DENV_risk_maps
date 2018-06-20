@@ -1,4 +1,7 @@
 
+# average up the 70 Salje points within the 7 bangladesh admin units
+# extract predictor values for each of the 7 points
+
 library(rgdal)
 library(dplyr)
 
@@ -124,4 +127,3 @@ ave_foi_2$pop_den <- ave_foi_2$population / ave_foi_2$Shape_Area
 
 
 write_out_csv(ave_foi_2, dts_out_pt, dts_out_nm)
-

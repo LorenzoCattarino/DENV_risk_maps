@@ -1,4 +1,8 @@
 
+# include the 7 Salje points into our dataset
+# fit a RF model to the dataset and make predictions 
+# calculate correlation between observed and predicted value of the 7 points 
+
 library(h2o)
 library(ggplot2)
 

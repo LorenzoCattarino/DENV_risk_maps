@@ -1,4 +1,7 @@
 
+# calculate foi from Salje's seroprevalence values
+# calculate correlation with our 20 km predictions
+
 library(ggplot2)
 
 source(file.path("R", "prepare_datasets", "calculate_seroprevalence_age.R"))
