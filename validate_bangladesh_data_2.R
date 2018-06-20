@@ -4,9 +4,14 @@ library(ggplot2)
 library(RColorBrewer)
 library(viridis)
 
+source(file.path("R", "plotting", "functions_for_plotting_square_level_maps.R"))
+source(file.path("R", "utility_functions.R"))
+
 
 # define parameters -----------------------------------------------------------
 
+
+parameters <- list(resample_grid_size = 20)
 
 year.i <- 2007
 year.f <- 2014
@@ -14,7 +19,15 @@ ppyear <- 64
 
 adm0 <- 20
 
+dts_out_pt <- file.path("output", "seroprevalence", "salje") 
+
 bng_map_out_pt <- file.path("figures", "env_variables", "Bangladesh")
+
+gr_size <- parameters$resample_grid_size
+
+res <- (1 / 120) * gr_size
+lats <- seq(20, 27, by = res)
+lons <- seq(88, 93, by = res)
 
 
 # load data -------------------------------------------------------------------
@@ -37,7 +50,8 @@ predictor_rank <- read.csv(file.path("output",
 
 salje_data <- read.csv(file.path("output", 
                                  "seroprevalence",
-                                 "ProportionPositive_bangladesh_salje_sqr_pred.csv"),
+                                 "salje",
+                                 "predictions_20km.csv"),
                        stringsAsFactors = FALSE)
 
 foi_dataset <- read.csv(file.path("output", 
@@ -105,9 +119,33 @@ all_predictors <- c(all_predictors, "pop_density")
 
 dir.create(bng_map_out_pt, FALSE, TRUE)
 
+n <- length(all_predictors)
+
+out_cor_coef <- data.frame(predictor = rep(0, n), correlation = rep(0, n))
+  
 for (j in seq_along(all_predictors)){
   
   my_pred <- all_predictors[j]
+  
+  
+  pred_mat <- prediction_df_to_matrix(lats, lons, covariates_bgd, my_pred)
+  pred_mat_ls <- list(x = lons,
+                      y = lats,
+                      z = pred_mat)
+  pred_r_mat <- raster::raster(pred_mat_ls)
+  my_ext <- matrix(pred_r_mat@extent[], nrow = 2, byrow = TRUE)
+  shp@bbox <- my_ext
+  pred_r_mat_crp <- raster::crop(pred_r_mat, shp)
+  pred_r_mat_msk <- raster::mask(pred_r_mat_crp, shp)
+  pred_r_spdf <- as(pred_r_mat_msk, "SpatialPixelsDataFrame")
+  pred_r_df <- as.data.frame(pred_r_spdf)
+  my_points <- as.matrix(salje_data[, c("lon", "lat")])
+  cell_ids_in_raster <- raster::cellFromXY(pred_r_mat, my_points)
+  raster_values <- pred_r_mat[cell_ids_in_raster]
+  corr_coeff <- round(cor(salje_data$o_j, raster_values), 3)
+  
+  out_cor_coef[j, "predictor"] <- my_pred
+  out_cor_coef[j, "correlation"] <- corr_coeff
   
   png(file.path(bng_map_out_pt, paste0(j, "_", my_pred,".png")),
       width = 13,
@@ -127,6 +165,7 @@ for (j in seq_along(all_predictors)){
     scale_x_continuous("longitude", limits = c(88, 93)) +
     scale_y_continuous("latitude", limits = c(20, 27), breaks = seq(20, 27, 1), labels = seq(20, 27, 1)) +
     coord_equal() +
+    geom_text(aes(x = 88.5, y = 20.5, label = paste0("r = ", corr_coeff))) +
     theme_minimal()
   
   print(p)
@@ -134,3 +173,11 @@ for (j in seq_along(all_predictors)){
   dev.off()
   
 }
+
+out_cor_coef <- out_cor_coef[order(out_cor_coef$correlation, decreasing = TRUE), ]
+
+
+# save ------------------------------------------------------------------------
+
+
+write_out_csv(out_cor_coef, dts_out_pt, "all_points_covariate_correlation.csv") 

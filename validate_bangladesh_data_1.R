@@ -23,13 +23,9 @@ parameters <- list(resample_grid_size = 20)
 alpha_iso_code <- "BGD"
 adm0 <- 20
 
-pop_var <- "pop"
-alt_var <- "altitude"
-FT_elem <- c("const_term",	"Re0",	"Im0",	"Re1",	"Im1")
-FT_var <- c("RFE", "DayTemp", "NightTemp", "EVI", "MIR")
-LC_var <- paste("lct1_2012001", c(seq(0, 16, 1), 254, 255), sep = "_")
+map_out_pt <- file.path("figures", "data", "salje")
 
-dts_out_pt <- file.path("output", "seroprevalence") 
+dts_out_pt <- file.path("output", "seroprevalence", "salje") 
   
 dts_out_nm <- "ProportionPositive_bangladesh_salje_env_var.csv"
   
@@ -75,7 +71,9 @@ salje_data$ISO <- alpha_iso_code
 # plot the original seroprevalence points -------------------------------------
 
 
-png(file.path("figures", "data", "salje_bangl_points_serop.png"),
+dir.create(map_out_pt, FALSE, TRUE)
+
+png(file.path(map_out_pt, "salje_bangl_points_serop.png"),
     width = 12,
     height = 10,
     units = "cm",
@@ -128,7 +126,7 @@ pred_r_df <- as.data.frame(pred_r_spdf)
 # plot the cropped global prediction map --------------------------------------
 
 
-png(file.path("figures", "data", "predicted_FOI_map.png"),
+png(file.path(map_out_pt, "predicted_FOI_map.png"),
     width = 12,
     height = 10,
     units = "cm",
@@ -165,7 +163,7 @@ salje_data$foi_sqr <- raster_values
 # plot the 20 km foi at the sero points ---------------------------------------
 
 
-png(file.path("figures", "data", "salje_bangl_points_20km_foi.png"),
+png(file.path(map_out_pt, "salje_bangl_points_20km_foi.png"),
     width = 12,
     height = 10,
     units = "cm",
@@ -207,107 +205,4 @@ salje_data <- subset(salje_data, !is.na(ID_1))
 
 write_out_csv(salje_data, 
               dts_out_pt, 
-              "ProportionPositive_bangladesh_salje_sqr_pred.csv")
-
-
-# # aggregate -------------------------------------------------------------------
-# 
-# 
-# average_sqr <- average_up(salje_data_sqr, c("id_point", "ADM_0", "ADM_1"), "foi")
-# 
-# 
-# # join adm averaged predictions to original data ------------------------------
-# 
-# 
-# salje_data_2 <- left_join(salje_data, 
-#                           average_sqr[, c("id_point", "foi")], 
-#                           by = "id_point")
-# 
-# 
-# # save ------------------------------------------------------------------------
-# 
-# 
-# write_out_csv(salje_data_2, dts_out_pt, "ProportionPositive_bangladesh_salje_pred.csv")
-# 
-# 
-# # seroprevalence --------------------------------------------------------------
-# 
-# 
-# age_distr <- age_distr[setdiff(names(age_distr), c("band_80_99", "band_85_99"))]
-# 
-# age_band_tgs <- grep("band", names(age_distr), value = TRUE)
-# 
-# age_bounds_num <- sub("^[^_]+_", "", age_band_tgs)
-# 
-# age_bounds_num_2 <- sub("_", "-",age_bounds_num)
-# 
-# names(age_distr)[names(age_distr) %in% age_band_tgs] <- age_bounds_num_2
-# 
-# xx <- strsplit(age_bounds_num_2, "-")
-# zz <- lapply(xx, as.numeric)
-# yy <- vapply(zz, mean, numeric(1))
-# 
-# get_sero <- function(i, j){
-#   1 - (exp(-4 * i * j))
-# }
-# 
-# pred_serop <- t(vapply(salje_data_2$foi, get_sero, numeric(length(yy)), yy))
-# 
-# BGD_age_struct <- as.matrix(age_distr[age_distr$country == "Bangladesh", age_bounds_num_2])
-# 
-# BGD_age_structure_all_points <- matrix(rep(BGD_age_struct, 69), ncol = 20, byrow = TRUE)
-# 
-# mean_pred_serop <- rowSums(BGD_age_structure_all_points * pred_serop)
-# 
-# salje_data_2$p_j <- mean_pred_serop
-# 
-# salje_data_2$o_j <- salje_data_2$nPos / salje_data_2$nAll
-# 
-# corr_coeff <- cor.test(salje_data_2$o_j, salje_data_2$p_j)
-# 
-# ggplot(salje_data_2) +
-#   geom_point(aes(x = o_j, y = p_j)) +
-#   scale_x_continuous("observations", limits = c(0, 1)) + 
-#   scale_y_continuous("predictions", limits = c(0, 1)) +
-#   geom_text(aes(x = 0.75, y = 0, label = paste0("r = ", round(corr_coeff$estimate, 3))))
-# 
-# ggsave(file.path("figures", "bangladesh_seroprevalence_corr.png"))
-
-
-# # extract env variables -------------------------------------------------------
-# 
-# 
-# salje_data_ls <- df_to_list(salje_data, use_names = TRUE)
-# 
-# number_of_variables <- length(c(alt_var, LC_var)) + (length(c(pop_var, FT_elem)) * length(FT_var))
-# 
-# extracted_var_values <- sapply(
-#   salje_data_ls, 
-#   get_env_variables, 
-#   no_vars = number_of_variables, 
-#   pop_vars = pop_var,
-#   alt_vars = alt_var, 
-#   FT_elements = FT_elem, 
-#   FT_data = FT_var, 
-#   LC_vars = LC_var, 
-#   admin_level = 1,
-#   my_path = file.path("output", "env_variables"))
-# 
-# salje_data_2 <- cbind(salje_data, t(extracted_var_values))
-# 
-# colnames(salje_data_2) <- c(names(salje_data), alt_var, 
-#                             apply(expand.grid(c(pop_var, FT_elem), FT_var), 
-#                                   1, 
-#                                   function(x) {paste(x[2],x[1], sep="_")}), LC_var)
-# 
-# 
-# # save dataset ----------------------------------------------------------------
-# 
-# 
-# write_out_csv(salje_data_2, dts_out_pt, dts_out_nm)
-# 
-# 
-# # make predictions ------------------------------------------------------------
-# 
-# 
-# salje_data$foi <- make_h2o_predictions(RF_obj, salje_data_2, my_predictors)
+              "predictions_20km.csv")
