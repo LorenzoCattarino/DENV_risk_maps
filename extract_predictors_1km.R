@@ -1,17 +1,4 @@
-########
-########
-########
-
-
-# ==================================== Code needs testing!!!!!
-
-
-########
-########
-########
-
-
-# Extract the values of the predictor for each 1x1 km pixel of the world 
+# Extract the values of the predictor for each 1km pixel of the world 
 # and store them in separate `tiles`  
 
 options(didehpc.cluster = "fi--didemrchnb")
@@ -49,6 +36,8 @@ file_roots <- c("alt_global_raw_set",
 
 in_path <- file.path("H:", "Data", "processed", "fullres")
 
+out_path <- file.path("output", "env_variables", "tile_set_2")
+
 
 # are you using the cluster? --------------------------------------------------
   
@@ -74,10 +63,22 @@ tiles <- read.csv(file.path("data",
                             "plus60minus60_tiles.csv"), 
                   stringsAsFactors = FALSE)
 
-landscan_pop <- raster(file.path("data", "Landscan_2015", "lspop2015.flt")) 
-accessibility <- raster(file.path("data", "sam's_predictors", "accessibility_50k_5km.tif"))
-temp_suitability <- raster(file.path("data", "sam's_predictors", "Pv_temperature_suitability.tif")) 
+landscan_pop <- raster(file.path("data", 
+                                 "Landscan_2015", 
+                                 "lspop2015.flt")) 
 # used to be "//fi--didef2/Census/Landscan2014/Population/lspop2014.flt"
+
+accessibility <- raster(file.path("data", 
+                                  "sam's_predictors", 
+                                  "accessibility_50k_5km.tif"))
+
+temp_suitability <- raster(file.path("data", 
+                                     "sam's_predictors", 
+                                     "Pv_temperature_suitability.tif")) 
+
+aedes_gen <- raster(file.path("data", 
+                              "aedes_generations", 
+                              "eggsgen_ck_2005-2010_Global_arg.gri"))
 
 
 # pre processing -------------------------------------------------------------- 
@@ -93,48 +94,62 @@ tiles$set_id <- tiles$tile.id
   
 tiles_lst <- df_to_list(tiles, use_names = TRUE)
 
+NAvalue(accessibility) = -9999
+NAvalue(temp_suitability) = -9999
+
 
 # submit one job --------------------------------------------------------------
 
 
-t <- obj$enqueue(
-  wrapper_to_get_env_var_for_pixels(
-    tiles_lst[[1]],
-    my_path = in_path,
-    FTs_data = FTs_data,
-    txt_file_roots = file_roots,
-    all_vars = all_vars,
-    all_var_names = all_var_names,
-    pop_raster = landscan_pop))
+# t <- obj$enqueue(
+#   wrapper_to_get_env_var_for_pixels(
+#     tiles_lst[[72]],
+#     in_path = in_path,
+#     out_path = out_path,
+#     FTs_data = FTs_data,
+#     txt_file_roots = file_roots,
+#     all_vars = all_vars,
+#     all_var_names = all_var_names,
+#     raster_1 = landscan_pop,
+#     raster_2 = accessibility,
+#     raster_3 = temp_suitability,
+#     raster_4 = aedes_gen))
 
 
 # submit all jobs -------------------------------------------------------------
 
 
-# if (CLUSTER) {
-# 
-#   write_out_tiles <- queuer::qlapply(
-#     tiles_lst,
-#     wrapper_to_get_env_var_for_pixels,
-#     obj,
-#     my_path = in_path,
-#     FTs_data = FTs_data,
-#     txt_file_roots = file_roots,
-#     all_vars = all_vars,
-#     all_var_names = all_var_names,
-#     pop_raster = landscan_pop)
-# 
-# } else {
-# 
-#   write_out_tiles <- lapply(
-#     tiles_lst[1],
-#     wrapper_to_get_env_var_for_pixels,
-#     my_path = in_path,
-#     FTs_data = FTs_data,
-#     txt_file_roots = file_roots,
-#     all_vars = all_vars,
-#     all_var_names = all_var_names,
-#     pop_raster = landscan_pop)
-# 
-# }
-  
+if (CLUSTER) {
+
+  write_out_tiles <- queuer::qlapply(
+    tiles_lst[c(45, 72)],
+    wrapper_to_get_env_var_for_pixels,
+    obj,
+    in_path = in_path,
+    out_path = out_path,
+    FTs_data = FTs_data,
+    txt_file_roots = file_roots,
+    all_vars = all_vars,
+    all_var_names = all_var_names,
+    raster_1 = landscan_pop,
+    raster_2 = accessibility,
+    raster_3 = temp_suitability,
+    raster_4 = aedes_gen)
+
+} else {
+
+  write_out_tiles <- lapply(
+    tiles_lst[45],
+    wrapper_to_get_env_var_for_pixels,
+    in_path = in_path,
+    out_path = out_path,
+    FTs_data = FTs_data,
+    txt_file_roots = file_roots,
+    all_vars = all_vars,
+    all_var_names = all_var_names,
+    raster_1 = landscan_pop,
+    raster_2 = accessibility,
+    raster_3 = temp_suitability,
+    raster_4 = aedes_gen)
+
+}
