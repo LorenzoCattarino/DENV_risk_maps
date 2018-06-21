@@ -16,11 +16,11 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "utility_functions.r"),
-  file.path("R", "prepare_datasets", "functions_for_extracting_predictor_values.R"))
+  file.path("R", "prepare_datasets", "extract_predictors.R"),
+  file.path("R", "utility_functions.R"))
 
 my_pkgs <- c("data.table", "raster", "rgdal")  
 
@@ -47,7 +47,7 @@ file_roots <- c("alt_global_raw_set",
                 "FTfreqs_2007-2014_64ppyear", 
                 "MCD12Q1.A.051.lct1_2012_5km_set")
 
-in_path <- "fullres"
+in_path <- file.path("H:", "Data", "processed", "fullres")
 
 
 # are you using the cluster? --------------------------------------------------
@@ -55,32 +55,29 @@ in_path <- "fullres"
   
 if(CLUSTER) {
   
-  share <- didehpc::path_mapping("dengue", "H:", "//fi--didenas3", "H:")
+  share <- didehpc::path_mapping("dengue", "H:", "//fi--didenas3/Dengue", "H:")
   config <- didehpc::didehpc_config(shares = share)
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
-}else{
+} else {
   
   context::context_load(ctx)
   
 }
 
+
 # load data -------------------------------------------------------------------
 
 
-tiles <- read.csv(
-  file.path("data", 
-            "env_variables", 
-            "plus60minus60_tiles.csv"), 
-  header = TRUE,
-  stringsAsFactors = FALSE)
+tiles <- read.csv(file.path("data", 
+                            "env_variables", 
+                            "plus60minus60_tiles.csv"), 
+                  stringsAsFactors = FALSE)
 
 landscan_pop <- raster(file.path("data", "Landscan_2015", "lspop2015.flt")) 
+accessibility <- raster(file.path("data", "sam's_predictors", "accessibility_50k_5km.tif"))
+temp_suitability <- raster(file.path("data", "sam's_predictors", "Pv_temperature_suitability.tif")) 
 # used to be "//fi--didef2/Census/Landscan2014/Population/lspop2014.flt"
-
-aedes_gen <- raster(file.path("data", 
-                              "aedes_generations", 
-                              "eggsgen_ck_2005-2010_Global_arg.gri"))
 
 
 # pre processing -------------------------------------------------------------- 
@@ -102,44 +99,42 @@ tiles_lst <- df_to_list(tiles, use_names = TRUE)
 
 t <- obj$enqueue(
   wrapper_to_get_env_var_for_pixels(
+    tiles_lst[[1]],
     my_path = in_path,
     FTs_data = FTs_data,
     txt_file_roots = file_roots,
-    all_vars = all_vars, 
+    all_vars = all_vars,
     all_var_names = all_var_names,
-    pop_raster = landscan_pop,
-    aedes_raster = aedes_raster))
+    pop_raster = landscan_pop))
 
 
 # submit all jobs -------------------------------------------------------------
 
 
-if (CLUSTER) {
-  
-  write_out_tiles <- queuer::qlapply(
-    tiles_lst, 
-    wrapper_to_get_env_var_for_pixels,
-    obj,
-    my_path = in_path,
-    FTs_data = FTs_data,
-    txt_file_roots = file_roots,
-    all_vars = all_vars, 
-    all_var_names = all_var_names,
-    pop_raster = landscan_pop,
-    aedes_raster = aedes_raster)
-  
-}else{
-    
-  write_out_tiles <- lapply(
-    tiles_lst[1], 
-    wrapper_to_get_env_var_for_pixels,
-    my_path = in_path,
-    FTs_data = FTs_data,
-    txt_file_roots = file_roots,
-    all_vars = all_vars, 
-    all_var_names = all_var_names,
-    pop_raster = landscan_pop,
-    aedes_raster = aedes_raster)
-  
-}  
+# if (CLUSTER) {
+# 
+#   write_out_tiles <- queuer::qlapply(
+#     tiles_lst,
+#     wrapper_to_get_env_var_for_pixels,
+#     obj,
+#     my_path = in_path,
+#     FTs_data = FTs_data,
+#     txt_file_roots = file_roots,
+#     all_vars = all_vars,
+#     all_var_names = all_var_names,
+#     pop_raster = landscan_pop)
+# 
+# } else {
+# 
+#   write_out_tiles <- lapply(
+#     tiles_lst[1],
+#     wrapper_to_get_env_var_for_pixels,
+#     my_path = in_path,
+#     FTs_data = FTs_data,
+#     txt_file_roots = file_roots,
+#     all_vars = all_vars,
+#     all_var_names = all_var_names,
+#     pop_raster = landscan_pop)
+# 
+# }
   
