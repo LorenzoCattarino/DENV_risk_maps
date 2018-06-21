@@ -1,19 +1,34 @@
 wrapper_to_get_env_var_for_pixels <- function(x, 
-                                              my_path, 
+                                              in_path,
+                                              out_path,
                                               FTs_data, 
                                               txt_file_roots, 
                                               all_vars, 
                                               all_var_names, 
-                                              pop_raster){
+                                              raster_1,
+                                              raster_2,
+                                              raster_3,
+                                              raster_4){
   
-  #browser()
+  
+  get_raster_values_from_xy <- function(i, lat, lon) {
+    
+    my_raster <- paste0("raster_", i)
+    ras_obj <- get(my_raster)
+    ext_coord <- cbind(lon, lat)
+    cell_numbers <- cellFromXY(ras_obj, ext_coord)
+    ras_obj[cell_numbers] 
+    
+  }
   
   tile_id <- x$set_id
   cat("tile id =", tile_id, "\n")
   
+  file_name <- paste0("tile_", tile_id, ".txt")
+  
   # 1) load all env variables for the tile
   all_env_var <- load_env_var(set_id = tile_id, 
-                              my_path = my_path, 
+                              my_path = in_path, 
                               FTs_data = FTs_data, 
                               txt_file_roots = txt_file_roots)
   
@@ -22,6 +37,7 @@ wrapper_to_get_env_var_for_pixels <- function(x,
   
   # 3) cbind all env variable to each other (also subset and change column names)
   all_env_var_combined <- append_env_var_by_tile(all_env_var_2, all_vars, all_var_names)
+  
   
   #### add population
   
@@ -32,21 +48,26 @@ wrapper_to_get_env_var_for_pixels <- function(x,
   L_row <- floor((90.0 - T_lat) * 120.0)
   L_col <- floor(120.0 * (180.0 + T_lon))
   
-  cell_numbers <- cellFromRowCol(pop_raster, L_row, L_col)
-  pop_values <- pop_raster[cell_numbers] 
+  cell_numbers <- cellFromRowCol(raster_1, L_row, L_col)
+  pop_values <- raster_1[cell_numbers] 
   
   all_env_var_combined$population <- pop_values
   
-  # create output dir 
-  dir.create(file.path(my_path, "tiles"), FALSE, TRUE)
+  ####
   
-  # get name of output file 
-  file_name <- paste0("tile_", tile_id, ".txt")
   
-  # write out
+  all_raster_values <- vapply(seq(2, 4, 1), get_raster_values_from_xy, numeric(length(T_lat)), T_lat, T_lon)
+  
+  colnames(all_raster_values) <- c("travel_time", "TSI", "aedes_gen")
+  
+  all_env_var_combined <- cbind(all_env_var_combined, all_raster_values)
+  
+  dir.create(out_path, FALSE, TRUE)
+  
   write.table(all_env_var_combined, 
-              file.path(my_path, "tiles", file_name), 
-              row.names = FALSE, sep = ",")
+              file.path(out_path, file_name), 
+              row.names = FALSE, 
+              sep = ",")
   
 }
 
@@ -65,7 +86,7 @@ wrapper_to_load_env_var <- function(x, ...){
 
 load_env_var <- function(set_id, my_path, FTs_data, txt_file_roots) {
   
-  browser()
+  # browser()
   
   result_folders <- c("altitude", "FTs", "LandCover")
   
@@ -249,34 +270,5 @@ assign_NA <- function(i, var_list) {
   }
   
   dat
-  
-}
-
-append_raster_value_to_tile <- function(x, my_raster, out_path) {
-  
-  tile <- fread(x,
-                header = TRUE,
-                sep = ",",
-                na.strings = c("NA", "-1.#IND", "Peipsi", "Moskva", "IJsselmeer", "Zeeuwse meren"),
-                fill = TRUE,
-                data.table = FALSE)
-  
-  T_lat <- tile$latitude  
-  T_lon <- tile$longitude
-  
-  ext_coord <- cbind(T_lat, T_lon)
-  ae_cell_numbers <- cellFromXY(my_raster, ext_coord)
-  ae_values <- aedes_raster[ae_cell_numbers] 
-  
-  tile$aedes <- ae_values
-  
-  file_name <- basename(x) 
-  
-  dir.create(out_path, FALSE, TRUE)
-  
-  write.table(tile, 
-              file.path(out_path, file_name), 
-              row.names = FALSE, 
-              sep = ",")
   
 }
