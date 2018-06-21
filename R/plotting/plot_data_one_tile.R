@@ -5,7 +5,6 @@ plot_tiles <- function(var, out_path, res, tile_set, tile_id, my_col) {
   year.i <- 2007
   year.f <- 2014
   ppyear <- 64
-  n.years <- year.f - year.i + 1
   
   lons <- seq(round(2 * min(tile_set$longitude) / res), round(2 * max(tile_set$longitude) / res), by = 2) * res / 2
   lats <- seq(round(2 * min(tile_set$latitude) / res), round(2 * max(tile_set$latitude) / res), by = 2) * res/2
@@ -13,13 +12,21 @@ plot_tiles <- function(var, out_path, res, tile_set, tile_id, my_col) {
   mm.lons <- match(round(2 * tile_set$longitude / res), round(2 * lons / res))
   mm.lats <- match(round(2 * tile_set$latitude / res), round(2 * lats / res))
   
+  scale <- 1
+  
   if(grepl("const_term", var)){
     
     ## annual mean
-    dat.mat[cbind(mm.lons, mm.lats)] <- tile_set[, var] / (ppyear * n.years)
+    scale <- ppyear * (year.f - year.i + 1) 
     map_title <- paste("annual mean", gsub(".const_term", "", var), sep = " ") 
-  
+    
   }
+  
+  if(grepl("Re.", var) | grepl("Im.", var)){
+    
+    scale <- ppyear * (year.f - year.i + 1) / 2 
+    
+  } 
   
   if(grepl("amplitude", var)){
     
@@ -30,21 +37,18 @@ plot_tiles <- function(var, out_path, res, tile_set, tile_id, my_col) {
     ## annual amplitude
     dat.mat[cbind(mm.lons, mm.lats)] <- calc_amplitude(tile_set, b1, b2, ppyear, n.years)
     map_title <- paste("annual amplitude", a, sep = " ")
-  
-  }
-  
-  if(var == "population"){
     
-    dat.mat[cbind(mm.lons, mm.lats)] <- tile_set[, var]
-    map_title <- var
+  } else {
+    
+    dat.mat[cbind(mm.lons, mm.lats)] <- tile_set[, var] / scale
   
   }
   
   # create output dir 
   dir.create(out_path, FALSE, TRUE)
-
+  
   file_name <- paste0(var, "_", tile_id, ".png")
-    
+  
   png(file.path(out_path, file_name), 
       width = 5, 
       height = 4, 
