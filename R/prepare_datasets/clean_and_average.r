@@ -1,7 +1,8 @@
 clean_and_average <- function(dat, 
-                               env_vars, 
-                               grid_size, 
-                               grp_flds) {
+                              env_vars, 
+                              grid_size, 
+                              grp_flds,
+                              resample) {
   
   #browser()
   
@@ -17,12 +18,25 @@ clean_and_average <- function(dat,
     
   }
   
-  yy <- grid_up(dataset = bb, grid_size = grid_size, rnd_dist = FALSE)
+  if(resample){
+    
+    yy <- grid_up(dataset = bb, grid_size = grid_size, rnd_dist = FALSE)
+    
+    yy$lat.grid <- yy$lat.grid * grid_size
+    yy$long.grid <- yy$long.grid * grid_size
+    
+    yy <- yy[, setdiff(names(yy), c("latitude", "longitude"))]
+      
+    names(yy)[names(yy) == "lat.grid"] <- "latitude"
+    names(yy)[names(yy) == "long.grid"] <- "longitude"
+    
+  } else {
+    
+    yy <- bb
+  
+  }
   
   ret <- average_up(yy, grp_flds, env_vars)
-  
-  ret$lat.grid <- ret$lat.grid * grid_size
-  ret$long.grid <- ret$long.grid * grid_size
   
   sqr_area_km <- (grid_size * 111.32)^2
   
