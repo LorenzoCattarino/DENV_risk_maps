@@ -122,7 +122,7 @@ NAvalue(temp_suitability) = -9999
 if (CLUSTER) {
 
   write_out_tiles <- queuer::qlapply(
-    tiles_lst[c(45, 72)],
+    tiles_lst,
     wrapper_to_get_env_var_for_pixels,
     obj,
     in_path = in_path,
@@ -139,7 +139,7 @@ if (CLUSTER) {
 } else {
 
   write_out_tiles <- lapply(
-    tiles_lst[45],
+    tiles_lst[1],
     wrapper_to_get_env_var_for_pixels,
     in_path = in_path,
     out_path = out_path,
