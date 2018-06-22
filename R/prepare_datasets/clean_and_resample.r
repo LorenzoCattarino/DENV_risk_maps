@@ -1,4 +1,4 @@
-clean_and_resample <- function(dat, 
+clean_and_average <- function(dat, 
                                env_vars, 
                                grid_size, 
                                grp_flds) {
@@ -19,7 +19,7 @@ clean_and_resample <- function(dat,
   
   yy <- grid_up(dataset = bb, grid_size = grid_size, rnd_dist = FALSE)
   
-  ret <- average_up(yy, c(grp_flds, "cell", "lat.grid", "long.grid"), env_vars)
+  ret <- average_up(yy, grp_flds, env_vars)
   
   ret$lat.grid <- ret$lat.grid * grid_size
   ret$long.grid <- ret$long.grid * grid_size
