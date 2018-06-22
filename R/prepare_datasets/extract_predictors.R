@@ -11,6 +11,8 @@ wrapper_to_get_env_var_for_pixels <- function(x,
                                               raster_4){
   
   
+  ras_vars <- c("travel_time", "TSI", "aedes_gen")
+    
   get_raster_values_from_xy <- function(i, lat, lon) {
     
     my_raster <- paste0("raster_", i)
@@ -58,8 +60,17 @@ wrapper_to_get_env_var_for_pixels <- function(x,
   
   all_raster_values <- vapply(seq(2, 4, 1), get_raster_values_from_xy, numeric(length(T_lat)), T_lat, T_lon)
   
-  colnames(all_raster_values) <- c("travel_time", "TSI", "aedes_gen")
+  if(is.null(dim(all_raster_values))){
+    
+    all_raster_values <- setNames(as.data.frame(matrix(all_raster_values, nrow = 1)), 
+                                  ras_vars)   
   
+  } else {
+    
+    colnames(all_raster_values) <- ras_vars 
+  
+  }
+                 
   all_env_var_combined <- cbind(all_env_var_combined, all_raster_values)
   
   dir.create(out_path, FALSE, TRUE)
