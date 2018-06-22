@@ -1,6 +1,6 @@
 resample <- function(x, grp_flds, grid_size, env_var_names, out_path){
   
-  #browser()
+  # browser()
   
   tile <- fread(x,
                 header = TRUE, 
@@ -9,7 +9,7 @@ resample <- function(x, grp_flds, grid_size, env_var_names, out_path){
                 fill = TRUE, 
                 data.table = FALSE)
   
-  if(is.character(tile$ADM_0)) stop("ADM_0 is a character")
+  if(is.character(tile$ID_0)) stop("ID_0 is a character")
   
   cc <- clean_and_resample(tile, env_var_names, grid_size, grp_flds)
   
