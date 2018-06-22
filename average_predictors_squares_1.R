@@ -4,7 +4,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "prepare_datasets", "load_clean_and_average.R"),
@@ -28,13 +28,15 @@ parameters <- list(
   grid_size = 1 / 120,       # decimal degrees
   resample_grid_size = 20)   # kms  
 
-group_fields <- c("cell", "lat.grid", "long.grid")
+group_fields <- c("cell", "latitude", "longitude")
 
 in_pt <- file.path("output", "env_variables", "tile_set_2", "gadm")
 
 altitude_var <- "altitude"
 fourier_transform_elem <- c("const_term",	"Re0",	"Im0",	"Re1",	"Im1")
 FTs_dt <- c("DayTemp", "EVI", "MIR", "NightTemp", "RFE")
+
+resample <- TRUE
 
 
 # define variables ------------------------------------------------------------
@@ -88,7 +90,8 @@ fi <- list.files(in_pt,
 #   grp_flds = group_fields,
 #   grid_size = new_res,
 #   env_var_names = var_names,
-#   out_path = out_pt))
+#   out_path = out_pt,
+#   resample = resample))
 
 
 # submit all jobs ------------------------------------------------------------- 
@@ -103,7 +106,8 @@ if (CLUSTER) {
     grp_flds = group_fields,
     grid_size = new_res,
     env_var_names = var_names,
-    out_path = out_pt)
+    out_path = out_pt,
+    resample = resample)
 
 }else{
 
@@ -113,6 +117,7 @@ if (CLUSTER) {
     grp_flds = group_fields,
     grid_size = new_res,
     env_var_names = var_names,
-    out_path = out_pt)
+    out_path = out_pt,
+    resample = resample)
 
 }
