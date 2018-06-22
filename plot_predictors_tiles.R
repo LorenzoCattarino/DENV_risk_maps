@@ -15,6 +15,10 @@ tiles <- read.csv(file.path("data",
 
 run_id <- 72
 
+out_pt <- file.path("figures", 
+                    "env_variables", 
+                    "test_tiles")
+
 one_tile_ID <- tiles[run_id, "tile.id"]
 
 one_tile <- fread(file.path("output",
@@ -41,9 +45,7 @@ my_pal <- rev(colorRampPalette(brewer.pal(11, "RdBu"))(100))
 
 sapply(vars_to_plot, 
        plot_tiles, 
-       out_path = file.path("figures", 
-                            "env_variables", 
-                            "test_tiles"), 
+       out_path = out_pt, 
        res = 1/120, 
        tile_set = one_tile, 
        tile_id = one_tile_ID,
