@@ -38,7 +38,7 @@ wrapper_to_multi_factor_R0 <- function(
          wrapper_to_R0, 
          numeric(1),
          foi_data = All_FOI_estimates_3, 
-         age_struct = country_age_struc, 
+         age_struct = age_struct, 
          age_band_lower_bounds = age_band_L_bounds, 
          age_band_upper_bounds = age_band_U_bounds, 
          age_band_tags = age_band_tgs,
