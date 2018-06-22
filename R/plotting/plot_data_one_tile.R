@@ -1,6 +1,6 @@
 plot_tiles <- function(var, out_path, res, tile_set, tile_id, my_col) {
   
-  #cat("variable =", var, "\n")
+  message(var)
   
   year.i <- 2007
   year.f <- 2014
@@ -18,7 +18,6 @@ plot_tiles <- function(var, out_path, res, tile_set, tile_id, my_col) {
     
     ## annual mean
     scale <- ppyear * (year.f - year.i + 1) 
-    map_title <- paste("annual mean", gsub(".const_term", "", var), sep = " ") 
     
   }
   
@@ -35,8 +34,7 @@ plot_tiles <- function(var, out_path, res, tile_set, tile_id, my_col) {
     b2 <- paste(a, "Im0", sep = "_")
     
     ## annual amplitude
-    dat.mat[cbind(mm.lons, mm.lats)] <- calc_amplitude(tile_set, b1, b2, ppyear, n.years)
-    map_title <- paste("annual amplitude", a, sep = " ")
+    dat.mat[cbind(mm.lons, mm.lats)] <- calc_amplitude(tile_set, b1, b2, year.f, year.i, ppyear)
     
   } else {
     
@@ -67,7 +65,7 @@ plot_tiles <- function(var, out_path, res, tile_set, tile_id, my_col) {
              legend.shrink = 0.7, 
              legend.width = 1)
   
-  title(main = map_title, line = 0.2)
+  # title(main = map_title, line = 0.2)
   
   dev.off()
   
