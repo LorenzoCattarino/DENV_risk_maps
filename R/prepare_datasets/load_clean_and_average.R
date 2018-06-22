@@ -1,4 +1,4 @@
-load_clean_and_average <- function(x, grp_flds, grid_size, env_var_names, out_path){
+load_clean_and_average <- function(x, grp_flds, grid_size, env_var_names, out_path, resample){
   
   # browser()
   
@@ -11,11 +11,10 @@ load_clean_and_average <- function(x, grp_flds, grid_size, env_var_names, out_pa
   
   if(is.character(tile$ID_0)) stop("ID_0 is a character")
   
-  cc <- clean_and_average(tile, env_var_names, grid_size, grp_flds)
+  cc <- clean_and_average(tile, env_var_names, grid_size, grp_flds, resample)
   
-  names(cc)[names(cc) == "lat.grid"] <- "latitude"
-  
-  names(cc)[names(cc) == "long.grid"] <- "longitude"
+  # names(cc)[names(cc) == "lat.grid"] <- "latitude"
+  # names(cc)[names(cc) == "long.grid"] <- "longitude"
   
   file_name <- basename(x) 
   
