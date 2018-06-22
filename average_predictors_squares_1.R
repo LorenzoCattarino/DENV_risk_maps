@@ -1,12 +1,14 @@
-# Resamples all the 1 km pixels, in each tile, to squares with a coarser resolution
+
+# resample all the 1 km pixels, in each tile, to squares with a coarser resolution
+# average the value of the pixel predictors within each square
 
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "prepare_datasets", "resample.R"),
-  file.path("R", "prepare_datasets", "clean_and_resample.R"),
+  file.path("R", "prepare_datasets", "load_clean_and_average.R"),
+  file.path("R", "prepare_datasets", "clean_and_average.R"),
   file.path("R", "prepare_datasets", "grid_up.R"),
   file.path("R", "prepare_datasets", "remove_NA_rows.R"),
   file.path("R", "prepare_datasets", "average_up.R"))
@@ -82,7 +84,7 @@ fi <- list.files(in_pt,
 
 
 # t <- obj$enqueue(
-#   resample(fi[186],
+#   load_clean_and_average(fi[186],
 #   grp_flds = group_fields,
 #   grid_size = new_res,
 #   env_var_names = var_names,
@@ -96,7 +98,7 @@ if (CLUSTER) {
 
   resample_tiles <- queuer::qlapply(
     fi,
-    resample,
+    load_clean_and_average,
     obj,
     grp_flds = group_fields,
     grid_size = new_res,
@@ -107,7 +109,7 @@ if (CLUSTER) {
 
   resample_tiles <- lapply(
     fi[45],
-    resample,
+    load_clean_and_average,
     grp_flds = group_fields,
     grid_size = new_res,
     env_var_names = var_names,
