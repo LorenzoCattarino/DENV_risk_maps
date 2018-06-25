@@ -3,7 +3,7 @@
 options(didehpc.cluster = "fi--didemrchnb")
 
 my_resources <- c(
-  file.path("R", "utility_functions.r"))
+  file.path("R", "utility_functions.R"))
 
 my_pkgs <- "data.table"
 
@@ -16,44 +16,36 @@ context::context_load(ctx)
 context::parallel_cluster_start(8, ctx)
 
 
-# ---------------------------------------- define parameters 
+# define parameters -----------------------------------------------------------  
 
 
-model_tp <- "boot_model_20km_cw" 
-
-in_pt <- file.path(
-  "output", 
-  "env_variables",
-  "all_sets_0_1667_deg",
-  "gadm")
+in_pt <- file.path("output", 
+                   "env_variables",
+                   "tile_set_2_20km",
+                   "gadm")
 
 out_fl_nm <- "all_squares_env_var_0_1667_deg.rds"
 
-out_pt <- file.path(
-  "output", 
-  "env_variables")
+out_pt <- file.path("output", "env_variables")
 
 
-# ---------------------------------------- pre processing
+# pre processing -------------------------------------------------------------- 
 
 
-fi <- list.files(in_pt, 
-                 pattern = "^tile",
-                 full.names = TRUE)
+fi <- list.files(in_pt, pattern = "^tile", full.names = TRUE)
 
 
-# ---------------------------------------- combine all covariate tiles
+# combine all covariate tiles ------------------------------------------------- 
 
 
-all_tiles <- loop(
-  fi, 
-  fread,
-  header = TRUE,
-  sep = ",",
-  na.strings = c("NA", "-1.#IND", "Peipsi", "Moskva", "IJsselmeer", "Zeeuwse meren"),
-  fill = TRUE, 
-  data.table = FALSE,
-  parallel = TRUE)
+all_tiles <- loop(fi, 
+                  fread,
+                  header = TRUE,
+                  sep = ",",
+                  na.strings = c("NA", "-1.#IND", "Peipsi", "Moskva", "IJsselmeer", "Zeeuwse meren"),
+                  fill = TRUE, 
+                  data.table = FALSE,
+                  parallel = TRUE)
 
 all_sqr_covariates <- do.call("rbind", all_tiles)
 
