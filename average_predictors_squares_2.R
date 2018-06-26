@@ -48,10 +48,12 @@ all_tiles <- loop(fi,
                   data.table = FALSE,
                   parallel = TRUE)
 
+context::parallel_cluster_stop()
+
 all_sqr_covariates <- do.call("rbind", all_tiles)
 
 all_sqr_covariates$cell <- seq_len(nrow(all_sqr_covariates))
 
-write_out_rds(all_sqr_covariates, out_pt, out_fl_nm)
+all_sqr_covariates$log_pop_den <- log(1 + all_sqr_covariates$pop_den) 
 
-context::parallel_cluster_stop()
+write_out_rds(all_sqr_covariates, out_pt, out_fl_nm)
