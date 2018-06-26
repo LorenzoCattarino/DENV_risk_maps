@@ -11,6 +11,7 @@ library(raster)
 library(dplyr)
 library(colorRamps)
 library(viridis)
+library(rgeos)
 
 source(file.path("R", "plotting", "functions_for_plotting_square_level_maps.R"))
 source(file.path("R", "utility_functions.R"))
@@ -187,7 +188,7 @@ print(p)
 dev.off()
 
 
-# find admin unit 1 ------------------------------------------------------------------
+# find admin unit 1 -----------------------------------------------------------
 
 
 location_xy <- salje_data[, c("lon", "lat")]
@@ -197,12 +198,30 @@ overlay <- over(xy_spdf, shp)
 country_numeric_code <- overlay$ID_0
 adm_numeric_code <- overlay$ID_1
 adm1_name <- overlay$NAME_1
-
+country_name <- overlay$NAME_0
+  
+salje_data$country <- country_name
 salje_data$ID_0 <- country_numeric_code
 salje_data$ID_1 <- adm_numeric_code
 salje_data$adm1 <- adm1_name
 
 salje_data <- subset(salje_data, !is.na(ID_1))
+
+
+# add adm unit 1 centroid coordinates -----------------------------------------
+
+
+centroid_objs <- gCentroid(shp,byid=TRUE)
+
+centroid_xy <- centroid_objs@coords
+
+centroid_xy <- cbind(seq(nrow(centroid_xy)), centroid_xy)
+
+colnames(centroid_xy) <- c("ID_1", "longitude", "latitude")
+
+centroid_xy <- as.data.frame(centroid_xy)
+
+salje_data <- left_join(salje_data, centroid_xy)
 
 
 # save ------------------------------------------------------------------------
