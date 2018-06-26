@@ -64,9 +64,9 @@ all_combs_df <- expand.grid(FTs_dt, fourier_transform_elem)
 
 all_combs_names <- apply(all_combs_df, 1, function(x) paste(x[1], x[2], sep = "_"))
 
-var_names <- c(altitude_var, all_combs_names)
+my_predictors <- c(altitude_var, all_combs_names)
                    
-var_names <- c(var_names, "travel_time", "TSI", "aedes_gen")
+my_predictors <- c(my_predictors, "travel_time", "TSI", "aedes_gen")
 
 fi <- list.files(in_pt, 
                  pattern = "^tile",
@@ -80,7 +80,7 @@ fi <- list.files(in_pt,
 #   load_clean_and_average(fi[186],
 #   grp_flds = group_fields,
 #   grid_size = new_res,
-#   env_var_names = var_names,
+#   env_var_names = my_predictors,
 #   out_path = out_pt,
 #   resample = resample))
 
@@ -96,7 +96,7 @@ if (CLUSTER) {
     obj,
     grp_flds = group_fields,
     grid_size = new_res,
-    env_var_names = var_names,
+    env_var_names = my_predictors,
     out_path = out_pt,
     resample = resample)
 
@@ -107,7 +107,7 @@ if (CLUSTER) {
     load_clean_and_average,
     grp_flds = group_fields,
     grid_size = new_res,
-    env_var_names = var_names,
+    env_var_names = my_predictors,
     out_path = out_pt,
     resample = resample)
 
