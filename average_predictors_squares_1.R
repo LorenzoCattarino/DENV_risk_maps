@@ -4,7 +4,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "prepare_datasets", "load_clean_and_average.R"),
@@ -109,7 +109,7 @@ if (CLUSTER) {
     out_path = out_pt,
     resample = resample)
 
-}else{
+} else {
 
   resample_tiles <- lapply(
     fi[45],
