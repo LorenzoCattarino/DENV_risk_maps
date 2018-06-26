@@ -1,6 +1,6 @@
-filter_and_resample <- function(x, foi_dts, env_var_names, grp_flds, grid_size){
+filter_and_resample <- function(x, foi_dts, env_var_names, grp_flds, jn_flds, grid_size, resample){
   
-  #browser()
+  # browser()
   
   cat("tile path =", x, "\n")
   
@@ -12,21 +12,19 @@ filter_and_resample <- function(x, foi_dts, env_var_names, grp_flds, grid_size){
                 data.table = FALSE)
   
   #"Peipsi", "Moskva", "IJsselmeer", "Zeeuwse meren"
-  if(is.character(tile$ADM_0)) stop("ADM_0 is a character")
+  if(is.character(tile$ID_0)) stop("ID_0 is a character")
   
-  aa <- inner_join(
-    tile, 
-    foi_dts[, grp_flds])
+  aa <- inner_join(tile, foi_dts[, jn_flds])
   
   if(nrow(aa) > 0) {
     
-    cc <- clean_and_resample(aa, env_var_names, grid_size, grp_flds)
+    cc <- clean_and_average(aa, env_var_names, grid_size, c(jn_flds, grp_flds), resample)
     
-    dd <- inner_join(cc, foi_dts[, c(grp_flds, "type")])
+    dd <- inner_join(cc, foi_dts[, c(jn_flds, "type")])
     
-    names(dd)[names(dd) == "lat.grid"] <- "latitude"
+    # names(dd)[names(dd) == "lat.grid"] <- "latitude"
     
-    names(dd)[names(dd) == "long.grid"] <- "longitude"
+    # names(dd)[names(dd) == "long.grid"] <- "longitude"
     
   } else {
     
