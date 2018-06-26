@@ -100,7 +100,7 @@ if (CLUSTER) {
     out_path = out_pt,
     resample = resample)
 
-}else{
+} else {
 
   resample_tiles <- lapply(
     fi[45],
