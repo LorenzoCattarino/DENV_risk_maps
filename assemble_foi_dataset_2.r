@@ -1,4 +1,4 @@
-# For each original foi estimate, calculates the corresponding R0 (only one assumption)
+# For each original foi estimate, calculates the corresponding R0 (three assumptions)
 
 # load packages
 library(ggplot2)
