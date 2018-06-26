@@ -21,7 +21,7 @@ LandCover_var <- paste("lct1_2012001", c(seq(0, 16, 1), 254, 255), sep = "_")
 
 base_info <- c("OBJECTID", "ID_0", "ISO", "country", "ID_1", "name1", "latitude", "longitude")
 
-winkel_tripel_crs <- CRS("+proj=wintri")
+map_proj <- "+proj=moll"
 
 
 # ---------------------------------------- define variable
@@ -98,7 +98,7 @@ adm1_env_var <- adm1_env_var[!row.has.na, ]
 # ---------------------------------------- attach population density
 
 
-shp_pr <- spTransform(shp_fl_adm1, winkel_tripel_crs)
+shp_pr <- spTransform(shp_fl_adm1, map_proj)
 
 all_areas <- sapply(shp_pr@polygons, function(x) x@area)
 
