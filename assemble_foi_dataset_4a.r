@@ -17,7 +17,8 @@ base_info <- c("type",
   
 foi_out_pt <- file.path("output", "foi")
   
-foi_out_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
+# foi_out_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
+foi_out_nm <- "All_FOI_estimates_linear_env_var_area.csv"
 
 
 # load data -------------------------------------------------------------------  
@@ -58,7 +59,8 @@ All_FOI_R0_estimates <- All_FOI_R0_estimates[, base_info]
 salje_data <- salje_data[, base_info]
 pseudo_absence_points <- pseudo_absence_points[, base_info]
 
-foi_data <- rbind(All_FOI_R0_estimates, salje_data, pseudo_absence_points)
+# foi_data <- rbind(All_FOI_R0_estimates, salje_data, pseudo_absence_points)
+foi_data <- rbind(All_FOI_R0_estimates, pseudo_absence_points)
 
 foi_data_cov <- left_join(foi_data, adm1_covariates)
 
