@@ -28,6 +28,11 @@ parameters <- list(
   no_predictors = 9)   
 
 
+year.i <- 2007
+year.f <- 2014
+ppyear <- 64
+
+
 # define variables ------------------------------------------------------------
 
 
@@ -92,6 +97,44 @@ final_pd_df_ls <- lapply(seq_along(variables), extract_pd, variables, pd_tables)
 
 final_pd_df <- do.call("rbind", final_pd_df_ls)
   
+
+# rescale x axes --------------------------------------------------------------
+
+
+final_pd_df_splt <- split(final_pd_df$x, final_pd_df$var)
+
+for (i in seq_along(final_pd_df_splt)){
+  
+  one_set <- final_pd_df_splt[i]
+  
+  var <- names(one_set)
+  
+  scale <- 1
+  
+  if(grepl("Re.", var) | grepl("Im.", var)){
+    
+    scale <- ppyear * (year.f - year.i + 1) / 2 
+    
+  } 
+  
+  if(grepl("const_term$", var)){
+    
+    scale <- ppyear * (year.f - year.i + 1) 
+    
+  }  
+  
+  # message(scale)
+  
+  final_pd_df_splt[[i]] <- one_set[[var]] / scale
+  
+}
+
+final_pd_df$x <- unname(unlist(final_pd_df_splt))
+
+
+# sort by var importance ------------------------------------------------------
+
+
 all_vi_values <- lapply(seq_along(variables), extract_vi, variables, vi_tables)
   
 importance <- vapply(all_vi_values, mean, numeric(1))  
@@ -112,6 +155,7 @@ final_pd_df$var <- factor(final_pd_df$var,
 new_names <- sprintf("%s (%s)", 
                      final_vi_df$var, 
                      paste0(round(final_vi_df$importance * 100, 2),"%"))
+
 x_name_strips <- setNames(new_names, final_vi_df$var)
 
 dir.create(out_pt, FALSE, TRUE)
@@ -138,8 +182,8 @@ p <- ggplot(final_pd_df, aes(x, q50)) +
   labs(x = "Value of predictor",
        y = "Response (and 95% CI)",
        title = NULL) +
-  theme(strip.text.x = element_text(size = 8),
-        axis.text.x = element_text(size = 6))
+  theme(strip.text.x = element_text(size = 8))#,
+        #axis.text.x = element_text(size = 8))
 
 print(p)
 
