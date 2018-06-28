@@ -1,33 +1,53 @@
-calculate_par_dep <- function(i, 
-                              RF_mod_name, 
-                              model_in_path, 
-                              train_dts_in_path,
+wrapper_over_bsamples <- function(i, RF_obj_pt, tr_dts_pt, par_dep_pt, var_imp_pt){
+  
+  RF_obj_nm <- paste0("RF_obj_sample", "_", i, ".rds")
+  tr_dts_nm <- paste0("train_dts_", i, ".rds")
+  par_dep_nm <- paste0("par_dep_", i, ".rds")
+  var_imp_nm <- paste0("var_imp_", i, ".rds")
+  
+  calculate_par_dep(RF_obj_nm,
+                    tr_dts_nm,
+                    par_dep_nm,
+                    var_imp_nm,
+                    RF_obj_pt,
+                    tr_dts_pt,
+                    par_dep_pt,
+                    var_imp_pt,
+                    model_type, 
+                    variables)  
+  
+}
+  
+calculate_par_dep <- function(RF_obj_name,
+                              tr_dts_name,
+                              par_dep_name,
+                              var_imp_name,
+                              RF_obj_path, 
+                              tr_dts_path,
+                              par_dep_path,
+                              var_imp_path,
                               model_type, 
-                              variables, 
-                              out_path_1,
-                              out_path_2) {
+                              variables) {
   
   # browser()
   
+  RF_obj_f_path <- file.path(RF_obj_path, RF_obj_name)
+  tr_dts_f_path <- file.path(tr_dts_path, tr_dts_name)
+
   h2o.init()
   
-  RF_obj_nm <- paste0(RF_mod_name, "_", i, ".rds")
-  
-  RF_obj <- h2o.loadModel(file.path(model_in_path, RF_obj_nm))
+  RF_obj <- h2o.loadModel(RF_obj_f_path)
   
   var_importances <- RF_obj@model$variable_importances
   
-  dat <- readRDS(file.path(train_dts_in_path, paste0("train_dts_", i, ".rds")))
+  dat <- readRDS(tr_dts_f_path)
   
   dat_h2o <- as.h2o(dat)
   
   pdps <- h2o.partialPlot(RF_obj, dat_h2o, variables, plot = FALSE)
   
-  out_name_1 <- paste0("par_dep_", i, ".rds")
-  out_name_2 <- paste0("var_imp_", i, ".rds")
-    
-  write_out_rds(pdps, out_path_1, out_name_1)
-  write_out_rds(var_importances, out_path_2, out_name_2)
+  write_out_rds(pdps, par_dep_path, par_dep_name)
+  write_out_rds(var_importances, var_imp_path, var_imp_name)
   
   h2o.shutdown(prompt = FALSE)
   
@@ -67,4 +87,12 @@ extract_vi <- function(i, variables, all_tables){
 
   out
 
+}
+
+edit_pd_list <- function(x){
+  #browser()
+  var <- names(x)[1]  
+  x$var <- var
+  names(x)[names(x) == var] <- "x"
+  x
 }
