@@ -3,9 +3,9 @@
 options(didehpc.cluster = "fi--didemrchnb")
 
 my_resources <- c(
-  file.path("R", "utility_functions.r"),
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"),
-  file.path("R", "plotting", "functions_for_plotting_square_level_maps.r"))
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "plotting", "functions_for_plotting_square_level_maps.R"),
+  file.path("R", "utility_functions.R"))
   
 my_pkgs <- "h2o"
 
@@ -19,19 +19,23 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "R0_3",
+  dependent_variable = "FOI",
   no_samples = 200,
   no_predictors = 9)   
 
 RF_mod_name <- "RF_obj.rds"
 
-base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2")
+base_info <- c("cell", "latitude", "longitude", "population", "ID_0", "ID_1", "ID_2")
+
+model_type_tag <- "_best_model_3"
+
+extra_predictors <- c("travel_time", "TSI", "aedes_gen", "log_pop_den")
 
 
 # define variables ------------------------------------------------------------
 
 
-model_tp <- paste0(parameters$dependent_variable, "_best_model")
+model_tp <- paste0(parameters$dependent_variable, model_type_tag)
 
 out_pt <- file.path("output", "predictions_world", "best_fit_models", model_tp)
   
@@ -70,6 +74,7 @@ predictor_rank <- read.csv(file.path("output",
 
 
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
+my_predictors <- c(my_predictors, extra_predictors)
 
 
 # submit one job -------------------------------------------------------------- 
