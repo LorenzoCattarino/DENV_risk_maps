@@ -56,7 +56,7 @@ salje_data$variance <- 0
 
 ave_foi <- group_by(salje_data, ID_1) %>%
   summarise(FOI = mean(foi)) %>% 
-  left_join(distinct(salje_data, ID_1, .keep_all = T))
+  left_join(distinct(salje_data, ID_1, .keep_all = TRUE))
 
 ave_foi <- ave_foi[, base_info]
 
