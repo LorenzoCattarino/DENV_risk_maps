@@ -19,15 +19,19 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "R0_3",
-  pseudoAbs_value = 0.5,
+  dependent_variable = "FOI",
+  pseudoAbs_value = -0.02,
   all_wgt = 1,
   wgt_limits = c(1, 500),
   no_trees = 500,
   min_node_size = 20,
   no_predictors = 9)   
 
-out_name <- "all_data.rds"  
+out_name <- "all_data_3.rds"  
+
+foi_dts_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
+
+extra_predictors <- c("travel_time", "TSI", "aedes_gen", "log_pop_den")
 
 
 # define variables ------------------------------------------------------------
@@ -49,9 +53,7 @@ context::context_load(ctx)
 
 
 # load FOI dataset
-foi_data <- read.csv(file.path("output", 
-                               "foi", 
-                               "All_FOI_estimates_linear_env_var_area.csv"),
+foi_data <- read.csv(file.path("output", "foi", foi_dts_nm),
                      stringsAsFactors = FALSE)
 
 # predicting variable rank
@@ -66,8 +68,6 @@ predictor_rank <- read.csv(file.path("output",
 # pre processing -------------------------------------------------------------- 
 
 
-my_predictors <- predictor_rank$name[1:parameters$no_predictors]
-
 # set pseudo absence value
 foi_data[foi_data$type == "pseudoAbsence", parameters$dependent_variable] <- parameters$pseudoAbs_value
 
@@ -75,6 +75,9 @@ foi_data[foi_data$type == "pseudoAbsence", parameters$dependent_variable] <- par
 foi_data$new_weight <- parameters$all_wgt
 pAbs_wgt <- get_area_scaled_wgts(foi_data, parameters$wgt_limits)
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
+
+my_predictors <- predictor_rank$name[1:parameters$no_predictors]
+my_predictors <- c(my_predictors, extra_predictors)
 
 # get training dataset (full dataset - no bootstrap)
 training_dataset <- foi_data[, c(parameters$dependent_variable, my_predictors, "new_weight")]

@@ -18,12 +18,16 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "R0_3",
+  dependent_variable = "FOI",
   no_predictors = 9)   
 
-aggr_dts_name <- "env_vars_20km.rds"
+aggr_dts_name <- "env_vars_20km_3.rds"
 
-out_fl_nm <- "covariates_and_foi_20km.rds"
+out_fl_nm <- "covariates_and_foi_20km_3.rds"
+
+model_obj_nm <- "all_data_3.rds"
+
+extra_predictors <- c("travel_time", "TSI", "aedes_gen", "log_pop_den")
 
 
 # define variables ------------------------------------------------------------
@@ -50,7 +54,7 @@ RF_obj <- h2o.loadModel(file.path("output",
                                   "EM_algorithm",
                                   "best_fit_models",
                                   paste0("model_objects_", parameters$dependent_variable, "_fit"),
-                                  "all_data.rds"))
+                                  model_obj_nm))
 
 aggreg_pxl_env_var <- readRDS(file.path("output", 
                                         "EM_algorithm",
@@ -70,6 +74,7 @@ predictor_rank <- read.csv(file.path("output",
 
 
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
+my_predictors <- c(my_predictors, extra_predictors)
 
 
 # submit job ------------------------------------------------------------------ 

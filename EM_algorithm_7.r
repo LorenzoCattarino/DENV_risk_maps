@@ -5,13 +5,15 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "utility_functions.R"),
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"),
+  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "random_forest", "exp_max_algorithm.R"),
-  file.path("R", "plotting", "quick_raster_map.r"),
-  file.path("R", "plotting", "generic_scatter_plot.r"))  
+  file.path("R", "plotting", "quick_raster_map.R"),
+  file.path("R", "plotting", "generic_scatter_plot.R"),
+  file.path("R", "prepare_datasets", "calculate_wgt_corr.R"),
+  file.path("R", "utility_functions.R"))  
 
-my_pkgs <- c("h2o", "dplyr", "fields", "ggplot2")
+my_pkgs <- c("h2o", "dplyr", "fields", "ggplot2", "weights", "colorRamps")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -23,8 +25,8 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "R0_3",
-  pseudoAbs_value = 0.5,
+  dependent_variable = "FOI",
+  pseudoAbs_value = -0.05,
   all_wgt = 1,
   wgt_limits = c(1, 500),
   no_trees = 500,
@@ -32,11 +34,13 @@ parameters <- list(
   EM_iter = 10,
   no_predictors = 9)   
 
+model_type_tag <- "_best_model_3"
+
 
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, "_best_model")
+model_type <- paste0(parameters$dependent_variable, model_type_tag)
 
 out_fl_nm <- "square_predictions_all_data.rds"
 

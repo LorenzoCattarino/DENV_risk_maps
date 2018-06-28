@@ -25,8 +25,8 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "R0_3",
-  pseudoAbs_value = 0.5,
+  dependent_variable = "FOI",
+  pseudoAbs_value = -0.02,
   all_wgt = 1,
   wgt_limits = c(1, 500),
   no_trees = 500,
@@ -35,8 +35,6 @@ parameters <- list(
   no_predictors = 9)   
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
-
-pxl_dts_name <- "covariates_and_foi_20km.rds"
 
 out_md_nm <- "RF_obj.rds"
 
@@ -47,6 +45,14 @@ map_nm <- "map"
 tra_dts_nm <- "train_dts.rds"
 
 out_fl_nm <- "square_predictions_all_data.rds"
+
+foi_dts_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
+
+pxl_dts_name <- "covariates_and_foi_20km_3.rds"
+
+model_type_tag <- "_best_model_3"
+
+extra_predictors <- c("travel_time", "TSI", "aedes_gen", "log_pop_den")
 
 
 # define variables ------------------------------------------------------------
@@ -62,7 +68,7 @@ all_wgt <- parameters$all_wgt
 
 wgt_limits <- parameters$wgt_limits
 
-model_type <- paste0(var_to_fit, "_best_model")
+model_type <- paste0(var_to_fit, model_type_tag)
 
 RF_out_pth <- file.path("output", 
                         "EM_algorithm", 
@@ -115,9 +121,7 @@ if (CLUSTER) {
 # load data ------------------------------------------------------------------- 
 
 
-foi_data <- read.csv(file.path("output", 
-                               "foi", 
-                               "All_FOI_estimates_linear_env_var_area.csv"),
+foi_data <- read.csv(file.path("output", "foi", foi_dts_nm),
                      stringsAsFactors = FALSE) 
 
 pxl_dataset <- readRDS(file.path("output", 
@@ -142,8 +146,6 @@ adm_dataset <- read.csv(file.path("output",
 # pre processing --------------------------------------------------------------
 
 
-my_predictors <- predictor_rank$name[1:number_of_predictors]
-
 names(foi_data)[names(foi_data) == var_to_fit] <- "o_j"
 
 foi_data[foi_data$type == "pseudoAbsence", "o_j"] <- pseudoAbsence_value
@@ -154,9 +156,6 @@ foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
 adm_dataset <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 
-names(pxl_dataset)[names(pxl_dataset) == "ADM_0"] <- grp_flds[1]
-names(pxl_dataset)[names(pxl_dataset) == "ADM_1"] <- grp_flds[2]
-
 pxl_dts_grp <- pxl_dataset %>% group_by_(.dots = grp_flds) 
 
 aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
@@ -166,6 +165,9 @@ pxl_dataset <- left_join(pxl_dataset, aa)
 pxl_dataset$pop_weight <- pxl_dataset$population / pxl_dataset$pop_sqr_sum
 
 pxl_dataset <- inner_join(pxl_dataset, foi_data[, c(grp_flds, "o_j", "new_weight")])
+
+my_predictors <- predictor_rank$name[1:number_of_predictors]
+my_predictors <- c(my_predictors, extra_predictors)
 
 
 # submit job ------------------------------------------------------------------ 

@@ -25,15 +25,23 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "R0_3",
-  pseudoAbs_value = 0.5,
+  dependent_variable = "FOI",
+  pseudoAbs_value = -0.02,
   no_predictors = 9)   
 
-grp_flds <- c("ADM_0", "ADM_1", "data_id")
+grp_flds <- c("ID_0", "ID_1", "data_id")
 
 RF_obj_nm <- "RF_obj.rds"
 
 out_name <- "all_scale_predictions.rds"
+
+foi_dts_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
+
+covariate_dts_nm <- "env_vars_20km_3.rds"
+
+model_type_tag <- "_best_model_3"
+
+extra_predictors <- c("travel_time", "TSI", "aedes_gen", "log_pop_den")
 
 
 # define variables ------------------------------------------------------------
@@ -41,7 +49,7 @@ out_name <- "all_scale_predictions.rds"
 
 var_to_fit <- parameters$dependent_variable
   
-model_type <- paste0(var_to_fit, "_best_model")
+model_type <- paste0(var_to_fit, model_type_tag)
 
 RF_obj_path <- file.path("output",
                          "EM_algorithm",
@@ -65,16 +73,14 @@ context::context_load(ctx)
 # load data ------------------------------------------------------------------- 
 
 
-foi_dataset <- read.csv(file.path("output", 
-                                  "foi", 
-                                  "All_FOI_estimates_linear_env_var_area.csv"),
+foi_dataset <- read.csv(file.path("output", "foi", foi_dts_nm),
                         stringsAsFactors = FALSE) 
 
 sqr_dataset <- readRDS(file.path("output",
                                  "EM_algorithm",
                                  "best_fit_models",
                                  "env_variables",
-                                 "env_vars_20km.rds"))
+                                 covariate_dts_nm))
 
 adm_dataset <- read.csv(file.path("output",
                                   "env_variables",
@@ -110,8 +116,6 @@ all_sqr_predictions <- readRDS(file.path("output",
 
 
 names(foi_dataset)[names(foi_dataset) == var_to_fit] <- "o_j"
-names(foi_dataset)[names(foi_dataset) == "ID_0"] <- grp_flds[1]
-names(foi_dataset)[names(foi_dataset) == "ID_1"] <- grp_flds[2]
 
 foi_dataset[foi_dataset$type == "pseudoAbsence", "o_j"] <- parameters$pseudoAbs_value
 
@@ -124,6 +128,7 @@ NA_pixel_tile_ids <- NA_pixel_tiles$tile_id
 tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]  
 
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
+my_predictors <- c(my_predictors, extra_predictors)
 
 
 # ---------------------------------------- submit one job 
@@ -132,9 +137,6 @@ my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 h2o.init()
 
 RF_obj <- h2o.loadModel(file.path(RF_obj_path, RF_obj_nm))
-
-names(adm_dataset)[names(adm_dataset) == "ID_0"] <- grp_flds[1]
-names(adm_dataset)[names(adm_dataset) == "ID_1"] <- grp_flds[2] 
 
 adm_dataset_2 <- remove_NA_rows(adm_dataset, my_predictors)
 

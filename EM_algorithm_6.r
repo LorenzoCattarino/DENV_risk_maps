@@ -12,7 +12,7 @@ library(ggplot2)
 
 
 parameters <- list(
-  dependent_variable = "R0_3")   
+  dependent_variable = "FOI")   
 
 diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j", "r_av_sqr", "r_adm")
 
@@ -24,11 +24,13 @@ strip_labs <- c("mean square error",
 
 names(strip_labs) <- diagnostic_vars
 
+model_type_tag <- "_best_model_3"
+
 
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, "_best_model")
+model_type <- paste0(parameters$dependent_variable, model_type_tag)
 
 # strip_labs <- gsub('([[:punct:]])|\\s+','_', strip_labs)
 

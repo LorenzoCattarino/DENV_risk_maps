@@ -20,8 +20,8 @@ source(file.path("R", "utility_functions.R"))
 
 
 parameters <- list(
-  dependent_variable = "R0_3",
-  pseudoAbs_value = 0.5,
+  dependent_variable = "FOI",
+  pseudoAbs_value = -0.02,
   all_wgt = 1,
   wgt_limits = c(1, 500),
   no_predictors = 9)   
@@ -33,6 +33,10 @@ tags <- c("all_data", "no_psAb")
 data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
                        c("serology", "caseReport"))
 
+foi_dts_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
+
+model_type_tag <- "_best_model_3"
+
 
 # define variables ------------------------------------------------------------
 
@@ -41,7 +45,7 @@ var_to_fit <- parameters$dependent_variable
 
 psAbs_val <- parameters$pseudoAbs_value
 
-model_type <- paste0(var_to_fit, "_best_model")
+model_type <- paste0(var_to_fit, model_type_tag)
 
 in_path <- file.path("output",
                      "EM_algorithm",
@@ -65,9 +69,7 @@ out_table_path <- file.path("output",
 # load data ------------------------------------------------------------------- 
 
 
-foi_dataset <- read.csv(file.path("output", 
-                                  "foi", 
-                                  "All_FOI_estimates_linear_env_var_area.csv"),
+foi_dataset <- read.csv(file.path("output", "foi", foi_dts_nm),
                         stringsAsFactors = FALSE) 
 
 
@@ -116,7 +118,7 @@ for (j in seq_along(tags)) {
   
   all_av_preds_mlt <- melt(
     dts,
-    id.vars = c("data_id", "ADM_0", "ADM_1", "o_j"),
+    id.vars = c("data_id", "ID_0", "ID_1", "o_j"),
     measure.vars = mes_vars,
     variable.name = "scale")
   

@@ -7,7 +7,7 @@ CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "prepare_datasets", "filter_and_resample.R"),
-  file.path("R", "prepare_datasets", "clean_and_resample.R"),
+  file.path("R", "prepare_datasets", "clean_and_average.R"),
   file.path("R", "prepare_datasets", "remove_NA_rows.R"),
   file.path("R", "prepare_datasets", "grid_up.R"),
   file.path("R", "prepare_datasets", "average_up.R"),
@@ -30,7 +30,7 @@ parameters <- list(
 
 out_pt <- file.path("output", "EM_algorithm", "best_fit_models", "env_variables")
 
-out_fl_nm <- "env_vars_20km.rds"
+out_fl_nm <- "env_vars_20km_3.rds"
 
 
 # rebuild the queue ----------------------------------------------------------- 
@@ -65,6 +65,8 @@ all_pixel_df <- do.call("rbind", pxl_job)
 
 # assign cell ID
 all_pixel_df$cell <- seq_len(nrow(all_pixel_df))
+
+all_pixel_df$log_pop_den <- log(1 + all_pixel_df$pop_den) 
 
 # rename 
 names(all_pixel_df)[names(all_pixel_df) == "cell"] <- "square"
