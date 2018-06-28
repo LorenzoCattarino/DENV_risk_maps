@@ -22,13 +22,17 @@ adm0 <- 20
 
 my_col <- matlab.like(10)
 
-map_out_pt <- file.path("figures", "data", "salje")
-
 dts_out_pt <- file.path("output", "seroprevalence", "salje")
 
-map_out_nm <- "correlation_20km_pred_vs_observations_3.png"
+sctplot_out_pt <- file.path("figures", "data", "salje")
 
 model_tp <- "FOI_best_model_3"
+
+sctplot_out_nm <- "correlation_20km_pred_vs_observations_3.png"
+
+pred_map_out_nm <- "predicted_FOI_map_3.png"
+
+pred_points_out_nm <- "salje_bangl_points_20km_foi_3.png"
 
 
 # load data -------------------------------------------------------------------
@@ -89,7 +93,7 @@ pred_r_df <- as.data.frame(pred_r_spdf)
 # plot the cropped global prediction map --------------------------------------
 
 
-png(file.path(map_out_pt, "predicted_FOI_map.png"),
+png(file.path(sctplot_out_pt, pred_map_out_nm),
     width = 12,
     height = 10,
     units = "cm",
@@ -126,7 +130,7 @@ salje_data$foi_sqr <- raster_values
 # plot the 20 km foi at the sero points ---------------------------------------
 
 
-png(file.path(map_out_pt, "salje_bangl_points_20km_foi.png"),
+png(file.path(sctplot_out_pt, pred_points_out_nm),
     width = 12,
     height = 10,
     units = "cm",
@@ -150,7 +154,7 @@ dev.off()
 
 corr_coeff <- round(cor(salje_data$foi_sqr, salje_data$foi), 3)
 
-dir.create(map_out_pt, FALSE, TRUE)
+dir.create(sctplot_out_pt, FALSE, TRUE)
 
 p <- ggplot() +
   geom_point(aes(x = foi, y = foi_sqr, colour = "red"), data = salje_data, size = 1) +
@@ -161,7 +165,7 @@ p <- ggplot() +
   scale_x_continuous("observed 20 km FOI", limits = c(0, 0.045)) +
   scale_y_continuous("predicted 20 km FOI", limits = c(0, 0.045))
 
-ggsave(file.path(map_out_pt, map_out_nm), 
+ggsave(file.path(sctplot_out_pt, sctplot_out_nm), 
        p, 
        width = 15, 
        height = 8, 
