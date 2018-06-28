@@ -8,6 +8,7 @@ library(rgdal)
 library(dplyr)
 library(viridis)
 library(rgeos) # for gCentroid()
+library(geosphere) # for distm()
 
 source(file.path("R", "prepare_datasets", "calculate_seroprevalence_age.R"))
 source(file.path("R", "utility_functions.R"))
@@ -159,6 +160,20 @@ colnames(centroid_xy) <- c("ID_1", "longitude", "latitude")
 centroid_xy <- as.data.frame(centroid_xy)
 
 salje_data <- left_join(salje_data, centroid_xy)
+
+
+# calculate matrix of distances -----------------------------------------------
+
+
+salje_xy <- salje_data[, c("lon","lat")]
+
+d <- distm(salje_xy, fun = distGeo)
+min.d <- apply(d, 1, function(x) order(x, decreasing = FALSE)[2])
+
+salje_data <- cbind(salje_data, 
+                    distance_km = apply(d, 1, function(x) sort(x, decreasing = FALSE)[2]))
+
+salje_data[, "distance_km"] <- salje_data[, "distance_km"] / 1000
 
 
 # save ------------------------------------------------------------------------
