@@ -41,7 +41,7 @@ shp <- readOGR(file.path("data", "shapefiles", "BGD_adm_shp"), "BGD_adm1",
 
 covariates <- readRDS(file.path("output",
                                 "env_variables",
-                                "all_squares_env_var_0_1667_deg_dis.rds"))
+                                "all_squares_env_var_0_1667_deg.rds"))
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection", 
@@ -53,7 +53,7 @@ predictor_rank <- read.csv(file.path("output",
 salje_data <- read.csv(file.path("output", 
                                  "seroprevalence",
                                  "salje",
-                                 "predictions_20km.csv"),
+                                 "observations_20km.csv"),
                        stringsAsFactors = FALSE)
 
 foi_dataset <- read.csv(file.path("output", 
@@ -72,22 +72,20 @@ our_foi_point <- foi_dataset[foi_dataset$ID_0 == adm0, ]
 names(covariates)[names(covariates) == "longitude"] <- "long.grid"
 names(covariates)[names(covariates) == "latitude"] <- "lat.grid"
 
-covariates$pop_density <- covariates$population / 342
-covariates$pop_density <- log(1 + covariates$pop_density)
-
 my_col_cov <- rev(colorRampPalette(brewer.pal(11, "RdBu"))(100))
 
 
 # subset covariate dataset (bangladesh) ---------------------------------------
 
 
-covariates_bgd <- covariates[covariates$ADM_0 == adm0, ]
+covariates_bgd <- covariates[covariates$ID_0 == adm0, ]
 
 
 # rescale covariate -----------------------------------------------------------
 
 
 all_predictors <- predictor_rank$name
+all_predictors <- c(all_predictors, "travel_time", "TSI", "log_pop_den")
 
 for (i in seq_along(all_predictors)){
   
@@ -117,7 +115,7 @@ for (i in seq_along(all_predictors)){
 # map covariates --------------------------------------------------------------
 
 
-all_predictors <- c(all_predictors, "pop_density")
+# all_predictors <- c(all_predictors, "pop_density")
 
 dir.create(bng_map_out_pt, FALSE, TRUE)
 

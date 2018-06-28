@@ -1,41 +1,31 @@
 
 # plot the Salje's seroprevalence points
-# plot our cropped global prediction map
-# extract and plot foi at the sero points coordinates
-# find the admin unit 1 for each of sero points
+# calculate foi from Salje's seroprevalence values
+# find the admin unit 1 ID and centroid for each of the sero points
 
 library(ggplot2)
 library(rgdal)
-library(h2o)
-library(raster)
 library(dplyr)
-library(colorRamps)
 library(viridis)
-library(rgeos)
+library(rgeos) # for gCentroid()
 
-source(file.path("R", "plotting", "functions_for_plotting_square_level_maps.R"))
+source(file.path("R", "prepare_datasets", "calculate_seroprevalence_age.R"))
 source(file.path("R", "utility_functions.R"))
 
-my_h2o_ver <- "3.16.0.2"
-
-if(packageVersion("h2o") != my_h2o_ver) install.packages(file.path("R_sources", "h2o_3.16.0.2.tar.gz"), repos = NULL, type = "source")
+# my_h2o_ver <- "3.16.0.2"
+# if(packageVersion("h2o") != my_h2o_ver) install.packages(file.path("R_sources", "h2o_3.16.0.2.tar.gz"), repos = NULL, type = "source")
                  
                  
 # define parameters -----------------------------------------------------------
 
 
-parameters <- list(resample_grid_size = 20)
-
 alpha_iso_code <- "BGD"
-adm0 <- 20
 
 map_out_pt <- file.path("figures", "data", "salje")
 
 dts_out_pt <- file.path("output", "seroprevalence", "salje") 
   
-dts_out_nm <- "ProportionPositive_bangladesh_salje_env_var.csv"
-  
-my_col <- matlab.like(10)
+FOI_values <- seq(0, 0.2, by = 0.0002)
 
 
 # load data -------------------------------------------------------------------
@@ -49,21 +39,14 @@ shp <- readOGR(file.path("data", "shapefiles", "BGD_adm_shp"), "BGD_adm1",
                stringsAsFactors = FALSE,
                integer64 = "allow.loss")
 
-pred <- readRDS(file.path("output",
-                          "predictions_world", 
-                          "best_fit_models",
-                          "FOI_best_model",
-                          "response.rds"))
+age_distr <- read.csv(file.path("output", 
+                                "datasets",
+                                "country_age_structure.csv"), 
+                      header = TRUE) 
 
 
 # pre processing --------------------------------------------------------------
 
-
-gr_size <- parameters$resample_grid_size
-
-res <- (1 / 120) * gr_size
-lats <- seq(-90, 90, by = res)
-lons <- seq(-180, 180, by = res)
 
 shp_fort <- fortify(shp)
 
@@ -109,83 +92,37 @@ dev.off()
 #      cex = 0.5)
 
 
-# crop the global prediction map ----------------------------------------------
+# from seroprevalence to FOI --------------------------------------------------
 
 
-pred_mat <- prediction_df_to_matrix(lats, lons, pred, "best")
+age_distr <- age_distr[setdiff(names(age_distr), c("band_80_99", "band_85_99"))]
 
-pred_mat_ls <- list(x = lons,
-                    y = lats,
-                    z = pred_mat)
+age_band_tgs <- grep("band", names(age_distr), value = TRUE)
 
-pred_r_mat <- raster(pred_mat_ls)
+age_bounds_num <- sub("^[^_]+_", "", age_band_tgs)
 
-pred_r_mat_crp <- raster::crop(pred_r_mat, shp)
+age_bounds_num_2 <- sub("_", "-",age_bounds_num)
 
-pred_r_mat_msk <- raster::mask(pred_r_mat_crp, shp)
+names(age_distr)[names(age_distr) %in% age_band_tgs] <- age_bounds_num_2
 
-pred_r_spdf <- as(pred_r_mat_msk, "SpatialPixelsDataFrame")
+xx <- strsplit(age_bounds_num_2, "-")
+zz <- lapply(xx, as.numeric)
+yy <- vapply(zz, mean, numeric(1))
 
-pred_r_df <- as.data.frame(pred_r_spdf)
+pred_serop <- t(vapply(FOI_values, get_sero, numeric(length(yy)), yy))
 
+BGD_age_struct <- as.matrix(age_distr[age_distr$country == "Bangladesh", age_bounds_num_2])
+BGD_age_structure_all_points <- matrix(rep(BGD_age_struct, length(FOI_values)), ncol = 20, byrow = TRUE)
 
-# plot the cropped global prediction map --------------------------------------
+mean_pred_serop <- rowSums(pred_serop * BGD_age_structure_all_points) 
 
+look_up <- data.frame(x = FOI_values, y = mean_pred_serop)
 
-png(file.path(map_out_pt, "predicted_FOI_map.png"),
-    width = 12,
-    height = 10,
-    units = "cm",
-    pointsize = 12,
-    res = 300)
+henrik_sero <- salje_data$o_j
 
-p <- ggplot() +
-  geom_tile(data = pred_r_df, aes(x = x, y = y, fill = layer)) +
-  scale_fill_gradientn(colours = my_col, 
-                       guide = guide_colourbar(title = "predicted FOI")) +
-  geom_path(data = shp_fort, aes(x = long, y = lat, group = group), size = 0.3) +
-  scale_x_continuous("long") +
-  scale_y_continuous("lat") +
-  coord_equal() +
-  theme_minimal()
+henrik_foi <- approx(look_up[, "y"], look_up[, "x"], xout = henrik_sero)$y
 
-print(p)
-
-dev.off()
-
-
-# extract foi at the sero points coordinates ----------------------------------
-
-
-my_points <- as.matrix(salje_data[,c("lon", "lat")])
-
-cell_ids_in_raster <- cellFromXY(pred_r_mat, my_points)
-
-raster_values <- pred_r_mat[cell_ids_in_raster]
-
-salje_data$foi_sqr <- raster_values
-
-
-# plot the 20 km foi at the sero points ---------------------------------------
-
-
-png(file.path(map_out_pt, "salje_bangl_points_20km_foi.png"),
-    width = 12,
-    height = 10,
-    units = "cm",
-    pointsize = 12,
-    res = 300)
-
-p <- ggplot() +
-  geom_path(data = shp_fort, aes(x = long, y = lat, group = group), size = 0.3) +
-  geom_point(data = salje_data, aes(x = lon, y = lat, colour = foi_sqr), size = 2) +
-  coord_equal() + 
-  scale_color_viridis("20 km FOI") +
-  theme_minimal()
-
-print(p)
-
-dev.off()
+salje_data$foi <- henrik_foi 
 
 
 # find admin unit 1 -----------------------------------------------------------
@@ -199,7 +136,7 @@ country_numeric_code <- overlay$ID_0
 adm_numeric_code <- overlay$ID_1
 adm1_name <- overlay$NAME_1
 country_name <- overlay$NAME_0
-  
+
 salje_data$country <- country_name
 salje_data$ID_0 <- country_numeric_code
 salje_data$ID_1 <- adm_numeric_code
@@ -229,4 +166,4 @@ salje_data <- left_join(salje_data, centroid_xy)
 
 write_out_csv(salje_data, 
               dts_out_pt, 
-              "predictions_20km.csv")
+              "observations_20km.csv")

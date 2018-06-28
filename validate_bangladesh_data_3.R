@@ -1,72 +1,151 @@
 
-# calculate foi from Salje's seroprevalence values
+# plot our cropped global prediction map
+# extract and plot foi at the sero points coordinates
 # calculate correlation with our 20 km predictions
 
+library(rgdal)
+library(raster)
+library(colorRamps)
 library(ggplot2)
+library(viridis)
 
-source(file.path("R", "prepare_datasets", "calculate_seroprevalence_age.R"))
+source(file.path("R", "plotting", "functions_for_plotting_square_level_maps.R"))
 source(file.path("R", "utility_functions.R"))
 
 
 # define parameters -----------------------------------------------------------
 
 
-FOI_values <- seq(0, 0.2, by = 0.0002)
+parameters <- list(resample_grid_size = 20)
+
+adm0 <- 20
+
+my_col <- matlab.like(10)
 
 map_out_pt <- file.path("figures", "data", "salje")
 
 dts_out_pt <- file.path("output", "seroprevalence", "salje")
 
+map_out_nm <- "correlation_20km_pred_vs_observations_3.png"
+
+model_tp <- "FOI_best_model_3"
+
 
 # load data -------------------------------------------------------------------
 
 
-age_distr <- read.csv(file.path("output", 
-                                "datasets",
-                                "country_age_structure.csv"), 
-                      header = TRUE) 
+pred <- readRDS(file.path("output",
+                          "predictions_world", 
+                          "best_fit_models",
+                          model_tp,
+                          "response.rds"))
 
 salje_data <- read.csv(file.path("output", 
                                  "seroprevalence",
                                  "salje",
-                                 "predictions_20km.csv"),
+                                 "observations_20km.csv"),
                        stringsAsFactors = FALSE)
 
-
-# seroprevalence --------------------------------------------------------------
-
-
-age_distr <- age_distr[setdiff(names(age_distr), c("band_80_99", "band_85_99"))]
-
-age_band_tgs <- grep("band", names(age_distr), value = TRUE)
-
-age_bounds_num <- sub("^[^_]+_", "", age_band_tgs)
-
-age_bounds_num_2 <- sub("_", "-",age_bounds_num)
-
-names(age_distr)[names(age_distr) %in% age_band_tgs] <- age_bounds_num_2
-
-xx <- strsplit(age_bounds_num_2, "-")
-zz <- lapply(xx, as.numeric)
-yy <- vapply(zz, mean, numeric(1))
-
-pred_serop <- t(vapply(FOI_values, get_sero, numeric(length(yy)), yy))
-
-BGD_age_struct <- as.matrix(age_distr[age_distr$country == "Bangladesh", age_bounds_num_2])
-BGD_age_structure_all_points <- matrix(rep(BGD_age_struct, length(FOI_values)), ncol = 20, byrow = TRUE)
-
-mean_pred_serop <- rowSums(pred_serop * BGD_age_structure_all_points) 
-
-look_up <- data.frame(x = FOI_values, y = mean_pred_serop)
-
-henrik_sero <- salje_data$o_j
-  
-henrik_foi <- approx(look_up[, "y"], look_up[, "x"], xout = henrik_sero)$y
-
-salje_data$foi <- henrik_foi 
+shp <- readOGR(file.path("data", "shapefiles", "BGD_adm_shp"), "BGD_adm1",
+               stringsAsFactors = FALSE,
+               integer64 = "allow.loss")
 
 
-# plot ------------------------------------------------------------------------
+# pre processing --------------------------------------------------------------
+
+
+shp_fort <- fortify(shp)
+
+gr_size <- parameters$resample_grid_size
+
+res <- (1 / 120) * gr_size
+lats <- seq(-90, 90, by = res)
+lons <- seq(-180, 180, by = res)
+
+names(pred)[names(pred) == "latitude"] <- "lat.grid"
+names(pred)[names(pred) == "longitude"] <- "long.grid"
+
+
+# crop the global prediction map ----------------------------------------------
+
+
+pred_mat <- prediction_df_to_matrix(lats, lons, pred, "best")
+
+pred_mat_ls <- list(x = lons,
+                    y = lats,
+                    z = pred_mat)
+
+pred_r_mat <- raster(pred_mat_ls)
+
+pred_r_mat_crp <- raster::crop(pred_r_mat, shp)
+
+pred_r_mat_msk <- raster::mask(pred_r_mat_crp, shp)
+
+pred_r_spdf <- as(pred_r_mat_msk, "SpatialPixelsDataFrame")
+
+pred_r_df <- as.data.frame(pred_r_spdf)
+
+
+# plot the cropped global prediction map --------------------------------------
+
+
+png(file.path(map_out_pt, "predicted_FOI_map.png"),
+    width = 12,
+    height = 10,
+    units = "cm",
+    pointsize = 12,
+    res = 300)
+
+p <- ggplot() +
+  geom_tile(data = pred_r_df, aes(x = x, y = y, fill = layer)) +
+  scale_fill_gradientn(colours = my_col, 
+                       guide = guide_colourbar(title = "predicted FOI")) +
+  geom_path(data = shp_fort, aes(x = long, y = lat, group = group), size = 0.3) +
+  scale_x_continuous("long") +
+  scale_y_continuous("lat") +
+  coord_equal() +
+  theme_minimal()
+
+print(p)
+
+dev.off()
+
+
+# extract foi at the sero points coordinates ----------------------------------
+
+
+my_points <- as.matrix(salje_data[,c("lon", "lat")])
+
+cell_ids_in_raster <- cellFromXY(pred_r_mat, my_points)
+
+raster_values <- pred_r_mat[cell_ids_in_raster]
+
+salje_data$foi_sqr <- raster_values
+
+
+# plot the 20 km foi at the sero points ---------------------------------------
+
+
+png(file.path(map_out_pt, "salje_bangl_points_20km_foi.png"),
+    width = 12,
+    height = 10,
+    units = "cm",
+    pointsize = 12,
+    res = 300)
+
+p <- ggplot() +
+  geom_path(data = shp_fort, aes(x = long, y = lat, group = group), size = 0.3) +
+  geom_point(data = salje_data, aes(x = lon, y = lat, colour = foi_sqr), size = 2) +
+  coord_equal() + 
+  scale_color_viridis("20 km FOI") +
+  theme_minimal()
+
+print(p)
+
+dev.off()
+
+
+# plot the scatter plot -------------------------------------------------------
 
 
 corr_coeff <- round(cor(salje_data$foi_sqr, salje_data$foi), 3)
@@ -82,7 +161,7 @@ p <- ggplot() +
   scale_x_continuous("observed 20 km FOI", limits = c(0, 0.045)) +
   scale_y_continuous("predicted 20 km FOI", limits = c(0, 0.045))
 
-ggsave(file.path(map_out_pt, "correlation_20km_pred_vs_observations.png"), 
+ggsave(file.path(map_out_pt, map_out_nm), 
        p, 
        width = 15, 
        height = 8, 
@@ -92,4 +171,4 @@ ggsave(file.path(map_out_pt, "correlation_20km_pred_vs_observations.png"),
 # save ------------------------------------------------------------------------
 
 
-write_out_csv(salje_data, dts_out_pt, "observations_20km.csv")
+write_out_csv(salje_data, dts_out_pt, "predictions_20km.csv")
