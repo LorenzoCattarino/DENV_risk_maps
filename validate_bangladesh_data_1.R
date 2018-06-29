@@ -28,6 +28,22 @@ dts_out_pt <- file.path("output", "seroprevalence", "salje")
   
 FOI_values <- seq(0, 0.2, by = 0.0002)
 
+dts_out_nm_1 <- "observations_20km.csv"
+
+base_info <- c("type", 
+               "ID_0", 
+               "ISO", 
+               "country", 
+               "ID_1", 
+               "FOI", 
+               "variance", 
+               "latitude", 
+               "longitude", 
+               "reference", 
+               "date")
+
+dts_out_nm_2 <- "observations_20km_clean.txt" 
+
 
 # load data -------------------------------------------------------------------
   
@@ -52,10 +68,12 @@ age_distr <- read.csv(file.path("output",
 shp_fort <- fortify(shp)
 
 salje_data$id_point <- seq_len(nrow(salje_data))
-
 salje_data$o_j <- salje_data$nPos / salje_data$nAll
-
 salje_data$ISO <- alpha_iso_code
+salje_data$type <- "serology"
+salje_data$reference <- "Salje"
+salje_data$date <- "2018"
+salje_data$variance <- 0
 
 
 # plot the original seroprevalence points -------------------------------------
@@ -123,7 +141,7 @@ henrik_sero <- salje_data$o_j
 
 henrik_foi <- approx(look_up[, "y"], look_up[, "x"], xout = henrik_sero)$y
 
-salje_data$foi <- henrik_foi 
+salje_data$FOI <- henrik_foi 
 
 
 # find admin unit 1 -----------------------------------------------------------
@@ -181,4 +199,10 @@ salje_data[, "distance_km"] <- salje_data[, "distance_km"] / 1000
 
 write_out_csv(salje_data, 
               dts_out_pt, 
-              "observations_20km.csv")
+              dts_out_nm_1)
+
+write.table(salje_data[, base_info],
+            file.path(dts_out_pt, dts_out_nm_2),
+            col.names = TRUE,
+            row.names = FALSE,
+            sep = ",")
