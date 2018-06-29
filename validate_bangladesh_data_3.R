@@ -26,13 +26,13 @@ dts_out_pt <- file.path("output", "seroprevalence", "salje")
 
 sctplot_out_pt <- file.path("figures", "data", "salje")
 
-model_tp <- "FOI_best_model_3"
+model_tp <- "FOI_best_model_1"
 
-sctplot_out_nm <- "correlation_20km_pred_vs_observations_3.png"
+sctplot_out_nm <- "correlation_20km_pred_vs_observations_1.png"
 
-pred_map_out_nm <- "predicted_FOI_map_3.png"
+pred_map_out_nm <- "predicted_FOI_map_1.png"
 
-pred_points_out_nm <- "salje_bangl_points_20km_foi_3.png"
+pred_points_out_nm <- "salje_bangl_points_20km_foi_1.png"
 
 
 # load data -------------------------------------------------------------------
@@ -157,10 +157,9 @@ corr_coeff <- round(cor(salje_data$foi_sqr, salje_data$foi), 3)
 dir.create(sctplot_out_pt, FALSE, TRUE)
 
 p <- ggplot() +
-  geom_point(aes(x = foi, y = foi_sqr, colour = "red"), data = salje_data, size = 1) +
+  geom_point(aes(x = FOI, y = foi_sqr, colour = "red"), data = salje_data, size = 1) +
   scale_colour_identity(name = "", guide = "legend", labels = "salje") +
   geom_abline(slope = 1, intercept = 0, linetype = 2) +
-  # geom_text(aes(x = FOI, y = p_i, label = ID_1), data = henriks_points, nudge_y = 0.0004) +
   geom_text(aes(x = 0.03, y = 0.01, label = paste0("r = ", corr_coeff))) +
   scale_x_continuous("observed 20 km FOI", limits = c(0, 0.045)) +
   scale_y_continuous("predicted 20 km FOI", limits = c(0, 0.045))
@@ -176,3 +175,4 @@ ggsave(file.path(sctplot_out_pt, sctplot_out_nm),
 
 
 write_out_csv(salje_data, dts_out_pt, "predictions_20km.csv")
+
