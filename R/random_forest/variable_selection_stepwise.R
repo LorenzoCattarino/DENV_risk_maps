@@ -11,8 +11,6 @@ stepwise_addition_boot <- function(i,
                                    out_path,
                                    addition){
   
-  set.seed(300 + i)
-  
   stepwise_addition <- function(j){
     
     ID_run <- j
