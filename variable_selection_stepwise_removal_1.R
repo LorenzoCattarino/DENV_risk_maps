@@ -4,12 +4,12 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"),
+  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "random_forest", "variable_selection_stepwise.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "utility_functions.R"))
 
-my_pkgs <- "h2o"
+my_pkgs <- "ranger"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -21,10 +21,10 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  grid_size = 1,
+  grid_size = 5,
   no_trees = 500,
   min_node_size = 20,
-  no_steps_L1 = 26, 
+  no_steps_L1 = 28, 
   no_steps_L2 = 0,   
   pseudoAbs_value = -0.02,
   all_wgt = 1,
@@ -36,15 +36,17 @@ addition <- FALSE
 
 var_to_fit <- "FOI"
 
+out_path <- file.path("output", 
+                      "variable_selection", 
+                      "stepwise_seed")
+
 altitude_var_names <- "altitude"
 
 fourier_transform_elements <- c("const_term",	"Re0",	"Im0",	"Re1",	"Im1")
 
 FTs_data_names <- c("DayTemp", "EVI", "MIR", "NightTemp", "RFE")
 
-out_path <- file.path("output", 
-                      "variable_selection", 
-                      "stepwise_pure")
+extra_predictors <- c("log_pop_den", "travel_time")
 
 
 # define variables ------------------------------------------------------------
@@ -58,13 +60,13 @@ my_dir <- paste0("grid_size_", parameters$grid_size)
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "20Core")
+  config <- didehpc::didehpc_config(template = "12and16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
   
   context::context_load(ctx)
-  context::parallel_cluster_start(8, ctx)
+  context::parallel_cluster_start(4, ctx)
   
 }
 
@@ -72,9 +74,10 @@ if (CLUSTER) {
 # load data -------------------------------------------------------------------
 
 
-foi_data <- read.csv(
-  file.path("output", "foi", "All_FOI_estimates_linear_env_var_area.csv"),
-  stringsAsFactors = FALSE) 
+foi_data <- read.csv(file.path("output", 
+                               "foi", 
+                               "All_FOI_estimates_linear_env_var_area_salje.csv"),
+                     stringsAsFactors = FALSE) 
 
 boot_samples <- readRDS(file.path("output", 
                                   "EM_algorithm",
@@ -86,11 +89,11 @@ boot_samples <- readRDS(file.path("output",
 # pre process -----------------------------------------------------------------
 
 
-all_FT_names <- apply(expand.grid(fourier_transform_elements, FTs_data_names), 
-                      1, 
-                      function(x) paste(x[2], x[1], sep="_"))
+all_combs <- expand.grid(FTs_data_names, fourier_transform_elements)
 
-all_predictors <- c(altitude_var_names, all_FT_names)
+all_FT_names <- paste(all_combs$Var1, all_combs$Var2, sep = "_")
+
+all_predictors <- c(altitude_var_names, all_FT_names, extra_predictors)
 
 foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- parameters$pseudoAbs_value
 

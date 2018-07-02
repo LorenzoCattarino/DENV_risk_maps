@@ -4,12 +4,12 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"),
+  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "random_forest", "variable_selection_stepwise.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "utility_functions.R"))
 
-my_pkgs <- "h2o"
+my_pkgs <- c("ranger", "ggplot2")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -21,10 +21,10 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  grid_size = 1,
+  grid_size = 5,
   no_trees = 500,
   min_node_size = 20,
-  no_steps_L1 = 26, 
+  no_steps_L1 = 28, 
   no_steps_L2 = 0,   
   pseudoAbs_value = -0.02,
   all_wgt = 1,
@@ -35,17 +35,13 @@ parameters <- list(
 top_ones_within_reps <- 10
 top_ones_across_reps <- 20
 
-var_to_fit <- "FOI"
+table_out_path <- file.path("output", 
+                            "variable_selection", 
+                            "stepwise_seed")
 
-altitude_var_names <- "altitude"
-
-fourier_transform_elements <- c("const_term",	"Re0",	"Im0",	"Re1",	"Im1")
-
-FTs_data_names <- c("DayTemp", "EVI", "MIR", "NightTemp", "RFE")
-
-out_path <- file.path("output", 
-                      "variable_selection", 
-                      "stepwise")
+plot_out_path <- file.path("figures", 
+                           "variable_selection", 
+                           "stepwise_seed")
 
 
 # define variables ------------------------------------------------------------
@@ -91,6 +87,12 @@ bsample_step_addition_t <- obj$task_bundle_get(my_task_id)
 
 bsample_step_addition <- bsample_step_addition_t$results()
 
+# plot raw datata 
+lapply(seq_along(bsample_step_addition)[1:10], 
+       plot_RMSE_addition, 
+       bsample_step_addition, 
+       plot_out_path)
+
 all_preds <- lapply(bsample_step_addition, get_changed_predictors, parameters$no_steps_L1)
 
 all_preds_top <- lapply(all_preds, get_top_from_replicates, top_ones_within_reps)
@@ -105,5 +107,5 @@ lapply(seq(no_samples),
        save_addition_best_preds,
        results = ret1, 
        names = names(boot_samples[[1]]), 
-       out_path)
+       table_out_path)
   

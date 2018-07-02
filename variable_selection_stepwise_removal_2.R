@@ -4,12 +4,12 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.r"),
+  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "random_forest", "variable_selection_stepwise.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "utility_functions.R"))
 
-my_pkgs <- c("h2o", "ggplot2")
+my_pkgs <- c("ranger", "ggplot2")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -21,31 +21,31 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  grid_size = 1,
+  grid_size = 5,
   no_trees = 500,
   min_node_size = 20,
-  no_steps_L1 = 26, 
+  no_steps_L1 = 28, 
   no_steps_L2 = 0, 
   pseudoAbs_value = -0.02,
   all_wgt = 1,
   wgt_limits = c(1, 500),
   no_samples = 200)     
 
-top_ones <- 26 # all of them
+top_ones <- parameters$no_steps_L1 # all of them
 
 var_to_fit <- "FOI"
 
-out_fig_name <- "Frequency_of_the_numbers_of_selected_preds_pure.png"
+out_fig_name <- "Frequency_of_the_numbers_of_selected_preds.png"
 
 out_tab_name <- "predictor_rank.csv"
 
 out_fig_path <- file.path("figures", 
                           "variable_selection", 
-                          "stepwise")
+                          "stepwise_seed")
 
 out_tab_path <- file.path("output", 
                           "variable_selection", 
-                          "stepwise_pure")
+                          "stepwise_seed")
 
 
 # define variables ------------------------------------------------------------
@@ -59,7 +59,7 @@ my_dir <- paste0("grid_size_", parameters$grid_size)
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "20Core")
+  config <- didehpc::didehpc_config(template = "12and16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -94,6 +94,9 @@ bsample_step_removal <- bsample_step_removal_t$results()
 
 #  get predictor names --------------------------------------------------------
 
+
+# plot raw datata 
+lapply(seq_along(bsample_step_removal)[1:10], plot_RMSE_removal, bsample_step_removal, out_fig_path)
 
 # predictors are ranked according to the selection frequency 
 # across bootstrap samples 
