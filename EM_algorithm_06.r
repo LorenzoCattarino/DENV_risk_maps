@@ -24,7 +24,7 @@ strip_labs <- c("mean square error",
 
 names(strip_labs) <- diagnostic_vars
 
-model_type_tag <- "_best_model_3"
+model_type_tag <- "_best_model_6"
 
 
 # define variables ------------------------------------------------------------
@@ -76,14 +76,16 @@ png(file.path(figure_out_path, fig_file_tag),
     units = "cm",
     res = 200)
 
-print(ggplot(data_to_plot_long, aes(iter, value)) +
-        geom_line() +
-        scale_x_continuous("Iterations", breaks = seq_len(10), labels = seq_len(10)) +
-        scale_y_continuous(NULL) +
-        facet_wrap(~ variable, ncol = 2, scales = "free_y", labeller = labeller(variable = strip_labs)) +
-        theme(axis.title.x = element_text(size = 12),
-              axis.title.y = element_text(size = 12),
-              axis.text.x = element_text(size = 10),
-              axis.text.y = element_text(size = 10)))
+p <- ggplot(data_to_plot_long, aes(iter, value)) +
+  geom_line() +
+  scale_x_continuous("Iterations", breaks = seq_len(10), labels = seq_len(10)) +
+  scale_y_continuous(NULL) +
+  facet_wrap(~ variable, ncol = 2, scales = "free_y", labeller = labeller(variable = strip_labs)) +
+  theme(axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10))
+
+print(p)
 
 dev.off()

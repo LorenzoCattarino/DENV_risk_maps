@@ -37,7 +37,7 @@ resample <- TRUE
 
 foi_dts_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
 
-extra_predictors <- c("travel_time", "TSI", "aedes_gen")
+extra_predictors <- "TSI" # "travel_time" "log_pop_den"
 
 
 # define variables ------------------------------------------------------------

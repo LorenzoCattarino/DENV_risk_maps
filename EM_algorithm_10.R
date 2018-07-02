@@ -1,4 +1,3 @@
-
 # calulate the partial depence of the model function on each explanatory variable
 
 options(didehpc.cluster = "fi--didemrchnb")
@@ -32,9 +31,9 @@ train_dts_nm <- "train_dts.rds"
 par_dep_nm <- "par_dep.rds"
 var_imp_nm <- "var_imp.rds"
 
-model_type_tag <- "_best_model_2"
+model_type_tag <- "_best_model_6"
 
-extra_predictors <- c("travel_time", "TSI", "log_pop_den")
+extra_predictors <- "log_pop_den"
 
 
 # define variables ------------------------------------------------------------

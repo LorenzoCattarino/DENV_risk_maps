@@ -27,11 +27,11 @@ parameters <- list(
   min_node_size = 20,
   no_predictors = 9)   
 
-out_name <- "all_data_3.rds"  
+out_name <- "all_data_6.rds"  
 
 foi_dts_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
 
-extra_predictors <- c("travel_time", "TSI", "aedes_gen", "log_pop_den")
+extra_predictors <- "log_pop_den"
 
 
 # define variables ------------------------------------------------------------

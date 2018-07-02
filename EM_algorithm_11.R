@@ -1,4 +1,4 @@
-# Extract partial dependence information and 
+# extract partial dependence information and 
 # make partial dependence plots
 
 options(didehpc.cluster = "fi--didemrchnb")
@@ -29,9 +29,9 @@ year.i <- 2007
 year.f <- 2014
 ppyear <- 64
 
-model_type_tag <- "_best_model_2"
+model_type_tag <- "_best_model_6"
 
-extra_predictors <- c("travel_time", "TSI", "log_pop_den")
+extra_predictors <- "log_pop_den"
 
 
 # define variables ------------------------------------------------------------

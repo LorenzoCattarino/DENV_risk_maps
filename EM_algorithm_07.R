@@ -34,7 +34,7 @@ parameters <- list(
   EM_iter = 10,
   no_predictors = 9)   
 
-model_type_tag <- "_best_model_3"
+model_type_tag <- "_best_model_6"
 
 
 # define variables ------------------------------------------------------------

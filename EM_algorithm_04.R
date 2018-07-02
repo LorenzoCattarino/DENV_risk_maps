@@ -23,11 +23,11 @@ parameters <- list(
 
 aggr_dts_name <- "env_vars_20km_3.rds"
 
-out_fl_nm <- "covariates_and_foi_20km_3.rds"
+out_fl_nm <- "covariates_and_foi_20km_6.rds"
 
-model_obj_nm <- "all_data_3.rds"
+model_obj_nm <- "all_data_6.rds"
 
-extra_predictors <- c("travel_time", "TSI", "aedes_gen", "log_pop_den")
+extra_predictors <- "log_pop_den"
 
 
 # define variables ------------------------------------------------------------

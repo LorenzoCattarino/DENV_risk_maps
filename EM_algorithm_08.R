@@ -39,9 +39,9 @@ foi_dts_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
 
 covariate_dts_nm <- "env_vars_20km_3.rds"
 
-model_type_tag <- "_best_model_3"
+model_type_tag <- "_best_model_6"
 
-extra_predictors <- c("travel_time", "TSI", "aedes_gen", "log_pop_den")
+extra_predictors <- "log_pop_den"
 
 
 # define variables ------------------------------------------------------------

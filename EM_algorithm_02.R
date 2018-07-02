@@ -30,7 +30,7 @@ parameters <- list(
 
 out_pt <- file.path("output", "EM_algorithm", "best_fit_models", "env_variables")
 
-out_fl_nm <- "env_vars_20km_3.rds"
+out_fl_nm <- "env_vars_20km_4.rds"
 
 
 # rebuild the queue ----------------------------------------------------------- 
