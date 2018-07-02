@@ -11,6 +11,8 @@ stepwise_addition_boot <- function(i,
                                    out_path,
                                    addition){
   
+  set.seed(300 + i)
+  
   stepwise_addition <- function(j){
     
     ID_run <- j
@@ -80,14 +82,8 @@ stepwise_addition_boot <- function(i,
   
   adm_dts_boot[adm_dts_boot$type == "pseudoAbsence", y_var] <- psAb_val
   
-  h2o.init(max_mem_size = "20G")
-  
-  out <- lapply(seq_len(no_reps), stepwise_addition)
-  
-  h2o.shutdown(prompt = FALSE)
-  
-  out
-  
+  lapply(seq_len(no_reps), stepwise_addition)
+
 }
 
 multi_steps_wrapper <- function(dataset, 
@@ -220,9 +216,9 @@ multi_steps_wrapper <- function(dataset,
                            paste("step", i, sep="_"), 
                            ".rds")
     
-    write_out_rds(final_output_df_sorted, out_path, df_name_ext)
+    # write_out_rds(final_output_df_sorted, out_path, df_name_ext)
   
-    h2o.removeAll()
+    # h2o.removeAll()
     
   }
   
@@ -248,6 +244,7 @@ get_top_from_replicates <- function(x,tops){
 
 calculate_sel_freq <- function(predictors, top_ones){
   
+  #browser()
   sel_freq <- table(predictors)
   
   sel_freq_sorted <- sel_freq[order(sel_freq, decreasing = TRUE)]
@@ -312,9 +309,7 @@ stepwise_removal_boot <- function(i,
   
   no_trees <- parms$no_trees
   min_node_size <- parms$min_node_size
-  
-  h2o.init(max_mem_size = "20G")
-  
+
   ret <- multi_steps_wrapper(dataset = adm_dts_boot, 
                              predictors = predictors, 
                              level_num = 1,
@@ -324,8 +319,6 @@ stepwise_removal_boot <- function(i,
                              min_node_size = min_node_size, 
                              foi_data = foi_data,
                              out_path = my_out_path)
-  
-  h2o.shutdown(prompt = FALSE)
   
   removed_predictors <- ret$name
   not_removed_predictor <- predictors[!predictors %in% removed_predictors] 
@@ -340,7 +333,7 @@ get_removal_results <- function(x){
   
   end <- nrow(x[[2]])
   
-  c(x[[1]], x[[2]]$name[minimum:end])
+  c(x[[2]]$name[minimum:end], x[[1]])
   
 }  
 
@@ -361,5 +354,76 @@ combs_predictor_wrapper <- function(i,
                         no_trees = no_trees, 
                         min_node_size = min_node_size, 
                         foi_data = foi_data)
+  
+}
+
+plot_RMSE_addition <- function(i, res, out_path){
+  
+  rep_dts <- res[[i]]
+  
+  for (j in seq_along(rep_dts)){
+    
+    my_out_path <- file.path(out_path, 
+                             paste("sample", i, sep="_"))
+    # browser()
+    
+    dts <- rep_dts[[j]]
+    
+    p <- ggplot(dts) +
+      geom_point(aes(x = Step, y = rmse_valid)) +
+      scale_x_continuous("Step", breaks = dts$Step, labels = dts$name) + 
+      scale_y_continuous("RMSE") + 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    
+    dir.create(my_out_path, FALSE, TRUE)
+    
+    fl_nm <- paste0("addition_replicate_", j, ".png")
+    
+    png(file.path(my_out_path, fl_nm), 
+        width = 17, 
+        height = 10, 
+        units = "cm",
+        pointsize = 12,
+        res = 200)
+    
+    print(p)
+    
+    dev.off()
+    
+  }
+}
+  
+plot_RMSE_removal <- function(i, res, out_path){
+  
+  #browser()
+  
+  my_out_path <- file.path(out_path, 
+                           paste("sample", i, sep="_"))
+
+  best <- res[[i]][[1]]
+    
+  dts <- res[[i]][[2]]
+  
+  p <- ggplot(dts) +
+    geom_point(aes(x = Step, y = rmse_valid)) +
+    scale_x_continuous("Step", breaks = dts$Step, labels = dts$name) + 
+    scale_y_continuous("RMSE") + 
+    geom_text(aes(x = max(dts$Step) - 3, y = sort(dts$rmse_valid, decreasing = TRUE)[2], label = best)) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  dir.create(my_out_path, FALSE, TRUE)
+  
+  fl_nm <- paste0("removal.png")
+  
+  png(file.path(my_out_path, fl_nm), 
+      width = 17, 
+      height = 10, 
+      units = "cm",
+      pointsize = 12,
+      res = 200)
+  
+  print(p)
+  
+  dev.off()
   
 }
