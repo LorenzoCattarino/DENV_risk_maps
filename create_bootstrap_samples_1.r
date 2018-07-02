@@ -20,7 +20,7 @@ context::parallel_cluster_start(8, ctx)
 
 
 parameters <- list(
-  grid_size = 1 / 120,
+  grid_size = 5,
   all_wgt = 1,
   wgt_limits = c(1, 500),
   no_samples = 200)   
@@ -41,9 +41,10 @@ out_pt <- file.path("output", "EM_algorithm", "bootstrap_models", my_dir)
 # load data ------------------------------------------------------------------- 
 
 
-foi_data <- read.csv(
-  file.path("output", "foi", "All_FOI_estimates_linear_env_var_area.csv"),
-  stringsAsFactors = FALSE) 
+foi_data <- read.csv(file.path("output", 
+                               "foi", 
+                               "All_FOI_estimates_linear_env_var_area_salje.csv"),
+                     stringsAsFactors = FALSE) 
 
 
 # pre processing --------------------------------------------------------------
