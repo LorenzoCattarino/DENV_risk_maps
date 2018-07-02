@@ -27,9 +27,9 @@ RF_mod_name <- "RF_obj.rds"
 
 base_info <- c("cell", "latitude", "longitude", "population", "ID_0", "ID_1", "ID_2")
 
-model_type_tag <- "_best_model_3"
+model_type_tag <- "_best_model_6"
 
-extra_predictors <- c("travel_time", "TSI", "aedes_gen", "log_pop_den")
+extra_predictors <- "log_pop_den"
 
 
 # define variables ------------------------------------------------------------

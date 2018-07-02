@@ -28,7 +28,7 @@ vars_to_average <- "response"
 
 statistic <- "best"
 
-model_type_tag <- "_best_model_3"
+model_type_tag <- "_best_model_6"
 
 
 # define variables ------------------------------------------------------------
