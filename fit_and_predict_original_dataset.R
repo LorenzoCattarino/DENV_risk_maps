@@ -22,7 +22,7 @@ wgt_limits <- c(1, 500)
 
 foi_data <- read.csv(file.path("output", 
                                "foi", 
-                               "All_FOI_estimates_linear_env_var_area.csv"),
+                               "All_FOI_estimates_linear_env_var_area_salje.csv"),
                      stringsAsFactors = FALSE)
 
 predictor_rank <- read.csv(file.path("output", 
@@ -41,8 +41,6 @@ foi_data[foi_data$type == "pseudoAbsence", dependent_variable] <- pseudoAbsence_
 foi_data$new_weight <- all_wgt
 pAbs_wgt <- get_area_scaled_wgts(foi_data, wgt_limits)
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
-
-foi_data$log_pop_den <- log(1 + foi_data$pop_den)
 
 my_predictors <- predictor_rank$name[1:9]
 
