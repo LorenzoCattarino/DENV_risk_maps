@@ -1,3 +1,15 @@
+get_sat_area_wgts <- function(foi_data, parms){
+  
+  b <- parms$shape_1
+  c <- parms$shape_2 
+  d <- parms$shape_3
+  
+  data_sub <- foi_data[foi_data$type == "pseudoAbsence", ]
+  
+  b + (c - b) * (1 - (1 / (1 + (data_sub$Shape_Area / d))))
+  
+}
+
 get_area_scaled_wgts <- function(foi_data, wgt_limits){
   
   x <- foi_data[foi_data$type== "pseudoAbsence", "Shape_Area"]
@@ -28,16 +40,4 @@ get_area_scaled_wgts <- function(foi_data, wgt_limits){
 
 approx_one <- function(i, a, b){
   approx(a, b, xout = i)$y
-}
-
-get_sat_area_wgts <- function(foi_data, parms){
-  
-  b <- parms$b 
-  c <- parms$c 
-  d <- parms$d 
-    
-  data_sub <- foi_data[foi_data$type== "pseudoAbsence", ]
-  
-  b + (c - b) * (1 - (1 / (1 + (data_sub$Shape_Area / d))))
-    
 }
