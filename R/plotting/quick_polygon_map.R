@@ -1,5 +1,6 @@
 quick_polygon_map <- function(adm_shp_fl, 
                               country, 
+                              my_col,
                               var, 
                               out_pt, 
                               out_name){
@@ -12,8 +13,6 @@ quick_polygon_map <- function(adm_shp_fl,
       units = "cm",
       pointsize = 12,
       res = 300)
-
-  my_col <- matlab.like(100)
   
   # country_list <- list("sp.polygons",
   #                      country,
