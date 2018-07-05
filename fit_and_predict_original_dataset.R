@@ -2,10 +2,15 @@
 library(h2o)
 library(ggplot2)
 library(ranger)
+library(rgdal)
+library(colorRamps)
+library(lattice)
+library(grid)
 
 source(file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"))
 source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
 source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
+source(file.path("R", "plotting", "quick_polygon_map.R"))
 
 
 # define parameters -----------------------------------------------------------
@@ -24,6 +29,11 @@ parameters <- list(
   wgt_limits = c(1, 500),
   no_samples = 200,
   no_predictors = 9) 
+
+out_pt <- file.path("figures", "original_dataset_fits")
+out_name <- "admin1_map.png"
+
+my_col <- matlab.like(100)
 
 
 # define variables ------------------------------------------------------------
@@ -55,6 +65,14 @@ predictor_rank <- read.csv(file.path("output",
 adm1_dataset <- read.csv(file.path("output", 
                                    "env_variables", 
                                    "all_adm1_env_var.csv"))
+
+adm_shp <- readOGR(dsn = file.path("output", "shapefiles"), 
+                   layer = "gadm28_adm1_eras",
+                   stringsAsFactors = FALSE)
+
+country_shp <- readOGR(dsn = file.path("output", "shapefiles"), 
+                       layer = "gadm28_adm0_eras",
+                       stringsAsFactors = FALSE)
 
 
 # pre processing --------------------------------------------------------------
@@ -105,6 +123,10 @@ RF_obj <- fit_ranger_RF(dependent_variable = dependent_variable,
                         min_node_size = min_node_size,
                         my_weights = "new_weight")
 
+
+# make predictions of the data ------------------------------------------------
+
+
 p_i <- make_ranger_predictions(
   mod_obj = RF_obj,
   dataset = training_dataset,
@@ -116,6 +138,10 @@ foi_data <- foi_data[foi_data$type != "pseudoAbsence",]
 
 corr_coeff <- round(cor(foi_data$FOI, foi_data$p_i), 3)
 
+
+# scatterplot with corr coeff -------------------------------------------------
+
+
 p <- ggplot(foi_data) +
   geom_point(aes(x = FOI, y = p_i), size = 1) +
   geom_abline(slope = 1, intercept = 0, linetype = 2) +
@@ -125,24 +151,8 @@ p <- ggplot(foi_data) +
 ggsave(file.path("figures", "test_fit_without_pop.png"), p, width = 15, height = 8, units = "cm")
 
 
-# adm1 predictions ------------------------------------------------------------
+# make global adm1 predictions ------------------------------------------------
 
-
-source(file.path("R", "plotting", "quick_polygon_map.R"))
-library(rgdal)
-library(colorRamps)
-library(lattice)
-library(grid)
-
-out_pt <- file.path("figures", "original_dataset_fits")
-out_name <- "admin1_map.png"
-adm_shp <- readOGR(dsn = file.path("output", "shapefiles"), 
-                   layer = "gadm28_adm1_eras",
-                   stringsAsFactors = FALSE)
-
-country_shp <- readOGR(dsn = file.path("output", "shapefiles"), 
-                       layer = "gadm28_adm0_eras",
-                       stringsAsFactors = FALSE)
 
 admin <- make_ranger_predictions(
   mod_obj = RF_obj,
@@ -158,7 +168,9 @@ adm_shp_pred <- merge(adm_shp,
                       by = c("ID_0", "ID_1"), 
                       all.x = TRUE)
 
-my_col <- matlab.like(100)
+
+# global adm1 map -------------------------------------------------------------
+
 
 quick_polygon_map(adm_shp_pred, 
                   country_shp, 
