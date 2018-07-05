@@ -41,11 +41,11 @@ out_tab_name <- "predictor_rank.csv"
 
 out_fig_path <- file.path("figures", 
                           "variable_selection", 
-                          "stepwise_seed")
+                          "stepwise")
 
 out_tab_path <- file.path("output", 
                           "variable_selection", 
-                          "stepwise_seed")
+                          "stepwise")
 
 
 # define variables ------------------------------------------------------------
@@ -107,10 +107,15 @@ all_predictors <- names(boot_samples[[1]])
 
 all_preds_n <- lapply(all_preds, function(x) which(all_predictors %in% x))
 
-all_preds_sel_freq_rank <- calculate_sel_freq(unlist(all_preds_n), top_ones)
+sel_freq <- table(unlist(all_preds_n))
 
-out <- data.frame(predictor = all_preds_sel_freq_rank, 
-                  name = all_predictors[all_preds_sel_freq_rank],
+all_preds_sel_freq_rank <- sel_freq[order(sel_freq, decreasing = TRUE)]
+
+all_preds_indices <- as.numeric(names(all_preds_sel_freq_rank))
+
+out <- data.frame(predictor = all_preds_indices, 
+                  name = all_predictors[all_preds_indices],
+                  sel_freq = as.numeric(all_preds_sel_freq_rank),
                   stringsAsFactors = FALSE)
 
 write_out_csv(out, out_tab_path, out_tab_name)
