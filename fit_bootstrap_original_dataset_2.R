@@ -15,9 +15,9 @@ source(file.path("R", "utility_functions.R"))
 parameters <- list(
   dependent_variable = "FOI",
   grid_size = 5,
-  b = 0,
-  c = 5,
-  d = 1.6e6,
+  shape_1 = 0,
+  shape_2 = 5,
+  shape_3 = 1.6e6,
   pseudoAbs_value = -0.02,
   all_wgt = 1,
   wgt_limits = c(1, 500),
