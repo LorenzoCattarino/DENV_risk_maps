@@ -1,20 +1,40 @@
 
 library(h2o)
 library(ggplot2)
+library(ranger)
 
 source(file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"))
+source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
 source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
 
 
 # define parameters -----------------------------------------------------------
 
 
-dependent_variable <- "FOI"
-pseudoAbsence_value <- -0.02
-no_trees <- 500
-min_node_size <- 20
-all_wgt <- 1
-wgt_limits <- c(1, 500)
+parameters <- list(
+  dependent_variable = "FOI",
+  grid_size = 5,
+  b = 0,
+  c = 5,
+  d = 1.6e6,
+  pseudoAbs_value = -0.02,
+  no_trees = 500,
+  min_node_size = 20,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
+  no_samples = 200,
+  no_predictors = 9) 
+
+
+# define variables ------------------------------------------------------------
+
+
+dependent_variable <- parameters$dependent_variable
+pseudoAbsence_value <- parameters$pseudoAbs_value
+no_predictors <- parameters$no_predictors
+all_wgt <- parameters$all_wgt
+no_trees <- parameters$no_trees
+min_node_size <- parameters$min_node_size
 
 
 # load data -------------------------------------------------------------------
@@ -32,6 +52,10 @@ predictor_rank <- read.csv(file.path("output",
                                      "variable_rank_final_fits_exp_1.csv"),
                            stringsAsFactors = FALSE)
 
+adm1_dataset <- read.csv(file.path("output", 
+                                   "env_variables", 
+                                   "all_adm1_env_var.csv"))
+
 
 # pre processing --------------------------------------------------------------
 
@@ -39,12 +63,10 @@ predictor_rank <- read.csv(file.path("output",
 foi_data[foi_data$type == "pseudoAbsence", dependent_variable] <- pseudoAbsence_value
 
 foi_data$new_weight <- all_wgt
-pAbs_wgt <- get_area_scaled_wgts(foi_data, wgt_limits)
+pAbs_wgt <- get_sat_area_wgts(foi_data, parameters)
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
-my_predictors <- predictor_rank$name[1:9]
-
-# my_predictors <- c(my_predictors, "log_pop_den")
+my_predictors <- predictor_rank$name[1:no_predictors]
 
 
 # -----------------------------------------------------------------------------
@@ -57,23 +79,38 @@ training_dataset <- foi_data[, c(dependent_variable, my_predictors, "new_weight"
 # -----------------------------------------------------------------------------
 
 
-h2o.init()
+# h2o.init()
+# 
+# RF_obj <- fit_h2o_RF(dependent_variable = dependent_variable,
+#                      predictors = my_predictors,
+#                      training_dataset = training_dataset,
+#                      no_trees = no_trees,
+#                      min_node_size = min_node_size,
+#                      my_weights = "new_weight")
+# 
+# p_i <- make_h2o_predictions(
+#   mod_obj = RF_obj,
+#   dataset = training_dataset,
+#   sel_preds = my_predictors)
+# 
+# foi_data$p_i <- p_i
+# 
+# h2o.shutdown(prompt = FALSE)
 
-RF_obj <- fit_h2o_RF(dependent_variable = dependent_variable, 
-                     predictors = my_predictors, 
-                     training_dataset = training_dataset, 
-                     no_trees = no_trees, 
-                     min_node_size = min_node_size,
-                     my_weights = "new_weight")
 
-p_i <- make_h2o_predictions(
-  mod_obj = RF_obj, 
-  dataset = training_dataset, 
+RF_obj <- fit_ranger_RF(dependent_variable = dependent_variable,
+                        predictors = my_predictors,
+                        training_dataset = training_dataset,
+                        no_trees = no_trees,
+                        min_node_size = min_node_size,
+                        my_weights = "new_weight")
+
+p_i <- make_ranger_predictions(
+  mod_obj = RF_obj,
+  dataset = training_dataset,
   sel_preds = my_predictors)
 
 foi_data$p_i <- p_i
-  
-h2o.shutdown(prompt = FALSE)
 
 foi_data <- foi_data[foi_data$type != "pseudoAbsence",] 
 
@@ -86,3 +123,46 @@ p <- ggplot(foi_data) +
   geom_text(aes(x = 0.05, y = 0.01, label = paste0("r = ", corr_coeff)))
 
 ggsave(file.path("figures", "test_fit_without_pop.png"), p, width = 15, height = 8, units = "cm")
+
+
+# adm1 predictions ------------------------------------------------------------
+
+
+source(file.path("R", "plotting", "quick_polygon_map.R"))
+library(rgdal)
+library(colorRamps)
+library(lattice)
+library(grid)
+
+out_pt <- file.path("figures", "original_dataset_fits")
+out_name <- "admin1_map.png"
+adm_shp <- readOGR(dsn = file.path("output", "shapefiles"), 
+                   layer = "gadm28_adm1_eras",
+                   stringsAsFactors = FALSE)
+
+country_shp <- readOGR(dsn = file.path("output", "shapefiles"), 
+                       layer = "gadm28_adm0_eras",
+                       stringsAsFactors = FALSE)
+
+admin <- make_ranger_predictions(
+  mod_obj = RF_obj,
+  dataset = adm1_dataset,
+  sel_preds = my_predictors)
+
+adm1_dataset$admin <- admin
+
+adm1_dataset$admin[adm1_dataset$admin < 0] <- 0
+
+adm_shp_pred <- merge(adm_shp, 
+                      adm1_dataset[, c("ID_0", "ID_1", "admin")], 
+                      by = c("ID_0", "ID_1"), 
+                      all.x = TRUE)
+
+my_col <- matlab.like(100)
+
+quick_polygon_map(adm_shp_pred, 
+                  country_shp, 
+                  my_col,
+                  "admin", 
+                  out_pt, 
+                  out_name)
