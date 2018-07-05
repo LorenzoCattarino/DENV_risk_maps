@@ -21,6 +21,9 @@ context::parallel_cluster_start(8, ctx)
 
 parameters <- list(
   grid_size = 5,
+  shape_1 = 0,
+  shape_2 = 5,
+  shape_3 = 1e6,
   all_wgt = 1,
   wgt_limits = c(1, 500),
   no_samples = 200)   
@@ -50,13 +53,10 @@ foi_data <- read.csv(file.path("output",
 # pre processing --------------------------------------------------------------
 
 
-names(foi_data)[names(foi_data) == "ID_0"] <- "ADM_0"
-
-names(foi_data)[names(foi_data) == "ID_1"] <- "ADM_1"
-
 foi_data$new_weight <- parameters$all_wgt
 
-pAbs_wgt <- get_area_scaled_wgts(foi_data, parameters$wgt_limits)
+pAbs_wgt <- get_sat_area_wgts(foi_data, parameters)
+# pAbs_wgt <- get_area_scaled_wgts(foi_data, parameters$wgt_limits)
 
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
