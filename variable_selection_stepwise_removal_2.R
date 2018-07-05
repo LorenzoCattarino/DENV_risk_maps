@@ -22,14 +22,7 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   grid_size = 5,
-  no_trees = 500,
-  min_node_size = 20,
-  no_steps_L1 = 28, 
-  no_steps_L2 = 0, 
-  pseudoAbs_value = -0.02,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
-  no_samples = 200)     
+  no_steps_L1 = 28)     
 
 top_ones <- parameters$no_steps_L1 # all of them
 

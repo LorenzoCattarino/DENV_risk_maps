@@ -22,14 +22,8 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   grid_size = 5,
-  no_trees = 500,
-  min_node_size = 20,
   no_steps_L1 = 28, 
   no_steps_L2 = 0,   
-  pseudoAbs_value = -0.02,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
-  no_reps = 10,
   no_samples = 200)     
 
 top_ones_within_reps <- 10
@@ -37,11 +31,11 @@ top_ones_across_reps <- 20
 
 table_out_path <- file.path("output", 
                             "variable_selection", 
-                            "stepwise_seed")
+                            "stepwise")
 
 plot_out_path <- file.path("figures", 
                            "variable_selection", 
-                           "stepwise_seed")
+                           "stepwise")
 
 
 # define variables ------------------------------------------------------------
@@ -55,7 +49,7 @@ my_dir <- paste0("grid_size_", parameters$grid_size)
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "20Core")
+  config <- didehpc::didehpc_config(template = "12and16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {

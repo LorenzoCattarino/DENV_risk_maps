@@ -22,6 +22,9 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   grid_size = 5,
+  shape_1 = 0,
+  shape_2 = 5,
+  shape_3 = 1e6,
   no_trees = 500,
   min_node_size = 20,
   no_steps_L1 = 28,   
@@ -99,7 +102,7 @@ foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- parameters$pseudoAbs_v
 
 foi_data$new_weight <- parameters$all_wgt
 
-pAbs_wgt <- get_area_scaled_wgts(foi_data, parameters$wgt_limits)
+pAbs_wgt <- get_sat_area_wgts(foi_data, parameters)
 
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
