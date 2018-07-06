@@ -1,3 +1,4 @@
+# Finds the value of the environmental covariates for each point (real and pseudo absence) in the dataset 
 
 library(dplyr)
 
@@ -13,12 +14,14 @@ base_info <- c("type",
                "ISO",
                "ID_0",
                "ID_1",
-               "FOI")
+               "FOI",
+               "R0_1",
+               "R0_2",
+               "R0_3")
   
 foi_out_pt <- file.path("output", "foi")
   
-# foi_out_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
-foi_out_nm <- "All_FOI_estimates_linear_env_var_area.csv"
+foi_out_nm <- "All_FOI_estimates_and_predictors.csv"
 
 
 # load data -------------------------------------------------------------------  
@@ -29,13 +32,6 @@ All_FOI_R0_estimates <- read.csv(file.path("output",
                                            "All_R_0_estimates.csv"), 
                                  header = TRUE, 
                                  stringsAsFactors = FALSE)
-
-salje_data <- read.table(file.path("output", 
-                                   "seroprevalence",
-                                   "salje",
-                                   "observations_adm1.txt"),
-                         header = TRUE,
-                         sep = ",")
 
 pseudo_absence_points <- read.csv(file.path("output", 
                                             "datasets", 
@@ -54,12 +50,13 @@ adm1_covariates <- read.csv(file.path("output",
 
 
 pseudo_absence_points$FOI <- 0
+pseudo_absence_points$R0_1 <- 0
+pseudo_absence_points$R0_2 <- 0
+pseudo_absence_points$R0_3 <- 0
 
 All_FOI_R0_estimates <- All_FOI_R0_estimates[, base_info]
-salje_data <- salje_data[, base_info]
 pseudo_absence_points <- pseudo_absence_points[, base_info]
 
-# foi_data <- rbind(All_FOI_R0_estimates, salje_data, pseudo_absence_points)
 foi_data <- rbind(All_FOI_R0_estimates, pseudo_absence_points)
 
 foi_data_cov <- left_join(foi_data, adm1_covariates)
