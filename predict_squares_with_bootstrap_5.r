@@ -6,7 +6,7 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "burden_and_interventions", "calculate_mean_across_fits.R"),
+  file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"),
   file.path("R", "utility_functions.R"))
 
 context::context_log_start()
@@ -19,10 +19,10 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   dependent_variable = "FOI",
-  grid_size = 1,
+  grid_size = 1 / 120,
   no_samples = 200)   
 
-vars_to_average <- c("response", "p9")
+vars_to_average <- "response"
 
 
 # define variables ------------------------------------------------------------
@@ -56,20 +56,12 @@ if (CLUSTER) {
   
 }
 
-# 
-# # load data ------------------------------------------------------------------- 
-# 
-# 
-# all_sqr_covariates <- readRDS(file.path("output", 
-#                                         "env_variables", 
-#                                         "all_squares_env_var_0_1667_deg.rds"))
-# 
 
 # run one job -----------------------------------------------------------------
 
 
 # t <- obj$enqueue(
-#   average_foi_and_burden_predictions(
+#   wrapper_to_average_bsamples(
 #     seq_along(vars_to_average)[1],
 #     vars = vars_to_average,
 #     in_path = in_path,
@@ -84,7 +76,7 @@ if (CLUSTER) {
 
   means_all_scenarios <- queuer::qlapply(
     seq_along(vars_to_average),
-    average_foi_and_burden_predictions,
+    wrapper_to_average_bsamples,
     obj,
     vars = vars_to_average,
     in_path = in_path,
@@ -95,7 +87,7 @@ if (CLUSTER) {
 
   means_all_scenarios <- loop(
     seq_along(vars_to_average),
-    average_foi_and_burden_predictions,
+    wrapper_to_average_bsamples,
     vars = vars_to_average,
     in_path = in_path,
     out_path = in_path,

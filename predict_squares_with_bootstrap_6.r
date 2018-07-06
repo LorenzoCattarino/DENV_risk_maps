@@ -21,7 +21,7 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   dependent_variable = "FOI",
-  grid_size = 1)   
+  grid_size = 1 / 120)   
 
 vars_to_average <- "response"
 
@@ -69,7 +69,7 @@ mean_pred_fl_nm <- paste0(vars_to_average, "_mean", ".rds")
 
 df_long <- readRDS(file.path(in_path, mean_pred_fl_nm))
 
-out_fl_nm <- paste0(vars_to_average, "_", statistics, ".png")
+out_fl_nm <- paste0(vars_to_average, "_", statistic, ".png")
 
 names(df_long)[names(df_long) == "lat.grid"] <- "latitude"
 names(df_long)[names(df_long) == "long.grid"] <- "longitude"
