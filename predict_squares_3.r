@@ -22,13 +22,13 @@ ctx <- context::context_save(path = "context",
 parameters <- list(
   dependent_variable = "FOI",
   no_samples = 200,
-  no_predictors = 9)   
+  no_predictors = 26)   
 
 vars_to_average <- "response"
 
 statistic <- "best"
 
-model_type_tag <- "_best_model_6"
+model_type_tag <- "_best_model_2"
 
 
 # define variables ------------------------------------------------------------

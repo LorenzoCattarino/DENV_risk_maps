@@ -3,11 +3,11 @@
 options(didehpc.cluster = "fi--didemrchnb")
 
 my_resources <- c(
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "plotting", "functions_for_plotting_square_level_maps.R"),
   file.path("R", "utility_functions.R"))
   
-my_pkgs <- "h2o"
+my_pkgs <- "ranger"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -21,15 +21,15 @@ ctx <- context::context_save(path = "context",
 parameters <- list(
   dependent_variable = "FOI",
   no_samples = 200,
-  no_predictors = 9)   
+  no_predictors = 26)   
 
 RF_mod_name <- "RF_obj.rds"
 
 base_info <- c("cell", "latitude", "longitude", "population", "ID_0", "ID_1", "ID_2")
 
-model_type_tag <- "_best_model_6"
+model_type_tag <- "_best_model_2"
 
-extra_predictors <- "log_pop_den"
+extra_predictors <- NULL
 
 
 # define variables ------------------------------------------------------------
@@ -61,12 +61,10 @@ RF_obj_path <- file.path("output",
                          model_tp,
                          "optimized_model_objects")
 
-# predicting variable rank
 predictor_rank <- read.csv(file.path("output", 
-                                     "variable_selection", 
-                                     "metropolis_hastings", 
-                                     "exp_1", 
-                                     "variable_rank_final_fits_exp_1.csv"),
+                                     "variable_selection",
+                                     "stepwise",
+                                     "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
 
@@ -80,13 +78,9 @@ my_predictors <- c(my_predictors, extra_predictors)
 # submit one job -------------------------------------------------------------- 
 
 
-h2o.init()
+RF_obj <- readRDS(file.path(RF_obj_path, RF_mod_name))
 
-RF_obj <- h2o.loadModel(file.path(RF_obj_path, RF_mod_name))
-
-p_i <- make_h2o_predictions(RF_obj, all_sqr_covariates, my_predictors)
-
-h2o.shutdown(prompt = FALSE)
+p_i <- make_ranger_predictions(RF_obj, all_sqr_covariates, my_predictors)
 
 p_i[p_i < 0] <- 0
 
