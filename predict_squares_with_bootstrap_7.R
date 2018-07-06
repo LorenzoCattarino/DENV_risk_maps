@@ -3,30 +3,41 @@
 # based on the distance of the pixel to the closest data point
 
 
-source(file.path("R", "burden_and_interventions", "calculate_mean_across_fits.r"))
+source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
+source(file.path("R", "utility_functions.R"))
 
 
 # define parameters -----------------------------------------------------------
 
 
-no_samples <- 200
+parameters <- list(
+  dependent_variable = "R0_3",
+  grid_size = c(0.5, 1, 2, 5, 10))   
 
-grid_sizes <- c(0.5, 1, 2, 5, 10)
+out_name <- "response_mean.rds"
 
+base_info <- c("cell", "latitude", "longitude", "population", "ADM_0", "ADM_1", "ADM_2", "sd")
+
+
+# define variables ------------------------------------------------------------
+
+
+model_type <- paste0(parameters$dependent_variable, "_boot_model")
+
+grid_sizes <- parameters$grid_size
+  
 in_path <- file.path("output",
                      "predictions_world",
                      "bootstrap_models",
                      paste0("grid_size_", grid_sizes),
-                     "FOI_boot_model",
+                     model_type,
                      "response_mean.rds")
-
-out_name <- "response_mean.rds"
 
 out_path <- file.path("output",
                       "predictions_world",
-                      "bootstrap_models")
-
-base_info <- c("cell", "latitude", "longitude", "population", "ADM_0", "ADM_1", "ADM_2", "sd")
+                      "bootstrap_models",
+                      "grid_size_interpolated",
+                      model_type)
 
 
 # load data ------------------------------------------------------------------- 
@@ -66,7 +77,7 @@ for (i in seq_len(N)){
 
 }
 
-saveRDS(all_sqr_covariates[, base_info], file.path(out_path, out_name))
+write_out_rds(all_sqr_covariates[, base_info], out_path, out_name)
 
 
 # =============================================================================
