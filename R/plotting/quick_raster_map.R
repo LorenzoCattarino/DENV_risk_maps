@@ -50,9 +50,8 @@ quick_raster_map <- function(pred_df, variable = NULL, statistic, out_pt, out_na
   par(mar = c(0,0,0,0), oma = c(0,0,0,0))
   
   ticks <- pretty(pred_df[, statistic], n = 5)
-  # ticks <- seq(0, 0.015, 0.005)
-  # ticks <- seq(0, 0.06, 0.01)
-  
+  # ticks <- seq(0, 0.08, 0.01)
+
   image(lons, 
         lats, 
         mat, 
