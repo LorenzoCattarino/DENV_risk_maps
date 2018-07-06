@@ -5,7 +5,7 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "random_forest", "exp_max_algorithm.R"),
   file.path("R", "plotting", "quick_raster_map.R"),
@@ -13,7 +13,7 @@ my_resources <- c(
   file.path("R", "prepare_datasets", "calculate_wgt_corr.R"),
   file.path("R", "utility_functions.R"))  
 
-my_pkgs <- c("h2o", "dplyr", "fields", "ggplot2", "weights", "colorRamps")
+my_pkgs <- c("ranger", "dplyr", "fields", "ggplot2", "weights", "colorRamps")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -26,13 +26,16 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   dependent_variable = "FOI",
+  shape_1 = 0,
+  shape_2 = 5,
+  shape_3 = 1.6e6,
   pseudoAbs_value = -0.02,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
   no_trees = 500,
   min_node_size = 20,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
   EM_iter = 10,
-  no_predictors = 9)   
+  no_predictors = 26) 
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
@@ -48,11 +51,11 @@ out_fl_nm <- "square_predictions_all_data.rds"
 
 foi_dts_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
 
-pxl_dts_name <- "covariates_and_foi_20km_6.rds"
+pxl_dts_name <- "covariates_and_foi_20km.rds"
 
-model_type_tag <- "_best_model_6"
+model_type_tag <- "_best_model_2"
 
-extra_predictors <- "log_pop_den"
+extra_predictors <- NULL
 
 
 # define variables ------------------------------------------------------------
@@ -65,8 +68,6 @@ number_of_predictors <- parameters$no_predictors
 pseudoAbsence_value <- parameters$pseudoAbs_value
 
 all_wgt <- parameters$all_wgt
-
-wgt_limits <- parameters$wgt_limits
 
 model_type <- paste0(var_to_fit, model_type_tag)
 
@@ -131,10 +132,9 @@ pxl_dataset <- readRDS(file.path("output",
                                  pxl_dts_name))
 
 predictor_rank <- read.csv(file.path("output", 
-                                     "variable_selection", 
-                                     "metropolis_hastings", 
-                                     "exp_1", 
-                                     "variable_rank_final_fits_exp_1.csv"),
+                                     "variable_selection",
+                                     "stepwise",
+                                     "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
 adm_dataset <- read.csv(file.path("output",
@@ -151,18 +151,21 @@ names(foi_data)[names(foi_data) == var_to_fit] <- "o_j"
 foi_data[foi_data$type == "pseudoAbsence", "o_j"] <- pseudoAbsence_value
 
 foi_data$new_weight <- all_wgt
-pAbs_wgt <- get_area_scaled_wgts(foi_data, wgt_limits)
+pAbs_wgt <- get_sat_area_wgts(foi_data, parameters)
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
 adm_dataset <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 
 pxl_dts_grp <- pxl_dataset %>% group_by_(.dots = grp_flds) 
 
-aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
+# aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
+ncells <- pxl_dts_grp %>% summarise(n_sqr = n())
+  
+# pxl_dataset <- left_join(pxl_dataset, aa)
+pxl_dataset <- left_join(pxl_dataset, ncells)
 
-pxl_dataset <- left_join(pxl_dataset, aa)
-
-pxl_dataset$pop_weight <- pxl_dataset$population / pxl_dataset$pop_sqr_sum
+# pxl_dataset$pop_weight <- pxl_dataset$population / pxl_dataset$pop_sqr_sum
+pxl_dataset$pop_weight <- 1 / pxl_dataset$n_sqr
 
 pxl_dataset <- inner_join(pxl_dataset, foi_data[, c(grp_flds, "o_j", "new_weight")])
 

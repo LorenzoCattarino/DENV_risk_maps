@@ -5,7 +5,7 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "random_forest", "exp_max_algorithm.R"),
   file.path("R", "plotting", "quick_raster_map.R"),
@@ -13,7 +13,7 @@ my_resources <- c(
   file.path("R", "prepare_datasets", "calculate_wgt_corr.R"),
   file.path("R", "utility_functions.R"))  
 
-my_pkgs <- c("h2o", "dplyr", "fields", "ggplot2", "weights", "colorRamps")
+my_pkgs <- c("ranger", "dplyr", "fields", "ggplot2", "weights", "colorRamps")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -26,15 +26,18 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   dependent_variable = "FOI",
-  pseudoAbs_value = -0.05,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
+  shape_1 = 0,
+  shape_2 = 5,
+  shape_3 = 1.6e6,
+  pseudoAbs_value = -0.02,
   no_trees = 500,
   min_node_size = 20,
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
   EM_iter = 10,
-  no_predictors = 9)   
+  no_predictors = 26) 
 
-model_type_tag <- "_best_model_6"
+model_type_tag <- "_best_model_2"
 
 
 # define variables ------------------------------------------------------------

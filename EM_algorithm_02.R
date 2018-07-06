@@ -26,11 +26,11 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   resample_grid_size = 20,
-  no_predictors = 9)   
+  no_predictors = 26)   
 
 out_pt <- file.path("output", "EM_algorithm", "best_fit_models", "env_variables")
 
-out_fl_nm <- "env_vars_20km_4.rds"
+out_fl_nm <- "env_vars_20km.rds"
 
 
 # rebuild the queue ----------------------------------------------------------- 

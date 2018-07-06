@@ -24,7 +24,7 @@ strip_labs <- c("mean square error",
 
 names(strip_labs) <- diagnostic_vars
 
-model_type_tag <- "_best_model_6"
+model_type_tag <- "_best_model_2"
 
 
 # define variables ------------------------------------------------------------

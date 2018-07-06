@@ -3,11 +3,11 @@
 options(didehpc.cluster = "fi--didemrchnb")
 
 my_resources <- c(
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "utility_functions.R"))
 
-my_pkgs <- "h2o"
+my_pkgs <- "ranger"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -20,18 +20,21 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   dependent_variable = "FOI",
+  shape_1 = 0,
+  shape_2 = 5,
+  shape_3 = 1.6e6,
   pseudoAbs_value = -0.02,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
   no_trees = 500,
   min_node_size = 20,
-  no_predictors = 9)   
+  all_wgt = 1,
+  wgt_limits = c(1, 500),
+  no_predictors = 26) 
 
-out_name <- "all_data_6.rds"  
+out_name <- "all_data.rds"  
 
 foi_dts_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
 
-extra_predictors <- "log_pop_den"
+extra_predictors <- NULL
 
 
 # define variables ------------------------------------------------------------
@@ -52,16 +55,13 @@ context::context_load(ctx)
 # load data ------------------------------------------------------------------- 
 
 
-# load FOI dataset
 foi_data <- read.csv(file.path("output", "foi", foi_dts_nm),
                      stringsAsFactors = FALSE)
 
-# predicting variable rank
 predictor_rank <- read.csv(file.path("output", 
-                                     "variable_selection", 
-                                     "metropolis_hastings", 
-                                     "exp_1", 
-                                     "variable_rank_final_fits_exp_1.csv"),
+                                     "variable_selection",
+                                     "stepwise",
+                                     "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
 
@@ -73,7 +73,7 @@ foi_data[foi_data$type == "pseudoAbsence", parameters$dependent_variable] <- par
 
 # assign weights
 foi_data$new_weight <- parameters$all_wgt
-pAbs_wgt <- get_area_scaled_wgts(foi_data, parameters$wgt_limits)
+pAbs_wgt <- get_sat_area_wgts(foi_data, parameters)
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
@@ -116,16 +116,11 @@ training_dataset <- foi_data[, c(parameters$dependent_variable, my_predictors, "
 # run job --------------------------------------------------------------------- 
 
 
-h2o.init()
+RF_obj <- fit_ranger_RF(dependent_variable = parameters$dependent_variable, 
+                        predictors = my_predictors, 
+                        training_dataset = training_dataset, 
+                        no_trees = parameters$no_trees, 
+                        min_node_size = parameters$min_node_size,
+                        my_weights = "new_weight")
 
-RF_obj <- fit_h2o_RF(dependent_variable = parameters$dependent_variable, 
-                     predictors = my_predictors, 
-                     training_dataset = training_dataset, 
-                     no_trees = parameters$no_trees, 
-                     min_node_size = parameters$min_node_size,
-                     my_weights = "new_weight",
-                     model_nm = out_name)
-
-h2o.saveModel(RF_obj, out_path, force = TRUE)
-
-h2o.shutdown(prompt = FALSE)
+write_out_rds(RF_obj, out_path, out_name)

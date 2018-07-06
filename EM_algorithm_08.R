@@ -10,10 +10,10 @@ options(didehpc.cluster = "fi--didemrchnb")
 my_resources <- c(
   file.path("R", "prepare_datasets", "average_up.R"),
   file.path("R", "prepare_datasets", "remove_NA_rows.R"),
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "utility_functions.R"))
 
-my_pkgs <- c("h2o", "dplyr", "data.table")
+my_pkgs <- c("ranger", "dplyr", "data.table")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -27,7 +27,7 @@ ctx <- context::context_save(path = "context",
 parameters <- list(
   dependent_variable = "FOI",
   pseudoAbs_value = -0.02,
-  no_predictors = 9)   
+  no_predictors = 26)   
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
@@ -37,11 +37,11 @@ out_name <- "all_scale_predictions.rds"
 
 foi_dts_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
 
-covariate_dts_nm <- "env_vars_20km_3.rds"
+covariate_dts_nm <- "env_vars_20km.rds"
 
-model_type_tag <- "_best_model_6"
+model_type_tag <- "_best_model_2"
 
-extra_predictors <- "log_pop_den"
+extra_predictors <- NULL
 
 
 # define variables ------------------------------------------------------------
@@ -88,10 +88,9 @@ adm_dataset <- read.csv(file.path("output",
                         stringsAsFactors = FALSE)
 
 predictor_rank <- read.csv(file.path("output", 
-                                     "variable_selection", 
-                                     "metropolis_hastings", 
-                                     "exp_1", 
-                                     "variable_rank_final_fits_exp_1.csv"),
+                                     "variable_selection",
+                                     "stepwise",
+                                     "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
 tile_summary <- read.csv(file.path("data", 
@@ -134,15 +133,11 @@ my_predictors <- c(my_predictors, extra_predictors)
 # ---------------------------------------- submit one job 
 
 
-h2o.init()
-
-RF_obj <- h2o.loadModel(file.path(RF_obj_path, RF_obj_nm))
+RF_obj <- readRDS(file.path(RF_obj_path, RF_obj_nm))
 
 adm_dataset_2 <- remove_NA_rows(adm_dataset, my_predictors)
 
-adm_dataset_2$admin <- make_h2o_predictions(RF_obj, adm_dataset_2, my_predictors)
-
-h2o.shutdown(prompt = FALSE)
+adm_dataset_2$admin <- make_ranger_predictions(RF_obj, adm_dataset_2, my_predictors)
 
 fltr_adm <- inner_join(adm_dataset_2, foi_dataset[, grp_flds])
 

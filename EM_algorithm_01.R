@@ -25,7 +25,7 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   resample_grid_size = 20,
-  no_predictors = 9)   
+  no_predictors = 26)   
   
 group_fields <- c("cell", "latitude", "longitude")
 
@@ -37,7 +37,7 @@ resample <- TRUE
 
 foi_dts_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
 
-extra_predictors <- "TSI" # "travel_time" "log_pop_den"
+extra_predictors <- NULL
 
 
 # define variables ------------------------------------------------------------
@@ -68,9 +68,8 @@ foi_data <- read.csv(file.path("output", "foi", foi_dts_nm),
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
-                                     "metropolis_hastings",
-                                     "exp_1",
-                                     "variable_rank_final_fits_exp_1.csv"), 
+                                     "stepwise",
+                                     "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
 
@@ -80,6 +79,7 @@ predictor_rank <- read.csv(file.path("output",
 fi <- list.files(in_pt, pattern = "^tile", full.names = TRUE)
 
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
+my_predictors <- setdiff(my_predictors, "log_pop_den") #`log_pop_den` is not in the original tile set
 my_predictors <- c(my_predictors, extra_predictors)
   
 

@@ -21,10 +21,12 @@ source(file.path("R", "utility_functions.R"))
 
 parameters <- list(
   dependent_variable = "FOI",
+  shape_1 = 0,
+  shape_2 = 5,
+  shape_3 = 1.6e6,
   pseudoAbs_value = -0.02,
   all_wgt = 1,
-  wgt_limits = c(1, 500),
-  no_predictors = 9)   
+  no_predictors = 26)   
 
 mes_vars <- c("admin", "square")
 
@@ -35,7 +37,7 @@ data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
 
 foi_dts_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
 
-model_type_tag <- "_best_model_6"
+model_type_tag <- "_best_model_2"
 
 
 # define variables ------------------------------------------------------------
@@ -69,24 +71,24 @@ out_table_path <- file.path("output",
 # load data ------------------------------------------------------------------- 
 
 
-foi_dataset <- read.csv(file.path("output", "foi", foi_dts_nm),
+foi_data <- read.csv(file.path("output", "foi", foi_dts_nm),
                         stringsAsFactors = FALSE) 
 
 
 # pre processing --------------------------------------------------------------
 
 
-no_datapoints <- nrow(foi_dataset)
+no_datapoints <- nrow(foi_data)
 
-no_pseudoAbs <- sum(foi_dataset$type == "pseudoAbsence") 
+no_pseudoAbs <- sum(foi_data$type == "pseudoAbsence") 
 
 no_pnts_vec <- c(no_datapoints, no_datapoints - no_pseudoAbs) 
 
-foi_dataset$new_weight <- parameters$all_wgt
+foi_data$new_weight <- parameters$all_wgt
 
-pAbs_wgt <- get_area_scaled_wgts(foi_dataset, parameters$wgt_limits)
+pAbs_wgt <- get_sat_area_wgts(foi_data, parameters)
 
-foi_dataset[foi_dataset$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
+foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
 
 # start -----------------------------------------------------------------------
@@ -122,7 +124,7 @@ for (j in seq_along(tags)) {
     measure.vars = mes_vars,
     variable.name = "scale")
   
-  ret <- dplyr::left_join(all_av_preds_mlt, foi_dataset[, c("data_id", "new_weight")])
+  ret <- dplyr::left_join(all_av_preds_mlt, foi_data[, c("data_id", "new_weight")])
   
   fl_nm_av <- paste0("pred_vs_obs_plot_averages_", tag, ".png")
   

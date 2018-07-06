@@ -3,10 +3,10 @@
 options(didehpc.cluster = "fi--didemrchnb")
 
 my_resources <- c(
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "utility_functions.R"))  
 
-my_pkgs <- "h2o"
+my_pkgs <- "ranger"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -19,15 +19,15 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   dependent_variable = "FOI",
-  no_predictors = 9)   
+  no_predictors = 26)   
 
-aggr_dts_name <- "env_vars_20km_3.rds"
+aggr_dts_name <- "env_vars_20km.rds"
 
-out_fl_nm <- "covariates_and_foi_20km_6.rds"
+out_fl_nm <- "covariates_and_foi_20km.rds"
 
-model_obj_nm <- "all_data_6.rds"
+model_obj_nm <- "all_data.rds"
 
-extra_predictors <- "log_pop_den"
+extra_predictors <- NULL
 
 
 # define variables ------------------------------------------------------------
@@ -48,13 +48,11 @@ context::context_load(ctx)
 # load data -------------------------------------------------------------------
 
 
-h2o.init()
-
-RF_obj <- h2o.loadModel(file.path("output",
-                                  "EM_algorithm",
-                                  "best_fit_models",
-                                  paste0("model_objects_", parameters$dependent_variable, "_fit"),
-                                  model_obj_nm))
+RF_obj <- readRDS(file.path("output",
+                            "EM_algorithm",
+                            "best_fit_models",
+                            paste0("model_objects_", parameters$dependent_variable, "_fit"),
+                            model_obj_nm))
 
 aggreg_pxl_env_var <- readRDS(file.path("output", 
                                         "EM_algorithm",
@@ -63,10 +61,9 @@ aggreg_pxl_env_var <- readRDS(file.path("output",
                                         aggr_dts_name))
 
 predictor_rank <- read.csv(file.path("output", 
-                                     "variable_selection", 
-                                     "metropolis_hastings", 
-                                     "exp_1", 
-                                     "variable_rank_final_fits_exp_1.csv"),
+                                     "variable_selection",
+                                     "stepwise",
+                                     "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
 
@@ -80,12 +77,10 @@ my_predictors <- c(my_predictors, extra_predictors)
 # submit job ------------------------------------------------------------------ 
 
 
-p_i <- make_h2o_predictions(
+p_i <- make_ranger_predictions(
   mod_obj = RF_obj, 
   dataset = aggreg_pxl_env_var, 
   sel_preds = my_predictors)
-
-h2o.shutdown(prompt = FALSE)
 
 aggreg_pxl_env_var$p_i <- p_i
 
