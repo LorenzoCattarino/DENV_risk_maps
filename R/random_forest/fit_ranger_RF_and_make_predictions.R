@@ -130,3 +130,68 @@ load_fit_and_predict <- function(i,
   write_out_rds(ret, out_path, out_name)
   
 }
+
+get_boot_sample_and_fit_RF <- function(i, 
+                                       parms,
+                                       boot_ls, 
+                                       my_preds, 
+                                       out_path) {
+  
+  # browser()
+  
+  no_trees <- parms$no_trees
+  min_node_size <- parms$min_node_size
+  psAb_val <- parms$pseudoAbs_value
+  y_var <- parms$dependent_variable
+  
+  adm_dts_boot <- boot_ls[[i]]
+  
+  adm_dts_boot[adm_dts_boot$type == "pseudoAbsence", y_var] <- psAb_val
+  
+  training_dataset <- adm_dts_boot[, c(y_var, my_preds, "new_weight")]
+  
+  a <- paste0("RF_model_object_", i, ".rds")
+  
+  RF_obj <- fit_ranger_RF(dependent_variable = y_var, 
+                       predictors = my_preds, 
+                       training_dataset = training_dataset, 
+                       no_trees = no_trees, 
+                       min_node_size = min_node_size,
+                       my_weights = "new_weight")
+  
+  write_out_rds(RF_obj, out_path, a)
+  
+}
+
+load_predict_and_save <- function(i, 
+                                  RF_obj_path, 
+                                  my_preds, 
+                                  out_file_path,
+                                  in_path){
+  
+  #browser()
+  
+  pxl_dts_nm <- paste0("env_vars_20km_", i, ".rds")
+  
+  RF_obj_nm <- paste0("RF_model_object_", i, ".rds")
+  
+  pxl_dts_boot <- readRDS(file.path(in_path, pxl_dts_nm))
+  
+  RF_obj <- readRDS(file.path(RF_obj_path, RF_obj_nm))
+  
+  p_i <- make_ranger_predictions(
+    mod_obj = RF_obj, 
+    dataset = pxl_dts_boot, 
+    sel_preds = my_preds)
+  
+  pxl_dts_boot$p_i <- p_i
+  
+  
+  # ---------------------------------------- 
+  
+  
+  out_file_name <- paste0("env_vars_and_foi_20km_", i, ".rds")
+  
+  write_out_rds(pxl_dts_boot, out_file_path, out_file_name)
+  
+}
