@@ -32,7 +32,7 @@ exp_max_algorithm <- function(parms,
   
   colnames(out_mat) <- diagnostics
   
-  h2o.init(ignore_config = TRUE)
+  # h2o.init(ignore_config = TRUE)
   
   for (i in seq_len(niter)){
     
@@ -50,7 +50,8 @@ exp_max_algorithm <- function(parms,
     
     dd <- left_join(pxl_dataset, a_sum)
     
-    dd$wgt_prime <- dd$pop_weight
+    dd$wgt_prime <- (dd$pop_weight / dd$p_i) * dd$a_sum
+    # dd$wgt_prime <- dd$pop_weight
     
     
     # 2. modify the scaling factors to account for background data ------------ 
@@ -89,21 +90,21 @@ exp_max_algorithm <- function(parms,
     
     training_dataset <- dd[, c("u_i", my_predictors, "wgt_prime")]
     
-    RF_obj <- fit_h2o_RF(dependent_variable = "u_i", 
-                         predictors = my_predictors, 
-                         training_dataset = training_dataset, 
-                         no_trees = no_trees, 
-                         min_node_size = min_node_size, 
-                         my_weights = "wgt_prime", 
-                         model_nm = RF_obj_name)
+    RF_obj <- fit_ranger_RF(dependent_variable = "u_i", 
+                            predictors = my_predictors, 
+                            training_dataset = training_dataset, 
+                            no_trees = no_trees, 
+                            min_node_size = min_node_size, 
+                            my_weights = "wgt_prime")
     
-    RF_ms_i <- h2o.mse(RF_obj)
+    RF_ms_i <- RF_obj$prediction.error
+    # RF_ms_i <- h2o.mse(RF_obj)
     
     
     # 5. make new pixel level predictions ------------------------------------- 
     
     
-    p_i <- make_h2o_predictions(RF_obj, dd, my_predictors)
+    p_i <- make_ranger_predictions(RF_obj, dd, my_predictors)
     
     n_NA_pred <- sum(is.na(p_i))
     
@@ -120,7 +121,7 @@ exp_max_algorithm <- function(parms,
                      out_pt = map_path, 
                      out_name = mp_nm) 
     
-    
+
     # create a copy for obs vs preds plot and SS calculation ------------------   
     
     
@@ -162,9 +163,9 @@ exp_max_algorithm <- function(parms,
     
     if(!is.null(adm_dataset)) {
       
-      adm_dataset$adm_pred <- make_h2o_predictions(RF_obj, 
-                                                   adm_dataset, 
-                                                   my_predictors)
+      adm_dataset$adm_pred <- make_ranger_predictions(RF_obj, 
+                                                      adm_dataset, 
+                                                      my_predictors)
       
       cc <- inner_join(orig_dataset, adm_dataset[, c("ID_0", "ID_1", "adm_pred")])
       
@@ -247,13 +248,14 @@ exp_max_algorithm <- function(parms,
     
   }
   
-  h2o.saveModel(RF_obj, RF_obj_path, force = TRUE)
+  # h2o.saveModel(RF_obj, RF_obj_path, force = TRUE)
+  write_out_rds(RF_obj, RF_obj_path, RF_obj_name)
   write_out_rds(out_mat, diagn_tab_path, diagn_tab_name)
   write_out_rds(training_dataset, train_dts_path, train_dts_name)
   
-  out <- make_h2o_predictions(RF_obj, pxl_dataset_full, my_predictors)
+  out <- make_ranger_predictions(RF_obj, pxl_dataset_full, my_predictors)
   
-  h2o.shutdown(prompt = FALSE)
+  # h2o.shutdown(prompt = FALSE)
   
   out
 }
@@ -323,23 +325,20 @@ exp_max_algorithm_boot <- function(i,
   
   foi_data_boot[foi_data_boot$type == "pseudoAbsence", "o_j"] <- psAbs
   
-  names(foi_data_boot)[names(foi_data_boot) == "ADM_0"] <- grp_flds[1]
-  names(foi_data_boot)[names(foi_data_boot) == "ADM_1"] <- grp_flds[2]
-  
   
   # ---------------------------------------- pre process the square data set
   
   
-  names(pxl_dts_boot)[names(pxl_dts_boot) == "ADM_0"] <- grp_flds[1]
-  names(pxl_dts_boot)[names(pxl_dts_boot) == "ADM_1"] <- grp_flds[2]
-  
   pxl_dts_grp <- pxl_dts_boot %>% group_by_(.dots = grp_flds) 
   
-  aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
+  # aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
+  ncells <- pxl_dts_grp %>% summarise(n_sqr = n())
   
-  pxl_dts_boot <- left_join(pxl_dts_boot, aa)
+  # pxl_dts_boot <- left_join(pxl_dts_boot, aa)
+  pxl_dts_boot <- left_join(pxl_dts_boot, ncells)
   
-  pxl_dts_boot$pop_weight <- pxl_dts_boot$population / pxl_dts_boot$pop_sqr_sum
+  # pxl_dts_boot$pop_weight <- pxl_dts_boot$population / pxl_dts_boot$pop_sqr_sum
+  pxl_dts_boot$pop_weight <- 1 / pxl_dts_boot$n_sqr
   
   
   # ---------------------------------------- attach original data and weigths to square dataset
