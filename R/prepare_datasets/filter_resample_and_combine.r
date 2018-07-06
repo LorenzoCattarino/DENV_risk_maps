@@ -2,13 +2,15 @@ filter_resample_and_combine <- function(i,
                                         boot_samples, 
                                         tile_ls, 
                                         grp_flds, 
+                                        jn_flds,
                                         new_res, 
                                         predictors, 
                                         out_file_path, 
                                         out_file_name,
+                                        resample,
                                         parallel_2){
   
-  #browser()
+  # browser()
   
   foi_data <- boot_samples[[i]]
   
@@ -20,12 +22,16 @@ filter_resample_and_combine <- function(i,
     foi_dts = foi_data, 
     env_var_names = predictors, 
     grp_flds = grp_flds, 
+    jn_flds = jn_flds,
     grid_size = new_res,
+    resample = resample,
     parallel = parallel_2)
   
   pxl_dataset <- do.call("rbind", pxl_job)
   
   pxl_dataset$cell <- seq_len(nrow(pxl_dataset))
+  
+  pxl_dataset$log_pop_den <- log(1 + pxl_dataset$pop_den) 
   
   names(pxl_dataset)[names(pxl_dataset) == "cell"] <- "square"
   
