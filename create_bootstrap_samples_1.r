@@ -46,7 +46,7 @@ out_pt <- file.path("output", "EM_algorithm", "bootstrap_models", my_dir)
 
 foi_data <- read.csv(file.path("output", 
                                "foi", 
-                               "All_FOI_estimates_linear_env_var_area_salje.csv"),
+                               "All_FOI_estimates_and_predictors.csv"),
                      stringsAsFactors = FALSE) 
 
 
@@ -56,7 +56,6 @@ foi_data <- read.csv(file.path("output",
 foi_data$new_weight <- parameters$all_wgt
 
 pAbs_wgt <- get_sat_area_wgts(foi_data, parameters)
-# pAbs_wgt <- get_area_scaled_wgts(foi_data, parameters$wgt_limits)
 
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
