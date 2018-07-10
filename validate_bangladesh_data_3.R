@@ -26,13 +26,13 @@ dts_out_pt <- file.path("output", "seroprevalence", "salje")
 
 sctplot_out_pt <- file.path("figures", "data", "salje")
 
-model_tp <- "FOI_best_model_2"
+model_tp <- "FOI_best_model"
 
-sctplot_out_nm <- "correlation_20km_pred_vs_observations_2.png"
+sctplot_out_nm <- "correlation_20km_pred_vs_observations.png"
 
-pred_map_out_nm <- "predicted_FOI_map_2.png"
+pred_map_out_nm <- "predicted_FOI_map.png"
 
-pred_points_out_nm <- "salje_bangl_points_20km_foi_2.png"
+pred_points_out_nm <- "salje_bangl_points_20km_foi.png"
 
 
 # load data -------------------------------------------------------------------
