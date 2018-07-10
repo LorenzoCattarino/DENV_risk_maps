@@ -72,7 +72,7 @@ salje_data$o_j <- salje_data$nPos / salje_data$nAll
 salje_data$ISO <- alpha_iso_code
 salje_data$type <- "serology"
 salje_data$reference <- "Salje"
-salje_data$date <- "2018"
+salje_data$date <- "2014-2016"
 salje_data$variance <- 0
 
 
