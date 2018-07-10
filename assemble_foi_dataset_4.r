@@ -9,6 +9,7 @@ source(file.path("R", "utility_functions.R"))
 
 
 base_info <- c("type",
+               "date",
                "longitude",
                "latitude",
                "ISO",
@@ -53,6 +54,7 @@ pseudo_absence_points$FOI <- 0
 pseudo_absence_points$R0_1 <- 0
 pseudo_absence_points$R0_2 <- 0
 pseudo_absence_points$R0_3 <- 0
+pseudo_absence_points$date <- NA
 
 All_FOI_R0_estimates <- All_FOI_R0_estimates[, base_info]
 pseudo_absence_points <- pseudo_absence_points[, base_info]
