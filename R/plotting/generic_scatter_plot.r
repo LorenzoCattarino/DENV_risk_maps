@@ -54,6 +54,7 @@ generic_scatter_plot <- function(
     geom_smooth(method = "lm", formula = y ~ x - 1, se = FALSE) + 
     coord_cartesian(xlim = c(min_x_value, max_x_value),
                     ylim = c(min_y_value, max_y_value)) + 
+    #geom_text(aes(label = data_id), hjust = 0, vjust = 0) +
     geom_text(data = eq_df, aes(x = x_text, y = max_y_value, label = eq), parse = TRUE) +
     theme(axis.title.x = element_text(hjust = 0.5, vjust = 1, size = 15, margin = margin(t = 20)),
           axis.title.y = element_text(hjust = 0.5, vjust = 0, size = 15, margin = margin(r = 20)),
