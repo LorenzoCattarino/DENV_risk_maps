@@ -49,11 +49,11 @@ tra_dts_nm <- "train_dts.rds"
 
 out_fl_nm <- "square_predictions_all_data.rds"
 
-foi_dts_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
+foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
 pxl_dts_name <- "covariates_and_foi_20km.rds"
 
-model_type_tag <- "_best_model_2"
+model_type_tag <- "_best_model_3"
 
 extra_predictors <- NULL
 
@@ -109,7 +109,7 @@ out_pt <- file.path("output", "EM_algorithm", "best_fit_models", model_type)
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "24Core")
+  config <- didehpc::didehpc_config(template = "20Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
 
 } else {
@@ -158,14 +158,14 @@ adm_dataset <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 
 pxl_dts_grp <- pxl_dataset %>% group_by_(.dots = grp_flds) 
 
-# aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
-ncells <- pxl_dts_grp %>% summarise(n_sqr = n())
+aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
+# ncells <- pxl_dts_grp %>% summarise(n_sqr = n())
   
-# pxl_dataset <- left_join(pxl_dataset, aa)
-pxl_dataset <- left_join(pxl_dataset, ncells)
+pxl_dataset <- left_join(pxl_dataset, aa)
+# pxl_dataset <- left_join(pxl_dataset, ncells)
 
-# pxl_dataset$pop_weight <- pxl_dataset$population / pxl_dataset$pop_sqr_sum
-pxl_dataset$pop_weight <- 1 / pxl_dataset$n_sqr
+pxl_dataset$pop_weight <- pxl_dataset$population / pxl_dataset$pop_sqr_sum
+# pxl_dataset$pop_weight <- 1 / pxl_dataset$n_sqr
 
 pxl_dataset <- inner_join(pxl_dataset, foi_data[, c(grp_flds, "o_j", "new_weight")])
 

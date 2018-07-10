@@ -37,7 +37,7 @@ parameters <- list(
   EM_iter = 10,
   no_predictors = 26) 
 
-model_type_tag <- "_best_model_2"
+model_type_tag <- "_best_model_3"
 
 
 # define variables ------------------------------------------------------------
@@ -55,7 +55,7 @@ out_pt <- file.path("output", "EM_algorithm", "best_fit_models", model_type)
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "24Core")
+  config <- didehpc::didehpc_config(template = "20Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {

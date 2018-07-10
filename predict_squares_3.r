@@ -20,15 +20,15 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "FOI",
+  dependent_variable = "R0_3",
   no_samples = 200,
   no_predictors = 26)   
 
-vars_to_average <- "response"
+vars_to_average <- "transformed_r_3"
 
 statistic <- "best"
 
-model_type_tag <- "_best_model_2"
+model_type_tag <- "_best_model_1"
 
 
 # define variables ------------------------------------------------------------
@@ -46,8 +46,6 @@ out_path <- file.path("figures",
                       "best_fit_models",
                       model_type)
 
-in_dts_tag <- "best_all_squares"
-
 
 # are you using the cluster? -------------------------------------------------- 
 
@@ -56,7 +54,7 @@ if (CLUSTER) {
   
   obj <- didehpc::queue_didehpc(ctx)
   
-}else{
+} else {
   
   context::context_load(ctx)
 
@@ -70,7 +68,7 @@ mean_pred_fl_nm <- paste0(vars_to_average, ".rds")
 
 df_long <- readRDS(file.path(in_path, mean_pred_fl_nm))
 
-out_fl_nm <- paste0(vars_to_average, "_", statistic, ".png")
+out_fl_nm <- paste0(vars_to_average, "_", statistic, "fixed_scale.png")
 
 
 # plot ------------------------------------------------------------------------ 

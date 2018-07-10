@@ -35,11 +35,11 @@ RF_obj_nm <- "RF_obj.rds"
 
 out_name <- "all_scale_predictions.rds"
 
-foi_dts_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
+foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
 covariate_dts_nm <- "env_vars_20km.rds"
 
-model_type_tag <- "_best_model_2"
+model_type_tag <- "_best_model_3"
 
 extra_predictors <- NULL
 

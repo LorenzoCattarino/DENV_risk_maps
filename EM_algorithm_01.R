@@ -35,7 +35,7 @@ in_pt <- file.path("output", "env_variables", "tile_set_2", "gadm")
 
 resample <- TRUE
 
-foi_dts_nm <- "All_FOI_estimates_linear_env_var_area_salje.csv"
+foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
 extra_predictors <- NULL
 

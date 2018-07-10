@@ -20,14 +20,13 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   dependent_variable = "FOI",
-  no_samples = 200,
   no_predictors = 26)   
 
 RF_mod_name <- "RF_obj.rds"
 
 base_info <- c("cell", "latitude", "longitude", "population", "ID_0", "ID_1", "ID_2")
 
-model_type_tag <- "_best_model_2"
+model_type_tag <- "_best_model_3"
 
 extra_predictors <- NULL
 
