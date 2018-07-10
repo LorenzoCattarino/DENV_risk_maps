@@ -21,7 +21,8 @@ base_info <- c("type",
                "ID_1", 
                "FOI", 
                "variance", 
-               "population")
+               "population",
+               "date")
 
 gamma_1 <- 0.45
 rho <- 0.85
