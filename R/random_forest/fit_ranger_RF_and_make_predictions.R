@@ -143,14 +143,21 @@ get_boot_sample_and_fit_RF <- function(i,
   min_node_size <- parms$min_node_size
   psAb_val <- parms$pseudoAbs_value
   y_var <- parms$dependent_variable
+  foi_offset <- parms$foi_offset
+    
+  a <- paste0("RF_model_object_", i, ".rds")
   
   adm_dts_boot <- boot_ls[[i]]
   
   adm_dts_boot[adm_dts_boot$type == "pseudoAbsence", y_var] <- psAb_val
   
-  training_dataset <- adm_dts_boot[, c(y_var, my_preds, "new_weight")]
+  if(y_var == "FOI"){
+    
+    adm_dts_boot[, y_var] <- adm_dts_boot[, y_var] + foi_offset
+    
+  }
   
-  a <- paste0("RF_model_object_", i, ".rds")
+  training_dataset <- adm_dts_boot[, c(y_var, my_preds, "new_weight")]
   
   RF_obj <- fit_ranger_RF(dependent_variable = y_var, 
                        predictors = my_preds, 
