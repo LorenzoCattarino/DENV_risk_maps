@@ -27,6 +27,7 @@ ctx <- context::context_save(path = "context",
 parameters <- list(
   dependent_variable = "FOI",
   pseudoAbs_value = -0.02,
+  foi_offset = 0.03,
   no_predictors = 26)   
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
@@ -49,6 +50,8 @@ extra_predictors <- NULL
 
 var_to_fit <- parameters$dependent_variable
   
+foi_offset <- parameters$foi_offset
+
 model_type <- paste0(var_to_fit, model_type_tag)
 
 RF_obj_path <- file.path("output",
@@ -137,8 +140,17 @@ RF_obj <- readRDS(file.path(RF_obj_path, RF_obj_nm))
 
 adm_dataset_2 <- remove_NA_rows(adm_dataset, my_predictors)
 
-adm_dataset_2$admin <- make_ranger_predictions(RF_obj, adm_dataset_2, my_predictors)
+adm_pred <- make_ranger_predictions(RF_obj, adm_dataset_2, my_predictors)
 
+if(var_to_fit == "FOI"){
+  
+  adm_pred <- adm_pred - foi_offset 
+  all_sqr_predictions <- all_sqr_predictions - foi_offset
+
+}
+
+adm_dataset_2$admin <- adm_pred
+  
 fltr_adm <- inner_join(adm_dataset_2, foi_dataset[, grp_flds])
 
 sqr_preds <- all_sqr_predictions

@@ -20,6 +20,7 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   dependent_variable = "FOI",
+  foi_offset = 0.03,
   no_predictors = 26)   
 
 RF_mod_name <- "RF_obj.rds"
@@ -33,6 +34,8 @@ extra_predictors <- NULL
 
 # define variables ------------------------------------------------------------
 
+
+foi_offset <- parameters$foi_offset
 
 model_tp <- paste0(parameters$dependent_variable, model_type_tag)
 
@@ -80,6 +83,8 @@ my_predictors <- c(my_predictors, extra_predictors)
 RF_obj <- readRDS(file.path(RF_obj_path, RF_mod_name))
 
 p_i <- make_ranger_predictions(RF_obj, all_sqr_covariates, my_predictors)
+
+p_i <- p_i - foi_offset
 
 p_i[p_i < 0] <- 0
 

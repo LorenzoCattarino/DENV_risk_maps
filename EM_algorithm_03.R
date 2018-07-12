@@ -24,6 +24,7 @@ parameters <- list(
   shape_2 = 5,
   shape_3 = 1.6e6,
   pseudoAbs_value = -0.02,
+  foi_offset = 0.03,
   no_trees = 500,
   min_node_size = 20,
   all_wgt = 1,
@@ -40,10 +41,14 @@ extra_predictors <- NULL
 # define variables ------------------------------------------------------------
 
 
+var_to_fit <- parameters$dependent_variable
+
+foi_offset <- parameters$foi_offset
+  
 out_path <- file.path("output", 
                       "EM_algorithm", 
                       "best_fit_models", 
-                      paste0("model_objects_", parameters$dependent_variable, "_fit"))
+                      paste0("model_objects_", var_to_fit, "_fit"))
 
 
 # start up -------------------------------------------------------------------- 
@@ -69,7 +74,7 @@ predictor_rank <- read.csv(file.path("output",
 
 
 # set pseudo absence value
-foi_data[foi_data$type == "pseudoAbsence", parameters$dependent_variable] <- parameters$pseudoAbs_value
+foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- parameters$pseudoAbs_value
 
 # assign weights
 foi_data$new_weight <- parameters$all_wgt
@@ -79,8 +84,14 @@ foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 my_predictors <- c(my_predictors, extra_predictors)
 
+if(var_to_fit == "FOI"){
+  
+  foi_data[, var_to_fit] <- foi_data[, var_to_fit] + foi_offset
+
+}
+
 # get training dataset (full dataset - no bootstrap)
-training_dataset <- foi_data[, c(parameters$dependent_variable, my_predictors, "new_weight")]
+training_dataset <- foi_data[, c(var_to_fit, my_predictors, "new_weight")]
 
 
 ####

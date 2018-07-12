@@ -30,6 +30,7 @@ parameters <- list(
   shape_2 = 5,
   shape_3 = 1.6e6,
   pseudoAbs_value = -0.02,
+  foi_offset = 0.03,
   no_trees = 500,
   min_node_size = 20,
   all_wgt = 1,
@@ -62,6 +63,8 @@ extra_predictors <- NULL
 
 
 var_to_fit <- parameters$dependent_variable
+
+foi_offset <- parameters$foi_offset
 
 number_of_predictors <- parameters$no_predictors
 
@@ -109,7 +112,7 @@ out_pt <- file.path("output", "EM_algorithm", "best_fit_models", model_type)
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "20Core")
+  config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
 
 } else {
@@ -125,11 +128,11 @@ if (CLUSTER) {
 foi_data <- read.csv(file.path("output", "foi", foi_dts_nm),
                      stringsAsFactors = FALSE) 
 
-pxl_dataset <- readRDS(file.path("output", 
-                                 "EM_algorithm", 
-                                 "best_fit_models",
-                                 paste0("env_variables_", var_to_fit, "_fit"), 
-                                 pxl_dts_name))
+pxl_data <- readRDS(file.path("output", 
+                              "EM_algorithm", 
+                              "best_fit_models",
+                              paste0("env_variables_", var_to_fit, "_fit"), 
+                              pxl_dts_name))
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
@@ -137,10 +140,10 @@ predictor_rank <- read.csv(file.path("output",
                                      "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
-adm_dataset <- read.csv(file.path("output",
-                                  "env_variables",
-                                  "All_adm1_env_var.csv"),
-                        stringsAsFactors = FALSE)
+adm_covariates <- read.csv(file.path("output",
+                                     "env_variables",
+                                     "All_adm1_env_var.csv"),
+                           stringsAsFactors = FALSE)
 
 
 # pre processing --------------------------------------------------------------
@@ -154,20 +157,26 @@ foi_data$new_weight <- all_wgt
 pAbs_wgt <- get_sat_area_wgts(foi_data, parameters)
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
-adm_dataset <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
+if(var_to_fit == "FOI"){
+  
+  foi_data[, "o_j"] <- foi_data[, "o_j"] + foi_offset
+  
+}
 
-pxl_dts_grp <- pxl_dataset %>% group_by_(.dots = grp_flds) 
+adm_covariates <- adm_covariates[!duplicated(adm_covariates[, c("ID_0", "ID_1")]), ]
+
+pxl_dts_grp <- pxl_data %>% group_by_(.dots = grp_flds) 
 
 aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
 # ncells <- pxl_dts_grp %>% summarise(n_sqr = n())
   
-pxl_dataset <- left_join(pxl_dataset, aa)
-# pxl_dataset <- left_join(pxl_dataset, ncells)
+pxl_data <- left_join(pxl_data, aa)
+# pxl_data <- left_join(pxl_data, ncells)
 
-pxl_dataset$pop_weight <- pxl_dataset$population / pxl_dataset$pop_sqr_sum
-# pxl_dataset$pop_weight <- 1 / pxl_dataset$n_sqr
+pxl_data$pop_weight <- pxl_data$population / pxl_data$pop_sqr_sum
+# pxl_data$pop_weight <- 1 / pxl_data$n_sqr
 
-pxl_dataset <- inner_join(pxl_dataset, foi_data[, c(grp_flds, "o_j", "new_weight")])
+pxl_data <- inner_join(pxl_data, foi_data[, c(grp_flds, "o_j", "new_weight")])
 
 my_predictors <- predictor_rank$name[1:number_of_predictors]
 my_predictors <- c(my_predictors, extra_predictors)
@@ -182,8 +191,8 @@ if (CLUSTER) {
     exp_max_algorithm(
       parms = parameters,
       orig_dataset = foi_data,
-      pxl_dataset = pxl_dataset,
-      pxl_dataset_full = pxl_dataset,
+      pxl_dataset = pxl_data,
+      pxl_dataset_full = pxl_data,
       my_predictors = my_predictors, 
       grp_flds = grp_flds,
       RF_obj_path = RF_out_pth,
@@ -196,15 +205,15 @@ if (CLUSTER) {
       var_to_fit = var_to_fit,
       train_dts_path = train_dts_pth, 
       train_dts_name = tra_dts_nm,
-      adm_dataset = adm_dataset))
+      adm_dataset = adm_covariates))
   
 } else {
   
   EM_alg_run <- exp_max_algorithm(
     parms = parameters,
     orig_dataset = foi_data,
-    pxl_dataset = pxl_dataset, 
-    pxl_dataset_full = pxl_dataset,
+    pxl_dataset = pxl_data, 
+    pxl_dataset_full = pxl_data,
     my_predictors = my_predictors, 
     grp_flds = grp_flds,
     RF_obj_path = RF_out_pth,
@@ -217,7 +226,7 @@ if (CLUSTER) {
     var_to_fit = var_to_fit,
     train_dts_path = train_dts_pth, 
     train_dts_name = tra_dts_nm,
-    adm_dataset = adm_dataset)
+    adm_dataset = adm_covariates)
 
   write_out_rds(EM_alg_run, out_pt, out_fl_nm)
   

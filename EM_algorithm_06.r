@@ -7,22 +7,14 @@
 
 library(ggplot2)
 
+source(file.path("R", "plotting", "plot_EM_diagnostics.R"))
+
 
 # define parameters ----------------------------------------------------------- 
 
 
 parameters <- list(
   dependent_variable = "FOI")   
-
-diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j", "r_av_sqr", "r_adm")
-
-strip_labs <- c("mean square error", 
-                "pixel level sum of square", 
-                "admin unit level sum of square",
-                "pixel level correlation",
-                "admin unit level correlation") 
-
-names(strip_labs) <- diagnostic_vars
 
 model_type_tag <- "_best_model_3"
 
@@ -49,43 +41,13 @@ figure_out_path <- file.path("figures",
                              "diagnostics")
 
 
-# get results -----------------------------------------------------------------  
+# load data ------------------------------------------------------------------- 
 
 
-fi <- list.files(diag_t_pth, pattern = ".*.rds", full.names = TRUE)
-
-EM_alg_run <- lapply(fi, readRDS) 
+data_to_plot <- readRDS(file.path(diag_t_pth, "diagno_table.rds"))
 
 
-# plot ------------------------------------------------------------------------  
+# plot ------------------------------------------------------------------------
 
 
-data_to_plot <- as.data.frame(EM_alg_run[[1]])
-
-data_to_plot$iter <- seq_len(nrow(data_to_plot))
-
-data_to_plot_long <- reshape2::melt(data_to_plot, 
-                                    id.vars = "iter", 
-                                    measure.vars = diagnostic_vars)
-
-dir.create(figure_out_path, FALSE, TRUE)
-
-png(file.path(figure_out_path, fig_file_tag), 
-    width = 13, 
-    height = 13, 
-    units = "cm",
-    res = 200)
-
-p <- ggplot(data_to_plot_long, aes(iter, value)) +
-  geom_line() +
-  scale_x_continuous("Iterations", breaks = seq_len(10), labels = seq_len(10)) +
-  scale_y_continuous(NULL) +
-  facet_wrap(~ variable, ncol = 2, scales = "free_y", labeller = labeller(variable = strip_labs)) +
-  theme(axis.title.x = element_text(size = 12),
-        axis.title.y = element_text(size = 12),
-        axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10))
-
-print(p)
-
-dev.off()
+plot_EM_diagnostics(data_to_plot, figure_out_path, fig_file_tag)

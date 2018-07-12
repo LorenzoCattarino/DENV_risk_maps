@@ -30,6 +30,7 @@ parameters <- list(
   shape_2 = 5,
   shape_3 = 1.6e6,
   pseudoAbs_value = -0.02,
+  foi_offset = 0.03,
   no_trees = 500,
   min_node_size = 20,
   all_wgt = 1,
@@ -55,7 +56,7 @@ out_pt <- file.path("output", "EM_algorithm", "best_fit_models", model_type)
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "20Core")
+  config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
