@@ -1,32 +1,11 @@
-generic_scatter_plot <- function(
-  df, x, y, 
-  file_name, file_path,  
-  alpha = NULL, mirror = NULL, reverse_x_axis = NULL){
+generic_scatter_plot <- function(df, 
+                                 x, 
+                                 y,
+                                 file_name, 
+                                 file_path,
+                                 foi_offset) {
   
-  # if(!is.null(alpha)){
-  #   
-  #   df[, x] <- df[, x] * alpha    
-  # 
-  # }
-  # x_values <- pretty(df[, x], n = 5) 
-  # if(mirror){
-  #   y_values <- x_values
-  # }else{
-  #   y_values <- pretty(df[, y], n = 5)
-  # }
-  # if(reverse_x_axis){
-  #   p2 <- p1 + scale_x_reverse(x_axis_tag,
-  #                              limits = c(max(x_values), min(x_values)),
-  #                              breaks = rev(x_values),
-  #                              labels = rev(x_values))
-  # }else{
-  #   p2 <- p1 + scale_x_continuous(x_axis_tag,
-  #                                 limits = c(min(x_values), max(x_values)),
-  #                                 breaks = x_values,
-  #                                 labels = x_values)
-  # }
-
-  #browser()
+  # browser()
   
   x_values <- pretty(df[, x], n = 5)
   y_values <- pretty(df[, y], n = 5)
@@ -39,7 +18,7 @@ generic_scatter_plot <- function(
   
   eq_df <- data.frame(eq) 
     
-  x_text <- ifelse(max_x_value > 2, 3, 0.02)
+  x_text <- ifelse(max_x_value > 2, 3, min_x_value + (0.3 * max_x_value))
     
   p <- ggplot(df, aes_string(x = x, y = y)) +
     geom_point(aes_string(x = x, y = y), size = 1) + 
