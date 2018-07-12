@@ -286,6 +286,7 @@ exp_max_algorithm_boot <- function(i,
   
   psAbs <- parms$pseudoAbs_value
   var_to_fit <- parms$dependent_variable
+  foi_offset <- parms$foi_offset
   
   pxl_dts_nm <- paste0("env_vars_and_foi_20km_", i, ".rds")
   
@@ -323,6 +324,12 @@ exp_max_algorithm_boot <- function(i,
   }
   
   foi_data_boot[foi_data_boot$type == "pseudoAbsence", "o_j"] <- psAbs
+  
+  if(var_to_fit == "FOI"){
+    
+    foi_data_boot[, "o_j"] <- foi_data_boot[, "o_j"] + foi_offset
+    
+  }
   
   
   # ---------------------------------------- pre process the square data set
