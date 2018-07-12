@@ -9,7 +9,9 @@ quick_raster_map <- function(pred_df, variable = NULL, statistic, out_pt, out_na
   lats <- seq(-90, 90, by = res)
   lons <- seq(-180, 180, by = res)
   
-  my_col <- matlab.like(100)
+  n_col <- 100
+    
+  my_col <- matlab.like(n_col)
   
   if(!is.null(variable)){
     
@@ -57,7 +59,8 @@ quick_raster_map <- function(pred_df, variable = NULL, statistic, out_pt, out_na
         mat, 
         col = my_col, 
         zlim = c(min(ticks), max(ticks)), 
-        ylim = c(-60, 60), 
+        xlim = c(-180, 180), 
+        ylim = c(-60, 60),
         asp = 1,
         axes = FALSE)
   
@@ -69,9 +72,8 @@ quick_raster_map <- function(pred_df, variable = NULL, statistic, out_pt, out_na
              legend.only = TRUE,
              legend.width = 1,
              legend.shrink = 0.75,
-             axis.args = list(at = ticks, 
-                              labels = ticks,
-                              cex.axis = 0.8),
+             breaks = seq(min(ticks), max(ticks), length.out = n_col + 1), 
+             axis.args = list(cex.axis = 0.8),
              smallplot = c(0.04, 0.08, 0.1, 0.5))
   
   par(mar = par("mar"))
