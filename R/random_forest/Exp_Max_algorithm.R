@@ -21,9 +21,13 @@ exp_max_algorithm <- function(parms,
   l_f <- parms$pseudoAbs_value
   no_trees <- parms$no_trees
   min_node_size <- parms$min_node_size
+  foi_offset <- parms$foi_offset
   
+  l_f_2 <- l_f + foi_offset
+  zero_2 <- foi_offset
+    
   
-  # ---------------------------------------------------------------------------
+  # pre processing ------------------------------------------------------------
   
   
   diagnostics <- c("RF_ms_i", "ss_i", "ss_j", "min_wgt", "max_wgt", "n_NA_pred", "r_av_sqr", "r_adm")
@@ -31,8 +35,6 @@ exp_max_algorithm <- function(parms,
   out_mat <- matrix(0, nrow = niter, ncol = length(diagnostics))
   
   colnames(out_mat) <- diagnostics
-  
-  # h2o.init(ignore_config = TRUE)
   
   for (i in seq_len(niter)){
     
@@ -49,7 +51,7 @@ exp_max_algorithm <- function(parms,
     a_sum <- p_i_by_adm %>% summarise(a_sum = sum(pop_weight * p_i))
     
     dd <- left_join(pxl_dataset, a_sum)
-    
+
     dd$wgt_prime <- (dd$pop_weight / dd$p_i) * dd$a_sum
     # dd$wgt_prime <- dd$pop_weight
     
@@ -69,8 +71,9 @@ exp_max_algorithm <- function(parms,
     
     if(var_to_fit == "FOI"){
       
-      u_i[!psAbs] <- (((dd$o_j[!psAbs] - l_f) * (dd$p_i[!psAbs] - l_f)) / (dd$a_sum[!psAbs] - l_f)) + l_f 
-      u_i[psAbs] <- ifelse(dd$p_i[psAbs] > 0, l_f, dd$p_i[psAbs])
+      # u_i[!psAbs] <- (((dd$o_j[!psAbs] - l_f) * (dd$p_i[!psAbs] - l_f)) / (dd$a_sum[!psAbs] - l_f)) + l_f 
+      u_i[!psAbs] <- (dd$o_j[!psAbs] * dd$p_i[!psAbs]) / dd$a_sum[!psAbs]
+      u_i[psAbs] <- ifelse(dd$p_i[psAbs] > zero_2, l_f_2, dd$p_i[psAbs])
       
     } else {
       
@@ -98,7 +101,6 @@ exp_max_algorithm <- function(parms,
                             my_weights = "wgt_prime")
     
     RF_ms_i <- RF_obj$prediction.error
-    # RF_ms_i <- h2o.mse(RF_obj)
     
     
     # 5. make new pixel level predictions ------------------------------------- 
@@ -109,32 +111,40 @@ exp_max_algorithm <- function(parms,
     n_NA_pred <- sum(is.na(p_i))
     
     dd$p_i <- p_i
-    
+
     
     # map of square predictions -----------------------------------------------  
     
     
+    dd_1 <- dd
+    
+    if(var_to_fit == "FOI"){
+      
+      dd_1$p_i <- dd$p_i - foi_offset  
+    
+    } 
+    
     mp_nm <- sprintf("%s_iter_%s%s", map_name, i, ".png")
     
-    quick_raster_map(pred_df = dd, 
+    quick_raster_map(pred_df = dd_1, 
                      statistic = "p_i", 
                      out_pt = map_path, 
                      out_name = mp_nm) 
+     
     
-
     # create a copy for obs vs preds plot and SS calculation ------------------   
     
     
     dd_2 <- dd
     
     
-    # plot of observed vs predicted square values -----------------------------  
+    # fix 20 km predictions ---------------------------------------------------  
     
     
     if(var_to_fit == "FOI"){
       
-      dd_2$u_i[psAbs] <- 0 
-      dd_2$p_i[psAbs] <- ifelse(dd_2$p_i[psAbs] < 0, 0, dd_2$p_i[psAbs]) 
+      dd_2$u_i[psAbs] <- zero_2 
+      dd_2$p_i[psAbs] <- ifelse(dd_2$p_i[psAbs] < zero_2, zero_2, dd_2$p_i[psAbs]) 
       
     } else {
       
@@ -142,16 +152,8 @@ exp_max_algorithm <- function(parms,
       dd_2$p_i[psAbs] <- ifelse(dd_2$p_i[psAbs] < 1, l_f, dd_2$p_i[psAbs])
       
     }
-    
-    # sqr_sp_nm <- paste0("pred_vs_obs_sqr_iter_", i, ".png")
-    # 
-    # generic_scatter_plot(df = dd_2, 
-    #                      x = "u_i", 
-    #                      y = "p_i", 
-    #                      file_name = sqr_sp_nm, 
-    #                      file_path = sct_plt_path)  
-    
-    
+  
+
     # 6. calculate pixel level sum of square ---------------------------------- 
     
     
@@ -179,9 +181,9 @@ exp_max_algorithm <- function(parms,
     
     if(var_to_fit == "FOI"){
       
-      cc$o_j[psAbs_adm] <- 0    
-      cc$adm_pred[psAbs_adm] <- ifelse(cc$adm_pred[psAbs_adm] < 0, 
-                                       0, 
+      cc$o_j[psAbs_adm] <- zero_2   
+      cc$adm_pred[psAbs_adm] <- ifelse(cc$adm_pred[psAbs_adm] < zero_2, 
+                                       zero_2, 
                                        cc$adm_pred[psAbs_adm])
       
     } else{
@@ -192,6 +194,7 @@ exp_max_algorithm <- function(parms,
       
     }
     
+    
     # 7. calculate population weighted mean of pixel level predictions -------- 
     
     
@@ -201,7 +204,7 @@ exp_max_algorithm <- function(parms,
     
     aa <- inner_join(cc, mean_p_i)
     
-    
+
     # plot of observed admin values vs pop-wgt average predicted square values   
     
 
@@ -248,16 +251,12 @@ exp_max_algorithm <- function(parms,
     
   }
   
-  # h2o.saveModel(RF_obj, RF_obj_path, force = TRUE)
   write_out_rds(RF_obj, RF_obj_path, RF_obj_name)
   write_out_rds(out_mat, diagn_tab_path, diagn_tab_name)
   write_out_rds(training_dataset, train_dts_path, train_dts_name)
   
-  out <- make_ranger_predictions(RF_obj, pxl_dataset_full, my_predictors)
+  make_ranger_predictions(RF_obj, pxl_dataset_full, my_predictors)
   
-  # h2o.shutdown(prompt = FALSE)
-  
-  out
 }
 
 exp_max_algorithm_boot <- function(i, 
@@ -331,14 +330,14 @@ exp_max_algorithm_boot <- function(i,
   
   pxl_dts_grp <- pxl_dts_boot %>% group_by_(.dots = grp_flds) 
   
-  # aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
-  ncells <- pxl_dts_grp %>% summarise(n_sqr = n())
+  aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
+  # ncells <- pxl_dts_grp %>% summarise(n_sqr = n())
   
-  # pxl_dts_boot <- left_join(pxl_dts_boot, aa)
-  pxl_dts_boot <- left_join(pxl_dts_boot, ncells)
+  pxl_dts_boot <- left_join(pxl_dts_boot, aa)
+  # pxl_dts_boot <- left_join(pxl_dts_boot, ncells)
   
-  # pxl_dts_boot$pop_weight <- pxl_dts_boot$population / pxl_dts_boot$pop_sqr_sum
-  pxl_dts_boot$pop_weight <- 1 / pxl_dts_boot$n_sqr
+  pxl_dts_boot$pop_weight <- pxl_dts_boot$population / pxl_dts_boot$pop_sqr_sum
+  # pxl_dts_boot$pop_weight <- 1 / pxl_dts_boot$n_sqr
   
   
   # ---------------------------------------- attach original data and weigths to square dataset
