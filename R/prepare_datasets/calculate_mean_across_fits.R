@@ -52,7 +52,7 @@ average_boot_samples_dim1 <- function(dat){
   l_b <- percentiles[1]
   u_b <- percentiles[2]
   interv <- u_b - l_b
-  median <- apply(dat, 1, median) 
+  median <- median(dat) 
   setNames(c(mean_val, st_dev, l_b, u_b, interv, median), out_names)
 }
 
