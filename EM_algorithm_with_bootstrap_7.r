@@ -12,10 +12,10 @@ CLUSTER <- TRUE
 my_resources <- c(
   file.path("R", "prepare_datasets", "average_up.R"),
   file.path("R", "prepare_datasets", "remove_NA_rows.R"),
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "utility_functions.R"))
 
-my_pkgs <- c("h2o", "dplyr", "data.table")
+my_pkgs <- c("ranger", "dplyr", "data.table")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -29,17 +29,22 @@ ctx <- context::context_save(path = "context",
 parameters <- list(
   dependent_variable = "FOI",
   pseudoAbs_value = -0.02,
-  grid_size = 1 / 120,
+  foi_offset = 0.03,
+  grid_size = 5,
   no_samples = 200,
-  no_predictors = 9)   
+  no_predictors = 26)   
 
-grp_flds <- c("ADM_0", "ADM_1", "data_id")
+model_type_tag <- "_boot_model"
+
+grp_flds <- c("ID_0", "ID_1", "data_id")
 
 
 # define variables ------------------------------------------------------------ 
 
 
-model_type <- paste0(parameters$dependent_variable, "_boot_model")
+var_to_fit <- parameters$dependent_variable
+
+model_type <- paste0(var_to_fit, model_type_tag)
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
@@ -79,9 +84,10 @@ if (CLUSTER) {
 # load data -------------------------------------------------------------------  
 
 
-foi_dataset <- read.csv(
-  file.path("output", "foi", "All_FOI_estimates_linear_env_var_area.csv"),
-  stringsAsFactors = FALSE) 
+foi_dataset <- read.csv(file.path("output", 
+                                  "foi", 
+                                  "All_FOI_estimates_and_predictors.csv"),
+                        stringsAsFactors = FALSE) 
 
 boot_samples <- readRDS(file.path("output",
                                   "EM_algorithm",
@@ -103,9 +109,8 @@ adm_dataset <- read.csv(file.path("output",
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
-                                     "metropolis_hastings",
-                                     "exp_1",
-                                     "variable_rank_final_fits_exp_1.csv"), 
+                                     "stepwise",
+                                     "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
 # tiles
@@ -133,9 +138,7 @@ all_sqr_predictions <- readRDS(file.path("output",
 # process the original data ---------------------------------------------------
 
 
-names(foi_dataset)[names(foi_dataset) == parameters$dependent_variable] <- "o_j"
-names(foi_dataset)[names(foi_dataset) == "ID_0"] <- grp_flds[1]
-names(foi_dataset)[names(foi_dataset) == "ID_1"] <- grp_flds[2]
+names(foi_dataset)[names(foi_dataset) == var_to_fit] <- "o_j"
 
 foi_dataset[foi_dataset$type == "pseudoAbsence", "o_j"] <- parameters$pseudoAbs_value
 
@@ -176,8 +179,7 @@ no_samples <- parameters$no_samples
 #     bt_samples = boot_samples,
 #     out_path = out_pt,
 #     grp_fields = grp_flds,
-#     start_h2o = TRUE,
-#     shut_h2o = TRUE))
+#     parms = parameters))
 
 
 # submit all jobs ------------------------------------------------------------- 
@@ -199,12 +201,9 @@ if (CLUSTER) {
     bt_samples = boot_samples,
     out_path = out_pt,
     grp_fields = grp_flds,
-    start_h2o = TRUE,
-    shut_h2o = TRUE)
+    parms = parameters)
 
 } else {
-
-  h2o.init()
 
   bsamples_preds <- lapply(
     seq_len(no_samples),
@@ -219,10 +218,7 @@ if (CLUSTER) {
     bt_samples = boot_samples,
     out_path = out_pt,
     grp_fields = grp_flds,
-    start_h2o = FALSE,
-    shut_h2o = FALSE)
-
-  h2o.shutdown(prompt = FALSE)
+    parms = parameters)
 
 }
 

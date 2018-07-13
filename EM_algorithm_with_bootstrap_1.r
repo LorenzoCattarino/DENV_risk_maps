@@ -9,7 +9,7 @@ CLUSTER <- TRUE
 my_resources <- c(
   file.path("R", "prepare_datasets", "filter_resample_and_combine.R"),
   file.path("R", "prepare_datasets", "filter_and_resample.R"),
-  file.path("R", "prepare_datasets", "clean_and_resample.R"),
+  file.path("R", "prepare_datasets", "clean_and_average.R"),
   file.path("R", "prepare_datasets", "grid_up.R"),
   file.path("R", "prepare_datasets", "average_up.R"),
   file.path("R", "prepare_datasets", "remove_NA_rows.R"),
@@ -27,16 +27,20 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  grid_size = 1 / 120,
+  grid_size = 5,
   resample_grid_size = 20,
   no_samples = 200,
-  no_predictors = 9)   
+  no_predictors = 26)   
+
+group_fields <- c("cell", "latitude", "longitude")
+
+join_fields <- c("unique_id", "data_id", "ID_0", "ID_1")
 
 parallel_2 <- TRUE
 
-in_pt <- file.path("output", "env_variables", "all_sets_gadm_codes")
+in_pt <- file.path("output", "env_variables", "tile_set_2", "gadm")
 
-group_fields <- c("unique_id", "data_id", "ADM_0", "ADM_1")
+resample <- TRUE
 
 
 # define variables ------------------------------------------------------------
@@ -85,9 +89,8 @@ boot_samples <- readRDS(file.path("output",
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
-                                     "metropolis_hastings",
-                                     "exp_1",
-                                     "variable_rank_final_fits_exp_1.csv"), 
+                                     "stepwise",
+                                     "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
 
@@ -95,6 +98,7 @@ predictor_rank <- read.csv(file.path("output",
 
 
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
+my_predictors <- setdiff(my_predictors, "log_pop_den") #`log_pop_den` is not in the original tile set
 
 fi <- list.files(in_pt, pattern = "^tile", full.names = TRUE)
 
@@ -108,10 +112,12 @@ fi <- list.files(in_pt, pattern = "^tile", full.names = TRUE)
 #     boot_samples = boot_samples,
 #     tile_ls = fi,
 #     grp_flds = group_fields,
+#     jn_flds = join_fields,
 #     new_res = new_res,
 #     predictors = my_predictors,
 #     out_file_path = out_pt,
 #     out_file_name = out_fl_nm_all,
+#     resample = resample,
 #     parallel_2 = parallel_2))
 
 
@@ -127,10 +133,12 @@ if (CLUSTER) {
     boot_samples = boot_samples,
     tile_ls = fi,
     grp_flds = group_fields,
+    jn_flds = join_fields,
     new_res = new_res,
     predictors = my_predictors,
     out_file_path = out_pt,
     out_file_name = out_fl_nm_all,
+    resample = resample,
     parallel_2 = parallel_2)
 
 } else {
@@ -141,10 +149,12 @@ if (CLUSTER) {
     boot_samples = boot_samples,
     tile_ls = fi,
     grp_flds = group_fields,
+    jn_flds = join_fields,
     new_res = new_res,
     predictors = my_predictors,
     out_file_path = out_pt,
     out_file_name = out_fl_nm_all,
+    resample = resample,
     parallel_2 = parallel_2)
 
 }

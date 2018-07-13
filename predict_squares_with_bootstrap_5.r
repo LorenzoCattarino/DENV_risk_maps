@@ -19,16 +19,18 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   dependent_variable = "FOI",
-  grid_size = 1 / 120,
+  grid_size = 5,
   no_samples = 200)   
 
 vars_to_average <- "response"
+
+model_type_tag <- "_boot_model"
 
 
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, "_boot_model")
+model_type <- paste0(parameters$dependent_variable, model_type_tag)
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 

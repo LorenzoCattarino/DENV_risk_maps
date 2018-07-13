@@ -6,10 +6,10 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "utility_functions.R"))
 
-my_pkgs <- "h2o"
+my_pkgs <- "ranger"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -22,19 +22,24 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   dependent_variable = "FOI",
-  grid_size = 1 / 120,
+  foi_offset = 0.03,
+  grid_size = 5,
   no_samples = 200,
-  no_predictors = 9)   
+  no_predictors = 26)   
 
 out_fl_nm <- "response.rds"
 
-base_info <- c("cell", "lat.grid", "long.grid", "population", "ADM_0", "ADM_1", "ADM_2")
+base_info <- c("cell", "latitude", "longitude", "population", "ID_0", "ID_1", "ID_2")
+
+model_type_tag <- "_boot_model"
 
 
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, "_boot_model")
+foi_offset <- parameters$foi_offset
+
+model_type <- paste0(parameters$dependent_variable, model_type_tag)
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
@@ -86,6 +91,10 @@ sqr_preds_boot <- sqr_preds_boot_t$results()
 
 
 sqr_preds <- do.call("cbind", sqr_preds_boot)
+
+sqr_preds <- sqr_preds - foi_offset
+
+sqr_preds[sqr_preds < 0] <- 0
 
 sqr_preds <- cbind(all_sqr_covariates[, base_info], sqr_preds)
 

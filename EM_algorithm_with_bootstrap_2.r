@@ -6,10 +6,10 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "utility_functions.R"))
 
-my_pkgs <- "h2o"
+my_pkgs <- "ranger"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -23,11 +23,12 @@ ctx <- context::context_save(path = "context",
 parameters <- list(
   dependent_variable = "FOI",
   pseudoAbs_value = -0.02,
-  grid_size = 1 / 120,
+  foi_offset = 0.03,
+  grid_size = 5,
   no_trees = 500,
   min_node_size = 20,
-  no_samples = 200,
-  no_predictors = 9)   
+  no_samples = 200,  
+  no_predictors = 26) 
 
 
 # define variables ------------------------------------------------------------
@@ -69,9 +70,8 @@ boot_samples <- readRDS(file.path("output",
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
-                                     "metropolis_hastings",
-                                     "exp_1",
-                                     "variable_rank_final_fits_exp_1.csv"), 
+                                     "stepwise",
+                                     "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
 
@@ -92,9 +92,7 @@ no_samples <- parameters$no_samples
 #     parms = parameters,
 #     boot_ls = boot_samples,
 #     my_preds = my_predictors,
-#     out_path = out_pt,
-#     start_h2o = TRUE,
-#     shut_h2o = TRUE))
+#     out_path = out_pt))
 
 
 # submit all jobs ------------------------------------------------------------- 
@@ -109,13 +107,9 @@ if (CLUSTER) {
     parms = parameters,
     boot_ls = boot_samples,
     my_preds = my_predictors,
-    out_path = out_pt,
-    start_h2o = TRUE,
-    shut_h2o = TRUE)
+    out_path = out_pt)
 
 } else {
-
-  h2o.init()
 
   RF_obj <- lapply(
     seq_len(no_samples)[1],
@@ -123,10 +117,6 @@ if (CLUSTER) {
     parms = parameters,
     boot_ls = boot_samples,
     my_preds = my_predictors,
-    out_path = out_pt,
-    start_h2o = FALSE,
-    shut_h2o = FALSE)
-
-  h2o.shutdown(prompt = FALSE)
+    out_path = out_pt)
 
 }

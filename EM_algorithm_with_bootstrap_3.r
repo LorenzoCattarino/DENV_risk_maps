@@ -5,10 +5,10 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "fit_h2o_RF_and_make_predictions.R"),
+  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "utility_functions.R"))
 
-my_pkgs <- "h2o"
+my_pkgs <- "ranger"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -21,9 +21,9 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   dependent_variable = "FOI",
-  grid_size = 1 / 120,
+  grid_size = 5,
   no_samples = 200,
-  no_predictors = 9)   
+  no_predictors = 26)   
 
 
 # define variables ------------------------------------------------------------
@@ -73,9 +73,8 @@ if (CLUSTER) {
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
-                                     "metropolis_hastings",
-                                     "exp_1",
-                                     "variable_rank_final_fits_exp_1.csv"), 
+                                     "stepwise",
+                                     "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
 
@@ -96,9 +95,7 @@ no_samples <- parameters$no_samples
 #     RF_obj_path = RF_obj_path,
 #     my_preds = my_predictors,
 #     out_file_path = out_pth,
-#     in_path = in_path,
-#     start_h2o = TRUE,
-#     shut_h2o = TRUE))
+#     in_path = in_path))
 
 
 # submit all jobs ------------------------------------------------------------- 
@@ -113,13 +110,9 @@ if (CLUSTER) {
     RF_obj_path = RF_obj_path,
     my_preds = my_predictors,
     out_file_path = out_pth,
-    in_path = in_path,
-    start_h2o = TRUE,
-    shut_h2o = TRUE)
+    in_path = in_path)
 
 } else {
-
-  h2o.init()
 
   initial_square_preds <- lapply(
     seq_len(no_samples),
@@ -127,10 +120,6 @@ if (CLUSTER) {
     RF_obj_path = RF_obj_path,
     my_preds = my_predictors,
     out_file_path = out_pth,
-    in_path = in_path,
-    start_h2o = FALSE,
-    shut_h2o = FALSE)
-
-  h2o.shutdown(prompt = FALSE)
+    in_path = in_path)
 
 }

@@ -21,17 +21,19 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   dependent_variable = "FOI",
-  grid_size = 1 / 120)   
+  grid_size = 5)   
+
+model_type_tag <- "_boot_model"
 
 vars_to_average <- "response"
 
-statistic <- "median"
+statistic <- "mean"
 
 
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, "_boot_model")
+model_type <- paste0(parameters$dependent_variable, model_type_tag)
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
@@ -71,8 +73,8 @@ df_long <- readRDS(file.path(in_path, mean_pred_fl_nm))
 
 out_fl_nm <- paste0(vars_to_average, "_", statistic, ".png")
 
-names(df_long)[names(df_long) == "lat.grid"] <- "latitude"
-names(df_long)[names(df_long) == "long.grid"] <- "longitude"
+#names(df_long)[names(df_long) == "lat.grid"] <- "latitude"
+#names(df_long)[names(df_long) == "long.grid"] <- "longitude"
 
 
 # plot ------------------------------------------------------------------------ 
