@@ -73,9 +73,6 @@ df_long <- readRDS(file.path(in_path, mean_pred_fl_nm))
 
 out_fl_nm <- paste0(vars_to_average, "_", statistic, ".png")
 
-#names(df_long)[names(df_long) == "lat.grid"] <- "latitude"
-#names(df_long)[names(df_long) == "long.grid"] <- "longitude"
-
 
 # plot ------------------------------------------------------------------------ 
 
