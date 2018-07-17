@@ -195,6 +195,7 @@ if (CLUSTER) {
       pxl_dataset_full = pxl_data,
       my_predictors = my_predictors, 
       grp_flds = grp_flds,
+      var_to_fit = var_to_fit,
       RF_obj_path = RF_out_pth,
       RF_obj_name = out_md_nm,
       diagn_tab_path = diag_t_pth, 
@@ -202,7 +203,6 @@ if (CLUSTER) {
       map_path = map_pth, 
       map_name = map_nm,
       sct_plt_path = sct_plt_pth,
-      var_to_fit = var_to_fit,
       train_dts_path = train_dts_pth, 
       train_dts_name = tra_dts_nm,
       adm_dataset = adm_covariates))
@@ -216,6 +216,7 @@ if (CLUSTER) {
     pxl_dataset_full = pxl_data,
     my_predictors = my_predictors, 
     grp_flds = grp_flds,
+    var_to_fit = var_to_fit,
     RF_obj_path = RF_out_pth,
     RF_obj_name = out_md_nm,
     diagn_tab_path = diag_t_pth, 
@@ -223,7 +224,6 @@ if (CLUSTER) {
     map_path = map_pth, 
     map_name = map_nm,
     sct_plt_path = sct_plt_pth,
-    var_to_fit = var_to_fit,
     train_dts_path = train_dts_pth, 
     train_dts_name = tra_dts_nm,
     adm_dataset = adm_covariates)
