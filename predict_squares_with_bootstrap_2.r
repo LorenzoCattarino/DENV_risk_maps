@@ -37,9 +37,11 @@ model_type_tag <- "_boot_model"
 # define variables ------------------------------------------------------------
 
 
+var_to_fit <- parameters$dependent_variable
+
 foi_offset <- parameters$foi_offset
 
-model_type <- paste0(parameters$dependent_variable, model_type_tag)
+model_type <- paste0(var_to_fit, model_type_tag)
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
@@ -92,7 +94,11 @@ sqr_preds_boot <- sqr_preds_boot_t$results()
 
 sqr_preds <- do.call("cbind", sqr_preds_boot)
 
-sqr_preds <- sqr_preds - foi_offset
+if(var_to_fit =="FOI"){
+  
+  sqr_preds <- sqr_preds - foi_offset
+
+}
 
 sqr_preds[sqr_preds < 0] <- 0
 
