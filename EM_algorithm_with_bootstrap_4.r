@@ -86,16 +86,14 @@ map_pth <- file.path("figures",
                      "bootstrap_models",
                      my_dir, 
                      model_type, 
-                     "maps", 
-                     paste0("sample_", seq_len(no_samples)))
+                     "maps")
 
 sct_plt_pth <- file.path("figures", 
                          "EM_algorithm",
                          "bootstrap_models",
                          my_dir, 
                          model_type,
-                         "iteration_fits",
-                         paste0("sample_", seq_len(no_samples)))
+                         "iteration_fits")
 
 sqr_dts_pth <- file.path("output", 
                          "EM_algorithm",
