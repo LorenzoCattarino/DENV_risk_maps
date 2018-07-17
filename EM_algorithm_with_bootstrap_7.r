@@ -15,7 +15,7 @@ my_resources <- c(
   file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "utility_functions.R"))
 
-my_pkgs <- c("ranger", "dplyr", "data.table")
+my_pkgs <- c("ranger", "dplyr")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
