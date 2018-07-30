@@ -443,8 +443,8 @@ map_predictions_pixel_ggplot <- function(df,
 
 prediction_df_to_matrix <- function(lats, lons, df_long, statsc){  
   
-  df_long$lat.int <- floor(df_long$lat.grid * 6 + 0.5)
-  df_long$long.int <- floor(df_long$long.grid * 6 + 0.5)
+  df_long$lat.int <- floor(df_long$latitude * 6 + 0.5)
+  df_long$long.int <- floor(df_long$longitude * 6 + 0.5)
   
   lats.int <- lats * 6
   lons.int <- lons * 6
