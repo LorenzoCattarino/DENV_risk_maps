@@ -4,17 +4,18 @@ exp_max_algorithm <- function(parms,
                               pxl_dataset_full, 
                               my_predictors, 
                               grp_flds, 
-                              RF_obj_path, 
-                              RF_obj_name,
-                              diagn_tab_path, 
-                              diagn_tab_name,
-                              map_path, 
-                              map_name, 
-                              sct_plt_path, 
-                              var_to_fit, 
-                              train_dts_path, 
-                              train_dts_name,
-                              adm_dataset = NULL){
+                              var_to_fit,
+                              RF_obj_path = NULL, 
+                              RF_obj_name = NULL,
+                              diagn_tab_path = NULL, 
+                              diagn_tab_name = NULL,
+                              map_path = NULL, 
+                              map_name = NULL, 
+                              sct_plt_path = NULL, 
+                              train_dts_path = NULL, 
+                              train_dts_name = NULL,
+                              adm_dataset = NULL,
+                              sero_points = sero_points){
   
   
   niter <- parms$EM_iter
@@ -60,7 +61,7 @@ exp_max_algorithm <- function(parms,
     
     
     dd$wgt_prime <- dd$wgt_prime * dd$new_weight
-    
+
     
     # 3. calculate new pseudo data value -------------------------------------- 
     
@@ -124,13 +125,15 @@ exp_max_algorithm <- function(parms,
     
     } 
     
-    mp_nm <- sprintf("%s_iter_%s%s", map_name, i, ".png")
-    
-    quick_raster_map(pred_df = dd_1, 
+    if(!is.null(map_path)){
+      mp_nm <- sprintf("%s_iter_%s%s", map_name, i, ".png")
+      
+      quick_raster_map(pred_df = dd_1, 
                      statistic = "p_i", 
                      out_pt = map_path, 
                      out_name = mp_nm) 
-     
+    }
+    
     
     # create a copy for obs vs preds plot and SS calculation ------------------   
     
@@ -205,28 +208,31 @@ exp_max_algorithm <- function(parms,
     aa <- inner_join(cc, mean_p_i)
     
 
-    # plot of observed admin values vs pop-wgt average predicted square values   
-    
-
-    av_sqr_sp_nm <- paste0("pred_vs_obs_av_sqr_iter_", i, ".png")
-    
-    generic_scatter_plot(df = aa, 
-                         x = "o_j", 
-                         y = "mean_p_i", 
-                         file_name = av_sqr_sp_nm, 
-                         file_path = sct_plt_path)  
-    
-    
-    # plot of observed vs predicted admin values ------------------------------ 
-    
-    
-    adm_sp_nm <- paste0("pred_vs_obs_adm_iter_", i, ".png")
-    
-    generic_scatter_plot(df = aa, 
-                         x = "o_j", 
-                         y = "adm_pred", 
-                         file_name = adm_sp_nm, 
-                         file_path = sct_plt_path)  
+    if(!is.null(sct_plt_path)){
+      
+      # plot of observed admin values vs pop-wgt average predicted square values
+      
+      av_sqr_sp_nm <- paste0("pred_vs_obs_av_sqr_iter_", i, ".png")
+      
+      generic_scatter_plot(df = aa, 
+                           x = "o_j", 
+                           y = "mean_p_i", 
+                           file_name = av_sqr_sp_nm, 
+                           file_path = sct_plt_path)  
+      
+      
+      # plot of observed vs predicted admin values ------------------------------ 
+      
+      
+      adm_sp_nm <- paste0("pred_vs_obs_adm_iter_", i, ".png")
+      
+      generic_scatter_plot(df = aa, 
+                           x = "o_j", 
+                           y = "adm_pred", 
+                           file_name = adm_sp_nm, 
+                           file_path = sct_plt_path)  
+      
+    }
     
     
     # 8. calculate admin unit level sum of square ----------------------------- 
@@ -251,12 +257,20 @@ exp_max_algorithm <- function(parms,
     
   }
   
-  write_out_rds(RF_obj, RF_obj_path, RF_obj_name)
-  write_out_rds(out_mat, diagn_tab_path, diagn_tab_name)
-  write_out_rds(training_dataset, train_dts_path, train_dts_name)
+  if(!is.null(RF_obj_path)){
+    write_out_rds(RF_obj, RF_obj_path, RF_obj_name)
+  }
+
+  if(!is.null(diagn_tab_path)){
+    write_out_rds(out_mat, diagn_tab_path, diagn_tab_name)
+  }
   
-  make_ranger_predictions(RF_obj, pxl_dataset_full, my_predictors)
+  if(!is.null(train_dts_path)){
+    write_out_rds(training_dataset, train_dts_path, train_dts_name)
+  }
   
+  # make_ranger_predictions(RF_obj, pxl_dataset_full, my_predictors)
+  RF_obj
 }
 
 exp_max_algorithm_boot <- function(i, 
@@ -304,10 +318,10 @@ exp_max_algorithm_boot <- function(i,
   
   a <- RF_obj_name[i]
   b <- diagn_tab_name[i]
-  cc <- map_path[i]  
   ee <- map_name[i] 
-  ff <- sct_plt_path[i]
   gg <- train_dts_name[i]
+  cc <- file.path(map_path, paste0("sample_", i))
+  ff <- file.path(sct_plt_path, paste0("sample_", i))
   
   
   # ---------------------------------------- pre process the bootstrapped foi data set
@@ -362,6 +376,7 @@ exp_max_algorithm_boot <- function(i,
                     pxl_dataset_full = pxl_dataset_orig,
                     my_predictors = my_preds, 
                     grp_flds = grp_flds, 
+                    var_to_fit = var_to_fit,
                     RF_obj_path = RF_obj_path,
                     RF_obj_name = a,
                     diagn_tab_path = diagn_tab_path, 
@@ -369,9 +384,174 @@ exp_max_algorithm_boot <- function(i,
                     map_path = cc, 
                     map_name = ee,
                     sct_plt_path = ff,
-                    var_to_fit = var_to_fit,
                     train_dts_path = train_dts_path,
                     train_dts_name = gg,
                     adm_dataset = adm_dataset)
+  
+}
+
+EM_full_routine <- function(x, 
+                            parms, 
+                            out_path,
+                            boot_ls, 
+                            in_path, 
+                            predictors, 
+                            grp_flds_1, 
+                            grp_flds_2,
+                            adm_dataset, 
+                            foi_data,
+                            sqr_data){
+  
+  
+  j <- x$exp_id 
+  i <- x$rep_id
+  
+  cat("exp id =", j, "\n")
+  cat("rep id =", i, "\n")
+  
+  no_trees <- parms$no_trees
+  min_node_size <- parms$min_node_size
+  psAbs <- parms$pseudoAbs_value
+  var_to_fit <- parms$dependent_variable
+  foi_offset <- parms$foi_offset
+  number_of_predictors <- parms$no_predictors
+
+  sqr_data_boot_nm <- paste0("env_vars_20km_", i, ".rds")
+  
+  model_type <- paste0(var_to_fit, "_boot_model_", j)
+  
+  out_name <- paste0("all_scale_predictions_", i, ".rds")
+  
+  RF_name <- paste0("RF_obj_sample_", i, ".rds")
+  
+  all_pred_out_path <- file.path(out_path, model_type, "predictions_data")
+  
+  RF_out_path <- file.path(out_path, model_type, "optimized_model_objects")
+  
+    
+  # load data -----------------------------------------------------------------
+  
+  
+  foi_data_boot <- boot_ls[[i]]
+  
+  sqr_data_boot <- readRDS(file.path(in_path, sqr_data_boot_nm))
+  
+  
+  # preprocessing -------------------------------------------------------------
+  
+  
+  number_of_predictors <- number_of_predictors - j  
+  my_predictors <- predictors[1:number_of_predictors]
+  
+  message(paste0("number of predictors = ", number_of_predictors))
+  cat(paste(c("My predictors are:", my_predictors), collapse = '\n'), "\n")
+  
+  if(var_to_fit == "FOI"){
+    
+    names(foi_data_boot)[names(foi_data_boot) == "FOI"] <- "o_j"
+    
+  } else {
+    
+    names(foi_data_boot)[names(foi_data_boot) == var_to_fit] <- "o_j"
+    
+  }
+  
+  foi_data_boot[foi_data_boot$type == "pseudoAbsence", "o_j"] <- psAbs
+  
+  if(var_to_fit == "FOI"){
+    
+    foi_data_boot[, "o_j"] <- foi_data_boot[, "o_j"] + foi_offset
+    
+  }
+  
+  training_dataset <- foi_data_boot[, c("o_j", my_predictors, "new_weight")]
+  
+  
+  # fitting the RF at admin level 0 and make predictions ----------------------
+  
+  
+  RF_obj <- fit_ranger_RF(dependent_variable = "o_j", 
+                          predictors = my_predictors, 
+                          training_dataset = training_dataset, 
+                          no_trees = no_trees, 
+                          min_node_size = min_node_size,
+                          my_weights = "new_weight")
+  
+  p_i <- make_ranger_predictions(mod_obj = RF_obj, 
+                                 dataset = sqr_data_boot, 
+                                 sel_preds = my_predictors)
+  
+  sqr_data_boot$p_i <- p_i
+  
+  
+  # pre process the square data set ------------------------------------------- 
+  
+  
+  pxl_dts_grp <- sqr_data_boot %>% group_by_(.dots = grp_flds_1) 
+  
+  aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
+  
+  sqr_data_boot <- left_join(sqr_data_boot, aa)
+  
+  sqr_data_boot$pop_weight <- sqr_data_boot$population / sqr_data_boot$pop_sqr_sum
+  
+  sqr_data_boot <- inner_join(sqr_data_boot, foi_data_boot[, c(grp_flds_1, "o_j", "new_weight")])
+  
+  
+  # run EM --------------------------------------------------------------------
+  
+  #browser()
+  RF_obj_optim <- exp_max_algorithm(parms = parms, 
+                                    orig_dataset = foi_data_boot, 
+                                    pxl_dataset = sqr_data_boot,
+                                    pxl_dataset_full = sqr_data,
+                                    my_predictors = my_predictors, 
+                                    grp_flds = grp_flds_1, 
+                                    var_to_fit = var_to_fit,
+                                    RF_obj_path = RF_out_path, 
+                                    RF_obj_name = RF_name,
+                                    adm_dataset = adm_dataset)
+  
+  p_i_all <- make_ranger_predictions(RF_obj_optim, sqr_data, my_predictors)
+  
+  
+  # pre process admin unit covariate dataset ----------------------------------
+  
+  
+  adm_dts_2 <- remove_NA_rows(adm_dataset, my_predictors)
+  
+  adm_pred <- make_ranger_predictions(RF_obj_optim, adm_dts_2, my_predictors)
+  
+  if(var_to_fit == "FOI"){
+    
+    adm_pred <- adm_pred - foi_offset 
+    p_i_all <- p_i_all - foi_offset
+    
+  }
+  
+  adm_dts_2$admin <- adm_pred
+  
+  fltr_adm <- inner_join(adm_dts_2, foi_data[, grp_flds_2])
+  
+  sqr_dts <- cbind(sqr_data[, c(grp_flds_2, "population")],
+                   square = p_i_all)
+  
+  average_sqr <- average_up(sqr_dts, grp_flds_2, "square")
+  
+  df_lst <- list(foi_data[, c(grp_flds_2, "type", "o_j")],
+                 fltr_adm[, c(grp_flds_2, "admin")],
+                 average_sqr[, c(grp_flds_2, "square")])
+  
+  join_all <- Reduce(function(...) left_join(...), df_lst)
+  
+  ids <- unique(foi_data_boot$data_id)
+  
+  train_ids <- rep(0, nrow(foi_data))
+  
+  train_ids[ids] <- 1
+  
+  join_all$train <- train_ids
+  
+  write_out_rds(join_all, all_pred_out_path, out_name)
   
 }
