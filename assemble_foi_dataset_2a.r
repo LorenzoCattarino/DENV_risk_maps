@@ -60,7 +60,7 @@ All_FOI_estimates <- read.table(
 salje_data <- read.table(file.path("output", 
                                    "seroprevalence",
                                    "salje",
-                                   "observations_adm1_clean.txt"),
+                                   "observations_20km_clean.txt"),
                          header = TRUE,
                          sep = ",")
 
