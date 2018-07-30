@@ -163,43 +163,46 @@ salje_data$adm1 <- adm1_name
 
 salje_data <- subset(salje_data, !is.na(ID_1))
 
+colnames(salje_data)[colnames(salje_data) == "lon"] <- "longitude"
+colnames(salje_data)[colnames(salje_data) == "lat"] <- "latitude"
+
 
 # add adm unit 1 centroid coordinates -----------------------------------------
 
 
-centroid_objs <- gCentroid(shp,byid=TRUE)
-
-centroid_xy <- centroid_objs@coords
-
-centroid_xy <- cbind(seq(nrow(centroid_xy)), centroid_xy)
-
-colnames(centroid_xy) <- c("ID_1", "longitude", "latitude")
-
-centroid_xy <- as.data.frame(centroid_xy)
-
-salje_data <- left_join(salje_data, centroid_xy)
+# centroid_objs <- gCentroid(shp,byid=TRUE)
+# 
+# centroid_xy <- centroid_objs@coords
+# 
+# centroid_xy <- cbind(seq(nrow(centroid_xy)), centroid_xy)
+# 
+# colnames(centroid_xy) <- c("ID_1", "longitude", "latitude")
+# 
+# centroid_xy <- as.data.frame(centroid_xy)
+# 
+# salje_data <- left_join(salje_data, centroid_xy)
 
 
 # calculate matrix of distances -----------------------------------------------
 
 
-salje_xy <- salje_data[, c("lon","lat")]
-
-d <- distm(salje_xy, fun = distGeo)
-min.d <- apply(d, 1, function(x) order(x, decreasing = FALSE)[2])
-
-salje_data <- cbind(salje_data, 
-                    distance_km = apply(d, 1, function(x) sort(x, decreasing = FALSE)[2]))
-
-salje_data[, "distance_km"] <- salje_data[, "distance_km"] / 1000
+# salje_xy <- salje_data[, c("lon","lat")]
+# 
+# d <- distm(salje_xy, fun = distGeo)
+# min.d <- apply(d, 1, function(x) order(x, decreasing = FALSE)[2])
+# 
+# salje_data <- cbind(salje_data, 
+#                     distance_km = apply(d, 1, function(x) sort(x, decreasing = FALSE)[2]))
+# 
+# salje_data[, "distance_km"] <- salje_data[, "distance_km"] / 1000
 
 
 # save ------------------------------------------------------------------------
 
 
-write_out_csv(salje_data, 
-              dts_out_pt, 
-              dts_out_nm_1)
+# write_out_csv(salje_data, 
+#               dts_out_pt, 
+#               dts_out_nm_1)
 
 write.table(salje_data[, base_info],
             file.path(dts_out_pt, dts_out_nm_2),
