@@ -9,12 +9,11 @@ library(colorRamps)
 # ---------------------------------------- load data
 
 
-All_FOI_estimates <- read.table(
+All_FOI_estimates <- read.csv(
   file.path("output", 
-            "foi", 
-            "All_FOI_estimates_linear.txt"), 
-  header = TRUE, 
-  sep = ",")
+            "R_0", 
+            "All_R_0_estimates.csv"), 
+  header = TRUE)
 
 pseudoAbsences <- read.csv(
   file.path("output", 
