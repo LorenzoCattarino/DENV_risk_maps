@@ -21,7 +21,7 @@ parameters <- list(
   dependent_variable = "FOI",
   no_predictors = 26)   
 
-aggr_dts_name <- "env_vars_20km.rds"
+aggr_dts_name <- "env_vars_20km_2.rds"
 
 out_fl_nm <- "covariates_and_foi_20km.rds"
 
@@ -54,11 +54,11 @@ RF_obj <- readRDS(file.path("output",
                             paste0("model_objects_", parameters$dependent_variable, "_fit"),
                             model_obj_nm))
 
-aggreg_pxl_env_var <- readRDS(file.path("output", 
-                                        "EM_algorithm",
-                                        "best_fit_models",
-                                        "env_variables", 
-                                        aggr_dts_name))
+pxl_data <- readRDS(file.path("output", 
+                              "EM_algorithm",
+                              "best_fit_models",
+                              "env_variables", 
+                              aggr_dts_name))
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
@@ -73,15 +73,22 @@ predictor_rank <- read.csv(file.path("output",
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 my_predictors <- c(my_predictors, extra_predictors)
 
+# pxl_data$log_pop_den <- ifelse(pxl_data$log_pop_den > 0.6, 0.6, pxl_data$log_pop_den)
+# pxl_data[pxl_data$square == 229595, "population"] <- 10000
+# grid_size <- (1 / 120) * 20
+# sqr_area_km <- (grid_size * 111.32)^2
+# pxl_data[pxl_data$square == 229595, "pop_den"] <- pxl_data[pxl_data$square == 229595, "population"] / sqr_area_km
+# pxl_data[pxl_data$square == 229595, "log_pop_den"] <- log(1 + pxl_data[pxl_data$square == 229595, "pop_den"]) 
+
 
 # submit job ------------------------------------------------------------------ 
 
 
 p_i <- make_ranger_predictions(
   mod_obj = RF_obj, 
-  dataset = aggreg_pxl_env_var, 
+  dataset = pxl_data, 
   sel_preds = my_predictors)
 
-aggreg_pxl_env_var$p_i <- p_i
+pxl_data$p_i <- p_i
 
-write_out_rds(aggreg_pxl_env_var, out_pth, out_fl_nm)
+write_out_rds(pxl_data, out_pth, out_fl_nm)
