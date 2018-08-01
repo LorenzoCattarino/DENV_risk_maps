@@ -1,19 +1,19 @@
-# Load back in from the context folder a vector of square-level predictions for the entire 20km dataset
+# Creates a data frame with:  
+#
+# 1) admin unit observations
+# 2) admin unit predictions 
+# 3) population weighted average of the square predictions, within the observation's admin unit
+# 4) population weighted average of the 1 km pixel predictions, within the observation's admin unit
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
-
 my_resources <- c(
+  file.path("R", "prepare_datasets", "average_up.R"),
+  file.path("R", "prepare_datasets", "remove_NA_rows.R"),
   file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
-  file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
-  file.path("R", "random_forest", "exp_max_algorithm.R"),
-  file.path("R", "plotting", "quick_raster_map.R"),
-  file.path("R", "plotting", "generic_scatter_plot.R"),
-  file.path("R", "prepare_datasets", "calculate_wgt_corr.R"),
-  file.path("R", "utility_functions.R"))  
+  file.path("R", "utility_functions.R"))
 
-my_pkgs <- c("ranger", "dplyr", "fields", "ggplot2", "weights", "colorRamps")
+my_pkgs <- c("ranger", "dplyr", "data.table")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -21,65 +21,173 @@ ctx <- context::context_save(path = "context",
                              packages = my_pkgs)
 
 
-# define parameters ----------------------------------------------------------- 
+# define parameters -----------------------------------------------------------
 
 
 parameters <- list(
   dependent_variable = "FOI",
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1.6e6,
   pseudoAbs_value = -0.02,
   foi_offset = 0.03,
-  no_trees = 500,
-  min_node_size = 20,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
-  EM_iter = 10,
-  no_predictors = 26) 
+  no_predictors = 26)   
+
+grp_flds <- c("ID_0", "ID_1", "data_id")
+
+RF_obj_nm <- "RF_obj.rds"
+
+out_name <- "all_scale_predictions.rds"
+
+foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
+
+covariate_dts_nm <- "env_vars_20km.rds"
 
 model_type_tag <- "_best_model_3"
+
+extra_predictors <- NULL
 
 
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, model_type_tag)
-
-out_fl_nm <- "square_predictions_all_data.rds"
-
-out_pt <- file.path("output", "EM_algorithm", "best_fit_models", model_type)
-
-
-# rebuild the queue object? --------------------------------------------------- 
-
-
-if (CLUSTER) {
+var_to_fit <- parameters$dependent_variable
   
-  config <- didehpc::didehpc_config(template = "24Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
+foi_offset <- parameters$foi_offset
+
+model_type <- paste0(var_to_fit, model_type_tag)
+
+RF_obj_path <- file.path("output",
+                         "EM_algorithm",
+                         "best_fit_models",
+                         model_type,
+                         "optimized_model_objects")
+
+out_pt <- file.path("output",
+                    "EM_algorithm",
+                    "best_fit_models",
+                    model_type,
+                    "predictions_data")
+
+
+# are you using the cluster? -------------------------------------------------- 
+
+
+context::context_load(ctx)
+
+
+# load data ------------------------------------------------------------------- 
+
+
+foi_dataset <- read.csv(file.path("output", "foi", foi_dts_nm),
+                        stringsAsFactors = FALSE) 
+
+sqr_dataset <- readRDS(file.path("output",
+                                 "EM_algorithm",
+                                 "best_fit_models",
+                                 "env_variables",
+                                 covariate_dts_nm))
+
+adm_dataset <- read.csv(file.path("output",
+                                  "env_variables",
+                                  "All_adm1_env_var.csv"),
+                        stringsAsFactors = FALSE)
+
+predictor_rank <- read.csv(file.path("output", 
+                                     "variable_selection",
+                                     "stepwise",
+                                     "predictor_rank.csv"), 
+                           stringsAsFactors = FALSE)
+
+tile_summary <- read.csv(file.path("data", 
+                                   "env_variables", 
+                                   "plus60minus60_tiles.csv"), 
+                         stringsAsFactors = FALSE)
+
+NA_pixel_tiles <- read.table(file.path("output", 
+                                       "datasets", 
+                                       "NA_pixel_tiles_20km.txt"), 
+                             sep = ",", 
+                             header = TRUE)
+
+all_sqr_predictions <- readRDS(file.path("output",
+                                         "EM_algorithm",
+                                         "best_fit_models",
+                                         model_type,
+                                         "square_predictions_all_data.rds"))
+
+
+# pre processing --------------------------------------------------------------
+
+
+names(foi_dataset)[names(foi_dataset) == var_to_fit] <- "o_j"
+
+foi_dataset[foi_dataset$type == "pseudoAbsence", "o_j"] <- parameters$pseudoAbs_value
+
+adm_dataset <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
+
+tile_ids <- tile_summary$tile.id
+
+NA_pixel_tile_ids <- NA_pixel_tiles$tile_id
+
+tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]  
+
+my_predictors <- predictor_rank$name[1:parameters$no_predictors]
+my_predictors <- c(my_predictors, extra_predictors)
+
+
+# ---------------------------------------- submit one job 
+
+
+RF_obj <- readRDS(file.path(RF_obj_path, RF_obj_nm))
+
+adm_dataset_2 <- remove_NA_rows(adm_dataset, my_predictors)
+
+adm_pred <- make_ranger_predictions(RF_obj, adm_dataset_2, my_predictors)
+
+if(var_to_fit == "FOI"){
   
-} else {
-  
-  context::context_load(ctx)
-  
+  adm_pred <- adm_pred - foi_offset 
+  all_sqr_predictions <- all_sqr_predictions - foi_offset
+
 }
 
+adm_dataset_2$admin <- adm_pred
+  
+fltr_adm <- inner_join(adm_dataset_2, foi_dataset[, grp_flds])
 
-# get results ----------------------------------------------------------------- 
+sqr_preds <- all_sqr_predictions
 
+sqr_dataset <- cbind(sqr_dataset[, c(grp_flds, "population")],
+                     square = sqr_preds)
 
-all_tasks <- obj$task_times()
+average_sqr <- average_up(pxl_df = sqr_dataset,
+                          grp_flds = grp_flds,
+                          var_names = "square")
 
-# loads the LAST task
-my_task_id <- all_tasks[nrow(all_tasks), "task_id"]
+# #[c(140, 141, 170, 171)]
+# 
+# tile_prds <- loop(
+#   seq_along(tile_ids),
+#   load_predict_filter,
+#   ids_vec = tile_ids,
+#   predictors = predictors,
+#   RF_obj = RF_obj,
+#   foi_dts = foi_dataset,
+#   grp_flds = grp_fields,
+#   parallel = FALSE)
+# 
+# tile_prds_rb <- do.call("rbind", tile_prds)
+# 
+# average_pxl <- average_up(
+#   pxl_df = tile_prds_rb,
+#   grp_flds = grp_fields,
+#   var_names = "pred")
+# 
+# names(average_pxl)[names(average_pxl) == "pred"] <- "mean_pxl_pred"
 
-EM_alg_run_t <- obj$task_get(my_task_id)
+df_lst <- list(foi_dataset[, c(grp_flds, "type", "o_j")],
+               fltr_adm[, c(grp_flds, "admin")],
+               average_sqr[, c(grp_flds, "square")])#,
+#average_pxl[, c(grp_fields, "mean_pxl_pred")]) 
 
-prediction_set <- EM_alg_run_t$result()
+join_all <- Reduce(function(...) left_join(...), df_lst)
 
-
-# save ------------------------------------------------------------------------
-
-
-write_out_rds(prediction_set, out_pt, out_fl_nm)
+write_out_rds(join_all, out_pt, out_name)

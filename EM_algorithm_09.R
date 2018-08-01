@@ -1,193 +1,115 @@
-# Creates a scatter plot of:  
-#
-# 1) admin unit observation vs admin unit prediction 
-# 2) admin unit observation vs population weighted average of the square predictions (within admin unit)
-# 3) admin unit observation vs population weighted average of the 1 km pixel predictions (within admin unit)
+# calulate the partial depence of the model function on each explanatory variable
+
+options(didehpc.cluster = "fi--didemrchnb")
+
+CLUSTER <- TRUE
+
+my_resources <- c(
+  file.path("R", "random_forest", "partial_dependence_plots.R"),
+  file.path("R", "utility_functions.R"))
+
+my_pkgs <- c("h2o")
+
+context::context_log_start()
+ctx <- context::context_save(path = "context",
+                             sources = my_resources,
+                             packages = my_pkgs)
+
+# my_h2o_ver <- "3.16.0.2"
+# if(packageVersion("h2o") != my_h2o_ver) install.packages(file.path("R_sources", "h2o_3.16.0.2.tar.gz"), repos = NULL, type = "source")
 
 
-library(reshape2)
-library(ggplot2)
-library(plyr)
-library(weights) # for wtd.cor()
-
-source(file.path("R", "plotting", "plot_RF_preds_vs_obs_by_cv_dataset.R"))
-source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
-source(file.path("R", "prepare_datasets", "calculate_wgt_corr.R"))
-source(file.path("R", "utility_functions.R"))
-
-
-# define parameters -----------------------------------------------------------  
+# define parameters ----------------------------------------------------------- 
 
 
 parameters <- list(
   dependent_variable = "FOI",
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1.6e6,
-  pseudoAbs_value = -0.02,
-  all_wgt = 1,
-  no_predictors = 26)   
+  no_predictors = 9)   
 
-mes_vars <- c("admin", "square")
+RF_mod_nm <- "RF_obj.rds"
+train_dts_nm <- "train_dts.rds"
+par_dep_nm <- "par_dep.rds"
+var_imp_nm <- "var_imp.rds"
 
-tags <- c("all_data", "no_psAb")
+model_type_tag <- "_best_model_6"
 
-data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
-                       c("serology", "caseReport"))
-
-foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
-
-model_type_tag <- "_best_model_3"
+extra_predictors <- "log_pop_den"
 
 
 # define variables ------------------------------------------------------------
 
 
-var_to_fit <- parameters$dependent_variable
+model_type <- paste0(parameters$dependent_variable, model_type_tag)
 
-psAbs_val <- parameters$pseudoAbs_value
+model_in_pt <- file.path("output",
+                         "EM_algorithm",
+                         "best_fit_models",
+                         model_type,
+                         "optimized_model_objects")
 
-model_type <- paste0(var_to_fit, model_type_tag)
-
-in_path <- file.path("output",
-                     "EM_algorithm",
-                     "best_fit_models",
-                     model_type,
-                     "predictions_data") 
-
-out_fig_path_av <- file.path("figures",
+train_dts_in_pt <- file.path("output",
                              "EM_algorithm",
                              "best_fit_models",
                              model_type,
-                             "scatter_plots")
+                             "training_datasets")
 
-out_table_path <- file.path("output",
-                            "EM_algorithm",
-                            "best_fit_models",
-                            model_type,
-                            "scatter_plots")
+pdp_out_pt <- file.path("output",
+                        "EM_algorithm",
+                        "best_fit_models",
+                        model_type,
+                        "partial_dependence")
+
+v_imp_out_pt <- file.path("output",
+                          "EM_algorithm",
+                          "best_fit_models",
+                          model_type,
+                          "variable_importance")
 
 
-# load data ------------------------------------------------------------------- 
+# are you using the cluster? -------------------------------------------------- 
 
 
-foi_data <- read.csv(file.path("output", "foi", foi_dts_nm),
-                        stringsAsFactors = FALSE) 
+if (CLUSTER) {
+  
+  config <- didehpc::didehpc_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
+  
+} else {
+  
+  context::context_load(ctx)
+  #context::parallel_cluster_start(8, ctx)
+  
+}
+
+
+# load data -------------------------------------------------------------------
+
+
+predictor_rank <- read.csv(file.path("output", 
+                                     "variable_selection", 
+                                     "metropolis_hastings", 
+                                     "exp_1", 
+                                     "variable_rank_final_fits_exp_1.csv"),
+                           stringsAsFactors = FALSE)
 
 
 # pre processing --------------------------------------------------------------
 
 
-no_datapoints <- nrow(foi_data)
-
-no_pseudoAbs <- sum(foi_data$type == "pseudoAbsence") 
-
-no_pnts_vec <- c(no_datapoints, no_datapoints - no_pseudoAbs) 
-
-foi_data$new_weight <- parameters$all_wgt
-
-pAbs_wgt <- get_sat_area_wgts(foi_data, parameters)
-
-foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
+my_predictors <- predictor_rank$name[1:parameters$no_predictors]
+my_predictors <- c(my_predictors, extra_predictors)
 
 
-# start -----------------------------------------------------------------------
+# submit one job --------------------------------------------------------------  
 
-
-for (j in seq_along(tags)) {
-  
-  no_pnts <- no_pnts_vec[j]
-  
-  dt_typ <- data_types_vec[[j]]
-  
-  tag <- tags[j]
-  
-  dts_nm <- paste0("all_scale_predictions.rds")
-  
-  dts_1 <- readRDS(file.path(in_path, dts_nm))
-  
-  if(var_to_fit == "FOI"){
-    
-    dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 0] <- 0
-    
-  } else {
-    
-    dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 1] <- psAbs_val
-    
-  }
-  
-  dts <- dts_1[dts_1$type %in% dt_typ, ]
-  
-  all_av_preds_mlt <- melt(
-    dts,
-    id.vars = c("data_id", "ID_0", "ID_1", "o_j"),
-    measure.vars = mes_vars,
-    variable.name = "scale")
-  
-  ret <- dplyr::left_join(all_av_preds_mlt, foi_data[, c("data_id", "new_weight")])
-  
-  fl_nm_av <- paste0("pred_vs_obs_plot_averages_", tag, ".png")
-  
-  #browser()
-  
-  df <- ret
-  x <- "o_j"
-  y <- "value"
-  facet_var <- "scale" 
-  
-  x_values <- pretty(df[, x], n = 5)
-  y_values <- pretty(df[, y], n = 5)
-  min_x_value <- min(x_values)
-  max_x_value <- max(x_values)
-  min_y_value <- min(y_values)
-  max_y_value <- max(y_values)
-  
-  corr_coeff <- ddply(df, "scale", calculate_wgt_cor, "o_j", "value")
-  
-  facet_plot_names_x <- as_labeller(c(admin = "Level 1 administrative unit",
-                                      square = "20 km pixel"))
-  
-  p <- ggplot(df, aes(x = "o_j", y = "value")) +
-    facet_grid(. ~ scale,
-               labeller = labeller(scale = facet_plot_names_x)) + 
-    geom_point(aes_string(x = x, y = y), size = 1) +
-    geom_abline(slope = 1, intercept = 0, linetype = 2) +
-    scale_x_continuous("Observations",  
-                       limits = c(min_x_value, max_x_value), 
-                       breaks = x_values,
-                       labels = x_values) +
-    scale_y_continuous("Predictions", 
-                       #limits = c(min_y_value, max_y_value), 
-                       breaks = y_values,
-                       labels = y_values) +
-    theme(axis.title.x = element_text(size = 15, margin = margin(t = 20)),
-          axis.title.y = element_text(size = 15, margin = margin(r = 20)),
-          axis.text.x = element_text(size = 11),
-          axis.text.y = element_text(size = 11),
-          plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
-          strip.text.x = element_text(size = 12),
-          strip.text.y = element_text(size = 12))
-  
-  p2 <- p +
-    geom_text(data = corr_coeff, 
-              aes(x = x_values[length(x_values)-1], y = min_y_value, hjust = 1, label = paste0("italic(r) == ", V1)),
-              parse = TRUE,
-              inherit.aes = FALSE,
-              size = 4) +
-    facet_grid(. ~ scale,
-               labeller = labeller(scale = facet_plot_names_x))
-  
-  dir.create(out_fig_path_av, FALSE, TRUE)
-  
-  png(filename = file.path(out_fig_path_av, fl_nm_av), 
-      width = 16, 
-      height = 8, 
-      units = "cm", 
-      pointsize = 12,
-      res = 200)
-  
-  print(p2)
-  
-  dev.off()
-  
-}
+t <- obj$enqueue(
+  calculate_par_dep(RF_obj_name = RF_mod_nm, 
+                    tr_dts_name = train_dts_nm,
+                    par_dep_name = par_dep_nm,
+                    var_imp_name = var_imp_nm,
+                    RF_obj_path = model_in_pt,
+                    tr_dts_path = train_dts_in_pt,
+                    par_dep_path = pdp_out_pt,
+                    var_imp_path = v_imp_out_pt,
+                    model_type = model_type,
+                    variables = my_predictors))

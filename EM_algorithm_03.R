@@ -1,11 +1,10 @@
-# Fits RF to all original foi data (using fixed RF parameters) 
+# Estimate foi for each 20 km square of the dataset disaggregated from the entire original foi dataset
 
 options(didehpc.cluster = "fi--didemrchnb")
 
 my_resources <- c(
   file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
-  file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
-  file.path("R", "utility_functions.R"))
+  file.path("R", "utility_functions.R"))  
 
 my_pkgs <- "ranger"
 
@@ -20,20 +19,13 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   dependent_variable = "FOI",
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1.6e6,
-  pseudoAbs_value = -0.02,
-  foi_offset = 0.03,
-  no_trees = 500,
-  min_node_size = 20,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
-  no_predictors = 26) 
+  no_predictors = 26)   
 
-out_name <- "all_data.rds"  
+aggr_dts_name <- "env_vars_20km_2.rds"
 
-foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
+out_fl_nm <- "covariates_and_foi_20km.rds"
+
+model_obj_nm <- "all_data.rds"
 
 extra_predictors <- NULL
 
@@ -41,27 +33,32 @@ extra_predictors <- NULL
 # define variables ------------------------------------------------------------
 
 
-var_to_fit <- parameters$dependent_variable
-
-foi_offset <- parameters$foi_offset
+out_pth <- file.path("output", 
+                     "EM_algorithm", 
+                     "best_fit_models",
+                     paste0("env_variables_", parameters$dependent_variable, "_fit"))
   
-out_path <- file.path("output", 
-                      "EM_algorithm", 
-                      "best_fit_models", 
-                      paste0("model_objects_", var_to_fit, "_fit"))
-
-
+  
 # start up -------------------------------------------------------------------- 
 
 
 context::context_load(ctx)
 
 
-# load data ------------------------------------------------------------------- 
+# load data -------------------------------------------------------------------
 
 
-foi_data <- read.csv(file.path("output", "foi", foi_dts_nm),
-                     stringsAsFactors = FALSE)
+RF_obj <- readRDS(file.path("output",
+                            "EM_algorithm",
+                            "best_fit_models",
+                            paste0("model_objects_", parameters$dependent_variable, "_fit"),
+                            model_obj_nm))
+
+pxl_data <- readRDS(file.path("output", 
+                              "EM_algorithm",
+                              "best_fit_models",
+                              "env_variables", 
+                              aggr_dts_name))
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
@@ -70,68 +67,28 @@ predictor_rank <- read.csv(file.path("output",
                            stringsAsFactors = FALSE)
 
 
-# pre processing -------------------------------------------------------------- 
+# pre processing --------------------------------------------------------------
 
-
-# set pseudo absence value
-foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- parameters$pseudoAbs_value
-
-# assign weights
-foi_data$new_weight <- parameters$all_wgt
-pAbs_wgt <- get_sat_area_wgts(foi_data, parameters)
-foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 my_predictors <- c(my_predictors, extra_predictors)
 
-if(var_to_fit == "FOI"){
-  
-  foi_data[, var_to_fit] <- foi_data[, var_to_fit] + foi_offset
-
-}
-
-# get training dataset (full dataset - no bootstrap)
-training_dataset <- foi_data[, c(var_to_fit, my_predictors, "new_weight")]
+# pxl_data$log_pop_den <- ifelse(pxl_data$log_pop_den > 0.6, 0.6, pxl_data$log_pop_den)
+# pxl_data[pxl_data$square == 229595, "population"] <- 10000
+# grid_size <- (1 / 120) * 20
+# sqr_area_km <- (grid_size * 111.32)^2
+# pxl_data[pxl_data$square == 229595, "pop_den"] <- pxl_data[pxl_data$square == 229595, "population"] / sqr_area_km
+# pxl_data[pxl_data$square == 229595, "log_pop_den"] <- log(1 + pxl_data[pxl_data$square == 229595, "pop_den"]) 
 
 
-####
-# plot
-
-# library(ggplot2)
-# 
-# sub_foi <- foi_data[foi_data$type == "pseudoAbsence",]
-# 
-# png(file.path("figures", "wgt_area_relationship.png"),
-#     width = 10,
-#     height = 6,
-#     units = "in",
-#     pointsize = 12,
-#     res = 200)
-# 
-# p <- ggplot(sub_foi, aes(Shape_Area, new_weight)) +
-#   geom_point() +
-#   geom_text(aes(label = ISO), nudge_y = -0.5, size = 1.8) +
-#   scale_y_continuous(name = "Observation weight",
-#                      limits = c(0, max(wgt_limits)),
-#                      expand = c(0.1,0.1),
-#                      breaks = pretty(sub_foi$new_weight, 4),
-#                      labels = pretty(sub_foi$new_weight, 4)) +
-#   scale_x_continuous(name = expression("Pseudo absence admin unit area " ~ (10^{3} ~ "km"^{2})),
-#                      breaks = pretty(sub_foi$Shape_Area, 4),
-#                      labels = format(pretty(sub_foi$Shape_Area, 4) / 1000, scientific = FALSE))
-# 
-# print(p)
-# dev.off()
+# submit job ------------------------------------------------------------------ 
 
 
-# run job --------------------------------------------------------------------- 
+p_i <- make_ranger_predictions(
+  mod_obj = RF_obj, 
+  dataset = pxl_data, 
+  sel_preds = my_predictors)
 
+pxl_data$p_i <- p_i
 
-RF_obj <- fit_ranger_RF(dependent_variable = parameters$dependent_variable, 
-                        predictors = my_predictors, 
-                        training_dataset = training_dataset, 
-                        no_trees = parameters$no_trees, 
-                        min_node_size = parameters$min_node_size,
-                        my_weights = "new_weight")
-
-write_out_rds(RF_obj, out_path, out_name)
+write_out_rds(pxl_data, out_pth, out_fl_nm)
