@@ -1,74 +1,179 @@
-# Finds the value of the environmental covariates for each point (real and pseudo absence) in the dataset 
+# For each original foi estimate, calculates the corresponding R0 (three assumptions)
 
-library(dplyr)
+# load packages
+library(ggplot2)
+library(grid)
 
-source(file.path("R", "utility_functions.R"))
+# load functions 
+source(file.path("R", "prepare_datasets", "functions_for_calculating_R0.r"))
 
 
-# define paramaters -----------------------------------------------------------
+# define parameters ----------------------------------------------------------- 
 
 
-base_info <- c("type",
+m_flds <- c("ID_0", "ID_1")
+
+base_info <- c("reference", 
                "date",
-               "longitude",
-               "latitude",
+               "type", 
                "country",
-               "ISO",
-               "ID_0",
-               "ID_1",
-               "FOI",
-               "R0_1",
-               "R0_2",
-               "R0_3")
-  
-foi_out_pt <- file.path("output", "foi")
-  
-foi_out_nm <- "All_FOI_estimates_and_predictors_2.csv"
+               "ISO", 
+               "longitude", 
+               "latitude", 
+               "ID_0", 
+               "ID_1", 
+               "FOI", 
+               "variance", 
+               "population")
+
+gamma_1 <- 0.45
+rho <- 0.85
+gamma_3 <- 0.15
+
+phi_combs <- list(
+  c(1, 1, 0, 0),
+  c(1, 1, 1, 1),
+  calculate_infectiousness_wgts_for_sym_asym_assumption(gamma_1, rho, gamma_3))
+
+prob_fun <- list("calculate_primary_infection_prob",
+                 "calculate_secondary_infection_prob",
+                 "calculate_tertiary_infection_prob",
+                 "calculate_quaternary_infection_prob")
+
+
+# define variables ------------------------------------------------------------ 
+
+
+comb_no <- length(phi_combs)
+
+var <- paste0("R0_", seq_len(comb_no))
 
 
 # load data -------------------------------------------------------------------  
 
 
-All_FOI_R0_estimates <- read.csv(file.path("output", 
-                                           "R_0", 
-                                           "All_R_0_estimates.csv"), 
-                                 header = TRUE, 
-                                 stringsAsFactors = FALSE)
+All_FOI_estimates <- read.csv(file.path("output", "foi", "FOI_estimates_lon_lat_twk_gadm.csv"), 
+                                header = TRUE,
+                                stringsAsFactors = FALSE)
 
-pseudo_absence_points <- read.csv(file.path("output", 
-                                            "datasets", 
-                                            "pseudo_absence_points_2.csv"), 
-                                  header = TRUE, 
-                                  stringsAsFactors = FALSE)
+country_age_struc <- read.csv(file.path("output", 
+                                        "datasets", 
+                                        "country_age_structure.csv"),
+                              header = TRUE,
+                              stringsAsFactors = FALSE)
 
-adm1_covariates <- read.csv(file.path("output",
-                                      "env_variables",
-                                      "all_adm1_env_var.csv"),
-                            header = TRUE, 
-                            stringsAsFactors = FALSE)
+adm_1_env_vars <- read.csv(file.path("output", 
+                                     "env_variables", 
+                                     "All_adm1_env_var.csv"),
+                           header = TRUE,
+                           stringsAsFactors = FALSE)
 
 
-# pre processing -------------------------------------------------------------- 
+# extract info from age structure ---------------------------------------------  
 
 
-pseudo_absence_points$FOI <- 0
-pseudo_absence_points$R0_1 <- 0
-pseudo_absence_points$R0_2 <- 0
-pseudo_absence_points$R0_3 <- 0
-pseudo_absence_points$date <- NA
-pseudo_absence_points$reference <- NA
+# Get names of age band columns
+age_band_tgs <- grep("band", names(country_age_struc), value = TRUE)
 
-All_FOI_R0_estimates <- All_FOI_R0_estimates[, base_info]
-pseudo_absence_points <- pseudo_absence_points[, base_info]
+# Get age band bounds
+age_band_bnds <- get_age_band_bounds(age_band_tgs)
 
-foi_data <- rbind(All_FOI_R0_estimates, pseudo_absence_points)
+age_band_L_bounds <- age_band_bnds[, 1]
 
-foi_data_cov <- left_join(foi_data, adm1_covariates)
-
-foi_data_cov <- cbind(data_id = seq_len(nrow(foi_data_cov)), foi_data_cov)
+age_band_U_bounds <- age_band_bnds[, 2] + 1
 
 
-# save ------------------------------------------------------------------------
+# preprocess admin dataset ---------------------------------------------------- 
 
 
-write_out_csv(foi_data_cov, foi_out_pt, foi_out_nm)
+adm_1_env_vars <- adm_1_env_vars[!duplicated(adm_1_env_vars[, m_flds]), ]
+
+
+# merge population data ------------------------------------------------------- 
+
+
+All_FOI_estimates_2 <- merge(
+  All_FOI_estimates, 
+  adm_1_env_vars[, c(m_flds, "population")], 
+  by = m_flds, 
+  all.y = FALSE)
+
+
+# filter out data points with NA age structure data ---------------------------
+
+
+All_FOI_estimates_3 <- merge(
+  All_FOI_estimates_2, 
+  country_age_struc[, m_flds[1], drop = FALSE], 
+  by = m_flds[1], 
+  all.y = FALSE)
+
+
+# calculate R0 for all 3 assumptions ------------------------------------------ 
+
+
+R_0 <- vapply(
+  phi_combs,
+  wrapper_to_multi_factor_R0,
+  numeric(nrow(All_FOI_estimates_3)),
+  foi_data = All_FOI_estimates_3, 
+  age_struct = country_age_struc, 
+  age_band_tags = age_band_tgs, 
+  age_band_lower_bounds = age_band_L_bounds, 
+  age_band_upper_bounds = age_band_U_bounds, 
+  prob_fun = prob_fun)
+
+
+# attach base info ------------------------------------------------------------ 
+
+
+All_R_0_estimates <- setNames(cbind(All_FOI_estimates_3[, base_info],
+                                    R_0),
+                              nm = c(base_info, var))
+
+
+# save output ----------------------------------------------------------------- 
+
+
+write.csv(All_R_0_estimates, 
+            file.path("output", "R_0", "All_R_0_estimates.csv"), 
+            row.names = FALSE)
+
+
+# plot ------------------------------------------------------------------------ 
+
+
+All_R_0_estimates <- All_R_0_estimates[order(All_R_0_estimates$FOI), ]
+
+All_R_0_estimates$ID_point <- seq_len(nrow(All_R_0_estimates))
+
+png(file.path("figures", "data", "reprod_number_plot.png"), 
+    width = 20, 
+    height = 14, 
+    units = "in", 
+    pointsize = 12,
+    bg = "white", 
+    res = 300)
+
+lambda_plot <- ggplot(All_R_0_estimates, 
+                      aes(x = ID_point, y = FOI, colour = type)) +
+               geom_point(size = 0.8) +
+               scale_x_continuous(name = "Country code", 
+                                  breaks = seq_len(nrow(All_R_0_estimates)), 
+                                  expand = c(0.002, 0)) +
+               scale_y_continuous(name = "FOI") +
+               theme(axis.text.x = element_text(size = 5, angle = 90, hjust = 0.5, vjust = 0.5),
+                     panel.grid.minor = element_blank())
+
+R_0_plot <- ggplot(All_R_0_estimates, aes(x = ID_point, y = R0_2, colour = type)) +
+            geom_point(size = 0.8) +
+            scale_x_continuous(name = "Country code", 
+                               breaks = seq_len(nrow(All_R_0_estimates)), 
+                               expand = c(0.002, 0)) +
+            scale_y_continuous(name = "R_0") +
+            theme(axis.text.x = element_text(size = 5, angle = 90, hjust = 0.5, vjust = 0.5),
+                  panel.grid.minor = element_blank())
+
+grid.draw(rbind(ggplotGrob(lambda_plot), ggplotGrob(R_0_plot), size = "first"))
+                   
+dev.off()

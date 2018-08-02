@@ -1,69 +1,53 @@
-# Creates a map of the dataset point and dengue presence-absence mask 
+# Map overlay to find the admin unit of each data point 
 
-# load packages
-library(rgdal) 
-library(dplyr)
-library(colorRamps)
+library(rgdal)
 
-
-# ---------------------------------------- load data
+source(file.path("R", "prepare_datasets", "geolocating_data_points.R"))
+source(file.path("R", "utility_functions.R"))
 
 
-All_FOI_estimates <- read.csv(
-  file.path("output", 
-            "R_0", 
-            "All_R_0_estimates.csv"), 
-  header = TRUE)
-
-pseudoAbsences <- read.csv(
-  file.path("output", 
-            "datasets", 
-            "pseudo_absence_points_2.csv"), 
-  header = TRUE)
-
-world_shp_admin_1_dengue <- readOGR(dsn = file.path("output", "shapefiles"), 
-                                    layer = "gadm28_adm1_dengue")
+# define parameters -----------------------------------------------------------  
 
 
-# ---------------------------------------- pre processing
+foi_out_pt <- file.path("output", "foi")
+
+foi_out_nm <- "FOI_estimates_lon_lat_twk_gadm.csv"
 
 
-data_points <- SpatialPoints(All_FOI_estimates[, c("longitude", "latitude")])
-pseudoAbsence_points <- SpatialPoints(pseudoAbsences[, c("longitude","latitude")])
-
-data_points_list <- list(
-  "sp.points",
-  data_points,
-  pch = 21, fill = "dodgerblue", col = NA, cex = 0.7)
-
-pseudoAbsence_points_list <- list(
-  "sp.points", 
-  pseudoAbsence_points,
-  pch = 21, fill = "yellow", col = NA, cex = 0.7)
+# load data -------------------------------------------------------------------
 
 
-# ---------------------------------------- plot
+FOI_estimates <- read.csv(file.path("output",
+                                    "foi",
+                                    "FOI_estimates_lon_lat_twk.csv"),
+                          header = TRUE,
+                          stringsAsFactors = FALSE)
+
+adm_shp <- readOGR(dsn = file.path("output", "shapefiles"), 
+                   layer = paste0("gadm28_adm1_eras"),
+                   stringsAsFactors = FALSE,
+                   integer64 = "allow.loss")
 
 
-png(file.path("figures", "data", "dengue_points_and_absence_mask.png"), 
-    width = 18, 
-    height = 10, 
-    units = "in", 
-    pointsize = 12,
-    bg = "white", 
-    res = 200)
+# pre processing --------------------------------------------------------------
 
-p <- spplot(world_shp_admin_1_dengue, "dengue", lwd = 0.5,
-            scales = list(x = list(draw = TRUE, 
-                                   at = seq(-150, 150, 50)), 
-                          y = list(draw = TRUE)),
-            xlab = "Longitude",
-            ylab = "Latitude", 
-            col.regions = c("palegreen3","red2"),
-            colorkey = FALSE,
-            sp.layout = list(data_points_list,
-                             pseudoAbsence_points_list))
 
-print(p)
+out <- matrix(0, nrow = nrow(FOI_estimates), ncol = 2)
+  
 
-dev.off()
+# loop ------------------------------------------------------------------------
+
+
+overlay <- map_overlay(FOI_estimates, adm_shp)
+
+FOI_estimates_2 <- cbind(FOI_estimates, ID_0 = overlay$ID_0, ID_1 = overlay$ID_1)
+
+FOI_estimates_2 <- subset(FOI_estimates_2, !is.na(FOI_estimates_2$ID_0))
+
+
+# save ------------------------------------------------------------------------
+
+
+write.csv(FOI_estimates_2, 
+          file.path(foi_out_pt, foi_out_nm), 
+          row.names = FALSE)

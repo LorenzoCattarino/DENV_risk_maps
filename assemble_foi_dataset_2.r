@@ -1,179 +1,81 @@
-# For each original foi estimate, calculates the corresponding R0 (three assumptions)
-
-# load packages
-library(ggplot2)
-library(grid)
-
-# load functions 
-source(file.path("R", "prepare_datasets", "functions_for_calculating_R0.r"))
+# Add salje points and
+# tweak lat and long to make sure that each data point has a corresponding 20 km square
 
 
-# define parameters ----------------------------------------------------------- 
+# define parameters -----------------------------------------------------------
 
 
-m_flds <- c("ID_0", "ID_1")
+fields <- c("type", 
+            "ISO",
+            "country", 
+            "FOI", 
+            "variance", 
+            "latitude",
+            "longitude", 
+            "reference", 
+            "date")
 
-base_info <- c("reference", 
-               "date",
-               "type", 
-               "country",
-               "ISO", 
-               "longitude", 
-               "latitude", 
-               "ID_0", 
-               "ID_1", 
-               "FOI", 
-               "variance", 
-               "population")
+foi_out_pt <- file.path("output", "foi")
 
-gamma_1 <- 0.45
-rho <- 0.85
-gamma_3 <- 0.15
-
-phi_combs <- list(
-  c(1, 1, 0, 0),
-  c(1, 1, 1, 1),
-  calculate_infectiousness_wgts_for_sym_asym_assumption(gamma_1, rho, gamma_3))
-
-prob_fun <- list("calculate_primary_infection_prob",
-                 "calculate_secondary_infection_prob",
-                 "calculate_tertiary_infection_prob",
-                 "calculate_quaternary_infection_prob")
+foi_out_nm <- "FOI_estimates_lon_lat_twk.csv"
 
 
-# define variables ------------------------------------------------------------ 
+# load data -------------------------------------------------------------------
 
 
-comb_no <- length(phi_combs)
+original_FOI_estimates <- read.csv(file.path("output",
+                                             "foi",
+                                             "FOI_estimates_lon_lat.csv"),
+                                   header = TRUE,
+                                   stringsAsFactors = FALSE)
 
-var <- paste0("R0_", seq_len(comb_no))
+salje_data <- read.csv(file.path("output",
+                                 "seroprevalence",
+                                 "salje",
+                                 "observations_20km.csv"),
+                       header = TRUE,
+                       stringsAsFactors = FALSE)
 
+tweaked_xy <- read.csv(file.path("data",
+                                 "foi",
+                                 "tweaked_xy.csv"),
+                       header = TRUE,
+                       stringsAsFactors = FALSE)
 
-# load data -------------------------------------------------------------------  
+missing_squares <- read.csv(file.path("output",
+                                      "EM_algorithm",
+                                      "missing_squares_for_orginal_datapoints.csv"),
+                            header = TRUE,
+                            stringsAsFactors = FALSE)
 
-
-All_FOI_estimates <- read.csv(file.path("output", "foi", "FOI_estimates_lon_lat_twk_gadm.csv"), 
-                                header = TRUE,
-                                stringsAsFactors = FALSE)
-
-country_age_struc <- read.csv(file.path("output", 
-                                        "datasets", 
-                                        "country_age_structure.csv"),
-                              header = TRUE,
-                              stringsAsFactors = FALSE)
-
-adm_1_env_vars <- read.csv(file.path("output", 
-                                     "env_variables", 
-                                     "All_adm1_env_var.csv"),
-                           header = TRUE,
-                           stringsAsFactors = FALSE)
-
-
-# extract info from age structure ---------------------------------------------  
-
-
-# Get names of age band columns
-age_band_tgs <- grep("band", names(country_age_struc), value = TRUE)
-
-# Get age band bounds
-age_band_bnds <- get_age_band_bounds(age_band_tgs)
-
-age_band_L_bounds <- age_band_bnds[, 1]
-
-age_band_U_bounds <- age_band_bnds[, 2] + 1
+xy_to_tweak <- c(325, 326, 276, 1, 290, 278, 260, 302, 303, 17, 272, 295, 281, 293, 286, 20, 299) 
 
 
-# preprocess admin dataset ---------------------------------------------------- 
+# -----------------------------------------------------------------------------
 
 
-adm_1_env_vars <- adm_1_env_vars[!duplicated(adm_1_env_vars[, m_flds]), ]
+names(salje_data)[names(salje_data) == "lon"] <- "longitude"
+names(salje_data)[names(salje_data) == "lat"] <- "latitude"
+
+original_FOI_estimates <- original_FOI_estimates[, fields]
+salje_data <- salje_data[, fields]
+
+all_foi_estimates <- rbind(original_FOI_estimates, salje_data)
+
+missing_squares_jn <- dplyr::inner_join(missing_squares, tweaked_xy, by = "data_id")
+
+new_xy <- missing_squares_jn[, c("longitude.y", "latitude.y")]
 
 
-# merge population data ------------------------------------------------------- 
+# replace lon and lat ---------------------------------------------------------
 
 
-All_FOI_estimates_2 <- merge(
-  All_FOI_estimates, 
-  adm_1_env_vars[, c(m_flds, "population")], 
-  by = m_flds, 
-  all.y = FALSE)
+all_foi_estimates[xy_to_tweak, c("longitude", "latitude")] <- new_xy
 
 
-# filter out data points with NA age structure data ---------------------------
+# save ------------------------------------------------------------------------
 
 
-All_FOI_estimates_3 <- merge(
-  All_FOI_estimates_2, 
-  country_age_struc[, m_flds[1], drop = FALSE], 
-  by = m_flds[1], 
-  all.y = FALSE)
-
-
-# calculate R0 for all 3 assumptions ------------------------------------------ 
-
-
-R_0 <- vapply(
-  phi_combs,
-  wrapper_to_multi_factor_R0,
-  numeric(nrow(All_FOI_estimates_3)),
-  foi_data = All_FOI_estimates_3, 
-  age_struct = country_age_struc, 
-  age_band_tags = age_band_tgs, 
-  age_band_lower_bounds = age_band_L_bounds, 
-  age_band_upper_bounds = age_band_U_bounds, 
-  prob_fun = prob_fun)
-
-
-# attach base info ------------------------------------------------------------ 
-
-
-All_R_0_estimates <- setNames(cbind(All_FOI_estimates_3[, base_info],
-                                    R_0),
-                              nm = c(base_info, var))
-
-
-# save output ----------------------------------------------------------------- 
-
-
-write.csv(All_R_0_estimates, 
-            file.path("output", "R_0", "All_R_0_estimates.csv"), 
-            row.names = FALSE)
-
-
-# plot ------------------------------------------------------------------------ 
-
-
-All_R_0_estimates <- All_R_0_estimates[order(All_R_0_estimates$FOI), ]
-
-All_R_0_estimates$ID_point <- seq_len(nrow(All_R_0_estimates))
-
-png(file.path("figures", "data", "reprod_number_plot.png"), 
-    width = 20, 
-    height = 14, 
-    units = "in", 
-    pointsize = 12,
-    bg = "white", 
-    res = 300)
-
-lambda_plot <- ggplot(All_R_0_estimates, 
-                      aes(x = ID_point, y = FOI, colour = type)) +
-               geom_point(size = 0.8) +
-               scale_x_continuous(name = "Country code", 
-                                  breaks = seq_len(nrow(All_R_0_estimates)), 
-                                  expand = c(0.002, 0)) +
-               scale_y_continuous(name = "FOI") +
-               theme(axis.text.x = element_text(size = 5, angle = 90, hjust = 0.5, vjust = 0.5),
-                     panel.grid.minor = element_blank())
-
-R_0_plot <- ggplot(All_R_0_estimates, aes(x = ID_point, y = R0_2, colour = type)) +
-            geom_point(size = 0.8) +
-            scale_x_continuous(name = "Country code", 
-                               breaks = seq_len(nrow(All_R_0_estimates)), 
-                               expand = c(0.002, 0)) +
-            scale_y_continuous(name = "R_0") +
-            theme(axis.text.x = element_text(size = 5, angle = 90, hjust = 0.5, vjust = 0.5),
-                  panel.grid.minor = element_blank())
-
-grid.draw(rbind(ggplotGrob(lambda_plot), ggplotGrob(R_0_plot), size = "first"))
-                   
-dev.off()
+write.csv(all_foi_estimates, 
+          file.path(foi_out_pt, foi_out_nm), 
+          row.names = FALSE)
