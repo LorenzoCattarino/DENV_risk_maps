@@ -13,7 +13,10 @@ source(file.path("R", "prepare_datasets", "functions_for_calculating_R0.r"))
 
 m_flds <- c("ID_0", "ID_1")
 
-base_info <- c("type", 
+base_info <- c("reference", 
+               "date",
+               "type", 
+               "country",
                "ISO", 
                "longitude", 
                "latitude", 
@@ -49,21 +52,21 @@ var <- paste0("R0_", seq_len(comb_no))
 # load data -------------------------------------------------------------------  
 
 
-All_FOI_estimates <- read.table(
-  file.path("output", "foi", "All_FOI_estimates_linear.txt"), 
-  header = TRUE, 
-  sep = ",", 
-  stringsAsFactors = FALSE)
+All_FOI_estimates <- read.csv(file.path("output", "foi", "FOI_estimates_lon_lat_twk_gadm.csv"), 
+                                header = TRUE,
+                                stringsAsFactors = FALSE)
 
-country_age_struc <- read.csv(
-  file.path("output", 
-            "datasets", 
-            "country_age_structure.csv"))
+country_age_struc <- read.csv(file.path("output", 
+                                        "datasets", 
+                                        "country_age_structure.csv"),
+                              header = TRUE,
+                              stringsAsFactors = FALSE)
 
-adm_1_env_vars <- read.csv(
-  file.path("output", 
-            "env_variables", 
-            "All_adm1_env_var.csv"))
+adm_1_env_vars <- read.csv(file.path("output", 
+                                     "env_variables", 
+                                     "All_adm1_env_var.csv"),
+                           header = TRUE,
+                           stringsAsFactors = FALSE)
 
 
 # extract info from age structure ---------------------------------------------  
@@ -132,10 +135,9 @@ All_R_0_estimates <- setNames(cbind(All_FOI_estimates_3[, base_info],
 # save output ----------------------------------------------------------------- 
 
 
-write.table(All_R_0_estimates, 
+write.csv(All_R_0_estimates, 
             file.path("output", "R_0", "All_R_0_estimates.csv"), 
-            row.names = FALSE, 
-            sep = ",")
+            row.names = FALSE)
 
 
 # plot ------------------------------------------------------------------------ 
