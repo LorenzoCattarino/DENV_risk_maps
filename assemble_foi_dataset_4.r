@@ -23,7 +23,7 @@ base_info <- c("type",
   
 foi_out_pt <- file.path("output", "foi")
   
-foi_out_nm <- "All_FOI_estimates_and_predictors.csv"
+foi_out_nm <- "All_FOI_estimates_and_predictors_2.csv"
 
 
 # load data -------------------------------------------------------------------  
@@ -56,6 +56,7 @@ pseudo_absence_points$R0_1 <- 0
 pseudo_absence_points$R0_2 <- 0
 pseudo_absence_points$R0_3 <- 0
 pseudo_absence_points$date <- NA
+pseudo_absence_points$reference <- NA
 
 All_FOI_R0_estimates <- All_FOI_R0_estimates[, base_info]
 pseudo_absence_points <- pseudo_absence_points[, base_info]
