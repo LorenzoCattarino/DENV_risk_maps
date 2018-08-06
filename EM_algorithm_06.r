@@ -1,4 +1,5 @@
-# Load back in from the context folder a vector of square-level predictions for the entire 20km dataset
+# Load back in from the context folder the ranger model object 
+# Make square-level predictions for the entire 20km dataset
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -38,13 +39,19 @@ parameters <- list(
   EM_iter = 10,
   no_predictors = 26) 
 
-model_type_tag <- "_best_model_3"
+model_type_tag <- "_best_model_5"
+
+extra_predictors <- NULL
 
 
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, model_type_tag)
+var_to_fit <- parameters$dependent_variable
+
+number_of_predictors <- parameters$no_predictors
+
+model_type <- paste0(var_to_fit, model_type_tag)
 
 out_fl_nm <- "square_predictions_all_data.rds"
 
@@ -66,6 +73,30 @@ if (CLUSTER) {
 }
 
 
+# load data -------------------------------------------------------------------
+
+
+pxl_data_covariates <- readRDS(file.path("output", 
+                              "EM_algorithm", 
+                              "best_fit_models",
+                              paste0("env_variables_", var_to_fit, "_fit"), 
+                              "covariates_and_foi_20km_2.rds"))
+
+predictor_rank <- read.csv(file.path("output", 
+                                     "variable_selection",
+                                     "stepwise",
+                                     "predictor_rank.csv"), 
+                           stringsAsFactors = FALSE)
+
+
+# pre processing --------------------------------------------------------------
+
+
+my_predictors <- predictor_rank$name[1:number_of_predictors]
+
+my_predictors <- c(my_predictors, extra_predictors)
+
+
 # get results ----------------------------------------------------------------- 
 
 
@@ -76,9 +107,11 @@ my_task_id <- all_tasks[nrow(all_tasks), "task_id"]
 
 EM_alg_run_t <- obj$task_get(my_task_id)
 
-prediction_set <- EM_alg_run_t$result()
+RF_obj <- EM_alg_run_t$result()
 
-
+prediction_set <- make_ranger_predictions(RF_obj, pxl_data_covariates, my_predictors)
+  
+  
 # save ------------------------------------------------------------------------
 
 
