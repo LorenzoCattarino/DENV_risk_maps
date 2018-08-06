@@ -20,15 +20,13 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "FOI",
-  no_samples = 200,
-  no_predictors = 26)   
+  dependent_variable = "FOI")   
 
 vars_to_average <- "response"
 
 statistic <- "best"
 
-model_type_tag <- "_best_model_3"
+model_type_tag <- "_best_model_5"
 
 
 # define variables ------------------------------------------------------------
@@ -68,7 +66,7 @@ mean_pred_fl_nm <- paste0(vars_to_average, ".rds")
 
 df_long <- readRDS(file.path(in_path, mean_pred_fl_nm))
 
-out_fl_nm <- paste0(vars_to_average, "_", statistic, "_fixed_scale.png")
+out_fl_nm <- paste0(vars_to_average, "_", statistic, ".png")
 
 
 # plot ------------------------------------------------------------------------ 
