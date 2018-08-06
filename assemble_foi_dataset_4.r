@@ -52,7 +52,7 @@ var <- paste0("R0_", seq_len(comb_no))
 # load data -------------------------------------------------------------------  
 
 
-All_FOI_estimates <- read.csv(file.path("output", "foi", "FOI_estimates_lon_lat_twk_gadm.csv"), 
+All_FOI_estimates <- read.csv(file.path("output", "foi", "FOI_estimates_lon_lat_gadm.csv"), 
                                 header = TRUE,
                                 stringsAsFactors = FALSE)
 
