@@ -11,7 +11,7 @@ source(file.path("R", "utility_functions.R"))
 
 foi_out_pt <- file.path("output", "foi")
 
-foi_out_nm <- "FOI_estimates_lon_lat_twk_gadm.csv"
+foi_out_nm <- "FOI_estimates_lon_lat_gadm.csv"
 
 
 # load data -------------------------------------------------------------------
@@ -19,7 +19,7 @@ foi_out_nm <- "FOI_estimates_lon_lat_twk_gadm.csv"
 
 FOI_estimates <- read.csv(file.path("output",
                                     "foi",
-                                    "FOI_estimates_lon_lat_twk.csv"),
+                                    "FOI_estimates_lon_lat.csv"),
                           header = TRUE,
                           stringsAsFactors = FALSE)
 
