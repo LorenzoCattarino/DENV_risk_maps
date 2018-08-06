@@ -449,7 +449,7 @@ prediction_df_to_matrix <- function(lats, lons, df_long, statsc){
   lats.int <- lats * 6
   lons.int <- lons * 6
   
-  mat <- matrix(0, nrow = length(lons), ncol = length(lats))
+  mat <- matrix(NA, nrow = length(lons), ncol = length(lats))
   
   i.lat <- findInterval(df_long$lat.int, lats.int)
   i.lon <- findInterval(df_long$long.int, lons.int)
