@@ -28,29 +28,23 @@ source(file.path("R", "utility_functions.R"))
 
 my_api_key <- "AIzaSyBuHLASHGLaorGdZidB5sNa-9C2fxXYj1c"
 
-datasets <- c("additional serology",
-              "additional_India_sero_data_Garg",
-              "additional_India_sero_data_Shah",
-              "additional_sero_data_feb2018",
-              "All_caseReport_datasets",
-              "NonSerotypeSpecificDatasets",
-              "SerotypeSpecificDatasets")
-
 in_pt <- file.path("data", "foi")
 
 foi_out_pt <- file.path("output", "foi")
 
 foi_out_nm <- "FOI_estimates_lon_lat.csv"
 
-fields <- c("type", 
+fields <- c("reference", 
+            "date", 
+            "country",
             "ISO",
-            "country", 
-            "FOI", 
-            "variance", 
+            "test_location",
+            "longitude",
             "latitude",
-            "longitude", 
-            "reference", 
-            "date")
+            "no_serotypes",
+            "FOI", 
+            "variance",
+            "type")
 
 
 # register your api key ------------------------------------------------------- 
@@ -59,48 +53,81 @@ fields <- c("type",
 register_google(key = my_api_key, account_type = "premium", second_limit = 10000, day_limit = 10000000)
 
 
+# loada data ------------------------------------------------------------------
+
+
+serology_data <- read.csv(file.path("data", "foi", "All_serology_data_2.csv"),
+                          header = TRUE,
+                          stringsAsFactors = FALSE)
+
+casereport_data <- read.csv(file.path("data", "foi", "All_caseReport_data.csv"),
+                            header = TRUE,
+                            stringsAsFactors = FALSE)
+
+
 # pre processing -------------------------------------------------------------- 
 
 
-dts_paths <- list.files(in_pt, 
-                        pattern = "csv$",
-                        full.names = TRUE)
+serology_data$type <- "serology"
 
-output_dts <- vector("list", length = length(dts_paths))
+casereport_data$type <- "caseReport"
+casereport_data$longitude <- NA
+casereport_data$latitude <- NA
 
-all_dts <- lapply(dts_paths, read.csv, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+casereport_data <- casereport_data[, fields]
+
+All_FOI_estimates <- rbind(serology_data, casereport_data)
+  
+All_FOI_estimates <- subset(All_FOI_estimates, !is.na(FOI))
+
+All_FOI_estimates <- subset(All_FOI_estimates, ISO != "PYF" & ISO != "HTI")
+
+xy_tofind <- All_FOI_estimates[is.na(All_FOI_estimates$longitude), ]
 
 
 # loop ------------------------------------------------------------------------ 
 
 
-for (i in seq_along(all_dts)){
+for (i in seq_len(nrow(xy_tofind))){
 
-  one_dts <- all_dts[[i]]  
-
-  dts_name <- datasets[i]
+  country_name <- xy_tofind[i, "country"]
+  # cat("country =", country_name, "\n")
+  
+  country_code <- xy_tofind[i, "ISO"]
+  # cat("country code =", country_code, "\n")
+  
+  admin_level <- 1 
+  
+  location <- xy_tofind[i, "test_location"]
+  # cat("location =", location, "\n")
+  
+  location_str <- ifelse(country_name != location, paste(location, country_name, sep = ", "), location)
+  #cat("location string = ", location_str, "\n")
+  
+  geocode_run <- geocode(enc2utf8(location_str), output = "all") # take care of funny characters 
+  
+  if(geocode_run$status != "OK") {stop("no match!")}
+  
+  if(length(geocode_run$results) > 1) {
     
-  if(dts_name == "All_caseReport_datasets") {
+    geocode_results <- get_geocode_results (geocode_run)
     
-    one_dts$type <- "caseReport"
+    viewport_areas <- apply(geocode_results, 1, calculate_viewport_area)
+    
+    result_match <- which(viewport_areas==max(viewport_areas))[1]
+    
+    location_xy <- geocode_results[result_match, c("lng","lat")]
+    
+    location_xy <- as.matrix(location_xy)
     
   } else {
     
-    one_dts$type <- "serology"
+    location_xy <- cbind(geocode_run$results[[1]]$geometry$location$lng,
+                         geocode_run$results[[1]]$geometry$location$lat)
     
   }
   
-  one_dts_ls <- df_to_list(one_dts, use_names = TRUE)  
-  
-  n <- 2 # lon and lat
-  
-  x_and_y <- vapply(one_dts_ls, get_xy, numeric(n))  
-  
-  x_and_y <- t(x_and_y)
-  
-  colnames(x_and_y) <- c("longitude", "latitude")
-  
-  output_dts[[i]] <- cbind(one_dts, x_and_y)
+  xy_tofind[i, c("longitude", "latitude")] <- location_xy
   
 }  
   
@@ -108,13 +135,7 @@ for (i in seq_along(all_dts)){
 # subset ----------------------------------------------------------------------
 
 
-output_dts_2 <- lapply(output_dts, subset_list_df, fields)
-
-All_FOI_estimates <- do.call("rbind", output_dts_2)
-
-All_FOI_estimates <- subset(All_FOI_estimates, !is.na(FOI))
-  
-All_FOI_estimates <- subset(All_FOI_estimates, ISO != "PYF" & ISO != "HTI")
+All_FOI_estimates[is.na(All_FOI_estimates$longitude), ] <- xy_tofind
 
 
 # save ------------------------------------------------------------------------  
