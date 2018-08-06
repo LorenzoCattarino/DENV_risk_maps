@@ -9,17 +9,15 @@ library(colorRamps)
 # ---------------------------------------- load data
 
 
-All_FOI_estimates <- read.csv(
-  file.path("output", 
-            "R_0", 
-            "All_R_0_estimates.csv"), 
-  header = TRUE)
+All_FOI_estimates <- read.csv(file.path("output", 
+                                        "R_0", 
+                                        "All_R_0_estimates.csv"), 
+                              header = TRUE)
 
-pseudoAbsences <- read.csv(
-  file.path("output", 
-            "datasets", 
-            "pseudo_absence_points_2.csv"), 
-  header = TRUE)
+pseudoAbsences <- read.csv(file.path("output", 
+                                     "datasets", 
+                                     "pseudo_absence_points_2.csv"), 
+                           header = TRUE)
 
 world_shp_admin_1_dengue <- readOGR(dsn = file.path("output", "shapefiles"), 
                                     layer = "gadm28_adm1_dengue")
