@@ -21,7 +21,7 @@ parameters <- list(
   dependent_variable = "FOI",
   no_predictors = 26)   
 
-aggr_dts_name <- "env_vars_20km_2.rds"
+aggr_dts_name <- "env_vars_20km.rds"
 
 out_fl_nm <- "covariates_and_foi_20km.rds"
 
