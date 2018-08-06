@@ -2,7 +2,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
@@ -49,8 +49,6 @@ diag_t_nm <- "diagno_table.rds"
 map_nm <- "map"
 
 tra_dts_nm <- "train_dts.rds"
-
-out_fl_nm <- "square_predictions_all_data.rds"
 
 foi_dts_nm <- "All_FOI_estimates_and_predictors_2.csv"
 
@@ -108,15 +106,13 @@ sct_plt_pth <- file.path("figures",
                          model_type,
                          "iteration_fits")
 
-out_pt <- file.path("output", "EM_algorithm", "best_fit_models", model_type)
-
 
 # are you using the cluster? --------------------------------------------------  
 
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "20Core")
+  config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
 
 } else {
@@ -220,7 +216,7 @@ for (i in seq_len(nrow(sero_points))){
 }
 
 missing_square <- sero_points[sero_points$no_square == 1, ]
-write.csv(missing_square, file.path("output", "EM_algorithm", "missing_squares.csv"), row.names = FALSE)
+# write.csv(missing_square, file.path("output", "EM_algorithm", "missing_squares_for_orginal_datapoints.csv"), row.names = FALSE)
 
 sero_pxl_no_dup <- pxl_data$type == "serology" & pxl_data$new_weight == 1
 
@@ -231,6 +227,12 @@ sero_pxl_dup <- pxl_data[sero_points$cell, ]
 sero_pxl_dup$data_id <- sero_points$data_id
 
 pxl_data_3 <- rbind(pxl_data_2, sero_pxl_dup)
+
+saveRDS(pxl_data_3, file.path("output", 
+                                "EM_algorithm", 
+                                "best_fit_models",
+                                "env_variables_FOI_fit",
+                                "covariates_and_foi_20km_2.rds"))
 
 
 # get pop weights -------------------------------------------------------------
@@ -300,8 +302,6 @@ if (CLUSTER) {
     train_dts_path = train_dts_pth, 
     train_dts_name = tra_dts_nm,
     adm_dataset = adm_covariates)
-
-  write_out_rds(EM_alg_run, out_pt, out_fl_nm)
   
 }
 
