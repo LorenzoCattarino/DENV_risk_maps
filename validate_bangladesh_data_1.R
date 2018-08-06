@@ -30,19 +30,18 @@ FOI_values <- seq(0, 0.2, by = 0.0002)
 
 dts_out_nm_1 <- "observations_20km.csv"
 
-base_info <- c("type", 
-               "ID_0", 
-               "ISO", 
+base_info <- c("reference", 
+               "date",
                "country", 
-               "ID_1", 
-               "FOI", 
-               "variance", 
+               "ISO",
+               "test_location",               
+               "longitude",
                "latitude", 
-               "longitude", 
-               "reference", 
-               "date")
+               "no_serotypes",
+               "FOI", 
+               "variance")
 
-dts_out_nm_2 <- "observations_20km_clean.txt" 
+dts_out_nm_2 <- "observations_20km_clean.csv" 
 
 
 # load data -------------------------------------------------------------------
@@ -67,13 +66,16 @@ age_distr <- read.csv(file.path("output",
 
 shp_fort <- fortify(shp)
 
-salje_data$id_point <- seq_len(nrow(salje_data))
-salje_data$o_j <- salje_data$nPos / salje_data$nAll
-salje_data$ISO <- alpha_iso_code
-salje_data$type <- "serology"
-salje_data$reference <- "Salje"
-salje_data$date <- "2014-2016"
-salje_data$variance <- 0
+salje_data <- cbind(id_point = seq_len(nrow(salje_data)),
+                    reference = "Salje", 
+                    date = "2014-2016",
+                    country = "Bangladesh",
+                    ISO = alpha_iso_code,
+                    test_location = NA,
+                    salje_data,
+                    no_serotypes = 4,
+                    o_j = salje_data$nPos / salje_data$nAll,
+                    variance = 0)
 
 
 # plot the original seroprevalence points -------------------------------------
@@ -90,7 +92,7 @@ png(file.path(map_out_pt, "salje_bangl_points_serop.png"),
 
 p <- ggplot() +
   geom_path(data = shp_fort, aes(x = long, y = lat, group = group), size = 0.3) +
-  geom_point(data = salje_data, aes(x = lon, y = lat, colour = o_j), size = 2) +
+  geom_point(data = salje_data, aes(x = longitude, y = latitude, colour = o_j), size = 2) +
   coord_equal() + 
   scale_color_viridis("seroprevalence") +
   theme_minimal()
@@ -147,24 +149,24 @@ salje_data$FOI <- henrik_foi
 # find admin unit 1 -----------------------------------------------------------
 
 
-location_xy <- salje_data[, c("lon", "lat")]
-xy_spdf <- SpatialPoints(location_xy, proj4string = shp@proj4string)
-
-overlay <- over(xy_spdf, shp)
-country_numeric_code <- overlay$ID_0
-adm_numeric_code <- overlay$ID_1
-adm1_name <- overlay$NAME_1
-country_name <- overlay$NAME_0
-
-salje_data$country <- country_name
-salje_data$ID_0 <- country_numeric_code
-salje_data$ID_1 <- adm_numeric_code
-salje_data$adm1 <- adm1_name
-
-salje_data <- subset(salje_data, !is.na(ID_1))
-
-colnames(salje_data)[colnames(salje_data) == "lon"] <- "longitude"
-colnames(salje_data)[colnames(salje_data) == "lat"] <- "latitude"
+# location_xy <- salje_data[, c("lon", "lat")]
+# xy_spdf <- SpatialPoints(location_xy, proj4string = shp@proj4string)
+# 
+# overlay <- over(xy_spdf, shp)
+# country_numeric_code <- overlay$ID_0
+# adm_numeric_code <- overlay$ID_1
+# adm1_name <- overlay$NAME_1
+# country_name <- overlay$NAME_0
+# 
+# salje_data$country <- country_name
+# salje_data$ID_0 <- country_numeric_code
+# salje_data$ID_1 <- adm_numeric_code
+# salje_data$adm1 <- adm1_name
+# 
+# salje_data <- subset(salje_data, !is.na(ID_1))
+# 
+# colnames(salje_data)[colnames(salje_data) == "lon"] <- "longitude"
+# colnames(salje_data)[colnames(salje_data) == "lat"] <- "latitude"
 
 
 # add adm unit 1 centroid coordinates -----------------------------------------
@@ -204,8 +206,6 @@ colnames(salje_data)[colnames(salje_data) == "lat"] <- "latitude"
 #               dts_out_pt, 
 #               dts_out_nm_1)
 
-write.table(salje_data[, base_info],
-            file.path(dts_out_pt, dts_out_nm_2),
-            col.names = TRUE,
-            row.names = FALSE,
-            sep = ",")
+write.csv(salje_data,
+          file.path(dts_out_pt, dts_out_nm_1),
+          row.names = FALSE)
