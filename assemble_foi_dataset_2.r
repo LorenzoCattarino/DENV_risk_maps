@@ -1,5 +1,4 @@
-# Add salje points and
-# tweak lat and long to make sure that each data point has a corresponding 20 km square
+# Tweak lat and long to make sure that each data point has a corresponding 20 km square
 
 
 # define parameters -----------------------------------------------------------
@@ -10,8 +9,8 @@ fields <- c("type",
             "country", 
             "FOI", 
             "variance", 
-            "latitude",
-            "longitude", 
+            "longitude",
+            "latitude", 
             "reference", 
             "date")
 
@@ -29,19 +28,6 @@ original_FOI_estimates <- read.csv(file.path("output",
                                    header = TRUE,
                                    stringsAsFactors = FALSE)
 
-salje_data <- read.csv(file.path("output",
-                                 "seroprevalence",
-                                 "salje",
-                                 "observations_20km.csv"),
-                       header = TRUE,
-                       stringsAsFactors = FALSE)
-
-tweaked_xy <- read.csv(file.path("data",
-                                 "foi",
-                                 "tweaked_xy.csv"),
-                       header = TRUE,
-                       stringsAsFactors = FALSE)
-
 missing_squares <- read.csv(file.path("output",
                                       "EM_algorithm",
                                       "missing_squares_for_orginal_datapoints.csv"),
@@ -51,26 +37,20 @@ missing_squares <- read.csv(file.path("output",
 xy_to_tweak <- c(325, 326, 276, 1, 290, 278, 260, 302, 303, 17, 272, 295, 281, 293, 286, 20, 299) 
 
 
-# -----------------------------------------------------------------------------
+# subset ----------------------------------------------------------------------
 
 
-names(salje_data)[names(salje_data) == "lon"] <- "longitude"
-names(salje_data)[names(salje_data) == "lat"] <- "latitude"
-
-original_FOI_estimates <- original_FOI_estimates[, fields]
-salje_data <- salje_data[, fields]
-
-all_foi_estimates <- rbind(original_FOI_estimates, salje_data)
-
-missing_squares_jn <- dplyr::inner_join(missing_squares, tweaked_xy, by = "data_id")
-
-new_xy <- missing_squares_jn[, c("longitude.y", "latitude.y")]
+all_foi_estimates <- original_FOI_estimates[, fields]
 
 
-# replace lon and lat ---------------------------------------------------------
+# replace lon and lat --------------------------------------------------------- 
 
 
-all_foi_estimates[xy_to_tweak, c("longitude", "latitude")] <- new_xy
+# missing_squares_jn <- dplyr::inner_join(missing_squares, tweaked_xy, by = "data_id")
+# 
+# new_xy <- missing_squares_jn[, c("longitude.y", "latitude.y")]
+# 
+# all_foi_estimates[xy_to_tweak, c("longitude", "latitude")] <- new_xy
 
 
 # save ------------------------------------------------------------------------
