@@ -36,11 +36,11 @@ RF_obj_nm <- "RF_obj.rds"
 
 out_name <- "all_scale_predictions.rds"
 
-foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
+foi_dts_nm <- "All_FOI_estimates_and_predictors_2.csv"
 
-covariate_dts_nm <- "env_vars_20km.rds"
+covariate_dts_nm <- "covariates_and_foi_20km_2.rds"
 
-model_type_tag <- "_best_model_3"
+model_type_tag <- "_best_model_5"
 
 extra_predictors <- NULL
 
@@ -82,7 +82,7 @@ foi_dataset <- read.csv(file.path("output", "foi", foi_dts_nm),
 sqr_dataset <- readRDS(file.path("output",
                                  "EM_algorithm",
                                  "best_fit_models",
-                                 "env_variables",
+                                 "env_variables_FOI_fit",
                                  covariate_dts_nm))
 
 adm_dataset <- read.csv(file.path("output",
@@ -133,7 +133,7 @@ my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 my_predictors <- c(my_predictors, extra_predictors)
 
 
-# ---------------------------------------- submit one job 
+# submit one job -------------------------------------------------------------- 
 
 
 RF_obj <- readRDS(file.path(RF_obj_path, RF_obj_nm))
@@ -155,10 +155,10 @@ fltr_adm <- inner_join(adm_dataset_2, foi_dataset[, grp_flds])
 
 sqr_preds <- all_sqr_predictions
 
-sqr_dataset <- cbind(sqr_dataset[, c(grp_flds, "population")],
-                     square = sqr_preds)
+sqr_dataset_2 <- cbind(sqr_dataset,
+                       square = sqr_preds)
 
-average_sqr <- average_up(pxl_df = sqr_dataset,
+average_sqr <- average_up(pxl_df = sqr_dataset_2,
                           grp_flds = grp_flds,
                           var_names = "square")
 
@@ -189,5 +189,7 @@ df_lst <- list(foi_dataset[, c(grp_flds, "type", "o_j")],
 #average_pxl[, c(grp_fields, "mean_pxl_pred")]) 
 
 join_all <- Reduce(function(...) left_join(...), df_lst)
+
+join_all[join_all$type == "serology", "square"] <- sqr_dataset_2[sqr_dataset_2$type == "serology" & sqr_dataset_2$new_weight == 1, "square"]
 
 write_out_rds(join_all, out_pt, out_name)
