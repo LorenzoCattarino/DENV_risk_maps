@@ -35,9 +35,9 @@ tags <- c("all_data", "no_psAb")
 data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
                        c("serology", "caseReport"))
 
-foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
+foi_dts_nm <- "All_FOI_estimates_and_predictors_2.csv"
 
-model_type_tag <- "_best_model_3"
+model_type_tag <- "_best_model_5"
 
 
 # define variables ------------------------------------------------------------
