@@ -1,67 +1,74 @@
-# Creates a map of the dataset point and dengue presence-absence mask 
+# Finds the value of the environmental covariates for each point (real and pseudo absence) in the dataset 
 
-# load packages
-library(rgdal) 
 library(dplyr)
-library(colorRamps)
+
+source(file.path("R", "utility_functions.R"))
 
 
-# ---------------------------------------- load data
+# define paramaters -----------------------------------------------------------
 
 
-All_FOI_estimates <- read.csv(file.path("output", 
-                                        "R_0", 
-                                        "All_R_0_estimates.csv"), 
-                              header = TRUE)
-
-pseudoAbsences <- read.csv(file.path("output", 
-                                     "datasets", 
-                                     "pseudo_absence_points_2.csv"), 
-                           header = TRUE)
-
-world_shp_admin_1_dengue <- readOGR(dsn = file.path("output", "shapefiles"), 
-                                    layer = "gadm28_adm1_dengue")
-
-
-# ---------------------------------------- pre processing
-
-
-data_points <- SpatialPoints(All_FOI_estimates[, c("longitude", "latitude")])
-pseudoAbsence_points <- SpatialPoints(pseudoAbsences[, c("longitude","latitude")])
-
-data_points_list <- list(
-  "sp.points",
-  data_points,
-  pch = 21, fill = "dodgerblue", col = NA, cex = 0.7)
-
-pseudoAbsence_points_list <- list(
-  "sp.points", 
-  pseudoAbsence_points,
-  pch = 21, fill = "yellow", col = NA, cex = 0.7)
+base_info <- c("type",
+               "date",
+               "longitude",
+               "latitude",
+               "country",
+               "ISO",
+               "ID_0",
+               "ID_1",
+               "FOI",
+               "R0_1",
+               "R0_2",
+               "R0_3")
+  
+foi_out_pt <- file.path("output", "foi")
+  
+foi_out_nm <- "All_FOI_estimates_and_predictors_2.csv"
 
 
-# ---------------------------------------- plot
+# load data -------------------------------------------------------------------  
 
 
-png(file.path("figures", "data", "dengue_points_and_absence_mask.png"), 
-    width = 18, 
-    height = 10, 
-    units = "in", 
-    pointsize = 12,
-    bg = "white", 
-    res = 200)
+All_FOI_R0_estimates <- read.csv(file.path("output", 
+                                           "R_0", 
+                                           "All_R_0_estimates.csv"), 
+                                 header = TRUE, 
+                                 stringsAsFactors = FALSE)
 
-p <- spplot(world_shp_admin_1_dengue, "dengue", lwd = 0.5,
-            scales = list(x = list(draw = TRUE, 
-                                   at = seq(-150, 150, 50)), 
-                          y = list(draw = TRUE)),
-            xlab = "Longitude",
-            ylab = "Latitude", 
-            col.regions = c("palegreen3","red2"),
-            colorkey = FALSE,
-            sp.layout = list(data_points_list,
-                             pseudoAbsence_points_list))
+pseudo_absence_points <- read.csv(file.path("output", 
+                                            "datasets", 
+                                            "pseudo_absence_points_2.csv"), 
+                                  header = TRUE, 
+                                  stringsAsFactors = FALSE)
 
-print(p)
+adm1_covariates <- read.csv(file.path("output",
+                                      "env_variables",
+                                      "all_adm1_env_var.csv"),
+                            header = TRUE, 
+                            stringsAsFactors = FALSE)
 
-dev.off()
+
+# pre processing -------------------------------------------------------------- 
+
+
+pseudo_absence_points$FOI <- 0
+pseudo_absence_points$R0_1 <- 0
+pseudo_absence_points$R0_2 <- 0
+pseudo_absence_points$R0_3 <- 0
+pseudo_absence_points$date <- NA
+pseudo_absence_points$reference <- NA
+
+All_FOI_R0_estimates <- All_FOI_R0_estimates[, base_info]
+pseudo_absence_points <- pseudo_absence_points[, base_info]
+
+foi_data <- rbind(All_FOI_R0_estimates, pseudo_absence_points)
+
+foi_data_cov <- left_join(foi_data, adm1_covariates)
+
+foi_data_cov <- cbind(data_id = seq_len(nrow(foi_data_cov)), foi_data_cov)
+
+
+# save ------------------------------------------------------------------------
+
+
+write_out_csv(foi_data_cov, foi_out_pt, foi_out_nm)
