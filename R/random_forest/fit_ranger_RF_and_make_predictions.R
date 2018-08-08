@@ -215,7 +215,7 @@ load_predict_and_save <- function(i,
   # ---------------------------------------- 
   
   
-  out_file_name <- paste0("env_vars_and_foi_20km_", i, ".rds")
+  out_file_name <- paste0("covariates_and_foi_20km_", i, ".rds")
   
   write_out_rds(pxl_dts_boot, out_file_path, out_file_name)
   
