@@ -227,12 +227,14 @@ sero_pxl_dup <- pxl_data[sero_points$cell, ]
 sero_pxl_dup$data_id <- sero_points$data_id
 
 pxl_data_3 <- rbind(pxl_data_2, sero_pxl_dup)
+# test <- cbind(sero_pxl_dup[c("ID_0", "ID_1")], sero_points[,c("ID_0", "ID_1", "latitude", "longitude")])
 
-saveRDS(pxl_data_3, file.path("output", 
-                                "EM_algorithm", 
-                                "best_fit_models",
-                                "env_variables_FOI_fit",
-                                "covariates_and_foi_20km_2.rds"))
+write_out_rds(pxl_data_3, 
+              file.path("output",
+                        "EM_algorithm",
+                        "best_fit_models",
+                        "env_variables_FOI_fit"), 
+              "covariates_and_foi_20km_2.rds")
 
 
 # get pop weights -------------------------------------------------------------
@@ -267,7 +269,6 @@ if (CLUSTER) {
       parms = parameters,
       orig_dataset = foi_data,
       pxl_dataset = pxl_data_3,
-      pxl_dataset_full = pxl_data,
       my_predictors = my_predictors, 
       grp_flds = grp_flds,
       var_to_fit = var_to_fit,
@@ -288,7 +289,6 @@ if (CLUSTER) {
     parms = parameters,
     orig_dataset = foi_data,
     pxl_dataset = pxl_data_3, 
-    pxl_dataset_full = pxl_data,
     my_predictors = my_predictors, 
     grp_flds = grp_flds,
     var_to_fit = var_to_fit,
