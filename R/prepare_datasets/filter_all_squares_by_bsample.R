@@ -5,7 +5,7 @@ filter_all_squares_by_bsample <- function(i,
                                           out_file_path, 
                                           out_file_name){
   
-  browser()
+  # browser()
   
   foi_data <- boot_samples[[i]]
   
