@@ -27,7 +27,7 @@ RF_mod_name <- "RF_obj.rds"
 
 base_info <- c("cell", "latitude", "longitude", "population", "ID_0", "ID_1", "ID_2")
 
-model_type_tag <- "_best_model_3"
+model_type_tag <- "_best_model_5"
 
 extra_predictors <- NULL
 
