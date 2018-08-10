@@ -30,7 +30,6 @@ make_ranger_predictions <- function(mod_obj, dataset, sel_preds){
 }
 
 wrapper_to_make_ranger_preds <- function(i, 
-                                         RF_mod_name, 
                                          model_in_path, 
                                          dataset,
                                          predictors) {
@@ -39,7 +38,7 @@ wrapper_to_make_ranger_preds <- function(i,
   
   cat("bootstrap sample =", i, "\n")
   
-  RF_obj_nm <- paste0(RF_mod_name, "_", i, ".rds")
+  RF_obj_nm <- paste0("sample_", i, ".rds")
   
   RF_obj <- readRDS(file.path(model_in_path, RF_obj_nm))
   
@@ -226,7 +225,7 @@ attach_pred_different_scale_to_data <- function(i,
                                                 parms){
   
   
-  #browser()
+  # browser()
   
   
   # -------------------------------------- define variables
@@ -235,7 +234,7 @@ attach_pred_different_scale_to_data <- function(i,
   var_to_fit <- parms$dependent_variable
   foi_offset <- parms$foi_offset
   
-  RF_obj_nm <- paste0("RF_obj_sample_", i, ".rds")
+  RF_obj_nm <- paste0("sample_", i, ".rds")
   
   out_name <- paste0("all_scale_predictions_", i, ".rds")
   
@@ -270,13 +269,11 @@ attach_pred_different_scale_to_data <- function(i,
   
   sqr_preds <- all_sqr_preds[, i]
   
-  sqr_dts <- cbind(sqr_dts[, c(grp_fields, "population")],
-                   square = sqr_preds)
+  sqr_dts_2 <- cbind(sqr_dts, square = sqr_preds)
   
-  average_sqr <- average_up(
-    pxl_df = sqr_dts,
-    grp_flds = grp_fields,
-    var_names = "square")
+  average_sqr <- average_up(pxl_df = sqr_dts_2,
+                            grp_flds = grp_fields,
+                            var_names = "square")
   
   
   # -------------------------------------- process 1 km predictions
@@ -313,6 +310,8 @@ attach_pred_different_scale_to_data <- function(i,
   #average_pxl[, c(grp_fields, "mean_pxl_pred")]) 
   
   join_all <- Reduce(function(...) left_join(...), df_lst)
+  
+  join_all[join_all$type == "serology", "square"] <- sqr_dts_2[sqr_dts_2$type == "serology" & sqr_dts_2$new_weight == 1, "square"]
   
   
   # --------------------------------------
