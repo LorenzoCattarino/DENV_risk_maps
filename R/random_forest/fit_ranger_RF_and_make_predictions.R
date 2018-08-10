@@ -163,7 +163,7 @@ get_boot_sample_and_fit_RF <- function(i,
   y_var <- parms$dependent_variable
   foi_offset <- parms$foi_offset
     
-  a <- paste0("RF_model_object_", i, ".rds")
+  aa <- paste0("sample_", i, ".rds")
   
   adm_dts_boot <- boot_ls[[i]]
   
@@ -184,40 +184,31 @@ get_boot_sample_and_fit_RF <- function(i,
                        min_node_size = min_node_size,
                        my_weights = "new_weight")
   
-  write_out_rds(RF_obj, out_path, a)
+  write_out_rds(RF_obj, out_path, aa)
   
 }
 
 load_predict_and_save <- function(i, 
                                   RF_obj_path, 
                                   my_preds, 
-                                  out_file_path,
+                                  out_path,
                                   in_path){
+
+  pxl_dts_nm <- paste0("sample_", i, ".rds")
   
-  #browser()
-  
-  pxl_dts_nm <- paste0("env_vars_20km_", i, ".rds")
-  
-  RF_obj_nm <- paste0("RF_model_object_", i, ".rds")
+  RF_obj_nm <- paste0("sample_", i, ".rds")
   
   pxl_dts_boot <- readRDS(file.path(in_path, pxl_dts_nm))
   
   RF_obj <- readRDS(file.path(RF_obj_path, RF_obj_nm))
   
-  p_i <- make_ranger_predictions(
-    mod_obj = RF_obj, 
-    dataset = pxl_dts_boot, 
-    sel_preds = my_preds)
+  p_i <- make_ranger_predictions(RF_obj, pxl_dts_boot, my_preds)
   
   pxl_dts_boot$p_i <- p_i
+    
+  out_file_name <- paste0("sample_", i, ".rds")
   
-  
-  # ---------------------------------------- 
-  
-  
-  out_file_name <- paste0("covariates_and_foi_20km_", i, ".rds")
-  
-  write_out_rds(pxl_dts_boot, out_file_path, out_file_name)
+  write_out_rds(pxl_dts_boot, out_path, out_file_name)
   
 }
 
