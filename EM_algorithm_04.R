@@ -112,7 +112,7 @@ sct_plt_pth <- file.path("figures",
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "24Core")
+  config <- didehpc::didehpc_config(template = "16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
 
 } else {
@@ -173,7 +173,7 @@ if(var_to_fit == "FOI"){
 
 adm_covariates <- adm_covariates[!duplicated(adm_covariates[, c("ID_0", "ID_1")]), ]
 
-pxl_data <- inner_join(pxl_data, foi_data[, c(grp_flds, "type", "o_j", "new_weight")])
+pxl_data <- inner_join(pxl_data, foi_data[, c(grp_flds, "type", "new_weight")])
 
 
 # fix serology new_weights ----------------------------------------------------
@@ -228,6 +228,8 @@ sero_pxl_dup$data_id <- sero_points$data_id
 
 pxl_data_3 <- rbind(pxl_data_2, sero_pxl_dup)
 # test <- cbind(sero_pxl_dup[c("ID_0", "ID_1")], sero_points[,c("ID_0", "ID_1", "latitude", "longitude")])
+
+pxl_data_3 <- inner_join(pxl_data_3, foi_data[, c(grp_flds, "o_j")])
 
 write_out_rds(pxl_data_3, 
               file.path("output",
