@@ -23,7 +23,7 @@ parameters <- list(
   EM_iter = 10,
   no_predictors = 26)   
 
-model_type_tag <- "_boot_model"
+model_type_tag <- "_boot_model_21"
 
 
 # define variables ------------------------------------------------------------
