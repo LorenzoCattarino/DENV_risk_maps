@@ -24,6 +24,7 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
+  resample_grid_size = 20,
   dependent_variable = "FOI",
   pseudoAbs_value = -0.02,
   foi_offset = 0.03,
@@ -36,9 +37,7 @@ parameters <- list(
 
 grp_flds <- c("ID_0", "ID_1", "unique_id")
 
-full_pxl_df_name <- "env_vars_20km.rds"
-
-model_type_tag <- "_boot_model"
+model_type_tag <- "_boot_model_21"
 
 
 # define variables ------------------------------------------------------------  
@@ -52,7 +51,7 @@ model_type <- paste0(parameters$dependent_variable, model_type_tag)
 
 my_dir <- paste0("grid_size_", grid_size)
 
-RF_nm_all <- paste0("RF_obj_sample_", seq_len(no_samples), ".rds")
+RF_nm_all <- paste0("sample_", seq_len(no_samples), ".rds")
 
 diag_t_nm_all <- paste0("diagno_table_", seq_len(no_samples), ".rds")
 
@@ -122,12 +121,6 @@ if (CLUSTER) {
 # load data ------------------------------------------------------------------- 
 
 
-full_pxl_df <- readRDS(file.path("output", 
-                                 "EM_algorithm",
-                                 "best_fit_models",
-                                 "env_variables", 
-                                 full_pxl_df_name))
-
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
                                      "stepwise",
@@ -165,7 +158,6 @@ adm_dts <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 #     seq_len(no_samples)[1],
 #     parms = parameters,
 #     boot_samples = bt_samples,
-#     pxl_dataset_orig = full_pxl_df,
 #     my_preds = my_predictors,
 #     grp_flds = grp_flds,
 #     RF_obj_path = RF_out_pth,
@@ -192,7 +184,6 @@ if (CLUSTER) {
     obj,
     parms = parameters,
     boot_samples = bt_samples,
-    pxl_dataset_orig = full_pxl_df,
     my_preds = my_predictors,
     grp_flds = grp_flds,
     RF_obj_path = RF_out_pth,
@@ -214,7 +205,6 @@ if (CLUSTER) {
     exp_max_algorithm_boot,
     parms = parameters,
     boot_samples = bt_samples,
-    pxl_dataset_orig = full_pxl_df,
     my_preds = my_predictors,
     grp_flds = grp_flds,
     RF_obj_path = RF_out_pth,
