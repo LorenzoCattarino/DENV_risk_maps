@@ -38,7 +38,7 @@ tags <- c("all_data", "no_psAb")
 data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
                        c("serology", "caseReport"))
 
-model_type_tag <- "_boot_model"
+model_type_tag <- "_boot_model_21"
 
 
 # define variables ------------------------------------------------------------
@@ -87,7 +87,7 @@ out_table_path <- file.path("output",
 
 foi_dataset <- read.csv(file.path("output", 
                                   "foi", 
-                                  "All_FOI_estimates_and_predictors.csv"),
+                                  "All_FOI_estimates_and_predictors_2.csv"),
                         stringsAsFactors = FALSE) 
 
 
