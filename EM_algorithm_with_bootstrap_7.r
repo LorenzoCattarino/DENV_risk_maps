@@ -34,7 +34,7 @@ parameters <- list(
   no_samples = 200,
   no_predictors = 26)   
 
-model_type_tag <- "_boot_model"
+model_type_tag <- "_boot_model_21"
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
@@ -86,7 +86,7 @@ if (CLUSTER) {
 
 foi_dataset <- read.csv(file.path("output", 
                                   "foi", 
-                                  "All_FOI_estimates_and_predictors.csv"),
+                                  "All_FOI_estimates_and_predictors_2.csv"),
                         stringsAsFactors = FALSE) 
 
 boot_samples <- readRDS(file.path("output",
@@ -98,8 +98,8 @@ boot_samples <- readRDS(file.path("output",
 sqr_dataset <- readRDS(file.path("output",
                                  "EM_algorithm",
                                  "best_fit_models",
-                                 "env_variables",
-                                 "env_vars_20km.rds"))
+                                 "env_variables_FOI_fit",
+                                 "covariates_and_foi_20km_2.rds"))
 
 adm_dataset <- read.csv(file.path("output",
                                   "env_variables",
@@ -206,7 +206,7 @@ if (CLUSTER) {
 } else {
 
   bsamples_preds <- lapply(
-    seq_len(no_samples),
+    seq_len(no_samples)[1],
     attach_pred_different_scale_to_data,
     model_path = RF_obj_path,
     foi_data = foi_dataset,
