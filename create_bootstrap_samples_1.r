@@ -46,7 +46,7 @@ out_pt <- file.path("output", "EM_algorithm", "bootstrap_models", my_dir)
 
 foi_data <- read.csv(file.path("output", 
                                "foi", 
-                               "All_FOI_estimates_and_predictors.csv"),
+                               "All_FOI_estimates_and_predictors_2.csv"),
                      stringsAsFactors = FALSE) 
 
 
