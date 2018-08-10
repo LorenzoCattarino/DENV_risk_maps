@@ -24,7 +24,7 @@ parameters <- list(
 
 vars_to_average <- "response"
 
-model_type_tag <- "_boot_model"
+model_type_tag <- "_boot_model_21"
 
 
 # define variables ------------------------------------------------------------

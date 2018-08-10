@@ -25,9 +25,7 @@ parameters <- list(
   no_samples = 200,
   no_predictors = 26)   
 
-RF_mod_name <- "RF_obj_sample"
-
-model_type_tag <- "_boot_model"
+model_type_tag <- "_boot_model_21"
 
 
 # define variables ------------------------------------------------------------
@@ -90,7 +88,6 @@ no_samples <- parameters$no_samples
 # t <- obj$enqueue(
 #   wrapper_to_make_ranger_preds(
 #     seq_len(no_samples)[1],
-#     RF_mod_name = RF_mod_name,
 #     model_in_path = RF_obj_path,
 #     dataset = all_sqr_covariates,
 #     predictors = my_predictors))
@@ -105,7 +102,6 @@ if(CLUSTER){
     seq_len(no_samples),
     wrapper_to_make_ranger_preds,
     obj,
-    RF_mod_name = RF_mod_name,
     model_in_path = RF_obj_path,
     dataset = all_sqr_covariates,
     predictors = my_predictors)
@@ -115,7 +111,6 @@ if(CLUSTER){
   sqr_preds_boot <- lapply(
     seq_len(no_samples),
     wrapper_to_make_ranger_preds,
-    RF_mod_name = RF_mod_name,
     model_in_path = RF_obj_path,
     dataset = all_sqr_covariates,
     predictors = my_predictors)

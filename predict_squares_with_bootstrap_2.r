@@ -31,7 +31,7 @@ out_fl_nm <- "response.rds"
 
 base_info <- c("cell", "latitude", "longitude", "population", "ID_0", "ID_1", "ID_2")
 
-model_type_tag <- "_boot_model"
+model_type_tag <- "_boot_model_21"
 
 
 # define variables ------------------------------------------------------------
