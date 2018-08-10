@@ -63,7 +63,7 @@ out_pt <- file.path("output", "EM_algorithm", "best_fit_models", model_type)
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "24Core")
+  config <- didehpc::didehpc_config(template = "16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
