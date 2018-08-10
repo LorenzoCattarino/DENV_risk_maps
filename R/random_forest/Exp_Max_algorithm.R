@@ -1,7 +1,6 @@
 exp_max_algorithm <- function(parms, 
                               orig_dataset, 
                               pxl_dataset,
-                              pxl_dataset_full, 
                               my_predictors, 
                               grp_flds, 
                               var_to_fit,
@@ -14,8 +13,7 @@ exp_max_algorithm <- function(parms,
                               sct_plt_path = NULL, 
                               train_dts_path = NULL, 
                               train_dts_name = NULL,
-                              adm_dataset = NULL,
-                              sero_points = sero_points){
+                              adm_dataset = NULL){
   
   
   niter <- parms$EM_iter
@@ -52,9 +50,11 @@ exp_max_algorithm <- function(parms,
     a_sum <- p_i_by_adm %>% summarise(a_sum = sum(pop_weight * p_i))
     
     dd <- left_join(pxl_dataset, a_sum)
-
+    
     dd$wgt_prime <- (dd$pop_weight / dd$p_i) * dd$a_sum
     # dd$wgt_prime <- dd$pop_weight
+    
+    dd[dd$type == "serology" & dd$new_weight == 1, "wgt_prime"] <- 1
     
     
     # 2. modify the scaling factors to account for background data ------------ 
@@ -72,10 +72,12 @@ exp_max_algorithm <- function(parms,
     
     if(var_to_fit == "FOI"){
       
-      # u_i[!psAbs] <- (((dd$o_j[!psAbs] - l_f) * (dd$p_i[!psAbs] - l_f)) / (dd$a_sum[!psAbs] - l_f)) + l_f 
-      u_i[!psAbs] <- (dd$o_j[!psAbs] * dd$p_i[!psAbs]) / dd$a_sum[!psAbs]
+      # u_i[!psAbs] <- (((dd$o_j[!psAbs] - l_f) * (dd$p_i[!psAbs] - l_f)) / (dd$a_sum[!psAbs] - l_f)) + l_f # when using only pop prop weights
+      u_i[!psAbs] <- (dd$o_j[!psAbs] * dd$p_i[!psAbs]) / dd$a_sum[!psAbs] # when using updating weights
       u_i[psAbs] <- ifelse(dd$p_i[psAbs] > zero_2, l_f_2, dd$p_i[psAbs])
       
+      u_i[dd$type == "serology" & dd$new_weight == 1] <- dd$o_j[dd$type == "serology" & dd$new_weight == 1]
+    
     } else {
       
       u_i[!psAbs] <- (dd$o_j[!psAbs] * dd$p_i[!psAbs]) / dd$a_sum[!psAbs]
@@ -124,6 +126,8 @@ exp_max_algorithm <- function(parms,
       dd_1$p_i <- dd$p_i - foi_offset  
     
     } 
+    
+    # write.csv(dd_1, paste0("dd_", i, ".csv"), row.names = FALSE)
     
     if(!is.null(map_path)){
       mp_nm <- sprintf("%s_iter_%s%s", map_name, i, ".png")
@@ -189,7 +193,7 @@ exp_max_algorithm <- function(parms,
                                        zero_2, 
                                        cc$adm_pred[psAbs_adm])
       
-    } else{
+    } else {
       
       cc$adm_pred[psAbs_adm] <- ifelse(cc$adm_pred[psAbs_adm] < 1, 
                                        l_f, 
@@ -197,17 +201,19 @@ exp_max_algorithm <- function(parms,
       
     }
     
-    
+
     # 7. calculate population weighted mean of pixel level predictions -------- 
     
-    
+
     p_i_by_adm <- dd_2 %>% group_by_(.dots = grp_flds)
     
     mean_p_i <- p_i_by_adm %>% summarise(mean_p_i = sum(p_i * pop_weight))
     
     aa <- inner_join(cc, mean_p_i)
     
-
+    aa[aa$type == "serology" & aa$new_weight == 1, "mean_p_i"] <- dd_2[dd_2$type == "serology" & dd_2$new_weight == 1, "p_i"]
+    # write.csv(aa, paste0("aa_", i, ".csv"), row.names = FALSE)
+    
     if(!is.null(sct_plt_path)){
       
       # plot of observed admin values vs pop-wgt average predicted square values
@@ -269,14 +275,12 @@ exp_max_algorithm <- function(parms,
     write_out_rds(training_dataset, train_dts_path, train_dts_name)
   }
   
-  # make_ranger_predictions(RF_obj, pxl_dataset_full, my_predictors)
   RF_obj
 }
 
 exp_max_algorithm_boot <- function(i, 
                                    parms,
                                    boot_samples, 
-                                   pxl_dataset_orig, 
                                    my_preds, 
                                    grp_flds, 
                                    RF_obj_path, 
@@ -302,7 +306,9 @@ exp_max_algorithm_boot <- function(i,
   var_to_fit <- parms$dependent_variable
   foi_offset <- parms$foi_offset
   
-  pxl_dts_nm <- paste0("env_vars_and_foi_20km_", i, ".rds")
+  res <- (1 / 120) * parms$resample_grid_size
+  
+  pxl_dts_nm <- paste0("sample_", i, ".rds")
   
   
   # ---------------------------------------- load bootstrapped data sets 
@@ -346,25 +352,88 @@ exp_max_algorithm_boot <- function(i,
   }
   
   
-  # ---------------------------------------- pre process the square data set
+  # ---------------------------------------- attach original data and weights to square dataset
   
   
-  pxl_dts_grp <- pxl_dts_boot %>% group_by_(.dots = grp_flds) 
+  pxl_dts_boot <- inner_join(pxl_dts_boot, foi_data_boot[, c(grp_flds, "type", "new_weight")])  
+  
+  
+  # fix serology new_weights ----------------------------------------------------
+  
+
+  pxl_dts_boot[pxl_dts_boot$type == "serology", "new_weight"] <- 0
+  
+  sero_points <- foi_data_boot[foi_data_boot$type == "serology", ]
+  
+  pxl_dts_boot$lat.int <- round(pxl_dts_boot$latitude / res)
+  pxl_dts_boot$long.int <- round(pxl_dts_boot$longitude / res)
+  
+  sero_points$lat.int <- round(sero_points$latitude / res)
+  sero_points$long.int <- round(sero_points$longitude / res)
+  
+  sero_points$cell <- 0
+  sero_points$no_square <- 0
+  
+  for (j in seq_len(nrow(sero_points))){
+    
+    sero_long <- sero_points[j, "long.int"]
+    sero_lat <- sero_points[j, "lat.int"]
+    
+    matches <- pxl_dts_boot$type == "serology" & pxl_dts_boot$lat.int == sero_lat & pxl_dts_boot$long.int == sero_long
+    
+    if(sum(matches) != 0){
+      
+      message(j)
+      
+      cell_id <- which(matches == TRUE)[1]
+      sero_points[j, "cell"] <- cell_id
+      pxl_dts_boot[cell_id, "new_weight"] <- 1
+      
+    } else {
+      
+      sero_points[j, "no_square"] <- 1
+      
+    }
+    
+  }
+
+  missing_square <- sero_points[sero_points$no_square == 1, ]
+  # write.csv(missing_square, file.path("output", "EM_algorithm", "missing_squares_for_orginal_datapoints.csv"), row.names = FALSE)
+
+  sero_pxl_no_dup <- pxl_dts_boot$type == "serology" & pxl_dts_boot$new_weight == 1
+  
+  pxl_dts_boot_2 <- pxl_dts_boot[!sero_pxl_no_dup, ]
+  
+  sero_pxl_dup <- pxl_dts_boot[sero_points$cell, ]
+  
+  sero_pxl_dup$unique_id <- sero_points$unique_id
+  
+  pxl_dts_boot_3 <- rbind(pxl_dts_boot_2, sero_pxl_dup)
+  
+  pxl_dts_boot_3 <- inner_join(pxl_dts_boot_3, foi_data_boot[, c(grp_flds, "o_j")])  
+  
+  write_out_rds(pxl_dts_boot_3, file.path("output", 
+                                          "EM_algorithm", 
+                                          "bootstrap_models",
+                                          "grid_size_5",
+                                          "env_variables_FOI_fit",
+                                          "boot_samples_2"), 
+                paste0("sample_", i, ".rds"))
+  
+  
+  # ---------------------------------------- calculate population proportion weights
+  
+  
+  pxl_dts_grp <- pxl_dts_boot_3 %>% group_by_(.dots = grp_flds) 
   
   aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
   # ncells <- pxl_dts_grp %>% summarise(n_sqr = n())
   
-  pxl_dts_boot <- left_join(pxl_dts_boot, aa)
+  pxl_dts_boot_3 <- left_join(pxl_dts_boot_3, aa)
   # pxl_dts_boot <- left_join(pxl_dts_boot, ncells)
   
-  pxl_dts_boot$pop_weight <- pxl_dts_boot$population / pxl_dts_boot$pop_sqr_sum
+  pxl_dts_boot_3$pop_weight <- pxl_dts_boot_3$population / pxl_dts_boot_3$pop_sqr_sum
   # pxl_dts_boot$pop_weight <- 1 / pxl_dts_boot$n_sqr
-  
-  
-  # ---------------------------------------- attach original data and weigths to square dataset
-  
-  
-  pxl_dts_boot <- inner_join(pxl_dts_boot, foi_data_boot[, c(grp_flds, "o_j", "new_weight")])
   
   
   # ---------------------------------------- run the EM 
@@ -372,8 +441,7 @@ exp_max_algorithm_boot <- function(i,
   
   exp_max_algorithm(parms = parms, 
                     orig_dataset = foi_data_boot, 
-                    pxl_dataset = pxl_dts_boot,
-                    pxl_dataset_full = pxl_dataset_orig,
+                    pxl_dataset = pxl_dts_boot_3,
                     my_predictors = my_preds, 
                     grp_flds = grp_flds, 
                     var_to_fit = var_to_fit,
