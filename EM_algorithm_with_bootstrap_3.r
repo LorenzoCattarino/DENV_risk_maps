@@ -23,7 +23,7 @@ parameters <- list(
   dependent_variable = "FOI",
   grid_size = 5,
   no_samples = 200,
-  no_predictors = 26)   
+  no_predictors = 23)   
 
 
 # define variables ------------------------------------------------------------
@@ -94,7 +94,7 @@ no_samples <- parameters$no_samples
 #     seq_len(no_samples)[1],
 #     RF_obj_path = RF_obj_path,
 #     my_preds = my_predictors,
-#     out_file_path = out_pth,
+#     out_path = out_pth,
 #     in_path = in_path))
 
 
@@ -109,7 +109,7 @@ if (CLUSTER) {
     obj,
     RF_obj_path = RF_obj_path,
     my_preds = my_predictors,
-    out_file_path = out_pth,
+    out_path = out_pth,
     in_path = in_path)
 
 } else {
@@ -119,7 +119,7 @@ if (CLUSTER) {
     load_predict_and_save,
     RF_obj_path = RF_obj_path,
     my_preds = my_predictors,
-    out_file_path = out_pth,
+    out_path = out_pth,
     in_path = in_path)
 
 }
