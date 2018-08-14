@@ -28,7 +28,7 @@ parameters <- list(
   no_trees = 500,
   min_node_size = 20,
   no_samples = 200,  
-  no_predictors = 26) 
+  no_predictors = 23) 
 
 
 # define variables ------------------------------------------------------------
