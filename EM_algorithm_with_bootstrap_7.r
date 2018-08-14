@@ -32,9 +32,9 @@ parameters <- list(
   foi_offset = 0.03,
   grid_size = 5,
   no_samples = 200,
-  no_predictors = 26)   
+  no_predictors = 9)   
 
-model_type_tag <- "_boot_model_21"
+model_type_tag <- "_boot_model_23"
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
