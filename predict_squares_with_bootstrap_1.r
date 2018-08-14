@@ -23,9 +23,9 @@ parameters <- list(
   dependent_variable = "FOI",
   grid_size = 5,
   no_samples = 200,
-  no_predictors = 26)   
+  no_predictors = 9)   
 
-model_type_tag <- "_boot_model_21"
+model_type_tag <- "_boot_model_23"
 
 
 # define variables ------------------------------------------------------------
