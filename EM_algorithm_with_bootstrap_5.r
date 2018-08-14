@@ -21,9 +21,9 @@ parameters <- list(
   min_node_size = 20,
   no_samples = 200,
   EM_iter = 10,
-  no_predictors = 26)   
+  no_predictors = 9)   
 
-model_type_tag <- "_boot_model_21"
+model_type_tag <- "_boot_model_23"
 
 
 # define variables ------------------------------------------------------------
