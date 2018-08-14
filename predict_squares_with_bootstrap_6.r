@@ -23,7 +23,7 @@ parameters <- list(
   dependent_variable = "FOI",
   grid_size = 5)   
 
-model_type_tag <- "_boot_model_21"
+model_type_tag <- "_boot_model_23"
 
 vars_to_average <- "response"
 
