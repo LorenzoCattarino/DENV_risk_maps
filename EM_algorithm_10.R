@@ -4,7 +4,7 @@
 options(didehpc.cluster = "fi--didemrchnb")
 
 my_resources <- c(
-  file.path("R", "random_forest", "partial_dependence_plots.R"),
+  file.path("R", "random_forest", "partial_dependence_plots_ranger.R"),
   file.path("R", "utility_functions.R"))
 
 my_pkgs <- c("ggplot2")
@@ -23,15 +23,13 @@ context::context_load(ctx)
 
 parameters <- list(
   dependent_variable = "FOI",
-  no_predictors = 9)   
+  no_predictors = 26)   
 
 year.i <- 2007
 year.f <- 2014
 ppyear <- 64
 
-model_type_tag <- "_best_model_6"
-
-extra_predictors <- "log_pop_den"
+model_type_tag <- "_best_model_4"
 
 
 # define variables ------------------------------------------------------------
@@ -61,10 +59,9 @@ out_pt <- file.path("figures",
 
 
 predictor_rank <- read.csv(file.path("output", 
-                                     "variable_selection", 
-                                     "metropolis_hastings", 
-                                     "exp_1", 
-                                     "variable_rank_final_fits_exp_1.csv"),
+                                     "variable_selection",
+                                     "stepwise",
+                                     "predictor_rank.csv"),
                            stringsAsFactors = FALSE)
 
 
@@ -72,7 +69,6 @@ predictor_rank <- read.csv(file.path("output",
 
 
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
-my_predictors <- c(my_predictors, extra_predictors)
 
 pd_tables <- readRDS(file.path(pdp_pt, "par_dep.rds"))
 
@@ -126,7 +122,11 @@ final_pd_df$x <- unname(unlist(final_pd_df_splt))
 # sort by var importance ------------------------------------------------------
 
 
-final_pd_df$var <- factor(final_pd_df$var, levels = as.character(vi_table$variable))
+vi_table <- vi_table[order(vi_table, decreasing = TRUE)]
+
+vi_table <- (vi_table / sum(vi_table)) * 100
+
+final_pd_df$var <- factor(final_pd_df$var, levels = names(vi_table))
 
 
 # plot ------------------------------------------------------------------------
@@ -134,37 +134,33 @@ final_pd_df$var <- factor(final_pd_df$var, levels = as.character(vi_table$variab
 
 # create new name strips for facet plots
 new_names <- sprintf("%s (%s)", 
-                     vi_table$variable, 
-                     paste0(round(vi_table$percentage * 100, 2),"%"))
+                     names(vi_table), 
+                     paste0(round(vi_table, 2),"%"))
 
-x_name_strips <- setNames(new_names, vi_table$variable)
+x_name_strips <- setNames(new_names, names(vi_table))
 
 dir.create(out_pt, FALSE, TRUE)
 
 png(file.path(out_pt, "partial_dependence_plots.png"),
     width = 16.5,
-    height = 15,
+    height = 18,
     units = "cm",
     pointsize = 12,
     res = 300)
 
-p <- ggplot(final_pd_df, aes(x, mean_response)) +
+p <- ggplot(final_pd_df, aes(x, yhat)) +
   facet_wrap(facets = ~ var, 
-             ncol = 3,
-             scales = "free", 
+             ncol = 4,
+             scales = "free_x", 
              labeller = as_labeller(x_name_strips)) +
-  geom_ribbon(data = final_pd_df, 
-              mapping = aes(ymin = mean_response - stddev_response, ymax = mean_response + stddev_response), 
-              fill = "gray80", 
-              alpha = 0.5) +
   geom_line() +
   theme_bw(base_size = 11, base_family = "") +
   theme(plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "cm"))+
   labs(x = "Value of predictor",
-       y = "Response (and SD)",
+       y = "Response",
        title = NULL) +
-  theme(strip.text.x = element_text(size = 8))#,
-#axis.text.x = element_text(size = 8))
+  theme(strip.text.x = element_text(size = 6),
+        axis.text.x = element_text(size = 7))
 
 print(p)
 
