@@ -37,7 +37,7 @@ data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
 
 foi_dts_nm <- "All_FOI_estimates_and_predictors_2.csv"
 
-model_type_tag <- "_best_model_5"
+model_type_tag <- "_best_model_4"
 
 
 # define variables ------------------------------------------------------------
