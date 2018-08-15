@@ -5,7 +5,7 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "partial_dependence_plots_ranger.R"),
+  file.path("R", "random_forest", "partial_dependence_plots_pdp.R"),
   file.path("R", "utility_functions.R"))
 
 my_pkgs <- c("ranger", "pdp", "foreach")
