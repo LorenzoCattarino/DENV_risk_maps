@@ -1,14 +1,14 @@
-# calulate the partial depence of the model function on each explanatory variable
+# calculate the partial depence of the model function on each explanatory variable
 
 options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "partial_dependence_plots.R"),
+  file.path("R", "random_forest", "partial_dependence_plots_ranger.R"),
   file.path("R", "utility_functions.R"))
 
-my_pkgs <- c("h2o")
+my_pkgs <- c("ranger", "pdp", "foreach")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -24,16 +24,14 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   dependent_variable = "FOI",
-  no_predictors = 9)   
+  no_predictors = 26)   
 
 RF_mod_nm <- "RF_obj.rds"
 train_dts_nm <- "train_dts.rds"
 par_dep_nm <- "par_dep.rds"
 var_imp_nm <- "var_imp.rds"
 
-model_type_tag <- "_best_model_6"
-
-extra_predictors <- "log_pop_den"
+model_type_tag <- "_best_model_4"
 
 
 # define variables ------------------------------------------------------------
@@ -71,7 +69,7 @@ v_imp_out_pt <- file.path("output",
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "24Core")
+  config <- didehpc::didehpc_config(template = "16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -86,10 +84,9 @@ if (CLUSTER) {
 
 
 predictor_rank <- read.csv(file.path("output", 
-                                     "variable_selection", 
-                                     "metropolis_hastings", 
-                                     "exp_1", 
-                                     "variable_rank_final_fits_exp_1.csv"),
+                                     "variable_selection",
+                                     "stepwise",
+                                     "predictor_rank.csv"),
                            stringsAsFactors = FALSE)
 
 
@@ -97,19 +94,36 @@ predictor_rank <- read.csv(file.path("output",
 
 
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
-my_predictors <- c(my_predictors, extra_predictors)
 
 
 # submit one job --------------------------------------------------------------  
 
-t <- obj$enqueue(
-  calculate_par_dep(RF_obj_name = RF_mod_nm, 
-                    tr_dts_name = train_dts_nm,
-                    par_dep_name = par_dep_nm,
-                    var_imp_name = var_imp_nm,
-                    RF_obj_path = model_in_pt,
-                    tr_dts_path = train_dts_in_pt,
-                    par_dep_path = pdp_out_pt,
-                    var_imp_path = v_imp_out_pt,
-                    model_type = model_type,
-                    variables = my_predictors))
+
+if(CLUSTER){
+  
+  pd <- obj$enqueue(
+    calculate_par_dep(RF_obj_name = RF_mod_nm, 
+                      tr_dts_name = train_dts_nm,
+                      par_dep_name = par_dep_nm,
+                      var_imp_name = var_imp_nm,
+                      RF_obj_path = model_in_pt,
+                      tr_dts_path = train_dts_in_pt,
+                      par_dep_path = pdp_out_pt,
+                      var_imp_path = v_imp_out_pt,
+                      model_type = model_type,
+                      variables = my_predictors))
+  
+} else {
+  
+  pd <- calculate_par_dep(RF_obj_name = RF_mod_nm, 
+                          tr_dts_name = train_dts_nm,
+                          par_dep_name = par_dep_nm,
+                          var_imp_name = var_imp_nm,
+                          RF_obj_path = model_in_pt,
+                          tr_dts_path = train_dts_in_pt,
+                          par_dep_path = pdp_out_pt,
+                          var_imp_path = v_imp_out_pt,
+                          model_type = model_type,
+                          variables = my_predictors)
+  
+}
