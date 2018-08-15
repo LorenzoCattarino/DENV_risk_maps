@@ -105,7 +105,7 @@ exp_max_algorithm <- function(parms,
     
     RF_ms_i <- RF_obj$prediction.error
     
-    
+
     # 5. make new pixel level predictions ------------------------------------- 
     
     
