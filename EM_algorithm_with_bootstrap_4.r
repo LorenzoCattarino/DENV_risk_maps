@@ -57,7 +57,7 @@ diag_t_nm_all <- paste0("diagno_table_", seq_len(no_samples), ".rds")
 
 map_nm_all <- paste0("map_", seq_len(no_samples))
 
-tra_dts_nm_all <- paste0("train_dts_", seq_len(no_samples), ".rds")
+tra_dts_nm_all <- paste0("sample_", seq_len(no_samples), ".rds")
   
 RF_out_pth <- file.path("output", 
                         "EM_algorithm",
