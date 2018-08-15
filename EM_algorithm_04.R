@@ -54,7 +54,7 @@ foi_dts_nm <- "All_FOI_estimates_and_predictors_2.csv"
 
 pxl_dts_name <- "covariates_and_foi_20km.rds"
 
-model_type_tag <- "_best_model_5"
+model_type_tag <- "_best_model_4"
 
 extra_predictors <- NULL
 
