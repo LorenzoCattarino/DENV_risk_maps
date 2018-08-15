@@ -16,7 +16,7 @@ source(file.path("R", "plotting", "plot_EM_diagnostics.R"))
 parameters <- list(
   dependent_variable = "FOI")   
 
-model_type_tag <- "_best_model_5"
+model_type_tag <- "_best_model_4"
 
 
 # define variables ------------------------------------------------------------
