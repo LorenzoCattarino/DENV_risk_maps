@@ -39,7 +39,7 @@ parameters <- list(
   EM_iter = 10,
   no_predictors = 26) 
 
-model_type_tag <- "_best_model_5"
+model_type_tag <- "_best_model_4"
 
 extra_predictors <- NULL
 
