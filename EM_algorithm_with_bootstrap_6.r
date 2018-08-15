@@ -1,7 +1,4 @@
-# Load back in the pxl data predictions from thge optimized EM models.
-# Specifically, for each bootstrap sample, get:
-#
-# 1) Vector of square-level predictions for the entire 20km dataset
+# Estimates foi (or R0) for each resampled square, of each 20km resolution bootstrap sample
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -30,10 +27,8 @@ parameters <- list(
 
 model_type_tag <- "_boot_model_23"
 
-out_fl_nm <- "square_predictions_all_data.rds"
 
-
-# define variables ------------------------------------------------------------  
+# define variables ------------------------------------------------------------
 
 
 var_to_fit <- parameters$dependent_variable
@@ -42,39 +37,87 @@ model_type <- paste0(var_to_fit, model_type_tag)
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
-out_pt <- file.path("output", "EM_algorithm", "bootstrap_models", my_dir, model_type)
+RF_obj_path <- file.path("output", 
+                         "EM_algorithm",
+                         "bootstrap_models",
+                         my_dir, 
+                         model_type,
+                         "optimized_model_objects")
+
+out_pth <- NULL
 
 
-# rebuild the queue object? --------------------------------------------------- 
+# are you using the cluster? -------------------------------------------------- 
+
+
+if (CLUSTER) {
+  
+  config <- didehpc::didehpc_config(template = "20Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
+  
+} else {
+  
+  context::context_load(ctx)
+  
+}
+
+
+# load data ------------------------------------------------------------------- 
+
+
+pxl_data <- readRDS(file.path("output", 
+                              "EM_algorithm", 
+                              "best_fit_models",
+                              paste0("env_variables_", var_to_fit, "_fit"), 
+                              "covariates_and_foi_20km_2.rds"))
+
+predictor_rank <- read.csv(file.path("output", 
+                                     "variable_selection",
+                                     "stepwise",
+                                     "predictor_rank.csv"), 
+                           stringsAsFactors = FALSE)
+
+
+# pre processing -------------------------------------------------------------- 
+
+
+my_predictors <- predictor_rank$name[1:parameters$no_predictors]
+
+no_samples <- parameters$no_samples
+
+
+# submit one job -------------------------------------------------------------- 
+
+
+# t <- obj$enqueue(
+#   wrapper_to_make_ranger_preds(
+#     seq_len(no_samples)[1],
+#     model_in_path = RF_obj_path,
+#     dataset = pxl_data,
+#     predictors = my_predictors))
+
+
+# submit all jobs ------------------------------------------------------------- 
 
 
 if (CLUSTER) {
 
-  config <- didehpc::didehpc_config(template = "20Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
+  final_sqr_preds <- queuer::qlapply(
+    seq_len(no_samples),
+    wrapper_to_make_ranger_preds,
+    obj,
+    model_in_path = RF_obj_path,
+    dataset = pxl_data,
+    predictors = my_predictors)
 
 } else {
 
-  context::context_load(ctx)
+  final_sqr_preds <- lapply(
+    seq_len(no_samples)[1],
+    wrapper_to_make_ranger_preds,
+    RF_obj_path = RF_obj_path,
+    model_in_path = RF_obj_path,
+    dataset = pxl_data,
+    predictors = my_predictors)
 
 }
-
-
-# get results ----------------------------------------------------------------- 
-
-
-bundles <- obj$task_bundle_info()
-
-my_task_id <- bundles[nrow(bundles), "name"] 
-
-final_sqr_preds_t <- obj$task_bundle_get(my_task_id)
-
-final_sqr_preds <- final_sqr_preds_t$results()
-
-
-# combine results ------------------------------------------------------------- 
-
-
-prediction_sets <- do.call("cbind", final_sqr_preds)
-
-write_out_rds(prediction_sets, out_pt, out_fl_nm)

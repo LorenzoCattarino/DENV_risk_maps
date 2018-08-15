@@ -1,21 +1,26 @@
-# For each bootstrap sample of the original dataset, it creates a scatter plot of:  
+# For each bootstrap sample of the original dataset, it creates a data frame with:  
 #
-# 1) admin unit observation vs admin unit prediction 
-# 2) admin unit observation vs population weighted average of the square predictions (within admin unit)
-# 3) admin unit observation vs population weighted average of the 1 km pixel predictions (within admin unit)
-#
-# NOTE: 1, 2 and 3 are for train and test sets separately (total of 6 plots per bootstrap sample)
+# 1) admin unit observations
+# 2) admin unit predictions 
+# 3) population weighted average of the square predictions, within the observation's admin unit
+# 4) population weighted average of the 1 km pixel predictions, within the observation's admin unit
 
-library(reshape2)
-library(ggplot2)
-library(plyr)
-library(weights) # for wtd.cor()
+options(didehpc.cluster = "fi--didemrchnb")
 
-source(file.path("R", "plotting", "plot_RF_preds_vs_obs_by_cv_dataset.R"))
-source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
-source(file.path("R", "prepare_datasets", "calculate_sd.R"))
-source(file.path("R", "prepare_datasets", "calculate_wgt_corr.R"))
-source(file.path("R", "utility_functions.R"))
+CLUSTER <- TRUE
+
+my_resources <- c(
+  file.path("R", "prepare_datasets", "average_up.R"),
+  file.path("R", "prepare_datasets", "remove_NA_rows.R"),
+  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
+  file.path("R", "utility_functions.R"))
+
+my_pkgs <- c("ranger", "dplyr")
+
+context::context_log_start()
+ctx <- context::context_save(path = "context",
+                             sources = my_resources,
+                             packages = my_pkgs)
 
 
 # define parameters -----------------------------------------------------------  
@@ -24,65 +29,59 @@ source(file.path("R", "utility_functions.R"))
 parameters <- list(
   dependent_variable = "FOI",
   pseudoAbs_value = -0.02,
+  foi_offset = 0.03,
   grid_size = 5,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1e6,
-  all_wgt = 1,
-  no_samples = 200)   
-
-mes_vars <- c("admin", "cell")
-
-tags <- c("all_data", "no_psAb")
-
-data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
-                       c("serology", "caseReport"))
+  no_samples = 200,
+  no_predictors = 9)   
 
 model_type_tag <- "_boot_model_23"
 
+grp_flds <- c("ID_0", "ID_1", "data_id")
 
-# define variables ------------------------------------------------------------
+
+# define variables ------------------------------------------------------------ 
 
 
 var_to_fit <- parameters$dependent_variable
-
-psAbs_val <- parameters$pseudoAbs_value
 
 model_type <- paste0(var_to_fit, model_type_tag)
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
-in_path <- file.path("output",
-                     "EM_algorithm",
-                     "bootstrap_models",
-                     my_dir,
-                     model_type,
-                     "predictions_data") 
+RF_obj_path <- file.path("output",
+                         "EM_algorithm",
+                         "bootstrap_models",
+                         my_dir,
+                         model_type,
+                         "optimized_model_objects")
 
-out_fig_path <- file.path("figures",
-                          "EM_algorithm",
-                          "bootstrap_models",
-                          my_dir,
-                          model_type,
-                          "scatter_plots",
-                          "boot_samples")
-
-out_fig_path_av <- file.path("figures",
-                             "EM_algorithm",
-                             "bootstrap_models",
-                             my_dir,
-                             model_type,
-                             "scatter_plots")
-
-out_table_path <- file.path("output",
-                            "EM_algorithm",
-                            "bootstrap_models",
-                            my_dir,
-                            model_type,
-                            "scatter_plots")
+out_pt <- file.path("output",
+                    "EM_algorithm",
+                    "bootstrap_models",
+                    my_dir,
+                    model_type,
+                    "predictions_data")
 
 
-# load data -------------------------------------------------------------------
+# are you using the cluster? --------------------------------------------------  
+
+
+if (CLUSTER) {
+  
+  config <- didehpc::didehpc_config(template = "20Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
+  
+} else {
+  
+  context::context_load(ctx)
+  context::parallel_cluster_start(8, ctx)
+  
+}
+
+# obj$enqueue(install.packages(file.path("R_sources", "h2o_3.18.0.8.tar.gz"), repos=NULL, type="source"))$wait(Inf)
+
+
+# load data -------------------------------------------------------------------  
 
 
 foi_dataset <- read.csv(file.path("output", 
@@ -90,160 +89,139 @@ foi_dataset <- read.csv(file.path("output",
                                   "All_FOI_estimates_and_predictors_2.csv"),
                         stringsAsFactors = FALSE) 
 
+boot_samples <- readRDS(file.path("output",
+                                  "EM_algorithm",
+                                  "bootstrap_models",
+                                  my_dir, 
+                                  "bootstrap_samples.rds"))
+  
+sqr_dataset <- readRDS(file.path("output",
+                                 "EM_algorithm",
+                                 "best_fit_models",
+                                 "env_variables_FOI_fit",
+                                 "covariates_and_foi_20km_2.rds"))
 
-# pre processing --------------------------------------------------------------
+adm_dataset <- read.csv(file.path("output",
+                                  "env_variables",
+                                  "All_adm1_env_var.csv"),
+                        header = TRUE,
+                        stringsAsFactors = FALSE)
 
+predictor_rank <- read.csv(file.path("output", 
+                                     "variable_selection",
+                                     "stepwise",
+                                     "predictor_rank.csv"), 
+                           stringsAsFactors = FALSE)
+
+# tiles
+tile_summary <- read.csv(file.path("data", 
+                                   "env_variables", 
+                                   "plus60minus60_tiles.csv"), 
+                         header = TRUE, 
+                         stringsAsFactors = FALSE)
+
+# NA pixel tiles 
+NA_pixel_tiles <- read.table(file.path("output", 
+                                       "datasets", 
+                                       "NA_pixel_tiles_20km.txt"), 
+                             sep = ",",
+                             header = TRUE)
+
+all_sqr_predictions <- readRDS(file.path("output",
+                                         "EM_algorithm",
+                                         "bootstrap_models",
+                                         my_dir,
+                                         model_type,
+                                         "square_predictions_all_data.rds"))
+
+
+# process the original data ---------------------------------------------------
+
+
+names(foi_dataset)[names(foi_dataset) == var_to_fit] <- "o_j"
+
+foi_dataset[foi_dataset$type == "pseudoAbsence", "o_j"] <- parameters$pseudoAbs_value
+
+
+# pre process admin predictions ----------------------------------------------- 
+
+
+adm_dataset <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
+
+
+# create some objects ---------------------------------------------------------  
+
+
+tile_ids <- tile_summary$tile.id
+
+NA_pixel_tile_ids <- NA_pixel_tiles$tile_id
+
+tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]  
+
+my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 
 no_samples <- parameters$no_samples
 
-no_datapoints <- nrow(foi_dataset)
 
-no_pseudoAbs <- sum(foi_dataset$type == "pseudoAbsence") 
-
-no_pnts_vec <- c(no_datapoints, no_datapoints - no_pseudoAbs) 
-
-foi_dataset$new_weight <- parameters$all_wgt
-
-pAbs_wgt <- get_sat_area_wgts(foi_dataset, parameters)
-
-foi_dataset[foi_dataset$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
+# submit one job --------------------------------------------------------------
 
 
-# start ----------------------------------------------------------------------- 
+# t <- obj$enqueue(
+#   attach_pred_different_scale_to_data(
+#     seq_len(no_samples)[1],
+#     model_path = RF_obj_path,
+#     foi_data = foi_dataset,
+#     adm_dts = adm_dataset,
+#     predictors = my_predictors,
+#     all_sqr_preds = all_sqr_predictions,
+#     sqr_dts = sqr_dataset,
+#     tile_ids = tile_ids_2,
+#     bt_samples = boot_samples,
+#     out_path = out_pt,
+#     grp_fields = grp_flds,
+#     parms = parameters))
 
 
-for (j in seq_along(tags)) {
-  
-  no_pnts <- no_pnts_vec[j]
-  
-  dt_typ <- data_types_vec[[j]]
-  
-  tag <- tags[j]
-  
-  
-  #### create objects for matrix algebric operations
-  
-  
-  all_adm_preds <- matrix(0, nrow = no_pnts, ncol = no_samples)
-  all_sqr_preds <- matrix(0, nrow = no_pnts, ncol = no_samples)
-  #all_pxl_preds <- matrix(0, nrow = no_pnts, ncol = no_samples)
-  train_ids <- matrix(0, nrow = no_pnts, ncol = no_samples)
-  test_ids <- matrix(0, nrow = no_pnts, ncol = no_samples)
-  
-  
-  #### second loop
-  
-  
-  for (i in seq_len(no_samples)) {
-    
-    dts_nm <- paste0("all_scale_predictions_", i, ".rds")
-    
-    dts_1 <- readRDS(file.path(in_path, dts_nm))
-    
-    if(var_to_fit == "FOI"){
-      
-      dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 0] <- 0
-      
-    } else {
-      
-      dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 1] <- psAbs_val
-      
-    }
-    
-    dts <- dts_1[dts_1$type %in% dt_typ, ]
-    
-    
-    #####
-    
-    all_adm_preds[,i] <- dts$admin
-    all_sqr_preds[,i] <- dts$square
-    #all_pxl_preds[,i] <- dts$mean_pxl_pred
-    train_ids[,i] <- dts$train
-    test_ids[,i] <- 1 - dts$train
-    
-    #####
-    
-    
-    names(dts)[names(dts) == "train"] <- "dataset"
-    
-    dts$dataset <- factor(x = dts$dataset, levels = c(1, 0), labels = c("train", "test"))
-    
-    # # rotate df from wide to long to allow faceting
-    # dts_mlt <- melt(
-    #   dts, 
-    #   id.vars = c("data_id", "ADM_0", "ADM_1", "o_j", "dataset"),
-    #   measure.vars = mes_vars,
-    #   variable.name = "scale")
-    # 
-    # fl_nm <- paste0("pred_vs_obs_plot_sample_", i, "_", tag, ".png")
-    # 
-    # RF_preds_vs_obs_plot_stratif(
-    #   df = dts_mlt,
-    #   x = "o_j",
-    #   y = "value",
-    #   facet_var = "scale",
-    #   file_name = fl_nm,
-    #   file_path = out_fig_path)
-    
-  }
-  
-  
-  #### calculate the mean across fits of the predictions (adm, sqr and pxl) 
-  #### by train and test dataset separately
-  
-  
-  train_sets_n <- rowSums(train_ids)
-  test_sets_n <- rowSums(test_ids)
-  
-  mean_adm_pred_train <- rowSums(all_adm_preds * train_ids) / train_sets_n
-  mean_adm_pred_test <- rowSums(all_adm_preds * test_ids) / test_sets_n
-  
-  mean_sqr_pred_train <- rowSums(all_sqr_preds * train_ids) / train_sets_n
-  mean_sqr_pred_test <- rowSums(all_sqr_preds * test_ids) / test_sets_n
-  
-  #mean_pxl_pred_train <- rowSums(all_pxl_preds * train_ids) / train_sets_n
-  #mean_pxl_pred_test <- rowSums(all_pxl_preds * test_ids) / test_sets_n
-  
-  sd_mean_adm_pred_train <- vapply(seq_len(no_pnts), calculate_sd, 1, all_adm_preds, train_ids)
-  sd_mean_adm_pred_test <- vapply(seq_len(no_pnts), calculate_sd, 1, all_adm_preds, test_ids)
-  
-  sd_mean_sqr_pred_train <- vapply(seq_len(no_pnts), calculate_sd, 1, all_sqr_preds, train_ids)
-  sd_mean_sqr_pred_test <- vapply(seq_len(no_pnts), calculate_sd, 1, all_sqr_preds, test_ids)
-  
-  av_train_preds <- data.frame(dts[,c("data_id", "ID_0", "ID_1", "o_j")],
-                               admin = mean_adm_pred_train,
-                               cell = mean_sqr_pred_train,
-                               admin_sd = sd_mean_adm_pred_train,
-                               cell_sd = sd_mean_sqr_pred_train,
-                               #pixel = mean_pxl_pred_train,
-                               dataset = "train")
-  
-  av_test_preds <- data.frame(dts[,c("data_id", "ID_0", "ID_1", "o_j")],
-                              admin = mean_adm_pred_test,
-                              cell = mean_sqr_pred_test,
-                              admin_sd = sd_mean_adm_pred_test,
-                              cell_sd = sd_mean_sqr_pred_test,
-                              #pixel = mean_pxl_pred_test,
-                              dataset = "test")
-  
-  all_av_preds <- rbind(av_train_preds, av_test_preds)
-  write_out_csv(all_av_preds, out_table_path, paste0("pred_vs_obs_plot_averages_", tag, ".csv"))
-  
-  all_av_preds_mlt <- melt(
-    all_av_preds,
-    id.vars = c("data_id", "ID_0", "ID_1", "o_j", "dataset"),
-    measure.vars = mes_vars,
-    variable.name = "scale")
-  
-  fl_nm_av <- paste0("pred_vs_obs_plot_averages_", tag, ".png")
-  
-  ret <- dplyr::left_join(all_av_preds_mlt, foi_dataset[, c("data_id", "new_weight")])
-  
-  RF_preds_vs_obs_plot_stratif(df = ret,
-                               x = "o_j",
-                               y = "value",
-                               facet_var = "scale",
-                               file_name = fl_nm_av,
-                               file_path = out_fig_path_av)
-  
+# submit all jobs ------------------------------------------------------------- 
+
+
+if (CLUSTER) {
+
+  bsamples_preds <- queuer::qlapply(
+    seq_len(no_samples),
+    attach_pred_different_scale_to_data,
+    obj,
+    model_path = RF_obj_path,
+    foi_data = foi_dataset,
+    adm_dts = adm_dataset,
+    predictors = my_predictors,
+    all_sqr_preds = all_sqr_predictions,
+    sqr_dts = sqr_dataset,
+    tile_ids = tile_ids_2,
+    bt_samples = boot_samples,
+    out_path = out_pt,
+    grp_fields = grp_flds,
+    parms = parameters)
+
+} else {
+
+  bsamples_preds <- lapply(
+    seq_len(no_samples)[1],
+    attach_pred_different_scale_to_data,
+    model_path = RF_obj_path,
+    foi_data = foi_dataset,
+    adm_dts = adm_dataset,
+    predictors = my_predictors,
+    all_sqr_preds = all_sqr_predictions,
+    sqr_dts = sqr_dataset,
+    tile_ids = tile_ids_2,
+    bt_samples = boot_samples,
+    out_path = out_pt,
+    grp_fields = grp_flds,
+    parms = parameters)
+
+}
+
+if (!CLUSTER) {
+  context::parallel_cluster_stop()
 }
