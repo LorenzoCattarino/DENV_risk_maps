@@ -170,21 +170,3 @@ make_nice_map <- function(parms,
   dev.off()
   
 }
-
-prediction_df_to_matrix <- function(lats, lons, df_long, statsc){  
-  
-  df_long$lat.int <- floor(df_long$latitude * 6 + 0.5)
-  df_long$long.int <- floor(df_long$longitude * 6 + 0.5)
-  
-  lats.int <- lats * 6
-  lons.int <- lons * 6
-  
-  mat <- matrix(NA, nrow = length(lons), ncol = length(lats))
-  
-  i.lat <- findInterval(df_long$lat.int, lats.int)
-  i.lon <- findInterval(df_long$long.int, lons.int)
-  
-  mat[cbind(i.lon, i.lat)] <- df_long[, statsc]
-  
-  mat
-}
