@@ -26,13 +26,13 @@ dts_out_pt <- file.path("output", "seroprevalence", "salje")
 
 sctplot_out_pt <- file.path("figures", "data", "salje")
 
-model_tp <- "FOI_best_model_3"
+model_tp <- "FOI_boot_model_22"
 
-sctplot_out_nm <- "correlation_20km_pred_vs_observations_3.png"
+sctplot_out_nm <- "correlation_20km_pred_vs_observations_4.png"
 
-pred_map_out_nm <- "predicted_FOI_map_3.png"
+pred_map_out_nm <- "predicted_FOI_map_4.png"
 
-pred_points_out_nm <- "salje_bangl_points_20km_foi_3.png"
+pred_points_out_nm <- "salje_bangl_points_20km_foi_4.png"
 
 
 # load data -------------------------------------------------------------------
@@ -40,9 +40,10 @@ pred_points_out_nm <- "salje_bangl_points_20km_foi_3.png"
 
 pred <- readRDS(file.path("output",
                           "predictions_world", 
-                          "best_fit_models",
+                          "bootstrap_models",
+                          "grid_size_5",
                           model_tp,
-                          "response.rds"))
+                          "response_mean.rds"))
 
 salje_data <- read.csv(file.path("output", 
                                  "seroprevalence",
@@ -66,14 +67,11 @@ res <- (1 / 120) * gr_size
 lats <- seq(-90, 90, by = res)
 lons <- seq(-180, 180, by = res)
 
-names(pred)[names(pred) == "latitude"] <- "lat.grid"
-names(pred)[names(pred) == "longitude"] <- "long.grid"
-
 
 # crop the global prediction map ----------------------------------------------
 
 
-pred_mat <- prediction_df_to_matrix(lats, lons, pred, "best")
+pred_mat <- prediction_df_to_matrix(lats, lons, pred, "mean")
 
 pred_mat_ls <- list(x = lons,
                     y = lats,
@@ -118,7 +116,7 @@ dev.off()
 # extract foi at the sero points coordinates ----------------------------------
 
 
-my_points <- as.matrix(salje_data[,c("lon", "lat")])
+my_points <- as.matrix(salje_data[,c("longitude", "latitude")])
 
 cell_ids_in_raster <- cellFromXY(pred_r_mat, my_points)
 
