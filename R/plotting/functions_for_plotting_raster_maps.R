@@ -1,6 +1,8 @@
-quick_raster_map <- function(pred_df, variable = NULL, statistic, out_pt, out_name) {
+quick_raster_map <- function(pred_df, variable = NULL, statistic, my_col, out_pt, out_name, shp = NULL, key_ttle = NULL) {
   
   # browser()
+  
+  n_col <- length(my_col)
   
   gr_size <- 20
   
@@ -8,10 +10,6 @@ quick_raster_map <- function(pred_df, variable = NULL, statistic, out_pt, out_na
   
   lats <- seq(-90, 90, by = res)
   lons <- seq(-180, 180, by = res)
-  
-  n_col <- 100
-    
-  my_col <- matlab.like(n_col)
   
   if(!is.null(variable)){
     
@@ -42,9 +40,9 @@ quick_raster_map <- function(pred_df, variable = NULL, statistic, out_pt, out_na
   
   dir.create(out_pt, FALSE, TRUE)
   
-  png(file.path(out_pt, out_name), 
-      width = 16, 
-      height = 5.5, 
+  png(file.path(out_pt, out_name),
+      width = 16,
+      height = 5.5,
       units = "cm",
       pointsize = 12,
       res = 300)
@@ -64,6 +62,12 @@ quick_raster_map <- function(pred_df, variable = NULL, statistic, out_pt, out_na
         asp = 1,
         axes = FALSE)
   
+  if(!is.null(shp)){
+    
+    plot(shp, border = "gray40", lwd = 0.05, add = TRUE)  
+  
+  }
+  
   image.plot(lons,
              lats,
              mat,
@@ -74,7 +78,13 @@ quick_raster_map <- function(pred_df, variable = NULL, statistic, out_pt, out_na
              legend.shrink = 0.75,
              breaks = seq(min(ticks), max(ticks), length.out = n_col + 1), 
              axis.args = list(cex.axis = 0.8),
-             smallplot = c(0.04, 0.08, 0.1, 0.5))
+             smallplot = c(0.025, 0.065, 0.1, 0.5))
+  
+  if(!is.null(key_ttle)){
+    
+    text(-172, 7, key_ttle, cex = 0.9, adj = c(0, NA))
+    
+  }
   
   par(mar = par("mar"))
   
