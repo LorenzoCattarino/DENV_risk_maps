@@ -1,14 +1,17 @@
-wrapper_over_bsamples <- function(i, RF_obj_pt, tr_dts_pt, par_dep_pt, var_imp_pt){
+wrapper_over_bsamples <- function(i, 
+                                  RF_obj_pt, 
+                                  tr_dts_pt, 
+                                  par_dep_pt, 
+                                  var_imp_pt, 
+                                  model_type, 
+                                  variables){
   
-  RF_obj_nm <- paste0("RF_obj_sample", "_", i, ".rds")
-  tr_dts_nm <- paste0("train_dts_", i, ".rds")
-  par_dep_nm <- paste0("par_dep_", i, ".rds")
-  var_imp_nm <- paste0("var_imp_", i, ".rds")
-  
-  calculate_par_dep(RF_obj_nm,
-                    tr_dts_nm,
-                    par_dep_nm,
-                    var_imp_nm,
+  nm <- paste0("sample_", i, ".rds")
+
+  calculate_par_dep(nm,
+                    nm,
+                    nm,
+                    nm,
                     RF_obj_pt,
                     tr_dts_pt,
                     par_dep_pt,
