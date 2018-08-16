@@ -29,6 +29,10 @@ vars_to_average <- "response"
 
 statistic <- "mean"
 
+n_col <- 100
+
+my_col <- matlab.like(n_col)
+
 
 # define variables ------------------------------------------------------------
 
@@ -77,4 +81,4 @@ out_fl_nm <- paste0(vars_to_average, "_", statistic, ".png")
 # plot ------------------------------------------------------------------------ 
 
 
-quick_raster_map(df_long, vars_to_average, statistic, out_path, out_fl_nm)
+quick_raster_map(df_long, vars_to_average, statistic, my_col, out_path, out_fl_nm)
