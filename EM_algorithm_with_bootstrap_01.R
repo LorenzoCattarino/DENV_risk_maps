@@ -68,10 +68,6 @@ boot_samples <- readRDS(file.path("output",
                                   my_dir, 
                                   "bootstrap_samples.rds"))
 
-
-# load data -------------------------------------------------------------------
-
-
 all_sqr_covariates <- readRDS(file.path("output", 
                                         "env_variables", 
                                         "all_squares_env_var_0_1667_deg.rds"))
