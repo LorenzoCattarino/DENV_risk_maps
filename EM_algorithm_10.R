@@ -143,7 +143,7 @@ dir.create(out_pt, FALSE, TRUE)
 
 png(file.path(out_pt, "partial_dependence_plots.png"),
     width = 16.5,
-    height = 18,
+    height = 20,
     units = "cm",
     pointsize = 12,
     res = 300)
