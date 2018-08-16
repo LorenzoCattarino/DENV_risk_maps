@@ -5,8 +5,8 @@ library(colorRamps)
 library(viridis)
 library(fields)
 
-
 source(file.path("R", "plotting", "functions_for_plotting_raster_maps.R"))
+source(file.path("R", "prepare_datasets", "get_covariate_scaling_factor.R"))
 
 
 # define parameters -----------------------------------------------------------
@@ -17,11 +17,19 @@ parameters <- list(
   resample_grid_size = 20)   # kms  
 
 year.i <- 2007
+
 year.f <- 2014
+
 ppyear <- 64
 
+n_pal_col <- 11 
+
+req_n_col <- 100
+
 altitude_var <- "altitude"
-fourier_transform_elem <- "const_term"#,	"Re0",	"Im0",	"Re1",	"Im1")
+
+fourier_transform_elem <- "const_term"
+
 FTs_dt <- c("DayTemp", "EVI", "MIR", "NightTemp", "RFE")
 
 key_ttls <- c("Altitude", 
@@ -32,9 +40,6 @@ key_ttls <- c("Altitude",
               "Precipitation",
               "Travel time",
               "Population density")
-
-n_pal_col <- 11 
-req_n_col <- 100
 
 
 # define variables ------------------------------------------------------------
@@ -93,40 +98,18 @@ palettes <- list(alt_p,
                  pop_den_p)
 
 
-# rescale covariates ----------------------------------------------------------
-
-
-for (i in seq_along(my_predictors)){
-  
-  var <- my_predictors[i]
-  
-  scale <- 1
-  
-  if(grepl("Re.", var) | grepl("Im.", var)){
-    
-    scale <- ppyear * (year.f - year.i + 1) / 2 
-    
-  } 
-  
-  if(grepl("const_term$", var)){
-    
-    scale <- ppyear * (year.f - year.i + 1) 
-    
-  }  
-  
-  # message(scale)
-  
-  all_sqr_covariates[, var] <- all_sqr_covariates[, var] / scale
-  
-}
-
-
 # loop through the predictors to plot -----------------------------------------
 
 
 for (i in seq_along(my_predictors)){
   
   my_pred <- my_predictors[i]
+  
+  scale <- get_covariate_scaling_factor(my_pred, ppyear, year.f, year.i)
+    
+  message(scale)
+  
+  all_sqr_covariates[, my_pred] <- all_sqr_covariates[, my_pred] / scale
   
   out_fl_nm <- paste0(my_pred, ".png")
   
