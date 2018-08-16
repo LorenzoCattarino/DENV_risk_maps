@@ -1,4 +1,4 @@
-# Calulate the partial depence of the model function on each explanatory variable,
+# Calculate the partial depence of the model function on each explanatory variable,
 # for each model fit.
 
 options(didehpc.cluster = "fi--didemrchnb")
@@ -6,10 +6,10 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "partial_dependence_plots.R"),
+  file.path("R", "random_forest", "partial_dependence_plots_pdp.R"),
   file.path("R", "utility_functions.R"))
   
-my_pkgs <- "h2o"
+my_pkgs <- c("ranger", "pdp")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -21,12 +21,12 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "R0_3",
+  dependent_variable = "FOI",
   grid_size = 5,
   no_samples = 200,
-  no_predictors = 9)   
+  no_predictors = 23)   
 
-RF_mod_name <- "RF_obj_sample"
+model_type_tag <- "_boot_model_22"
 
 
 # define variables ------------------------------------------------------------
@@ -34,7 +34,7 @@ RF_mod_name <- "RF_obj_sample"
 
 no_samples <- parameters$no_samples
 
-model_type <- paste0(parameters$dependent_variable, "_boot_model")
+model_type <- paste0(parameters$dependent_variable, model_type_tag)
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
@@ -72,7 +72,7 @@ v_imp_out_pt <- file.path("output",
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "20Core")
+  config <- didehpc::didehpc_config(template = "16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -89,31 +89,29 @@ if (CLUSTER) {
 
 
 predictor_rank <- read.csv(file.path("output", 
-                                     "variable_selection", 
-                                     "metropolis_hastings", 
-                                     "exp_1", 
-                                     "variable_rank_final_fits_exp_1.csv"),
+                                     "variable_selection",
+                                     "stepwise",
+                                     "predictor_rank.csv"),
                            stringsAsFactors = FALSE)
 
 
 # pre processing --------------------------------------------------------------
 
 
-variables <- predictor_rank$name[1:parameters$no_predictors]
+my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 
 
 # submit one job --------------------------------------------------------------  
 
 
 # t <- obj$enqueue(
-#   calculate_par_dep(seq_len(no_samples)[1],
-#                     RF_mod_name = RF_mod_name,
-#                     model_in_path = model_in_pt,
-#                     train_dts_in_path = train_dts_in_pt,
-#                     model_type = model_type,
-#                     variables = variables,
-#                     out_path_1 = pdp_out_pt,
-#                     out_path_2 = v_imp_out_pt))
+#   wrapper_over_bsamples(seq_len(no_samples)[1],
+#                         RF_obj_pt = model_in_pt,
+#                         tr_dts_pt = train_dts_in_pt,
+#                         par_dep_pt = pdp_out_pt,
+#                         var_imp_pt = v_imp_out_pt,
+#                         model_type = model_type,
+#                         variables = my_predictors))
 
 
 # submit all jobs -------------------------------------------------------------
@@ -123,27 +121,25 @@ if (CLUSTER) {
 
   pd_tables <- queuer::qlapply(
     seq_len(no_samples),
-    calculate_par_dep,
+    wrapper_over_bsamples,
     obj,
-    RF_mod_name = RF_mod_name,
-    model_in_path = model_in_pt,
-    train_dts_in_path = train_dts_in_pt,
+    RF_obj_pt = model_in_pt,
+    tr_dts_pt = train_dts_in_pt,
+    par_dep_pt = pdp_out_pt,
+    var_imp_pt = v_imp_out_pt,
     model_type = model_type,
-    variables = variables,
-    out_path_1 = pdp_out_pt,
-    out_path_2 = v_imp_out_pt)
+    variables = my_predictors)
 
 } else {
 
   pd_tables <- lapply(
     seq_len(no_samples)[1],
-    calculate_par_dep,
-    RF_mod_name = RF_mod_name,
-    model_in_path = model_in_pt,
-    train_dts_in_path = train_dts_in_pt,
+    wrapper_over_bsamples,
+    RF_obj_pt = model_in_pt,
+    tr_dts_pt = train_dts_in_pt,
+    par_dep_pt = pdp_out_pt,
+    var_imp_pt = v_imp_out_pt,
     model_type = model_type,
-    variables = variables,
-    out_path_1 = pdp_out_pt,
-    out_path_2 = v_imp_out_pt)
+    variables = my_predictors)
 
 }
