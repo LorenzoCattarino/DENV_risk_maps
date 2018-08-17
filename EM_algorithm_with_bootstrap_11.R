@@ -4,7 +4,7 @@
 options(didehpc.cluster = "fi--didemrchnb")
 
 my_resources <- c(
-  file.path("R", "random_forest", "partial_dependence_plots.R"),
+  file.path("R", "random_forest", "partial_dependence_plots_pdp.R"),
   file.path("R", "utility_functions.R"))
 
 my_pkgs <- c("ggplot2")
@@ -22,11 +22,12 @@ context::context_load(ctx)
 
 
 parameters <- list(
-  dependent_variable = "R0_3",
+  dependent_variable = "FOI",
   grid_size = 5,
   no_samples = 200,
-  no_predictors = 9)   
+  no_predictors = 23)   
 
+model_type_tag <- "_boot_model_22"
 
 year.i <- 2007
 year.f <- 2014
@@ -36,7 +37,7 @@ ppyear <- 64
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, "_boot_model")
+model_type <- paste0(parameters$dependent_variable, model_type_tag)
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
@@ -65,10 +66,9 @@ out_pt <- file.path("figures",
 
 
 predictor_rank <- read.csv(file.path("output", 
-                                     "variable_selection", 
-                                     "metropolis_hastings", 
-                                     "exp_1", 
-                                     "variable_rank_final_fits_exp_1.csv"),
+                                     "variable_selection",
+                                     "stepwise",
+                                     "predictor_rank.csv"),
                            stringsAsFactors = FALSE)
 
 
