@@ -149,6 +149,8 @@ adm_covariates <- read.csv(file.path("output",
 # pre processing --------------------------------------------------------------
 
 
+map_col <- matlab.like(100)
+
 # pxl_data$NightTemp_const_term <- ifelse(pxl_data$NightTemp_const_term > 6000, 6000, pxl_data$NightTemp_const_term)
 # pxl_data$log_pop_den <- ifelse(pxl_data$log_pop_den > 0.6, 0.6, pxl_data$log_pop_den)
 # pxl_data[pxl_data$square == 229595, "population"] <- 10000
@@ -274,6 +276,7 @@ if (CLUSTER) {
       my_predictors = my_predictors, 
       grp_flds = grp_flds,
       var_to_fit = var_to_fit,
+      map_col = map_col,
       RF_obj_path = RF_out_pth,
       RF_obj_name = out_md_nm,
       diagn_tab_path = diag_t_pth, 
@@ -294,6 +297,7 @@ if (CLUSTER) {
     my_predictors = my_predictors, 
     grp_flds = grp_flds,
     var_to_fit = var_to_fit,
+    map_col = map_col,
     RF_obj_path = RF_out_pth,
     RF_obj_name = out_md_nm,
     diagn_tab_path = diag_t_pth, 
