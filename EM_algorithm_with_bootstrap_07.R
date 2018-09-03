@@ -1,4 +1,4 @@
-# Load back in the pxl data predictions from thge optimized EM models.
+# Load back in the pxl data predictions from the optimized EM models.
 # Specifically, for each bootstrap sample, get:
 #
 # 1) Vector of square-level predictions for the entire 20km dataset
