@@ -4,6 +4,7 @@ quick_raster_map <- function(pred_df,
                              my_col, 
                              out_pt, 
                              out_name, 
+                             z_range = NULL,
                              shp = NULL, 
                              key_ttle = NULL) {
   
@@ -57,13 +58,21 @@ quick_raster_map <- function(pred_df,
   par(mar = c(0,0,0,0), oma = c(0,0,0,0))
   
   ticks <- pretty(pred_df[, statistic], n = 5)
-  # ticks <- seq(0, 0.06, 0.01)
+  lower <- min(ticks)
+  upper <- max(ticks)  
+    
+  if(!is.null(z_range)){
+    
+    lower <- z_range[1] 
+    upper <- z_range[2]
+  
+  }
 
   image(lons, 
         lats, 
         mat, 
         col = my_col, 
-        zlim = c(min(ticks), max(ticks)), 
+        zlim = c(lower, upper), 
         xlim = c(-180, 180), 
         ylim = c(-60, 60),
         asp = 1,
@@ -79,11 +88,11 @@ quick_raster_map <- function(pred_df,
              lats,
              mat,
              col = my_col,
-             zlim = c(min(ticks), max(ticks)),
+             zlim = c(lower, upper),
              legend.only = TRUE,
              legend.width = 1,
              legend.shrink = 0.75,
-             breaks = seq(min(ticks), max(ticks), length.out = n_col + 1), 
+             breaks = seq(lower, upper, length.out = n_col + 1), 
              axis.args = list(cex.axis = 0.8),
              smallplot = c(0.025, 0.065, 0.1, 0.5))
   
