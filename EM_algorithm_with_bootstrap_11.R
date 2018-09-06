@@ -123,7 +123,7 @@ for (i in seq_along(final_pd_df_splt)){
     
   }  
   
-  # message(scale)
+  message(scale)
   
   final_pd_df_splt[[i]] <- one_set[[var]] / scale
   
@@ -135,7 +135,9 @@ final_pd_df$x <- unname(unlist(final_pd_df_splt))
 # sort by var importance ------------------------------------------------------
 
 
-all_vi_values <- lapply(seq_along(variables), extract_vi, variables, vi_tables)
+vi_tables_norm <- lapply(vi_tables, normalize_impurity)
+
+all_vi_values <- lapply(seq_along(variables), extract_vi, variables, vi_tables_norm)
   
 importance <- vapply(all_vi_values, mean, numeric(1))  
   
@@ -143,7 +145,6 @@ vi_df <- data.frame(var = variables, importance = importance)
 
 final_vi_df <- vi_df[order(vi_df$importance, decreasing = TRUE),]
 
-# reorder the levels of `var` factor based on variable percentage importance 
 final_pd_df$var <- factor(final_pd_df$var, 
                           levels = as.character(final_vi_df$var))
   
@@ -154,7 +155,7 @@ final_pd_df$var <- factor(final_pd_df$var,
 # create new name strips for facet plots
 new_names <- sprintf("%s (%s)", 
                      final_vi_df$var, 
-                     paste0(round(final_vi_df$importance * 100, 2),"%"))
+                     paste0(round(final_vi_df$importance, 2),"%"))
 
 x_name_strips <- setNames(new_names, final_vi_df$var)
 
@@ -169,8 +170,8 @@ png(file.path(out_pt, "partial_dependence_plots.png"),
 
 p <- ggplot(final_pd_df, aes(x, q50)) +
   facet_wrap(facets = ~ var, 
-             ncol = 3,
-             scales = "free", 
+             ncol = 4,
+             scales = "free_x", 
              labeller = as_labeller(x_name_strips)) +
   geom_ribbon(data = final_pd_df, 
               mapping = aes(ymin = q05, ymax = q95), 
@@ -182,8 +183,8 @@ p <- ggplot(final_pd_df, aes(x, q50)) +
   labs(x = "Value of predictor",
        y = "Response (and 95% CI)",
        title = NULL) +
-  theme(strip.text.x = element_text(size = 8))#,
-        #axis.text.x = element_text(size = 8))
+  theme(strip.text.x = element_text(size = 6),
+        axis.text.x = element_text(size = 7))
 
 print(p)
 
