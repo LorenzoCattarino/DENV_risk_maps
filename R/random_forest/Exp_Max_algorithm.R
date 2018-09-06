@@ -4,6 +4,7 @@ exp_max_algorithm <- function(parms,
                               my_predictors, 
                               grp_flds, 
                               var_to_fit,
+                              map_col,
                               RF_obj_path = NULL, 
                               RF_obj_name = NULL,
                               diagn_tab_path = NULL, 
@@ -134,6 +135,7 @@ exp_max_algorithm <- function(parms,
       
       quick_raster_map(pred_df = dd_1, 
                      statistic = "p_i", 
+                     my_col = map_col,
                      out_pt = map_path, 
                      out_name = mp_nm) 
     }
@@ -283,6 +285,7 @@ exp_max_algorithm_boot <- function(i,
                                    boot_samples, 
                                    my_preds, 
                                    grp_flds, 
+                                   map_col,
                                    RF_obj_path, 
                                    RF_obj_name,
                                    diagn_tab_path, 
@@ -412,13 +415,13 @@ exp_max_algorithm_boot <- function(i,
   
   pxl_dts_boot_3 <- inner_join(pxl_dts_boot_3, foi_data_boot[, c(grp_flds, "o_j")])  
   
-  write_out_rds(pxl_dts_boot_3, file.path("output", 
-                                          "EM_algorithm", 
-                                          "bootstrap_models",
-                                          "grid_size_5",
-                                          "env_variables_FOI_fit",
-                                          "boot_samples_2"), 
-                paste0("sample_", i, ".rds"))
+  # write_out_rds(pxl_dts_boot_3, file.path("output", 
+  #                                         "EM_algorithm", 
+  #                                         "bootstrap_models",
+  #                                         "grid_size_5",
+  #                                         "env_variables_FOI_fit",
+  #                                         "boot_samples_2"), 
+  #               paste0("sample_", i, ".rds"))
   
   
   # ---------------------------------------- calculate population proportion weights
@@ -445,6 +448,7 @@ exp_max_algorithm_boot <- function(i,
                     my_predictors = my_preds, 
                     grp_flds = grp_flds, 
                     var_to_fit = var_to_fit,
+                    map_col = map_col,
                     RF_obj_path = RF_obj_path,
                     RF_obj_name = a,
                     diagn_tab_path = diagn_tab_path, 
