@@ -7,7 +7,7 @@ CLUSTER <- TRUE
 my_resources <- c(
   file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "random_forest", "exp_max_algorithm.R"),
-  file.path("R", "plotting", "quick_raster_map.R"),
+  file.path("R", "plotting", "functions_for_plotting_raster_maps.R"),
   file.path("R", "plotting", "generic_scatter_plot.R"),
   file.path("R", "prepare_datasets", "calculate_wgt_corr.R"),
   file.path("R", "utility_functions.R"))
@@ -33,13 +33,13 @@ parameters <- list(
   min_node_size = 20,
   no_samples = 200,
   EM_iter = 10,
-  no_predictors = 9)   
+  no_predictors = 23)   
 
 grp_flds <- c("ID_0", "ID_1", "unique_id")
 
-model_type_tag <- "_boot_model_23"
-
-
+model_type_tag <- "_boot_model_22"
+  
+  
 # define variables ------------------------------------------------------------  
 
 
@@ -143,6 +143,8 @@ bt_samples <- readRDS(file.path("output",
 # pre process ----------------------------------------------------------------- 
 
 
+map_col <- matlab.like(100)
+
 number_of_predictors <- parameters$no_predictors
   
 my_predictors <- predictor_rank$name[1:number_of_predictors]
@@ -160,6 +162,7 @@ adm_dts <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 #     boot_samples = bt_samples,
 #     my_preds = my_predictors,
 #     grp_flds = grp_flds,
+#     map_col = map_col,
 #     RF_obj_path = RF_out_pth,
 #     RF_obj_name = RF_nm_all,
 #     diagn_tab_path = diag_t_pth,
@@ -186,6 +189,7 @@ if (CLUSTER) {
     boot_samples = bt_samples,
     my_preds = my_predictors,
     grp_flds = grp_flds,
+    map_col = map_col,
     RF_obj_path = RF_out_pth,
     RF_obj_name = RF_nm_all,
     diagn_tab_path = diag_t_pth,
@@ -207,6 +211,7 @@ if (CLUSTER) {
     boot_samples = bt_samples,
     my_preds = my_predictors,
     grp_flds = grp_flds,
+    map_col = map_col,
     RF_obj_path = RF_out_pth,
     RF_obj_name = RF_nm_all,
     diagn_tab_path = diag_t_pth,
