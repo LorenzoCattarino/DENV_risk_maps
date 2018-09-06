@@ -5,7 +5,7 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- FALSE
 
 my_resources <- c(
-  file.path("R", "plotting", "quick_raster_map.R"),
+  file.path("R", "plotting", "functions_for_plotting_raster_maps.R"),
   file.path("R", "utility_functions.R"))
 
 my_pkgs <- c("data.table", "ggplot2", "fields", "rgdal", "scales", "RColorBrewer", "colorRamps")
@@ -29,8 +29,6 @@ statistic <- "best"
 model_type_tag <- "_best_model_5"
 
 n_col <- 100
-
-my_col <- matlab.like(n_col)
 
 
 # define variables ------------------------------------------------------------
@@ -65,6 +63,8 @@ if (CLUSTER) {
 
 # pre processing -------------------------------------------------------------- 
 
+
+my_col <- matlab.like(n_col)
 
 mean_pred_fl_nm <- paste0(vars_to_average, ".rds")
 
