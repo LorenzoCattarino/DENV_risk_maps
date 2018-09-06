@@ -9,7 +9,7 @@ my_resources <- c(
   file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "random_forest", "exp_max_algorithm.R"),
-  file.path("R", "plotting", "quick_raster_map.R"),
+  file.path("R", "plotting", "functions_for_plotting_raster_maps.R"),
   file.path("R", "plotting", "generic_scatter_plot.R"),
   file.path("R", "prepare_datasets", "calculate_wgt_corr.R"),
   file.path("R", "utility_functions.R"))  
@@ -37,9 +37,9 @@ parameters <- list(
   all_wgt = 1,
   wgt_limits = c(1, 500),
   EM_iter = 10,
-  no_predictors = 26) 
+  no_predictors = 9) 
 
-model_type_tag <- "_best_model_4"
+model_type_tag <- "_best_model_6"
 
 extra_predictors <- NULL
 
