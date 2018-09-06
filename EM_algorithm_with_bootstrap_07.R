@@ -1,4 +1,4 @@
-# Load back in the pxl data predictions from the optimized EM models.
+# Load back in the pxl-level predictions from the optimized EM models.
 # Specifically, for each bootstrap sample, get:
 #
 # 1) Vector of square-level predictions for the entire 20km dataset
@@ -26,9 +26,9 @@ parameters <- list(
   dependent_variable = "FOI",
   grid_size = 5,
   no_samples = 200,
-  no_predictors = 9)   
+  no_predictors = 23)   
 
-model_type_tag <- "_boot_model_23"
+model_type_tag <- "_boot_model_22"
 
 out_fl_nm <- "square_predictions_all_data.rds"
 
