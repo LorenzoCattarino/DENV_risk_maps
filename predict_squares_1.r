@@ -4,7 +4,7 @@ options(didehpc.cluster = "fi--didemrchnb")
 
 my_resources <- c(
   file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
-  file.path("R", "plotting", "functions_for_plotting_square_level_maps.R"),
+  file.path("R", "plotting", "functions_for_plotting_raster_maps.R"),
   file.path("R", "utility_functions.R"))
   
 my_pkgs <- "ranger"
@@ -21,7 +21,7 @@ ctx <- context::context_save(path = "context",
 parameters <- list(
   dependent_variable = "FOI",
   foi_offset = 0.03,
-  no_predictors = 26)   
+  no_predictors = 23)   
 
 RF_mod_name <- "RF_obj.rds"
 
