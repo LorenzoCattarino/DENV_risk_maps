@@ -38,7 +38,7 @@ tags <- c("all_data", "no_psAb")
 data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
                        c("serology", "caseReport"))
 
-model_type_tag <- "_boot_model_23"
+model_type_tag <- "_boot_model_22"
 
 
 # define variables ------------------------------------------------------------
