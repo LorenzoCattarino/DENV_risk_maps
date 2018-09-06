@@ -56,11 +56,13 @@ calculate_par_dep <- function(RF_obj_name,
 
 extract_pd <- function(i, variables, all_tables){  
   
+  #browser()
   var <- variables[i]
   
   all_pd_tables <- lapply(all_tables, "[[" , i)
-  all_x <- vapply(all_pd_tables, "[[", numeric(20), var)  
-  all_y <- vapply(all_pd_tables, "[[", numeric(20), "mean_response")
+  n <- nrow(all_tables[[1]][[1]])
+  all_x <- vapply(all_pd_tables, "[[", numeric(n), var)  
+  all_y <- vapply(all_pd_tables, "[[", numeric(n), "yhat")
   
   data.frame(x = apply(all_x, 1, median),
              q50 = apply(all_y, 1, median),
@@ -81,8 +83,9 @@ extract_vi <- function(i, variables, all_tables){
   for (j in seq_along(all_tables)){
     
     tar <- all_tables[[j]]
-    id <- which(tar[,"variable"] == var)
-    out[j] <- tar[id, "percentage"]
+    #id <- which(tar[,"variable"] == var)
+    #out[j] <- tar[id, "percentage"]
+    out[j] <- tar[var]
     
   }
 
@@ -96,4 +99,10 @@ edit_pd_list <- function(x){
   x$var <- var
   names(x)[names(x) == var] <- "x"
   x
+}
+
+normalize_impurity <- function(x){
+  
+  (x / sum(x)) * 100
+
 }
