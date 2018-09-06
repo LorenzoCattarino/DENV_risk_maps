@@ -25,13 +25,13 @@ parameters <- list(
   foi_offset = 0.03,
   grid_size = 5,
   no_samples = 200,
-  no_predictors = 9)   
+  no_predictors = 23)   
 
 out_fl_nm <- "response.rds"
 
 base_info <- c("cell", "latitude", "longitude", "population", "ID_0", "ID_1", "ID_2")
 
-model_type_tag <- "_boot_model_23"
+model_type_tag <- "_boot_model_22"
 
 
 # define variables ------------------------------------------------------------
@@ -65,7 +65,7 @@ all_sqr_covariates <- readRDS(file.path("output",
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "20Core")
+  config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {

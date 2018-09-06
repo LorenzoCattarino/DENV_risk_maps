@@ -1,5 +1,5 @@
 # Take mean, median, sd and 95% CI of foi, R0 and burden measures, for each 20 km square
-# THIS IS FOR THE MAPS!
+# THIS IS FOR THE MAP!
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -24,7 +24,7 @@ parameters <- list(
 
 vars_to_average <- "response"
 
-model_type_tag <- "_boot_model_23"
+model_type_tag <- "_boot_model_22"
 
 
 # define variables ------------------------------------------------------------
