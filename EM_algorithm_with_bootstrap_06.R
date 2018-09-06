@@ -1,4 +1,5 @@
-# Estimates foi (or R0) for each resampled square, of each 20km resolution bootstrap sample
+# Estimates foi (or R0) of each 20 km square of the full dataset, 
+# for each bootstrap sample
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -23,9 +24,9 @@ parameters <- list(
   dependent_variable = "FOI",
   grid_size = 5,
   no_samples = 200,
-  no_predictors = 9)   
+  no_predictors = 23)   
 
-model_type_tag <- "_boot_model_23"
+model_type_tag <- "_boot_model_22"
 
 
 # define variables ------------------------------------------------------------
