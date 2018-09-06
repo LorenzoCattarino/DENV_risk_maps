@@ -9,7 +9,7 @@ my_resources <- c(
   file.path("R", "random_forest", "partial_dependence_plots_pdp.R"),
   file.path("R", "utility_functions.R"))
   
-my_pkgs <- c("ranger", "pdp")
+my_pkgs <- c("ranger", "pdp", "foreach")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -72,7 +72,7 @@ v_imp_out_pt <- file.path("output",
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "16Core")
+  config <- didehpc::didehpc_config(template = "20Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
