@@ -1,4 +1,11 @@
-quick_raster_map <- function(pred_df, variable = NULL, statistic, my_col, out_pt, out_name, shp = NULL, key_ttle = NULL) {
+quick_raster_map <- function(pred_df, 
+                             variable = NULL, 
+                             statistic, 
+                             my_col, 
+                             out_pt, 
+                             out_name, 
+                             shp = NULL, 
+                             key_ttle = NULL) {
   
   # browser()
   
@@ -50,7 +57,7 @@ quick_raster_map <- function(pred_df, variable = NULL, statistic, my_col, out_pt
   par(mar = c(0,0,0,0), oma = c(0,0,0,0))
   
   ticks <- pretty(pred_df[, statistic], n = 5)
-  # ticks <- seq(0, 0.08, 0.01)
+  # ticks <- seq(0, 0.06, 0.01)
 
   image(lons, 
         lats, 
