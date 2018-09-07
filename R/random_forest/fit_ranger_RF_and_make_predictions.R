@@ -237,7 +237,7 @@ attach_pred_different_scale_to_data <- function(i,
   
   RF_obj_nm <- paste0("sample_", i, ".rds")
   
-  out_name <- paste0("all_scale_predictions_", i, ".rds")
+  out_name <- paste0("sample_", i, ".rds")
   
   
   # -------------------------------------- load data
