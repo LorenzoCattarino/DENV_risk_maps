@@ -146,65 +146,32 @@ henrik_foi <- approx(look_up[, "y"], look_up[, "x"], xout = henrik_sero)$y
 salje_data$FOI <- henrik_foi 
 
 
-# find admin unit 1 -----------------------------------------------------------
+# plot the FOI of the original seroprevalence points --------------------------
 
 
-# location_xy <- salje_data[, c("lon", "lat")]
-# xy_spdf <- SpatialPoints(location_xy, proj4string = shp@proj4string)
-# 
-# overlay <- over(xy_spdf, shp)
-# country_numeric_code <- overlay$ID_0
-# adm_numeric_code <- overlay$ID_1
-# adm1_name <- overlay$NAME_1
-# country_name <- overlay$NAME_0
-# 
-# salje_data$country <- country_name
-# salje_data$ID_0 <- country_numeric_code
-# salje_data$ID_1 <- adm_numeric_code
-# salje_data$adm1 <- adm1_name
-# 
-# salje_data <- subset(salje_data, !is.na(ID_1))
-# 
-# colnames(salje_data)[colnames(salje_data) == "lon"] <- "longitude"
-# colnames(salje_data)[colnames(salje_data) == "lat"] <- "latitude"
+dir.create(map_out_pt, FALSE, TRUE)
 
+png(file.path(map_out_pt, "salje_bangl_points_FOI.png"),
+    width = 12,
+    height = 10,
+    units = "cm",
+    pointsize = 12,
+    res = 300)
 
-# add adm unit 1 centroid coordinates -----------------------------------------
+p <- ggplot() +
+  geom_path(data = shp_fort, aes(x = long, y = lat, group = group), size = 0.3) +
+  geom_point(data = salje_data, aes(x = longitude, y = latitude, colour = FOI), size = 2) +
+  coord_equal() + 
+  scale_color_viridis("FOI") +
+  theme_minimal()
 
+print(p)
 
-# centroid_objs <- gCentroid(shp,byid=TRUE)
-# 
-# centroid_xy <- centroid_objs@coords
-# 
-# centroid_xy <- cbind(seq(nrow(centroid_xy)), centroid_xy)
-# 
-# colnames(centroid_xy) <- c("ID_1", "longitude", "latitude")
-# 
-# centroid_xy <- as.data.frame(centroid_xy)
-# 
-# salje_data <- left_join(salje_data, centroid_xy)
-
-
-# calculate matrix of distances -----------------------------------------------
-
-
-# salje_xy <- salje_data[, c("lon","lat")]
-# 
-# d <- distm(salje_xy, fun = distGeo)
-# min.d <- apply(d, 1, function(x) order(x, decreasing = FALSE)[2])
-# 
-# salje_data <- cbind(salje_data, 
-#                     distance_km = apply(d, 1, function(x) sort(x, decreasing = FALSE)[2]))
-# 
-# salje_data[, "distance_km"] <- salje_data[, "distance_km"] / 1000
+dev.off()
 
 
 # save ------------------------------------------------------------------------
 
-
-# write_out_csv(salje_data, 
-#               dts_out_pt, 
-#               dts_out_nm_1)
 
 write.csv(salje_data,
           file.path(dts_out_pt, dts_out_nm_1),
