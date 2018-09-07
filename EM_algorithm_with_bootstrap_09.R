@@ -136,7 +136,7 @@ for (j in seq_along(tags)) {
   
   for (i in seq_len(no_samples)) {
     
-    dts_nm <- paste0("all_scale_predictions_", i, ".rds")
+    dts_nm <- paste0("sample_", i, ".rds")
     
     dts_1 <- readRDS(file.path(in_path, dts_nm))
     
