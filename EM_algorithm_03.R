@@ -18,7 +18,7 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "FOI",
+  dependent_variable = "R0_1",
   no_predictors = 9)   
 
 aggr_dts_name <- "env_vars_20km.rds"
