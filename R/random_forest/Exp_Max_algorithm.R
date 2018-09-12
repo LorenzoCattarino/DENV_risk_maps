@@ -77,14 +77,14 @@ exp_max_algorithm <- function(parms,
       u_i[!psAbs] <- (dd$o_j[!psAbs] * dd$p_i[!psAbs]) / dd$a_sum[!psAbs] # when using updating weights
       u_i[psAbs] <- ifelse(dd$p_i[psAbs] > zero_2, l_f_2, dd$p_i[psAbs])
       
-      u_i[dd$type == "serology" & dd$new_weight == 1] <- dd$o_j[dd$type == "serology" & dd$new_weight == 1]
-    
     } else {
       
       u_i[!psAbs] <- (dd$o_j[!psAbs] * dd$p_i[!psAbs]) / dd$a_sum[!psAbs]
       u_i[psAbs] <- ifelse(dd$p_i[psAbs] > 1, l_f, dd$p_i[psAbs])
       
     }
+    
+    u_i[dd$type == "serology" & dd$new_weight == 1] <- dd$o_j[dd$type == "serology" & dd$new_weight == 1]
     
     dd$u_i <- u_i
     
