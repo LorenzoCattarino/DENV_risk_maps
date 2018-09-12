@@ -26,11 +26,11 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   resample_grid_size = 20,
-  dependent_variable = "FOI",
+  dependent_variable = "R0_1",
   shape_1 = 0,
   shape_2 = 5,
   shape_3 = 1.6e6,
-  pseudoAbs_value = -0.02,
+  pseudoAbs_value = 0.5,
   foi_offset = 0.03,
   no_trees = 500,
   min_node_size = 20,
@@ -53,7 +53,7 @@ foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
 pxl_dts_name <- "covariates_and_foi_20km.rds"
 
-model_id <- 1
+model_id <- 2
 
 extra_predictors <- NULL
 
@@ -236,7 +236,7 @@ write_out_rds(pxl_data_3,
               file.path("output",
                         "EM_algorithm",
                         "best_fit_models",
-                        "env_variables_FOI_fit"), 
+                        paste0("env_variables_", var_to_fit, "_fit")), 
               "covariates_and_foi_20km_2.rds")
 
 
