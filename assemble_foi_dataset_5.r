@@ -23,7 +23,7 @@ base_info <- c("type",
   
 foi_out_pt <- file.path("output", "foi")
   
-foi_out_nm <- "All_FOI_estimates_and_predictors_2.csv"
+foi_out_nm <- "All_FOI_estimates_and_predictors.csv"
 
 
 # load data -------------------------------------------------------------------  
