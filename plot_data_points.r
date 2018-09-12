@@ -18,11 +18,10 @@ poly_bd_sz <- 0.1
 # load data ------------------------------------------------------------------- 
 
 
-All_FOI_estimates <- read.table(file.path("output", 
-                                          "foi", 
-                                          "All_FOI_estimates_linear.txt"), 
-                                header = TRUE, 
-                                sep = ",")
+All_FOI_estimates <- read.csv(file.path("output", 
+                                        "foi", 
+                                        "FOI_estimates_lon_lat.csv"),
+                              stringsAsFactors = FALSE) 
 
 countries <- readOGR(dsn = file.path("output", "shapefiles"), 
                      layer = "gadm28_adm0_eras")
