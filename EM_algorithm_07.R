@@ -25,8 +25,8 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "FOI",
-  pseudoAbs_value = -0.02,
+  dependent_variable = "R0_1",
+  pseudoAbs_value = 0.5,
   foi_offset = 0.03,
   no_predictors = 9)   
 
@@ -40,7 +40,7 @@ foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
 covariate_dts_nm <- "covariates_and_foi_20km_2.rds"
 
-model_id <- 1
+model_id <- 2
 
 extra_predictors <- NULL
 
@@ -82,7 +82,7 @@ foi_dataset <- read.csv(file.path("output", "foi", foi_dts_nm),
 sqr_dataset <- readRDS(file.path("output",
                                  "EM_algorithm",
                                  "best_fit_models",
-                                 "env_variables_FOI_fit",
+                                 paste0("env_variables_", var_to_fit, "_fit"),
                                  covariate_dts_nm))
 
 adm_dataset <- read.csv(file.path("output",
