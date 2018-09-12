@@ -302,7 +302,7 @@ exp_max_algorithm_boot <- function(i,
   # browser()
   
   
-  # ---------------------------------------- define variables
+  # define variables ---------------------------------------------------------- 
   
   
   psAbs <- parms$pseudoAbs_value
@@ -314,7 +314,7 @@ exp_max_algorithm_boot <- function(i,
   pxl_dts_nm <- paste0("sample_", i, ".rds")
   
   
-  # ---------------------------------------- load bootstrapped data sets 
+  # load bootstrapped data sets -----------------------------------------------  
   
   
   pxl_dts_boot <- readRDS(file.path(pxl_dts_pt, pxl_dts_nm))
@@ -322,7 +322,7 @@ exp_max_algorithm_boot <- function(i,
   foi_data_boot <- boot_samples[[i]]
   
   
-  # ---------------------------------------- get output name 
+  # get output name -----------------------------------------------------------  
   
   
   a <- RF_obj_name[i]
@@ -333,7 +333,7 @@ exp_max_algorithm_boot <- function(i,
   ff <- file.path(sct_plt_path, paste0("sample_", i))
   
   
-  # ---------------------------------------- pre process the bootstrapped foi data set
+  # pre process the bootstrapped foi data set --------------------------------- 
   
   
   if(var_to_fit == "FOI"){
@@ -355,7 +355,7 @@ exp_max_algorithm_boot <- function(i,
   }
   
   
-  # ---------------------------------------- attach original data and weights to square dataset
+  # attach original data and weights to square dataset ------------------------ 
   
   
   pxl_dts_boot <- inner_join(pxl_dts_boot, foi_data_boot[, c(grp_flds, "type", "new_weight")])  
@@ -401,7 +401,6 @@ exp_max_algorithm_boot <- function(i,
   }
 
   missing_square <- sero_points[sero_points$no_square == 1, ]
-  # write.csv(missing_square, file.path("output", "EM_algorithm", "missing_squares_for_orginal_datapoints.csv"), row.names = FALSE)
 
   sero_pxl_no_dup <- pxl_dts_boot$type == "serology" & pxl_dts_boot$new_weight == 1
   
@@ -415,31 +414,20 @@ exp_max_algorithm_boot <- function(i,
   
   pxl_dts_boot_3 <- inner_join(pxl_dts_boot_3, foi_data_boot[, c(grp_flds, "o_j")])  
   
-  # write_out_rds(pxl_dts_boot_3, file.path("output", 
-  #                                         "EM_algorithm", 
-  #                                         "bootstrap_models",
-  #                                         "grid_size_5",
-  #                                         "env_variables_FOI_fit",
-  #                                         "boot_samples_2"), 
-  #               paste0("sample_", i, ".rds"))
   
-  
-  # ---------------------------------------- calculate population proportion weights
+  # calculate population proportion weights ----------------------------------- 
   
   
   pxl_dts_grp <- pxl_dts_boot_3 %>% group_by_(.dots = grp_flds) 
   
   aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
-  # ncells <- pxl_dts_grp %>% summarise(n_sqr = n())
   
   pxl_dts_boot_3 <- left_join(pxl_dts_boot_3, aa)
-  # pxl_dts_boot <- left_join(pxl_dts_boot, ncells)
   
   pxl_dts_boot_3$pop_weight <- pxl_dts_boot_3$population / pxl_dts_boot_3$pop_sqr_sum
-  # pxl_dts_boot$pop_weight <- 1 / pxl_dts_boot$n_sqr
   
   
-  # ---------------------------------------- run the EM 
+  # run the EM ----------------------------------------------------------------  
   
   
   exp_max_algorithm(parms = parms, 
@@ -464,9 +452,7 @@ exp_max_algorithm_boot <- function(i,
 
 EM_full_routine <- function(x, 
                             parms, 
-                            out_path,
-                            boot_ls, 
-                            in_path, 
+                            all_squares, 
                             predictors, 
                             grp_flds_1, 
                             grp_flds_2,
@@ -477,45 +463,58 @@ EM_full_routine <- function(x,
   
   j <- x$exp_id 
   i <- x$rep_id
+  var_to_fit <- x$var
+  grid_size <- x$gs
+  number_of_predictors <- x$no_pred
   
   cat("exp id =", j, "\n")
   cat("rep id =", i, "\n")
+  cat("response variable =", var_to_fit, "\n")
+  cat("grid size =", grid_size, "\n")
+  cat("number of predictors =", number_of_predictors, "\n")
   
   no_trees <- parms$no_trees
   min_node_size <- parms$min_node_size
   psAbs <- parms$pseudoAbs_value
-  var_to_fit <- parms$dependent_variable
   foi_offset <- parms$foi_offset
-  number_of_predictors <- parms$no_predictors
 
-  sqr_data_boot_nm <- paste0("env_vars_20km_", i, ".rds")
+  res <- (1 / 120) * parms$resample_grid_size
   
-  model_type <- paste0(var_to_fit, "_boot_model_", j)
+  my_dir <- paste0("grid_size_", grid_size)
+  model_type <- paste0("boot_model_", j)
   
-  out_name <- paste0("all_scale_predictions_", i, ".rds")
+  in_path <- file.path("output", 
+                       "EM_algorithm",
+                       "bootstrap_models",
+                       my_dir)
   
-  RF_name <- paste0("RF_obj_sample_", i, ".rds")
+  out_name <- paste0("sample_", i, ".rds")
   
-  all_pred_out_path <- file.path(out_path, model_type, "predictions_data")
+  all_pred_out_path <- file.path(in_path, model_type, "predictions_data")
   
-  RF_out_path <- file.path(out_path, model_type, "optimized_model_objects")
+  RF_out_path <- file.path(in_path, model_type, "optimized_model_objects")
   
-    
+  global_predictions_out_path <- file.path("output", 
+                                           "predictions_world",
+                                           "bootstrap_models",
+                                           my_dir,
+                                           model_type,
+                                           "boot_samples")
+  
+  
   # load data -----------------------------------------------------------------
+  
+  
+  boot_ls <- readRDS(file.path(in_path, "bootstrap_samples.rds"))
+  
+  
+  # pre processing ------------------------------------------------------------
   
   
   foi_data_boot <- boot_ls[[i]]
   
-  sqr_data_boot <- readRDS(file.path(in_path, sqr_data_boot_nm))
+  my_predictors <- predictors[seq_len(number_of_predictors)]
   
-  
-  # preprocessing -------------------------------------------------------------
-  
-  
-  number_of_predictors <- number_of_predictors - j  
-  my_predictors <- predictors[1:number_of_predictors]
-  
-  message(paste0("number of predictors = ", number_of_predictors))
   cat(paste(c("My predictors are:", my_predictors), collapse = '\n'), "\n")
   
   if(var_to_fit == "FOI"){
@@ -539,8 +538,12 @@ EM_full_routine <- function(x,
   training_dataset <- foi_data_boot[, c("o_j", my_predictors, "new_weight")]
   
   
-  # fitting the RF at admin level 0 and make predictions ----------------------
+  # filter, fit and predict ---------------------------------------------------
   
+  
+  jn_flds <- unique(c(grp_flds_1, grp_flds_2))
+  
+  sqr_data_boot <- inner_join(all_squares, foi_data_boot[, jn_flds])
   
   RF_obj <- fit_ranger_RF(dependent_variable = "o_j", 
                           predictors = my_predictors, 
@@ -556,23 +559,81 @@ EM_full_routine <- function(x,
   sqr_data_boot$p_i <- p_i
   
   
-  # pre process the square data set ------------------------------------------- 
+  # attach original data and weights to square dataset ------------------------ 
   
   
-  pxl_dts_grp <- sqr_data_boot %>% group_by_(.dots = grp_flds_1) 
+  sqr_data_boot <- inner_join(sqr_data_boot, foi_data_boot[, c(grp_flds_1, "type", "new_weight")])  
+  
+  
+  # fix serology new_weights --------------------------------------------------
+  
+  
+  sqr_data_boot[sqr_data_boot$type == "serology", "new_weight"] <- 0
+  
+  sero_points <- foi_data_boot[foi_data_boot$type == "serology", ]
+  
+  sqr_data_boot$lat.int <- round(sqr_data_boot$latitude / res)
+  sqr_data_boot$long.int <- round(sqr_data_boot$longitude / res)
+  
+  sero_points$lat.int <- round(sero_points$latitude / res)
+  sero_points$long.int <- round(sero_points$longitude / res)
+  
+  sero_points$cell <- 0
+  sero_points$no_square <- 0
+  
+  for (j in seq_len(nrow(sero_points))){
+    
+    sero_long <- sero_points[j, "long.int"]
+    sero_lat <- sero_points[j, "lat.int"]
+    
+    matches <- sqr_data_boot$type == "serology" & sqr_data_boot$lat.int == sero_lat & sqr_data_boot$long.int == sero_long
+    
+    if(sum(matches) != 0){
+      
+      message(j)
+      
+      cell_id <- which(matches == TRUE)[1]
+      sero_points[j, "cell"] <- cell_id
+      sqr_data_boot[cell_id, "new_weight"] <- 1
+      
+    } else {
+      
+      sero_points[j, "no_square"] <- 1
+      
+    }
+    
+  }
+  
+  missing_square <- sero_points[sero_points$no_square == 1, ]
+
+  sero_pxl_no_dup <- sqr_data_boot$type == "serology" & sqr_data_boot$new_weight == 1
+  
+  sqr_data_boot_2 <- sqr_data_boot[!sero_pxl_no_dup, ]
+  
+  sero_pxl_dup <- sqr_data_boot[sero_points$cell, ]
+  
+  sero_pxl_dup$unique_id <- sero_points$unique_id
+  
+  sqr_data_boot_3 <- rbind(sqr_data_boot_2, sero_pxl_dup)
+  
+  sqr_data_boot_3 <- inner_join(sqr_data_boot_3, foi_data_boot[, c(grp_flds_1, "o_j")])  
+  
+  
+  # calculate population proportion weights ----------------------------------- 
+  
+  
+  pxl_dts_grp <- sqr_data_boot_3 %>% group_by_(.dots = grp_flds) 
   
   aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
   
-  sqr_data_boot <- left_join(sqr_data_boot, aa)
+  sqr_data_boot_3 <- left_join(sqr_data_boot_3, aa)
   
-  sqr_data_boot$pop_weight <- sqr_data_boot$population / sqr_data_boot$pop_sqr_sum
-  
-  sqr_data_boot <- inner_join(sqr_data_boot, foi_data_boot[, c(grp_flds_1, "o_j", "new_weight")])
+  sqr_data_boot_3$pop_weight <- sqr_data_boot_3$population / sqr_data_boot_3$pop_sqr_sum
   
   
-  # run EM --------------------------------------------------------------------
+  # run the EM ----------------------------------------------------------------
   
-  #browser()
+  
   RF_obj_optim <- exp_max_algorithm(parms = parms, 
                                     orig_dataset = foi_data_boot, 
                                     pxl_dataset = sqr_data_boot,
@@ -625,5 +686,9 @@ EM_full_routine <- function(x,
   join_all$train <- train_ids
   
   write_out_rds(join_all, all_pred_out_path, out_name)
+  
+  global_predictions <- make_ranger_predictions(RF_obj_optim, all_squares, my_predictors)
+  
+  write_out_rds(global_predictions, global_predictions_out_path, out_name)
   
 }
