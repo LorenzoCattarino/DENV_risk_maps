@@ -16,13 +16,13 @@ source(file.path("R", "plotting", "plot_EM_diagnostics.R"))
 parameters <- list(
   dependent_variable = "FOI")   
 
-model_type_tag <- "_best_model_4"
+model_id <- 1
 
 
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, model_type_tag)
+model_type <- paste0("model_", model_id)
 
 # strip_labs <- gsub('([[:punct:]])|\\s+','_', strip_labs)
 

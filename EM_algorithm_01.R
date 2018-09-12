@@ -17,7 +17,7 @@ out_pt <- file.path("output", "EM_algorithm", "best_fit_models", "env_variables"
 # load data -------------------------------------------------------------------
 
 
-foi_data <- read.csv(file.path("output", "foi", "All_FOI_estimates_and_predictors_2.csv"),
+foi_data <- read.csv(file.path("output", "foi", "All_FOI_estimates_and_predictors.csv"),
                      stringsAsFactors = FALSE) 
 
 all_sqr_covariates <- readRDS(file.path("output", 

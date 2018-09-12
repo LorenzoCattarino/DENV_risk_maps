@@ -39,7 +39,7 @@ parameters <- list(
   EM_iter = 10,
   no_predictors = 9) 
 
-model_type_tag <- "_best_model_6"
+model_id <- 1
 
 extra_predictors <- NULL
 
@@ -51,7 +51,7 @@ var_to_fit <- parameters$dependent_variable
 
 number_of_predictors <- parameters$no_predictors
 
-model_type <- paste0(var_to_fit, model_type_tag)
+model_type <- paste0("model_", model_id)
 
 out_fl_nm <- "square_predictions_all_data.rds"
 
@@ -63,7 +63,7 @@ out_pt <- file.path("output", "EM_algorithm", "best_fit_models", model_type)
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "16Core")
+  config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {

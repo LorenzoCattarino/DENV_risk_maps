@@ -21,13 +21,13 @@ ctx <- context::context_save(path = "context",
 parameters <- list(
   dependent_variable = "FOI",
   foi_offset = 0.03,
-  no_predictors = 23)   
+  no_predictors = 9)   
 
 RF_mod_name <- "RF_obj.rds"
 
 base_info <- c("cell", "latitude", "longitude", "population", "ID_0", "ID_1", "ID_2")
 
-model_type_tag <- "_best_model_5"
+model_id <- 1
 
 extra_predictors <- NULL
 
@@ -37,9 +37,9 @@ extra_predictors <- NULL
 
 foi_offset <- parameters$foi_offset
 
-model_tp <- paste0(parameters$dependent_variable, model_type_tag)
+model_type <- paste0("model_", model_id)
 
-out_pt <- file.path("output", "predictions_world", "best_fit_models", model_tp)
+out_pt <- file.path("output", "predictions_world", "best_fit_models", model_type)
   
 out_fl_nm <- "response.rds"
 
@@ -60,7 +60,7 @@ all_sqr_covariates <- readRDS(file.path("output",
 RF_obj_path <- file.path("output",
                          "EM_algorithm",
                          "best_fit_models",
-                         model_tp,
+                         model_type,
                          "optimized_model_objects")
 
 predictor_rank <- read.csv(file.path("output", 

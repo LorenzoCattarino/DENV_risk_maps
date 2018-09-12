@@ -28,7 +28,7 @@ parameters <- list(
   dependent_variable = "FOI",
   pseudoAbs_value = -0.02,
   foi_offset = 0.03,
-  no_predictors = 26)   
+  no_predictors = 9)   
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
@@ -36,11 +36,11 @@ RF_obj_nm <- "RF_obj.rds"
 
 out_name <- "all_scale_predictions.rds"
 
-foi_dts_nm <- "All_FOI_estimates_and_predictors_2.csv"
+foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
 covariate_dts_nm <- "covariates_and_foi_20km_2.rds"
 
-model_type_tag <- "_best_model_4"
+model_id <- 1
 
 extra_predictors <- NULL
 
@@ -52,7 +52,7 @@ var_to_fit <- parameters$dependent_variable
   
 foi_offset <- parameters$foi_offset
 
-model_type <- paste0(var_to_fit, model_type_tag)
+model_type <- paste0("model_", model_id)
 
 RF_obj_path <- file.path("output",
                          "EM_algorithm",

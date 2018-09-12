@@ -29,11 +29,11 @@ parameters <- list(
   min_node_size = 20,
   all_wgt = 1,
   wgt_limits = c(1, 500),
-  no_predictors = 26) 
+  no_predictors = 9) 
 
 out_name <- "all_data.rds"  
 
-foi_dts_nm <- "All_FOI_estimates_and_predictors_2.csv"
+foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
 extra_predictors <- NULL
 

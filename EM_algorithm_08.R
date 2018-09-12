@@ -26,7 +26,7 @@ parameters <- list(
   shape_3 = 1.6e6,
   pseudoAbs_value = -0.02,
   all_wgt = 1,
-  no_predictors = 26)   
+  no_predictors = 9)   
 
 mes_vars <- c("admin", "square")
 
@@ -35,9 +35,9 @@ tags <- c("all_data", "no_psAb")
 data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
                        c("serology", "caseReport"))
 
-foi_dts_nm <- "All_FOI_estimates_and_predictors_2.csv"
+foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
-model_type_tag <- "_best_model_4"
+model_id <- 1
 
 
 # define variables ------------------------------------------------------------
@@ -47,7 +47,7 @@ var_to_fit <- parameters$dependent_variable
 
 psAbs_val <- parameters$pseudoAbs_value
 
-model_type <- paste0(var_to_fit, model_type_tag)
+model_type <- paste0("model_", model_id)
 
 in_path <- file.path("output",
                      "EM_algorithm",

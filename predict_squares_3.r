@@ -26,7 +26,7 @@ vars_to_average <- "response"
 
 statistic <- "best"
 
-model_type_tag <- "_best_model_5"
+model_id <- 1
 
 n_col <- 100
 
@@ -34,7 +34,7 @@ n_col <- 100
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, model_type_tag)
+model_type <- paste0("model_", model_id)
 
 in_path <- file.path("output", 
                      "predictions_world", 
@@ -76,4 +76,4 @@ out_fl_nm <- paste0(vars_to_average, "_", statistic, ".png")
 # plot ------------------------------------------------------------------------ 
 
 
-quick_raster_map(df_long, vars_to_average, statistic, my_col, out_path, out_fl_nm)
+quick_raster_map(df_long, vars_to_average, statistic, my_col, out_path, out_fl_nm, c(0, 0.06))

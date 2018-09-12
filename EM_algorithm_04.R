@@ -49,11 +49,11 @@ map_nm <- "map"
 
 tra_dts_nm <- "train_dts.rds"
 
-foi_dts_nm <- "All_FOI_estimates_and_predictors_2.csv"
+foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
 pxl_dts_name <- "covariates_and_foi_20km.rds"
 
-model_type_tag <- "_best_model_6"
+model_id <- 1
 
 extra_predictors <- NULL
 
@@ -71,7 +71,7 @@ pseudoAbsence_value <- parameters$pseudoAbs_value
 
 all_wgt <- parameters$all_wgt
 
-model_type <- paste0(var_to_fit, model_type_tag)
+model_type <- paste0("model_", model_id)
 
 res <- (1 / 120) * parameters$resample_grid_size
 
@@ -246,13 +246,10 @@ write_out_rds(pxl_data_3,
 pxl_dts_grp <- pxl_data_3 %>% group_by_(.dots = grp_flds) 
 
 aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
-# ncells <- pxl_dts_grp %>% summarise(n_sqr = n())
 
 pxl_data_3 <- left_join(pxl_data_3, aa)
-# pxl_data <- left_join(pxl_data, ncells)
 
 pxl_data_3$pop_weight <- pxl_data_3$population / pxl_data_3$pop_sqr_sum
-# pxl_data$pop_weight <- 1 / pxl_data$n_sqr
 
 
 # -----------------------------------------------------------------------------
