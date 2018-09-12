@@ -26,11 +26,11 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "FOI",
+  dependent_variable = "R0_1",
   shape_1 = 0,
   shape_2 = 5,
   shape_3 = 1.6e6,
-  pseudoAbs_value = -0.02,
+  pseudoAbs_value = 0.5,
   foi_offset = 0.03,
   no_trees = 500,
   min_node_size = 20,
@@ -39,7 +39,7 @@ parameters <- list(
   EM_iter = 10,
   no_predictors = 9) 
 
-model_id <- 1
+model_id <- 2
 
 extra_predictors <- NULL
 
