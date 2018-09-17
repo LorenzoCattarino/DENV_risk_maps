@@ -19,15 +19,15 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "R0_1",
+  dependent_variable = "R0_3",
   foi_offset = 0.03,
-  no_predictors = 9)   
+  no_predictors = 26)   
 
 RF_mod_name <- "RF_obj.rds"
 
 base_info <- c("cell", "latitude", "longitude", "population", "ID_0", "ID_1", "ID_2")
 
-model_id <- 2
+model_id <- 12
 
 extra_predictors <- NULL
 
