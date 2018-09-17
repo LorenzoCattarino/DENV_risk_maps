@@ -7,7 +7,7 @@ source(file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samp
 source(file.path("R", "utility_functions.R"))
 
 parameters <- list(
-  grid_size = 5)   
+  grid_size = 10)   
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 

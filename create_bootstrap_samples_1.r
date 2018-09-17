@@ -20,10 +20,10 @@ context::parallel_cluster_start(8, ctx)
 
 
 parameters <- list(
-  grid_size = 5,
+  grid_size = 10,
   shape_1 = 0,
   shape_2 = 5,
-  shape_3 = 1e6,
+  shape_3 = 1.6e6,
   all_wgt = 1,
   wgt_limits = c(1, 500),
   no_samples = 200)   
@@ -46,7 +46,7 @@ out_pt <- file.path("output", "EM_algorithm", "bootstrap_models", my_dir)
 
 foi_data <- read.csv(file.path("output", 
                                "foi", 
-                               "All_FOI_estimates_and_predictors_2.csv"),
+                               "All_FOI_estimates_and_predictors.csv"),
                      stringsAsFactors = FALSE) 
 
 
