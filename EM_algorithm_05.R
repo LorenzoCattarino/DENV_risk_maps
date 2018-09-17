@@ -14,9 +14,9 @@ source(file.path("R", "plotting", "plot_EM_diagnostics.R"))
 
 
 parameters <- list(
-  dependent_variable = "R0_1")   
+  dependent_variable = "R0_3")   
 
-model_id <- 2
+model_id <- 12
 
 
 # define variables ------------------------------------------------------------
