@@ -20,13 +20,13 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "R0_1")   
+  dependent_variable = "R0_3")   
 
 vars_to_average <- "response"
 
 statistic <- "best"
 
-model_id <- 2
+model_id <- 12
 
 n_col <- 100
 
