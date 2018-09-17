@@ -20,13 +20,13 @@ source(file.path("R", "utility_functions.R"))
 
 
 parameters <- list(
-  dependent_variable = "R0_1",
+  dependent_variable = "R0_3",
   shape_1 = 0,
   shape_2 = 5,
   shape_3 = 1.6e6,
   pseudoAbs_value = 0.5,
   all_wgt = 1,
-  no_predictors = 9)   
+  no_predictors = 26)   
 
 mes_vars <- c("admin", "square")
 
@@ -37,7 +37,7 @@ data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
 
 foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
-model_id <- 2
+model_id <- 12
 
 
 # define variables ------------------------------------------------------------
