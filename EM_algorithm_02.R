@@ -19,7 +19,7 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "R0_1",
+  dependent_variable = "R0_3",
   shape_1 = 0,
   shape_2 = 5,
   shape_3 = 1.6e6,
@@ -29,7 +29,7 @@ parameters <- list(
   min_node_size = 20,
   all_wgt = 1,
   wgt_limits = c(1, 500),
-  no_predictors = 9) 
+  no_predictors = 26) 
 
 out_name <- "all_data.rds"  
 
