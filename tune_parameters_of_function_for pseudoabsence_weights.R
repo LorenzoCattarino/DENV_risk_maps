@@ -2,7 +2,7 @@ source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
 
 foi_data <- read.csv(file.path("output", 
                                "foi", 
-                               "All_FOI_estimates_and_predictors_2.csv"),
+                               "All_FOI_estimates_and_predictors.csv"),
                      stringsAsFactors = FALSE) 
 
 x <- foi_data[foi_data$type == "pseudoAbsence", "Shape_Area"]
@@ -47,6 +47,13 @@ points(x, y_c5b0d1, col = "springgreen1")
 
 # plot for paper --------------------------------------------------------------
 
+
+parameters <- list(
+  shape_1 = 0,
+  shape_2 = 5,
+  shape_3 = 1.6e6)
+
+y <- get_sat_area_wgts(foi_data, parameters)
 
 png(file.path("figures", "data", "saturating_function.png"),
     width = 20,
