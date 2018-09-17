@@ -25,10 +25,10 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "R0_1",
+  dependent_variable = "R0_3",
   pseudoAbs_value = 0.5,
   foi_offset = 0.03,
-  no_predictors = 9)   
+  no_predictors = 26)   
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
@@ -40,7 +40,7 @@ foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
 covariate_dts_nm <- "covariates_and_foi_20km_2.rds"
 
-model_id <- 2
+model_id <- 12
 
 extra_predictors <- NULL
 
