@@ -63,7 +63,7 @@ out_pt <- file.path("output", "EM_algorithm", "best_fit_models", model_type)
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "24Core")
+  config <- didehpc::didehpc_config(template = "16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -76,11 +76,11 @@ if (CLUSTER) {
 # load data -------------------------------------------------------------------
 
 
-pxl_data_covariates <- readRDS(file.path("output", 
-                              "EM_algorithm", 
-                              "best_fit_models",
-                              paste0("env_variables_", var_to_fit, "_fit"), 
-                              "covariates_and_foi_20km_2.rds"))
+pxl_data_covariates <- readRDS(file.path("output",
+                                         "EM_algorithm",
+                                         "best_fit_models",
+                                         "env_variables",
+                                         "env_vars_20km_2.rds"))
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
