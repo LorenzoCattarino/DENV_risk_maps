@@ -38,7 +38,7 @@ out_name <- "all_scale_predictions.rds"
 
 foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
-covariate_dts_nm <- "covariates_and_foi_20km_2.rds"
+covariate_dts_nm <- "env_vars_20km_2.rds"
 
 model_id <- 12
 
@@ -82,7 +82,7 @@ foi_dataset <- read.csv(file.path("output", "foi", foi_dts_nm),
 sqr_dataset <- readRDS(file.path("output",
                                  "EM_algorithm",
                                  "best_fit_models",
-                                 paste0("env_variables_", var_to_fit, "_fit"),
+                                 "env_variables",
                                  covariate_dts_nm))
 
 adm_dataset <- read.csv(file.path("output",
