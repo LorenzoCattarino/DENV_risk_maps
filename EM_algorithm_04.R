@@ -111,7 +111,7 @@ sct_plt_pth <- file.path("figures",
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "24Core")
+  config <- didehpc::didehpc_config(template = "16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
 
 } else {
@@ -228,16 +228,15 @@ sero_pxl_dup <- pxl_data[sero_points$cell, ]
 sero_pxl_dup$data_id <- sero_points$data_id
 
 pxl_data_3 <- rbind(pxl_data_2, sero_pxl_dup)
-# test <- cbind(sero_pxl_dup[c("ID_0", "ID_1")], sero_points[,c("ID_0", "ID_1", "latitude", "longitude")])
+
+# save augmented pixel dataset 
+write_out_rds(pxl_data_3, file.path("output",
+                                    "EM_algorithm",
+                                    "best_fit_models",
+                                    "env_variables"),
+              "env_vars_20km_2.rds")
 
 pxl_data_3 <- inner_join(pxl_data_3, foi_data[, c(grp_flds, "o_j")])
-
-write_out_rds(pxl_data_3, 
-              file.path("output",
-                        "EM_algorithm",
-                        "best_fit_models",
-                        paste0("env_variables_", var_to_fit, "_fit")), 
-              "covariates_and_foi_20km_2.rds")
 
 
 # get pop weights -------------------------------------------------------------
