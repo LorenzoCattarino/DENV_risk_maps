@@ -475,29 +475,40 @@ EM_full_routine <- function(x,
   
   no_trees <- parms$no_trees
   min_node_size <- parms$min_node_size
-  psAbs <- parms$pseudoAbs_value
+  
+  if(var_to_fit == "FOI") {
+    
+    psAbs <- parms$pseudoAbs_value[1]
+  
+  } else {
+    
+    psAbs <- parms$pseudoAbs_value[2]
+      
+  }
+  
   foi_offset <- parms$foi_offset
 
   res <- (1 / 120) * parms$resample_grid_size
   
   my_dir <- paste0("grid_size_", grid_size)
-  model_type <- paste0("boot_model_", j)
+  
+  model_type <- paste0("model_", j)
   
   in_path <- file.path("output", 
                        "EM_algorithm",
-                       "bootstrap_models",
-                       my_dir)
+                       "bootstrap_models")
   
   out_name <- paste0("sample_", i, ".rds")
   
   all_pred_out_path <- file.path(in_path, model_type, "predictions_data")
   
   RF_out_path <- file.path(in_path, model_type, "optimized_model_objects")
+  diagn_out_path <- file.path(in_path, model_type, "diagnostics")
+  train_dts_path <- file.path(in_path, model_type, "training_datasets")
   
   global_predictions_out_path <- file.path("output", 
                                            "predictions_world",
                                            "bootstrap_models",
-                                           my_dir,
                                            model_type,
                                            "boot_samples")
   
@@ -505,29 +516,25 @@ EM_full_routine <- function(x,
   # load data -----------------------------------------------------------------
   
   
-  boot_ls <- readRDS(file.path(in_path, "bootstrap_samples.rds"))
+  boot_ls <- readRDS(file.path(in_path, my_dir, "bootstrap_samples.rds"))
   
   
   # pre processing ------------------------------------------------------------
   
   
+  names(foi_data)[names(foi_data) == var_to_fit] <- "o_j"
+  
+  foi_data[foi_data$type == "pseudoAbsence", "o_j"] <- psAbs
+  
   foi_data_boot <- boot_ls[[i]]
+  
+  names(foi_data_boot)[names(foi_data_boot) == var_to_fit] <- "o_j"
+  
+  foi_data_boot[foi_data_boot$type == "pseudoAbsence", "o_j"] <- psAbs
   
   my_predictors <- predictors[seq_len(number_of_predictors)]
   
   cat(paste(c("My predictors are:", my_predictors), collapse = '\n'), "\n")
-  
-  if(var_to_fit == "FOI"){
-    
-    names(foi_data_boot)[names(foi_data_boot) == "FOI"] <- "o_j"
-    
-  } else {
-    
-    names(foi_data_boot)[names(foi_data_boot) == var_to_fit] <- "o_j"
-    
-  }
-  
-  foi_data_boot[foi_data_boot$type == "pseudoAbsence", "o_j"] <- psAbs
   
   if(var_to_fit == "FOI"){
     
@@ -622,7 +629,7 @@ EM_full_routine <- function(x,
   # calculate population proportion weights ----------------------------------- 
   
   
-  pxl_dts_grp <- sqr_data_boot_3 %>% group_by_(.dots = grp_flds) 
+  pxl_dts_grp <- sqr_data_boot_3 %>% group_by_(.dots = grp_flds_1) 
   
   aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
   
@@ -636,13 +643,17 @@ EM_full_routine <- function(x,
   
   RF_obj_optim <- exp_max_algorithm(parms = parms, 
                                     orig_dataset = foi_data_boot, 
-                                    pxl_dataset = sqr_data_boot,
-                                    pxl_dataset_full = sqr_data,
+                                    pxl_dataset = sqr_data_boot_3,
                                     my_predictors = my_predictors, 
                                     grp_flds = grp_flds_1, 
                                     var_to_fit = var_to_fit,
+                                    map_col = map_col,
                                     RF_obj_path = RF_out_path, 
-                                    RF_obj_name = RF_name,
+                                    RF_obj_name = out_name,
+                                    diagn_tab_path = diagn_out_path,
+                                    diagn_tab_name = out_name,
+                                    train_dts_path = train_dts_path,
+                                    train_dts_name = out_name,
                                     adm_dataset = adm_dataset)
   
   p_i_all <- make_ranger_predictions(RF_obj_optim, sqr_data, my_predictors)
