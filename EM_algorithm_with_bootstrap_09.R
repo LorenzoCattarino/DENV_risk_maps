@@ -22,12 +22,21 @@ context::context_load(ctx)
 
 
 parameters <- list(
+  id = 1,
+  shape_1 = 0,
+  shape_2 = 5,
+  shape_3 = 1e6,
+  all_wgt = 1,
   dependent_variable = "FOI",
-  grid_size = 5,
+  pseudoAbs_value = -0.02,
+  grid_size = 1 / 120,
+  no_predictors = 9,
+  resample_grid_size = 20,
+  foi_offset = 0.03,
+  no_trees = 500,
+  min_node_size = 20,
   no_samples = 200,
-  no_predictors = 23)   
-
-model_type_tag <- "_boot_model_22"
+  EM_iter = 10) 
 
 year.i <- 2007
 year.f <- 2014
@@ -37,28 +46,23 @@ ppyear <- 64
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, model_type_tag)
-
-my_dir <- paste0("grid_size_", parameters$grid_size)
+model_type <- paste0("model_", parameters$id)
 
 pdp_pt <- file.path("output",
                     "EM_algorithm",
                     "bootstrap_models",
-                    my_dir,
                     model_type,
                     "partial_dependence")
 
 v_imp_pt <- file.path("output",
                       "EM_algorithm",
                       "bootstrap_models",
-                      my_dir,
                       model_type,
                       "variable_importance")
 
 out_pt <- file.path("figures",
                     "EM_algorithm",
                     "bootstrap_models",
-                    my_dir,
                     model_type)
   
   

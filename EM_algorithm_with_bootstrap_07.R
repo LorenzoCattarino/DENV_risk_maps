@@ -35,7 +35,7 @@ parameters <- list(
   foi_offset = 0.03,
   no_trees = 500,
   min_node_size = 20,
-  no_samples = 50,
+  no_samples = 200,
   EM_iter = 10) 
 
 mes_vars <- c("admin", "cell")
