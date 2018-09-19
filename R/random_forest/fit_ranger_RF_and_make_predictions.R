@@ -217,7 +217,7 @@ attach_pred_different_scale_to_data <- function(i,
                                                 foi_data,
                                                 adm_dts, 
                                                 predictors, 
-                                                all_sqr_preds,
+                                                data_sqr_predictions_in_path,
                                                 sqr_dts, 
                                                 tile_ids,
                                                 bt_samples,
@@ -245,6 +245,8 @@ attach_pred_different_scale_to_data <- function(i,
   
   RF_obj <- readRDS(file.path(model_path, RF_obj_nm))
   
+  sqr_preds <- readRDS(file.path(data_sqr_predictions_in_path, RF_obj_nm))
+  
   
   # -------------------------------------- process admin predictions
   
@@ -256,7 +258,7 @@ attach_pred_different_scale_to_data <- function(i,
   if(var_to_fit == "FOI"){
     
     adm_pred <- adm_pred - foi_offset 
-    all_sqr_preds <- all_sqr_preds - foi_offset
+    sqr_preds <- sqr_preds - foi_offset
     
   }
   
@@ -267,8 +269,6 @@ attach_pred_different_scale_to_data <- function(i,
   
   # -------------------------------------- process square predictions
   
-  
-  sqr_preds <- all_sqr_preds[, i]
   
   sqr_dts_2 <- cbind(sqr_dts, square = sqr_preds)
   
