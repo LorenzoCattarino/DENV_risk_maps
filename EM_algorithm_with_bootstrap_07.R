@@ -23,12 +23,21 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
+  id = 1,
+  shape_1 = 0,
+  shape_2 = 5,
+  shape_3 = 1e6,
+  all_wgt = 1,
   dependent_variable = "FOI",
-  grid_size = 5,
+  pseudoAbs_value = -0.02,
+  grid_size = 1 / 120,
+  no_predictors = 9,
+  resample_grid_size = 20,
+  foi_offset = 0.03,
+  no_trees = 500,
+  min_node_size = 20,
   no_samples = 200,
-  no_predictors = 23)   
-
-model_type_tag <- "_boot_model_22"
+  EM_iter = 10) 
 
 out_fl_nm <- "square_predictions_all_data.rds"
 
@@ -36,13 +45,13 @@ out_fl_nm <- "square_predictions_all_data.rds"
 # define variables ------------------------------------------------------------  
 
 
-var_to_fit <- parameters$dependent_variable
+model_type <- paste0("model_", parameters$id)
 
-model_type <- paste0(var_to_fit, model_type_tag)
+var_to_fit <- parameters$dependent_variable
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
-out_pt <- file.path("output", "EM_algorithm", "bootstrap_models", my_dir, model_type)
+out_pt <- file.path("output", "EM_algorithm", "bootstrap_models", model_type)
 
 
 # rebuild the queue object? --------------------------------------------------- 

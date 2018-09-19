@@ -27,14 +27,21 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
+  id = 1,
+  shape_1 = 0,
+  shape_2 = 5,
+  shape_3 = 1e6,
+  all_wgt = 1,
   dependent_variable = "FOI",
   pseudoAbs_value = -0.02,
+  grid_size = 1 / 120,
+  no_predictors = 9,
+  resample_grid_size = 20,
   foi_offset = 0.03,
-  grid_size = 5,
-  no_samples = 200,
-  no_predictors = 23)   
-
-model_type_tag <- "_boot_model_22"
+  no_trees = 500,
+  min_node_size = 20,
+  no_samples = 50,
+  EM_iter = 10) 
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
@@ -42,25 +49,29 @@ grp_flds <- c("ID_0", "ID_1", "data_id")
 # define variables ------------------------------------------------------------ 
 
 
-var_to_fit <- parameters$dependent_variable
+model_type <- paste0("model_", parameters$id)
 
-model_type <- paste0(var_to_fit, model_type_tag)
+var_to_fit <- parameters$dependent_variable
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
 RF_obj_path <- file.path("output",
                          "EM_algorithm",
                          "bootstrap_models",
-                         my_dir,
                          model_type,
                          "optimized_model_objects")
 
 out_pt <- file.path("output",
                     "EM_algorithm",
                     "bootstrap_models",
-                    my_dir,
                     model_type,
-                    "predictions_data")
+                    "data_admin_predictions")
+
+data_sqr_predictions_in_path <- file.path("output",
+                                          "EM_algorithm",
+                                          "bootstrap_models",
+                                          model_type,
+                                          "data_square_predictions")
 
 
 # are you using the cluster? --------------------------------------------------  
@@ -68,7 +79,7 @@ out_pt <- file.path("output",
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "20Core")
+  config <- didehpc::didehpc_config(template = "16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -86,7 +97,7 @@ if (CLUSTER) {
 
 foi_dataset <- read.csv(file.path("output", 
                                   "foi", 
-                                  "All_FOI_estimates_and_predictors_2.csv"),
+                                  "All_FOI_estimates_and_predictors.csv"),
                         stringsAsFactors = FALSE) 
 
 boot_samples <- readRDS(file.path("output",
@@ -95,11 +106,11 @@ boot_samples <- readRDS(file.path("output",
                                   my_dir, 
                                   "bootstrap_samples.rds"))
   
-sqr_dataset <- readRDS(file.path("output",
-                                 "EM_algorithm",
+sqr_dataset <- readRDS(file.path("output", 
+                                 "EM_algorithm", 
                                  "best_fit_models",
-                                 "env_variables_FOI_fit",
-                                 "covariates_and_foi_20km_2.rds"))
+                                 "env_variables", 
+                                 "env_vars_20km_2.rds"))
 
 adm_dataset <- read.csv(file.path("output",
                                   "env_variables",
@@ -126,13 +137,6 @@ NA_pixel_tiles <- read.table(file.path("output",
                                        "NA_pixel_tiles_20km.txt"), 
                              sep = ",",
                              header = TRUE)
-
-all_sqr_predictions <- readRDS(file.path("output",
-                                         "EM_algorithm",
-                                         "bootstrap_models",
-                                         my_dir,
-                                         model_type,
-                                         "square_predictions_all_data.rds"))
 
 
 # process the original data ---------------------------------------------------
@@ -173,7 +177,7 @@ no_samples <- parameters$no_samples
 #     foi_data = foi_dataset,
 #     adm_dts = adm_dataset,
 #     predictors = my_predictors,
-#     all_sqr_preds = all_sqr_predictions,
+#     data_sqr_predictions_in_path = data_sqr_predictions_in_path,
 #     sqr_dts = sqr_dataset,
 #     tile_ids = tile_ids_2,
 #     bt_samples = boot_samples,
@@ -195,7 +199,7 @@ if (CLUSTER) {
     foi_data = foi_dataset,
     adm_dts = adm_dataset,
     predictors = my_predictors,
-    all_sqr_preds = all_sqr_predictions,
+    data_sqr_predictions_in_path = data_sqr_predictions_in_path,
     sqr_dts = sqr_dataset,
     tile_ids = tile_ids_2,
     bt_samples = boot_samples,
@@ -212,7 +216,7 @@ if (CLUSTER) {
     foi_data = foi_dataset,
     adm_dts = adm_dataset,
     predictors = my_predictors,
-    all_sqr_preds = all_sqr_predictions,
+    data_sqr_predictions_in_path = data_sqr_predictions_in_path,
     sqr_dts = sqr_dataset,
     tile_ids = tile_ids_2,
     bt_samples = boot_samples,

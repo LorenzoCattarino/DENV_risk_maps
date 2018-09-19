@@ -22,14 +22,21 @@ source(file.path("R", "utility_functions.R"))
 
 
 parameters <- list(
-  dependent_variable = "FOI",
-  pseudoAbs_value = -0.02,
-  grid_size = 5,
+  id = 1,
   shape_1 = 0,
   shape_2 = 5,
   shape_3 = 1e6,
   all_wgt = 1,
-  no_samples = 200)   
+  dependent_variable = "FOI",
+  pseudoAbs_value = -0.02,
+  grid_size = 1 / 120,
+  no_predictors = 9,
+  resample_grid_size = 20,
+  foi_offset = 0.03,
+  no_trees = 500,
+  min_node_size = 20,
+  no_samples = 50,
+  EM_iter = 10) 
 
 mes_vars <- c("admin", "cell")
 
@@ -38,31 +45,27 @@ tags <- c("all_data", "no_psAb")
 data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
                        c("serology", "caseReport"))
 
-model_type_tag <- "_boot_model_22"
-
 
 # define variables ------------------------------------------------------------
 
 
+model_type <- paste0("model_", parameters$id)
+
 var_to_fit <- parameters$dependent_variable
 
 psAbs_val <- parameters$pseudoAbs_value
-
-model_type <- paste0(var_to_fit, model_type_tag)
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
 in_path <- file.path("output",
                      "EM_algorithm",
                      "bootstrap_models",
-                     my_dir,
                      model_type,
-                     "predictions_data") 
+                     "data_admin_predictions") 
 
 out_fig_path <- file.path("figures",
                           "EM_algorithm",
                           "bootstrap_models",
-                          my_dir,
                           model_type,
                           "scatter_plots",
                           "boot_samples")
@@ -70,14 +73,12 @@ out_fig_path <- file.path("figures",
 out_fig_path_av <- file.path("figures",
                              "EM_algorithm",
                              "bootstrap_models",
-                             my_dir,
                              model_type,
                              "scatter_plots")
 
 out_table_path <- file.path("output",
                             "EM_algorithm",
                             "bootstrap_models",
-                            my_dir,
                             model_type,
                             "scatter_plots")
 
@@ -87,7 +88,7 @@ out_table_path <- file.path("output",
 
 foi_dataset <- read.csv(file.path("output", 
                                   "foi", 
-                                  "All_FOI_estimates_and_predictors_2.csv"),
+                                  "All_FOI_estimates_and_predictors.csv"),
                         stringsAsFactors = FALSE) 
 
 
