@@ -1,250 +1,191 @@
-# For each bootstrap sample of the original dataset, it creates a scatter plot of:  
-#
-# 1) admin unit observation vs admin unit prediction 
-# 2) admin unit observation vs population weighted average of the square predictions (within admin unit)
-# 3) admin unit observation vs population weighted average of the 1 km pixel predictions (within admin unit)
-#
-# NOTE: 1, 2 and 3 are for train and test sets separately (total of 6 plots per bootstrap sample)
+# Extract partial dependence information and 
+# make partial dependence plots
 
-library(reshape2)
-library(ggplot2)
-library(plyr)
-library(weights) # for wtd.cor()
+options(didehpc.cluster = "fi--didemrchnb")
 
-source(file.path("R", "plotting", "plot_RF_preds_vs_obs_by_cv_dataset.R"))
-source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
-source(file.path("R", "prepare_datasets", "calculate_sd.R"))
-source(file.path("R", "prepare_datasets", "calculate_wgt_corr.R"))
-source(file.path("R", "utility_functions.R"))
+my_resources <- c(
+  file.path("R", "random_forest", "partial_dependence_plots_pdp.R"),
+  file.path("R", "utility_functions.R"))
+
+my_pkgs <- c("ggplot2")
+
+context::context_log_start()
+ctx <- context::context_save(path = "context",
+                             sources = my_resources,
+                             packages = my_pkgs)
+
+context::context_load(ctx)
+#context::parallel_cluster_start(8, ctx)
 
 
-# define parameters -----------------------------------------------------------  
+# define parameters ----------------------------------------------------------- 
 
 
 parameters <- list(
-  id = 1,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1e6,
-  all_wgt = 1,
   dependent_variable = "FOI",
-  pseudoAbs_value = -0.02,
-  grid_size = 1 / 120,
-  no_predictors = 9,
-  resample_grid_size = 20,
-  foi_offset = 0.03,
-  no_trees = 500,
-  min_node_size = 20,
-  no_samples = 50,
-  EM_iter = 10) 
+  grid_size = 5,
+  no_samples = 200,
+  no_predictors = 23)   
 
-mes_vars <- c("admin", "cell")
+model_type_tag <- "_boot_model_22"
 
-tags <- c("all_data", "no_psAb")
-
-data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
-                       c("serology", "caseReport"))
+year.i <- 2007
+year.f <- 2014
+ppyear <- 64
 
 
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0("model_", parameters$id)
-
-var_to_fit <- parameters$dependent_variable
-
-psAbs_val <- parameters$pseudoAbs_value
+model_type <- paste0(parameters$dependent_variable, model_type_tag)
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
-in_path <- file.path("output",
-                     "EM_algorithm",
-                     "bootstrap_models",
-                     model_type,
-                     "data_admin_predictions") 
+pdp_pt <- file.path("output",
+                    "EM_algorithm",
+                    "bootstrap_models",
+                    my_dir,
+                    model_type,
+                    "partial_dependence")
 
-out_fig_path <- file.path("figures",
-                          "EM_algorithm",
-                          "bootstrap_models",
-                          model_type,
-                          "scatter_plots",
-                          "boot_samples")
+v_imp_pt <- file.path("output",
+                      "EM_algorithm",
+                      "bootstrap_models",
+                      my_dir,
+                      model_type,
+                      "variable_importance")
 
-out_fig_path_av <- file.path("figures",
-                             "EM_algorithm",
-                             "bootstrap_models",
-                             model_type,
-                             "scatter_plots")
-
-out_table_path <- file.path("output",
-                            "EM_algorithm",
-                            "bootstrap_models",
-                            model_type,
-                            "scatter_plots")
-
-
+out_pt <- file.path("figures",
+                    "EM_algorithm",
+                    "bootstrap_models",
+                    my_dir,
+                    model_type)
+  
+  
 # load data -------------------------------------------------------------------
 
 
-foi_dataset <- read.csv(file.path("output", 
-                                  "foi", 
-                                  "All_FOI_estimates_and_predictors.csv"),
-                        stringsAsFactors = FALSE) 
+predictor_rank <- read.csv(file.path("output", 
+                                     "variable_selection",
+                                     "stepwise",
+                                     "predictor_rank.csv"),
+                           stringsAsFactors = FALSE)
 
 
-# pre processing --------------------------------------------------------------
+# pre processing -------------------------------------------------------------- 
 
 
-no_samples <- parameters$no_samples
+variables <- predictor_rank$name[1:parameters$no_predictors]
 
-no_datapoints <- nrow(foi_dataset)
+pd_table_fls <- list.files(pdp_pt, 
+                           pattern = ".",
+                           full.names = TRUE)
 
-no_pseudoAbs <- sum(foi_dataset$type == "pseudoAbsence") 
+vi_table_fls <- list.files(v_imp_pt,
+                           pattern = ".",
+                           full.names = TRUE) 
 
-no_pnts_vec <- c(no_datapoints, no_datapoints - no_pseudoAbs) 
+pd_tables <- loop(pd_table_fls, readRDS, parallel = FALSE)
 
-foi_dataset$new_weight <- parameters$all_wgt
-
-pAbs_wgt <- get_sat_area_wgts(foi_dataset, parameters)
-
-foi_dataset[foi_dataset$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
-
-
-# start ----------------------------------------------------------------------- 
+vi_tables <- loop(vi_table_fls, readRDS, parallel = FALSE)
 
 
-for (j in seq_along(tags)) {
+# exctract --------------------------------------------------------------------
+
+
+final_pd_df_ls <- lapply(seq_along(variables), extract_pd, variables, pd_tables)
+
+final_pd_df <- do.call("rbind", final_pd_df_ls)
   
-  no_pnts <- no_pnts_vec[j]
+
+# rescale x axes --------------------------------------------------------------
+
+
+final_pd_df_splt <- split(final_pd_df$x, final_pd_df$var)
+
+for (i in seq_along(final_pd_df_splt)){
   
-  dt_typ <- data_types_vec[[j]]
+  one_set <- final_pd_df_splt[i]
   
-  tag <- tags[j]
+  var <- names(one_set)
   
+  scale <- 1
   
-  #### create objects for matrix algebric operations
-  
-  
-  all_adm_preds <- matrix(0, nrow = no_pnts, ncol = no_samples)
-  all_sqr_preds <- matrix(0, nrow = no_pnts, ncol = no_samples)
-  #all_pxl_preds <- matrix(0, nrow = no_pnts, ncol = no_samples)
-  train_ids <- matrix(0, nrow = no_pnts, ncol = no_samples)
-  test_ids <- matrix(0, nrow = no_pnts, ncol = no_samples)
-  
-  
-  #### second loop
-  
-  
-  for (i in seq_len(no_samples)) {
+  if(grepl("Re.", var) | grepl("Im.", var)){
     
-    dts_nm <- paste0("sample_", i, ".rds")
+    scale <- ppyear * (year.f - year.i + 1) / 2 
     
-    dts_1 <- readRDS(file.path(in_path, dts_nm))
+  } 
+  
+  if(grepl("const_term$", var)){
     
-    if(var_to_fit == "FOI"){
-      
-      dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 0] <- 0
-      
-    } else {
-      
-      dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 1] <- psAbs_val
-      
-    }
+    scale <- ppyear * (year.f - year.i + 1) 
     
-    dts <- dts_1[dts_1$type %in% dt_typ, ]
-    
-    
-    #####
-    
-    all_adm_preds[,i] <- dts$admin
-    all_sqr_preds[,i] <- dts$square
-    #all_pxl_preds[,i] <- dts$mean_pxl_pred
-    train_ids[,i] <- dts$train
-    test_ids[,i] <- 1 - dts$train
-    
-    #####
-    
-    
-    names(dts)[names(dts) == "train"] <- "dataset"
-    
-    dts$dataset <- factor(x = dts$dataset, levels = c(1, 0), labels = c("train", "test"))
-    
-    # # rotate df from wide to long to allow faceting
-    # dts_mlt <- melt(
-    #   dts, 
-    #   id.vars = c("data_id", "ADM_0", "ADM_1", "o_j", "dataset"),
-    #   measure.vars = mes_vars,
-    #   variable.name = "scale")
-    # 
-    # fl_nm <- paste0("pred_vs_obs_plot_sample_", i, "_", tag, ".png")
-    # 
-    # RF_preds_vs_obs_plot_stratif(
-    #   df = dts_mlt,
-    #   x = "o_j",
-    #   y = "value",
-    #   facet_var = "scale",
-    #   file_name = fl_nm,
-    #   file_path = out_fig_path)
-    
-  }
+  }  
   
+  message(scale)
   
-  #### calculate the mean across fits of the predictions (adm, sqr and pxl) 
-  #### by train and test dataset separately
-  
-  
-  train_sets_n <- rowSums(train_ids)
-  test_sets_n <- rowSums(test_ids)
-  
-  mean_adm_pred_train <- rowSums(all_adm_preds * train_ids) / train_sets_n
-  mean_adm_pred_test <- rowSums(all_adm_preds * test_ids) / test_sets_n
-  
-  mean_sqr_pred_train <- rowSums(all_sqr_preds * train_ids) / train_sets_n
-  mean_sqr_pred_test <- rowSums(all_sqr_preds * test_ids) / test_sets_n
-  
-  #mean_pxl_pred_train <- rowSums(all_pxl_preds * train_ids) / train_sets_n
-  #mean_pxl_pred_test <- rowSums(all_pxl_preds * test_ids) / test_sets_n
-  
-  sd_mean_adm_pred_train <- vapply(seq_len(no_pnts), calculate_sd, 1, all_adm_preds, train_ids)
-  sd_mean_adm_pred_test <- vapply(seq_len(no_pnts), calculate_sd, 1, all_adm_preds, test_ids)
-  
-  sd_mean_sqr_pred_train <- vapply(seq_len(no_pnts), calculate_sd, 1, all_sqr_preds, train_ids)
-  sd_mean_sqr_pred_test <- vapply(seq_len(no_pnts), calculate_sd, 1, all_sqr_preds, test_ids)
-  
-  av_train_preds <- data.frame(dts[,c("data_id", "ID_0", "ID_1", "o_j")],
-                               admin = mean_adm_pred_train,
-                               cell = mean_sqr_pred_train,
-                               admin_sd = sd_mean_adm_pred_train,
-                               cell_sd = sd_mean_sqr_pred_train,
-                               #pixel = mean_pxl_pred_train,
-                               dataset = "train")
-  
-  av_test_preds <- data.frame(dts[,c("data_id", "ID_0", "ID_1", "o_j")],
-                              admin = mean_adm_pred_test,
-                              cell = mean_sqr_pred_test,
-                              admin_sd = sd_mean_adm_pred_test,
-                              cell_sd = sd_mean_sqr_pred_test,
-                              #pixel = mean_pxl_pred_test,
-                              dataset = "test")
-  
-  all_av_preds <- rbind(av_train_preds, av_test_preds)
-  write_out_csv(all_av_preds, out_table_path, paste0("pred_vs_obs_plot_averages_", tag, ".csv"))
-  
-  all_av_preds_mlt <- melt(
-    all_av_preds,
-    id.vars = c("data_id", "ID_0", "ID_1", "o_j", "dataset"),
-    measure.vars = mes_vars,
-    variable.name = "scale")
-  
-  fl_nm_av <- paste0("pred_vs_obs_plot_averages_", tag, ".png")
-  
-  ret <- dplyr::left_join(all_av_preds_mlt, foi_dataset[, c("data_id", "new_weight")])
-  
-  RF_preds_vs_obs_plot_stratif(df = ret,
-                               x = "o_j",
-                               y = "value",
-                               facet_var = "scale",
-                               file_name = fl_nm_av,
-                               file_path = out_fig_path_av)
+  final_pd_df_splt[[i]] <- one_set[[var]] / scale
   
 }
+
+final_pd_df$x <- unname(unlist(final_pd_df_splt))
+
+
+# sort by var importance ------------------------------------------------------
+
+
+vi_tables_norm <- lapply(vi_tables, normalize_impurity)
+
+all_vi_values <- lapply(seq_along(variables), extract_vi, variables, vi_tables_norm)
+  
+importance <- vapply(all_vi_values, mean, numeric(1))  
+  
+vi_df <- data.frame(var = variables, importance = importance)
+
+final_vi_df <- vi_df[order(vi_df$importance, decreasing = TRUE),]
+
+final_pd_df$var <- factor(final_pd_df$var, 
+                          levels = as.character(final_vi_df$var))
+  
+
+# plot ------------------------------------------------------------------------
+
+
+# create new name strips for facet plots
+new_names <- sprintf("%s (%s)", 
+                     final_vi_df$var, 
+                     paste0(round(final_vi_df$importance, 2),"%"))
+
+x_name_strips <- setNames(new_names, final_vi_df$var)
+
+dir.create(out_pt, FALSE, TRUE)
+
+png(file.path(out_pt, "partial_dependence_plots.png"),
+    width = 16.5,
+    height = 15,
+    units = "cm",
+    pointsize = 12,
+    res = 300)
+
+p <- ggplot(final_pd_df, aes(x, q50)) +
+  facet_wrap(facets = ~ var, 
+             ncol = 4,
+             scales = "free_x", 
+             labeller = as_labeller(x_name_strips)) +
+  geom_ribbon(data = final_pd_df, 
+              mapping = aes(ymin = q05, ymax = q95), 
+              fill = "gray80", 
+              alpha = 0.5) +
+  geom_line() +
+  theme_bw(base_size = 11, base_family = "") +
+  theme(plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "cm"))+
+  labs(x = "Value of predictor",
+       y = "Response (and 95% CI)",
+       title = NULL) +
+  theme(strip.text.x = element_text(size = 6),
+        axis.text.x = element_text(size = 7))
+
+print(p)
+
+dev.off()
