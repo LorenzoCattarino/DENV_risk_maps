@@ -38,7 +38,7 @@ parameters <- list(
 
 vars_to_average <- "response"
 
-statistic <- "median"
+statistic <- "mean"
 
 n_col <- 100
 
