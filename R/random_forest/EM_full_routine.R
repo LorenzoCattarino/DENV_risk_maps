@@ -50,24 +50,10 @@ EM_full_routine <- function(x,
   
   out_name <- paste0("sample_", i, ".rds")
   
-  all_pred_out_path <- file.path(in_path, model_type, "data_admin_predictions")
-  
   RF_out_path <- file.path(in_path, model_type, "optimized_model_objects")
   diagn_out_path <- file.path(in_path, model_type, "diagnostics")
   train_dts_path <- file.path(in_path, model_type, "training_datasets")
-  
-  map_pth <- file.path("figures", 
-                       "EM_algorithm",
-                       "bootstrap_models",
-                       model_type, 
-                       "maps")
-  
-  sct_plt_pth <- file.path("figures", 
-                           "EM_algorithm",
-                           "bootstrap_models",
-                           model_type, 
-                           "iteration_fits")
-  
+  all_pred_out_path <- file.path(in_path, model_type, "data_admin_predictions")
   sqr_data_predictions_out_path <- file.path(in_path, model_type, "square_data_predictions")
   
   global_predictions_out_path <- file.path("output", 
@@ -214,8 +200,6 @@ EM_full_routine <- function(x,
                                     RF_obj_name = out_name,
                                     diagn_tab_path = diagn_out_path,
                                     diagn_tab_name = out_name,
-                                    map_path = map_pth,
-                                    sct_plt_path = sct_plt_pth,
                                     train_dts_path = train_dts_path,
                                     train_dts_name = out_name,
                                     adm_dataset = adm_dataset)
