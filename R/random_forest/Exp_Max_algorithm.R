@@ -17,7 +17,15 @@ exp_max_algorithm <- function(parms,
   
   
   niter <- parms$EM_iter
-  l_f <- parms$pseudoAbs_value
+  if(var_to_fit == "FOI") {
+    
+    l_f <- parms$pseudoAbs_value[1]
+    
+  } else {
+    
+    l_f <- parms$pseudoAbs_value[2]
+    
+  }
   no_trees <- parms$no_trees
   min_node_size <- parms$min_node_size
   foi_offset <- parms$foi_offset
@@ -312,8 +320,16 @@ exp_max_algorithm_boot <- function(i,
   # define variables ---------------------------------------------------------- 
   
   
-  psAbs <- parms$pseudoAbs_value
   var_to_fit <- parms$dependent_variable
+  if(var_to_fit == "FOI") {
+    
+    psAbs <- parms$pseudoAbs_value[1]
+    
+  } else {
+    
+    psAbs <- parms$pseudoAbs_value[2]
+    
+  }
   foi_offset <- parms$foi_offset
   
   res <- (1 / 120) * parms$resample_grid_size
