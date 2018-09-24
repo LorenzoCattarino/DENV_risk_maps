@@ -78,6 +78,10 @@ bootstrap_experiments_by <- dplyr::group_by(bootstrap_experiments, exp_id, var, 
 
 bootstrap_experiments_uni <- dplyr::summarise_at(bootstrap_experiments_by, "rep_id", min)
 
+write_out_csv(bootstrap_experiments_uni, 
+              file.path("output", "EM_algorithm", "bootstrap_models"), 
+              "boostrap_fit_experiments_uni.csv")
+
 
 # start ----------------------------------------------------------------------- 
 
