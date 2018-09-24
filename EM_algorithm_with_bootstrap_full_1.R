@@ -14,7 +14,7 @@ my_resources <- c(
   file.path("R", "prepare_datasets", "calculate_wgt_corr.R"),
   file.path("R", "utility_functions.R"))
 
-my_pkgs <- c("ranger", "dplyr", "fields", "ggplot2", "weights")
+my_pkgs <- c("ranger", "dplyr", "fields", "ggplot2", "weights", "colorRamps")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -54,30 +54,13 @@ grid_sizes <- c(1/120, 0.5, 1, 2, 5, 10)
 
 no_samples <- parameters$no_samples
 
-grid_size <- parameters$grid_size
-
-my_dir <- paste0("grid_size_", grid_size)
-
-in_path <- file.path("output", 
-                     "EM_algorithm",
-                     "bootstrap_models",
-                     my_dir, 
-                     "env_variables",
-                     "boot_samples")
-
-out_path <- file.path("output",
-                      "EM_algorithm",
-                      "bootstrap_models",
-                      my_dir)
-
 
 # start up the cluster --------------------------------------------------------
 
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "20Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
+  obj <- didehpc::queue_didehpc(ctx)
   
 } else {
   
@@ -136,6 +119,10 @@ test_all_2 <- test_all_2[order(test_all_2$exp_id, decreasing = FALSE), ]
 
 test_all_3 <- left_join(test_all_2, test_all)
 
+write_out_csv(test_all_3, 
+              file.path("output", "EM_algorithm", "bootstrap_models"), 
+              "boostrap_fit_experiments.csv")
+
 test_ls <- df_to_list(test_all_3, TRUE)
 
   
@@ -158,8 +145,8 @@ test_ls <- df_to_list(test_all_3, TRUE)
 
 if (CLUSTER) {
 
-  multi_full_EM_experiments <- queuer::qlapply(
-    test_ls[seq_len(200)],
+  multi_full_EM_experiments_2 <- queuer::qlapply(
+    test_ls[2001:5600],
     EM_full_routine,
     obj,
     parms = parameters,
@@ -172,21 +159,15 @@ if (CLUSTER) {
     foi_data = foi_data)
 
 } else {
-
-  multi_full_EM_experiments <- lapply(
-    test_ls[1],
-    EM_full_routine,
-    parms = parameters,
-    data_squares = data_sqr_covariates,
-    all_squares = all_sqr_covariates,
-    predictors = all_predictors,
-    grp_flds_1 = grp_flds_1,
-    grp_flds_2 = grp_flds_2,
-    adm_dataset = admin_covariates,
-    foi_data = foi_data)
-
-}
-
-if(!CLUSTER){
-  context::parallel_cluster_stop()
+  
+  EM_full_routine(test_ls[[1]],
+                  parms = parameters,
+                  data_squares = data_sqr_covariates,
+                  all_squares = all_sqr_covariates,
+                  predictors = all_predictors,
+                  grp_flds_1 = grp_flds_1,
+                  grp_flds_2 = grp_flds_2,
+                  adm_dataset = admin_covariates,
+                  foi_data = foi_data)
+  
 }
