@@ -20,15 +20,6 @@ wrapper_to_average_bsamples <- function(j,
   
   write_out_rds(ret2, out_path, out_name)
   
-  # loop(scenario_ids,
-  #      calculate_mean_of_burden_predictions_for_different_scenarios,
-  #      in_path = in_path, 
-  #      my_var = my_var,
-  #      col_names = col_names, 
-  #      base_info = base_info, 
-  #      out_path = out_path,
-  #      parallel = TRUE)
-  
 }
 
 average_boot_samples_dim2 <- function(dat){
@@ -56,26 +47,6 @@ average_boot_samples_dim1 <- function(dat){
   setNames(c(mean_val, st_dev, l_b, u_b, interv, median), out_names)
 }
 
-calculate_mean_of_burden_predictions_for_different_scenarios <- function(
-  i, in_path, my_var,
-  col_names, base_info, out_path){
-  
-  #browser()
-  
-  root_name <- paste0(my_var, "_all_squares")
-  
-  dat <- readRDS(file.path(in_path, sprintf("%s_%s%s", root_name, i, ".rds")))
-  
-  ret <- average_boot_samples_dim2(dat[, col_names])
-  
-  ret2 <- cbind(dat[, base_info], ret) 
-  
-  out_name <- sprintf("%s_%s_%s%s", my_var, "mean_all_squares", i, ".rds")
-  
-  write_out_rds(ret2, out_path, out_name)
-  
-}
-
 get_grid_size_sd <- function(i, pred_ls){
   pred_ls[[i]]$sd
 }
@@ -89,5 +60,60 @@ wrapper_to_mean_across_fits <- function(i, var_names, out_list){
   col_nms <- paste0(var_names[i], "_", colnames(ret))
   
   setNames(ret, col_nms)
+  
+}
+
+combine_predictions_and_average <- function(x, parms, all_sqr_covariates){
+  
+  base_info <- c("cell", "latitude", "longitude", "population", "ID_0", "ID_1", "ID_2") 
+  
+  model_type <- paste0("model_", x$exp_id)
+  
+  cat("model type =", model_type, "\n")
+  
+  var_to_fit <- x$var
+  
+  foi_offset <- parms$foi_offset
+  
+  col_names <- as.character(seq_len(parms$no_samples))
+  
+  global_predictions_in_path <- file.path("output", 
+                                          "predictions_world",
+                                          "bootstrap_models",
+                                          model_type,
+                                          "boot_samples")
+  
+  out_path <- file.path("output", 
+                      "predictions_world", 
+                      "bootstrap_models",
+                      model_type)
+  
+  fi <- list.files(global_predictions_in_path, 
+                   pattern = "^sample",
+                   full.names = TRUE)
+  
+  all_samples <- loop(fi, readRDS, parallel = FALSE)
+  
+  sqr_preds <- do.call("cbind", all_samples)
+  
+  if(var_to_fit =="FOI"){
+    
+    sqr_preds <- sqr_preds - foi_offset
+    
+  }
+  
+  sqr_preds[sqr_preds < 0] <- 0
+  
+  sqr_preds <- cbind(all_sqr_covariates[, base_info], sqr_preds)
+  
+  write_out_rds(sqr_preds, out_path, "response.rds")  
+  
+  ret <- average_boot_samples_dim2(sqr_preds[, col_names])
+  
+  ids_info <- sqr_preds[, setdiff(names(sqr_preds), col_names)]
+  
+  ret2 <- cbind(ids_info, ret)
+  
+  write_out_rds(ret2, out_path, "response_mean.rds")
   
 }
