@@ -1,7 +1,7 @@
 # Calculate the partial depence of the model function on each explanatory variable,
 # for each model fit.
 
-options(didehpc.cluster = "fi--didemrchnb")
+options(didehpc.cluster = "fi--dideclusthn")
 
 CLUSTER <- TRUE
 
@@ -21,14 +21,14 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  id = 1,
+  id = 5,
   shape_1 = 0,
   shape_2 = 5,
   shape_3 = 1e6,
   all_wgt = 1,
   dependent_variable = "FOI",
   pseudoAbs_value = -0.02,
-  grid_size = 1 / 120,
+  grid_size = 5,
   no_predictors = 9,
   resample_grid_size = 20,
   foi_offset = 0.03,
@@ -75,8 +75,8 @@ v_imp_out_pt <- file.path("output",
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "20Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
+  #config <- didehpc::didehpc_config(template = "20Core")
+  obj <- didehpc::queue_didehpc(ctx)
   
 } else {
   
@@ -107,42 +107,42 @@ my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 # submit one job --------------------------------------------------------------  
 
 
-# t <- obj$enqueue(
-#   wrapper_over_bsamples(seq_len(no_samples)[1],
-#                         RF_obj_pt = model_in_pt,
-#                         tr_dts_pt = train_dts_in_pt,
-#                         par_dep_pt = pdp_out_pt,
-#                         var_imp_pt = v_imp_out_pt,
-#                         model_type = model_type,
-#                         variables = my_predictors))
+t <- obj$enqueue(
+  wrapper_over_bsamples(seq_len(no_samples)[1],
+                        RF_obj_pt = model_in_pt,
+                        tr_dts_pt = train_dts_in_pt,
+                        par_dep_pt = pdp_out_pt,
+                        var_imp_pt = v_imp_out_pt,
+                        model_type = model_type,
+                        variables = my_predictors))
 
 
 # submit all jobs -------------------------------------------------------------
 
 
-if (CLUSTER) {
-
-  pd_tables <- queuer::qlapply(
-    seq_len(no_samples),
-    wrapper_over_bsamples,
-    obj,
-    RF_obj_pt = model_in_pt,
-    tr_dts_pt = train_dts_in_pt,
-    par_dep_pt = pdp_out_pt,
-    var_imp_pt = v_imp_out_pt,
-    model_type = model_type,
-    variables = my_predictors)
-
-} else {
-
-  pd_tables <- lapply(
-    seq_len(no_samples)[1],
-    wrapper_over_bsamples,
-    RF_obj_pt = model_in_pt,
-    tr_dts_pt = train_dts_in_pt,
-    par_dep_pt = pdp_out_pt,
-    var_imp_pt = v_imp_out_pt,
-    model_type = model_type,
-    variables = my_predictors)
-
-}
+# if (CLUSTER) {
+# 
+#   pd_tables <- queuer::qlapply(
+#     seq_len(no_samples),
+#     wrapper_over_bsamples,
+#     obj,
+#     RF_obj_pt = model_in_pt,
+#     tr_dts_pt = train_dts_in_pt,
+#     par_dep_pt = pdp_out_pt,
+#     var_imp_pt = v_imp_out_pt,
+#     model_type = model_type,
+#     variables = my_predictors)
+# 
+# } else {
+# 
+#   pd_tables <- lapply(
+#     seq_len(no_samples)[1],
+#     wrapper_over_bsamples,
+#     RF_obj_pt = model_in_pt,
+#     tr_dts_pt = train_dts_in_pt,
+#     par_dep_pt = pdp_out_pt,
+#     var_imp_pt = v_imp_out_pt,
+#     model_type = model_type,
+#     variables = my_predictors)
+# 
+# }
