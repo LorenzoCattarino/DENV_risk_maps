@@ -8,7 +8,7 @@ library(ggplot2)
 
 foi_data1 <- read.csv(file.path("output", 
                                "foi", 
-                               "All_FOI_estimates_linear_env_var_area.csv"),
+                               "All_FOI_estimates_and_predictors.csv"),
                      stringsAsFactors = FALSE) 
 
 all_sqr_covariates <- readRDS(file.path("output", 
@@ -18,9 +18,6 @@ all_sqr_covariates <- readRDS(file.path("output",
 
 # pre processing --------------------------------------------------------------
 
-
-names(all_sqr_covariates)[names(all_sqr_covariates) == "lat.grid"] <- "latitude"
-names(all_sqr_covariates)[names(all_sqr_covariates) == "long.grid"] <- "longitude"
 
 foi_data <- as.matrix(foi_data1[, c("longitude","latitude")])
 
@@ -47,13 +44,18 @@ all_sqr_covariates <- cbind(all_sqr_covariates,
 
 all_sqr_covariates[, "distance"] <- all_sqr_covariates[, "distance"] / 1000
 
+all_sqr_covariates_df <- as.data.frame(all_sqr_covariates)
+
+saveRDS(all_sqr_covariates_df, 
+        file.path("output", 
+                  "env_variables", 
+                  "all_squares_env_var_0_1667_deg_dis.rds"))
+
 
 # histogram -------------------------------------------------------------------
 
 
-pretty_x_vals <- pretty(all_sqr_covariates[, "distance"], 15)
-
-all_sqr_covariates_df <- as.data.frame(all_sqr_covariates)
+pretty_x_vals <- pretty(all_sqr_covariates_df[, "distance"], 15)
 
 p <- ggplot(all_sqr_covariates_df, aes(distance)) +
   geom_histogram(binwidth = 40) +
@@ -67,8 +69,3 @@ ggsave(file.path("figures", "min_distance_sqr_to_data.png"),
        width = 15, 
        height = 8, 
        units = "cm")
-
-saveRDS(all_sqr_covariates_df, 
-        file.path("output", 
-                  "env_variables", 
-                  "all_squares_env_var_0_1667_deg_dis.rds"))
