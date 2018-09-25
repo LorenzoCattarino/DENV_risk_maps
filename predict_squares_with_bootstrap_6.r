@@ -11,33 +11,32 @@ source(file.path("R", "utility_functions.R"))
 
 
 parameters <- list(
+  id = c(20, 24, 25, 16, 26),
   dependent_variable = "R0_3",
   grid_size = c(0.5, 1, 2, 5, 10))   
 
 out_name <- "response_mean.rds"
 
-base_info <- c("cell", "latitude", "longitude", "population", "ADM_0", "ADM_1", "ADM_2", "sd")
+base_info <- c("cell", "latitude", "longitude", "population", "ID_0", "ID_1", "ID_2", "sd")
 
 
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, "_boot_model")
+model_type <- paste0("model_", parameters$id)
 
 grid_sizes <- parameters$grid_size
   
 in_path <- file.path("output",
                      "predictions_world",
                      "bootstrap_models",
-                     paste0("grid_size_", grid_sizes),
                      model_type,
                      "response_mean.rds")
 
 out_path <- file.path("output",
                       "predictions_world",
                       "bootstrap_models",
-                      "grid_size_interpolated",
-                      model_type)
+                      "grid_size_interpolated")
 
 
 # load data ------------------------------------------------------------------- 
@@ -66,13 +65,13 @@ all_sqr_covariates <- cbind(all_sqr_covariates, all_sd)
 all_sqr_covariates$distance_log <- log(all_sqr_covariates$distance)
 
 all_sqr_covariates$sd <- 0
-  
+
 # all_sqr_covariates <- all_sqr_covariates[302510:302520,]
 
 N <- nrow(all_sqr_covariates)
 
 for (i in seq_len(N)){
-  
+
   all_sqr_covariates[i, "sd"] <- approx(grid_sizes, all_sqr_covariates[i, new_col_names], xout = all_sqr_covariates[i, "distance_log"])$y
 
 }
