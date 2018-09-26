@@ -1,3 +1,49 @@
+wrapper_over_factor_combs <- function(x, predictor_rank){
+  
+  model_type <- paste0("model_", x$exp_id)
+  no_pred <- x$no_pred
+  single_job_id <- x$rep_id
+  
+  cat("model type =", model_type, "\n")
+  cat("number of predictors =", no_pred, "\n")
+  cat("bootstrap sample =", single_job_id, "\n")
+  
+  model_in_pt <- file.path("output",
+                           "EM_algorithm",
+                           "bootstrap_models",
+                           model_type,
+                           "optimized_model_objects")
+  
+  train_dts_in_pt <- file.path("output",
+                               "EM_algorithm",
+                               "bootstrap_models",
+                               model_type,
+                               "training_datasets")
+  
+  pdp_out_pt <- file.path("output",
+                          "EM_algorithm",
+                          "bootstrap_models",
+                          model_type,
+                          "partial_dependence")
+  
+  v_imp_out_pt <- file.path("output",
+                            "EM_algorithm",
+                            "bootstrap_models",
+                            model_type,
+                            "variable_importance")
+  
+  my_predictors <- predictor_rank$name[1:no_pred]
+  
+  wrapper_over_bsamples(i = single_job_id,
+                        RF_obj_pt = model_in_pt,
+                        tr_dts_pt = train_dts_in_pt,
+                        par_dep_pt = pdp_out_pt,
+                        var_imp_pt = v_imp_out_pt,
+                        model_type = model_type,
+                        variables = my_predictors)
+  
+}
+
 wrapper_over_bsamples <- function(i, 
                                   RF_obj_pt, 
                                   tr_dts_pt, 
@@ -47,7 +93,7 @@ calculate_par_dep <- function(RF_obj_name,
     partial(pred.var = i, ...) 
   }
   
-  pdps <- lapply(variables, helper, object = RF_obj, train = dat, parallel = TRUE)
+  pdps <- lapply(variables, helper, object = RF_obj, train = dat, parallel = FALSE)
     
   write_out_rds(pdps, par_dep_path, par_dep_name)
   write_out_rds(var_importances, var_imp_path, var_imp_name)
