@@ -1,16 +1,15 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "wrapper_to_multi_factor_MH_var_sel.R"),
-  file.path("R", "random_forest", "functions_for_fitting_h2o_RF_and_making_predictions.R"),
-  file.path("R", "random_forest", "wrapper_to_multi_factor_MH_var_sel.R"),
+  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
+  file.path("R", "random_forest", "variable_selection_metro_hast.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "utility_functions.R"))
 
-my_pkgs <- c("h2o", "ggplot2", "gridExtra")
+my_pkgs <- c("ranger", "ggplot2", "gridExtra")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -22,17 +21,18 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  grid_size = 1,
+  grid_size = 5,
   no_trees = 500,
   min_node_size = 20,
   pseudoAbs_value = -0.02,
   all_wgt = 1,
   wgt_limits = c(1, 500),
-  it = 10,
+  it = 100000,
   scaling_factor = 10000,
-  var_scale = 0)
+  var_scale = 0,
+  no_samples = 200)
 
-no_fits <- 50
+no_samples <- parameters$no_samples
 
 var_to_fit <- "FOI"
 
@@ -41,6 +41,8 @@ altitude_var_names <- "altitude"
 fourier_transform_elements <- c("const_term",	"Re0",	"Im0",	"Re1",	"Im1")
 
 FTs_data_names <- c("DayTemp", "EVI", "MIR", "NightTemp", "RFE")
+
+extra_predictors <- c("log_pop_den", "travel_time")
 
 out_fig_path <- file.path("figures", 
                           "variable_selection", 
@@ -63,7 +65,7 @@ my_dir <- paste0("grid_size_", parameters$grid_size)
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "20Core")
+  config <- didehpc::didehpc_config(template = "12and16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -77,9 +79,10 @@ if (CLUSTER) {
 # load data -------------------------------------------------------------------
 
 
-foi_data <- read.csv(
-  file.path("output", "foi", "All_FOI_estimates_linear_env_var_area.csv"),
-  stringsAsFactors = FALSE) 
+foi_data <- read.csv(file.path("output", 
+                               "foi", 
+                               "All_FOI_estimates_linear_env_var_area_salje.csv"),
+                     stringsAsFactors = FALSE) 
 
 boot_samples <- readRDS(file.path("output", 
                                   "EM_algorithm",
@@ -91,11 +94,11 @@ boot_samples <- readRDS(file.path("output",
 # pre process -----------------------------------------------------------------
 
 
-all_FT_names <- apply(expand.grid(fourier_transform_elements, FTs_data_names), 
-                      1, 
-                      function(x) paste(x[2], x[1], sep="_"))
+all_combs <- expand.grid(FTs_data_names, fourier_transform_elements)
 
-all_predictors <- c(altitude_var_names, all_FT_names)
+all_FT_names <- paste(all_combs$Var1, all_combs$Var2, sep = "_")
+
+all_predictors <- c(altitude_var_names, all_FT_names, extra_predictors)
 
 foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- parameters$pseudoAbs_value
 
@@ -125,7 +128,7 @@ foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 if (CLUSTER) {
   
   MH_chains <- queuer::qlapply(
-    seq_len(no_fits),
+    seq_len(no_samples),
     MH_variable_selection_boot,
     obj,
     boot_ls = boot_samples,
@@ -139,7 +142,7 @@ if (CLUSTER) {
 } else {
   
   MH_chains <- lapply(
-    seq_len(no_fits)[1],
+    seq_len(no_samples)[1],
     MH_variable_selection_boot,
     boot_ls = boot_samples,
     foi_data = foi_data, 
