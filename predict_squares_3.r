@@ -30,6 +30,13 @@ model_id <- 12
 
 n_col <- 100
 
+FOI_z_range <- c(0, 0.06)
+R0_1_z_range <- c(0, 8)
+R0_2_z_range <- c(0, 4)
+R0_3_z_range <- c(0, 5)
+
+z_range <- R0_3_z_range
+
 
 # define variables ------------------------------------------------------------
 
@@ -76,4 +83,11 @@ out_fl_nm <- paste0(vars_to_average, "_", statistic, ".png")
 # plot ------------------------------------------------------------------------ 
 
 
-quick_raster_map(df_long, vars_to_average, statistic, my_col, out_path, out_fl_nm)
+quick_raster_map(pred_df = df_long, 
+                 variable = vars_to_average, 
+                 statistic = statistic, 
+                 my_col = my_col, 
+                 out_pt = out_path, 
+                 out_name = out_fl_nm,
+                 z_range = z_range)
+
