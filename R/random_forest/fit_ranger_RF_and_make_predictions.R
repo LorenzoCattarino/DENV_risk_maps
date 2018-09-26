@@ -16,7 +16,8 @@ fit_ranger_RF <- function(dependent_variable,
          case.weights = wgts,
          write.forest = TRUE,
          min.node.size = min_node_size,
-         verbose = TRUE)
+         verbose = TRUE,
+         num.threads = 1)
   
 }
 
