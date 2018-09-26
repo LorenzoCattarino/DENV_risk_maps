@@ -40,8 +40,6 @@ MH_variable_selection_boot <- function(i,
   
   adm_dts_boot[adm_dts_boot$type == "pseudoAbsence", dependent_variable] <- psAb_val
   
-  h2o.init(max_mem_size = "20G")
-  
   n.vars <- length(predictors)
   
   tracker <- matrix(0, nrow = Niter, ncol = length(diagnostic_nms) + n.vars)
@@ -101,6 +99,8 @@ MH_variable_selection_boot <- function(i,
   
   for (iter in 1:Niter){
     
+    cat("iteration =", iter, "\n")
+    
     next.var.list <- cur.var.list
     
     # suggest move
@@ -147,8 +147,6 @@ MH_variable_selection_boot <- function(i,
     tracker[iter, predictors] <- cur.var.list
     
   }
-  
-  h2o.shutdown(prompt = FALSE)
   
   out_tab_name <- paste0("sample_", ID_sample, ".rds")
     
