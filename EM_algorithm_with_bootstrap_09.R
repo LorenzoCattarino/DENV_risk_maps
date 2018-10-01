@@ -22,15 +22,15 @@ context::context_load(ctx)
 
 
 parameters <- list(
-  id = 1,
+  id = 24,
   shape_1 = 0,
   shape_2 = 5,
   shape_3 = 1e6,
   all_wgt = 1,
-  dependent_variable = "FOI",
-  pseudoAbs_value = -0.02,
-  grid_size = 1 / 120,
-  no_predictors = 9,
+  dependent_variable = "R0_3",
+  pseudoAbs_value = 0.5,
+  grid_size = 5,
+  no_predictors = 26,
   resample_grid_size = 20,
   foi_offset = 0.03,
   no_trees = 500,
@@ -167,7 +167,7 @@ dir.create(out_pt, FALSE, TRUE)
 
 png(file.path(out_pt, "partial_dependence_plots.png"),
     width = 16.5,
-    height = 15,
+    height = 18.5,
     units = "cm",
     pointsize = 12,
     res = 300)
