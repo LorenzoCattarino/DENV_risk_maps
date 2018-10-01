@@ -1,6 +1,10 @@
 # Functions to calculate R0 using the 'at equilibrium' numbers of total primary to quaternary infections
 
-calculate_infectiousness_wgts_for_sym_asym_assumption <- function(w_1, w_2, w_3){
+calculate_infectiousness_wgts_for_sym_asym_assumption <- function(parms){
+  
+  w_1 <- parms$gamma_1
+  w_2 <- parms$rho
+  w_3 <- parms$gamma_3
   
   phi_2 <- 1
   phi_1 <- (w_1 * 2 + (1 - w_1)) / (w_2 * 2 + (1 - w_2)) 
