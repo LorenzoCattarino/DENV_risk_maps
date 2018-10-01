@@ -12,7 +12,7 @@ my_resources <- c(
 my_pkgs <- c("ranger", "pdp")
 
 context::context_log_start()
-ctx <- context::context_save(path = "context",
+ctx <- context::context_save(path = "context_2",
                              sources = my_resources,
                              packages = my_pkgs)
 
@@ -71,7 +71,7 @@ bootstrap_experiments_sub_ls <- df_to_list(bootstrap_experiments_sub, TRUE)
 if (CLUSTER) {
 
   pd_tables <- queuer::qlapply(
-    bootstrap_experiments_sub_ls,
+    bootstrap_experiments_sub_ls[seq_len(1000)],
     wrapper_over_factor_combs,
     obj,
     predictor_rank = predictor_rank)
