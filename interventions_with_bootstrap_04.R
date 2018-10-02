@@ -1,6 +1,10 @@
-# Take the mean, sd and 95%CI across bootstrap samples, of number of 
-# 1) total number of infections and cases, summed over all squares, AND:
-# 2) total number of infections and cases, summed by country 
+# For vaccine impact
+
+# 1) take the mean, sd and 95%CI across bootstrap samples, of
+# total number of infections and cases, summed over all squares, AND:
+# total number of infections and cases, summed by country 
+
+# 2) create barplots of total numbers
 
 library(dplyr)
 library(data.table)
