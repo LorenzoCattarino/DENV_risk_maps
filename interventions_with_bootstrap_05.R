@@ -1,7 +1,5 @@
-
-# plot proportional reduction in infections, cases and hospitalized cases 
-# from wolbachia and vaccination 
-
+# Plot proportional reduction in infections, cases and hospitalized cases 
+# for wolbachia and vaccination 
 
 library(dplyr)
 library(ggplot2)
