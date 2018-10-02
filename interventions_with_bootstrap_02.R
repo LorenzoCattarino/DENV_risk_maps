@@ -1,3 +1,11 @@
+# Calculates
+# for each model fit, 
+# R0-vaccine screening age combinations and 
+# 20 km square:
+#
+# 1) number of infections
+# 2) number of cases
+# 3) number of hospitalized cases 
 
 options(didehpc.cluster = "fi--didemrchnb")
 
