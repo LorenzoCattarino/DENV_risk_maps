@@ -1,5 +1,5 @@
 # Calculates
-# for each model fit 
+# for each model fit, 
 # R0-Wolbachia effect assumption combinations and 
 # 20 km square:
 #
