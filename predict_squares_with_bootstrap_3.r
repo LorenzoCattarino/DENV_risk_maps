@@ -1,58 +1,110 @@
-# Calculates seroprevalence at age 9 (`p9` variable).
+# Take mean, median, sd and 95% CI of foi, R0 and burden measures, for each 20 km square
+# THIS IS FOR THE MAP!
+
+options(didehpc.cluster = "fi--didemrchnb")
+
+CLUSTER <- TRUE
+
+my_resources <- c(
+  file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"),
+  file.path("R", "utility_functions.R"))
+
+context::context_log_start()
+ctx <- context::context_save(path = "context",
+                             sources = my_resources)
 
 
-source(file.path("R", "utility_functions.r"))
-
-
-# define parameters -----------------------------------------------------------
+# define parameters ----------------------------------------------------------- 
 
 
 parameters <- list(
+  id = 1,
+  shape_1 = 0,
+  shape_2 = 5,
+  shape_3 = 1e6,
+  all_wgt = 1,
   dependent_variable = "FOI",
-  grid_size = 1,
-  no_samples = 200)   
+  pseudoAbs_value = -0.02,
+  grid_size = 1 / 120,
+  no_predictors = 9,
+  resample_grid_size = 20,
+  foi_offset = 0.03,
+  no_trees = 500,
+  min_node_size = 20,
+  no_samples = 200,
+  EM_iter = 10) 
 
-age <- 9
+vars_to_average <- "response"
 
-out_fl_nm <- "p9.rds"
 
-prediction_fl_nm <- "response.rds"
-  
-  
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, "_boot_model")
+model_type <- paste0("model_", parameters$id)
 
-my_dir <- paste0("grid_size_", parameters$grid_size)
+col_names <- as.character(seq_len(parameters$no_samples))
 
-out_pt <- file.path("output", 
-                    "predictions_world",
-                    "bootstrap_models",
-                    my_dir,
-                    model_type)
-
-col_ids <- as.character(seq_len(parameters$no_samples))
+in_path <- file.path("output", 
+                     "predictions_world",
+                     "bootstrap_models",
+                     model_type)
 
 
-# load data ------------------------------------------------------------------- 
+# are you using the cluster? -------------------------------------------------- 
 
+
+if (CLUSTER) {
   
-sqr_preds <- readRDS(file.path("output", 
-                               "predictions_world",
-                               "bootstrap_models",
-                               my_dir,
-                               model_type,
-                               prediction_fl_nm))
-
-
-# calculate p9 ----------------------------------------------------------------
-
-
-p9 <- 100 * (1 - exp(-4 * age * sqr_preds[, col_ids]))
-
-base_info <- sqr_preds[, setdiff(names(sqr_preds), col_ids)]
+  config <- didehpc::didehpc_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
   
-final_dts <- cbind(base_info, p9)
+} else{
+  
+  context::context_load(ctx)
+  context::parallel_cluster_start(7, ctx)
+  
+}
 
-write_out_rds(final_dts, out_pt, out_fl_nm)  
+
+# run one job -----------------------------------------------------------------
+
+
+# t <- obj$enqueue(
+#   wrapper_to_average_bsamples(
+#     seq_along(vars_to_average)[1],
+#     vars = vars_to_average,
+#     in_path = in_path,
+#     out_path = in_path,
+#     col_names = col_names))
+  
+  
+# run -------------------------------------------------------------------------
+
+
+if (CLUSTER) {
+
+  means_all_scenarios <- queuer::qlapply(
+    seq_along(vars_to_average),
+    wrapper_to_average_bsamples,
+    obj,
+    vars = vars_to_average,
+    in_path = in_path,
+    out_path = in_path,
+    col_names = col_names)
+
+} else {
+
+  means_all_scenarios <- loop(
+    seq_along(vars_to_average),
+    wrapper_to_average_bsamples,
+    vars = vars_to_average,
+    in_path = in_path,
+    out_path = in_path,
+    col_names = col_names,
+    parallel = FALSE)
+
+}
+
+if(!CLUSTER){
+  context::parallel_cluster_stop()
+}
