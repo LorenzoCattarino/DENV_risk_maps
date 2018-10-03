@@ -21,7 +21,8 @@ source(file.path("R", "utility_functions.R"))
 parameters <- list(
   id = c(14, 15, 16),
   no_samples = 200,
-  desired_n_int = c(8, 6, 5))   
+  desired_n_int = c(8, 6, 5),
+  baseline_scenario_ids = c(1, 2, 3))   
 
 intervention_name <- "vaccine"
 
@@ -30,6 +31,8 @@ treatment_name <- "screening_age"
 
 # define variables ------------------------------------------------------------
 
+
+baseline_scenario_ids <- parameters$baseline_scenario_ids 
 
 desired_n_int <- parameters$desired_n_int
 
@@ -54,8 +57,8 @@ out_fig_path <- file.path("figures",
 
 fct_comb_fl_nm <- paste0("scenario_table_", intervention_name, ".csv")
 
-
 out_ls <- vector("list", length(model_type))
+out_ls_2 <- vector("list", length(model_type))
 
 
 # load data ------------------------------------------------------------------- 
@@ -94,11 +97,11 @@ for (k in seq_along(model_type)){                                  # loop over R
   my_fct_comb <- fct_comb_ls[[k]]
   
   small_out_ls <- vector("list", length(nrow(my_fct_comb)))
+  small_out_ls_2 <- vector("list", length(nrow(my_fct_comb)))
   
   for (i in seq_len(nrow(my_fct_comb))){                           # loop over scenario ids
     
     scenario_id <- my_fct_comb[i, "id"]
-    
     cat("scenario table id =", scenario_id, "\n")
     
     burden_measure <- my_fct_comb[i, "burden_measure"]
@@ -106,6 +109,10 @@ for (k in seq_along(model_type)){                                  # loop over R
     out_file_tag <- toupper(substr(burden_measure, 1, 1))
     
     root_name <- paste0(out_file_tag, "_num_", intervention_name, "_", scenario_id, ".rds")
+    
+    baseline_id <- baseline_scenario_ids[k]
+    baseline_fl_nm <- paste0(out_file_tag, "_num_wolbachia_", baseline_id, ".rds")
+    baseline <- readRDS(file.path(my_in_path, baseline_fl_nm)) 
     
     dat <- readRDS(file.path(my_in_path, root_name))
     
@@ -142,9 +149,20 @@ for (k in seq_along(model_type)){                                  # loop over R
     
     small_out_ls[[i]] <- ret5
     
+    bl <- baseline[, var_to_sum]
+    od <- one_dat[, var_to_sum]
+    
+    bl_colsum <- colSums(bl)
+    od_colsum <- colSums(od)
+    ret6 <- (bl_colsum - od_colsum) / bl_colsum
+    ret7 <- average_boot_samples_dim1(ret6)
+    
+    small_out_ls_2[[i]] <- ret7
+
   }
   
   out_ls[[k]] <- cbind(my_fct_comb, do.call("rbind", small_out_ls))
+  out_ls_2[[k]] <- cbind(my_fct_comb, do.call("rbind", small_out_ls_2))
   
 }
 
@@ -164,6 +182,22 @@ summary_table$phi_set_id <- factor(summary_table$phi_set_id,
                                    levels = c(1, 2, 3), 
                                    labels = phi_factor_levels)
 
+summary_table_2 <- do.call("rbind", out_ls_2)  
+
+names(summary_table_2)[names(summary_table_2) == treatment_name] <- "treatment"
+
+treatment_levels <- unique(summary_table_2$treatment)
+
+summary_table_2[, "treatment"] <- factor(summary_table_2[, "treatment"],
+                                         levels = treatment_levels,
+                                         labels = treatment_levels)
+
+phi_factor_levels <- c("2S", "4S", "4S(sym = 2x asym)")
+
+summary_table_2$phi_set_id <- factor(summary_table_2$phi_set_id, 
+                                     levels = c(1, 2, 3), 
+                                     labels = phi_factor_levels)
+
 
 # plotting ------------------------------------------------------------------
 
@@ -175,6 +209,13 @@ for (j in seq_along(burden_measures)) {
   bur_meas <- burden_measures[j]
   
   summary_table_sub <- subset(summary_table, burden_measure == bur_meas)
+  
+  summary_table_2_sub <- subset(summary_table_2, burden_measure == bur_meas)
+  summary_tab_fl_nm <- paste0("prop_change_", bur_meas, "_", intervention_name, ".csv")
+  write_out_csv(summary_table_2_sub, file.path("output", 
+                                           "predictions_world", 
+                                           "bootstrap_models"), 
+                summary_tab_fl_nm)
   
   y_values <- pretty(0:max(summary_table_sub$mean), desired_n_int[j])
   max_y_value <- max(summary_table_sub$uCI)
