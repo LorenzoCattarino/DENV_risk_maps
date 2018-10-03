@@ -28,9 +28,11 @@ calculate_cases <- function(FOI,
                             prob_fun, 
                             age_band_lower_bounds, 
                             age_band_upper_bounds,
-                            rho, 
-                            gamma_1, 
-                            gamma_3){
+                            parms){
+  
+  rho <- parms$rho 
+  gamma_1 <- parms$gamma_1
+  gamma_3 <- parms$gamma_3
   
   infection_probabilities <- lapply(
     prob_fun, 
@@ -54,6 +56,55 @@ calculate_cases <- function(FOI,
   
   sum(case_number_j) * 4
   
+}
+
+calculate_hosp_cases <- function(FOI, 
+                                 n_j, 
+                                 prob_fun, 
+                                 age_band_lower_bounds, 
+                                 age_band_upper_bounds,
+                                 parms){
+  
+  rho <- parms$rho 
+  gamma_1 <- parms$gamma_1
+  gamma_3 <- parms$gamma_3
+  
+  Q_1 <- parms$Q_1
+  Q_2 <- parms$Q_2
+  Q_3 <- parms$Q_3
+  Q_4 <- parms$Q_4
+    
+  infection_probabilities <- lapply(
+    prob_fun, 
+    do.call,
+    list(FOI, age_band_lower_bounds, age_band_upper_bounds))
+  
+  infection_incidences <- lapply(
+    infection_probabilities,
+    calc_average_prob_infect,
+    age_band_upper_bounds, 
+    age_band_lower_bounds) 
+  
+  I1_rate <- infection_incidences[[1]] 
+  I2_rate <- infection_incidences[[2]]
+  I3_rate <- infection_incidences[[3]] 
+  I4_rate <- infection_incidences[[4]]    
+  
+  case_1_number_j <- calculate_case_number(gamma_1 * I1_rate, n_j)
+  
+  case_2_number_j <- calculate_case_number(rho * I2_rate, n_j)
+  
+  case_3_number_j <- calculate_case_number(gamma_3 * I3_rate, n_j)
+  
+  case_4_number_j <- calculate_case_number(gamma_3 * I4_rate, n_j)
+  
+  case_1_number <- sum(case_1_number_j) * 4
+  case_2_number <- sum(case_2_number_j) * 4
+  case_3_number <- sum(case_3_number_j) * 4
+  case_4_number <- sum(case_4_number_j) * 4
+  
+  (Q_1 * case_1_number) + (Q_2 * case_2_number) + (Q_3 * case_3_number) + (Q_4 * case_4_number)  
+
 }
 
 wrapper_to_lookup <- function(i, 
@@ -81,5 +132,7 @@ fix_R0_lookup_limits <- function(i) {
 }
 
 cbind_FOI_to_lookup <- function(i, FOI_values) {
+  
   cbind(x = FOI_values, y = i)
+
 }
