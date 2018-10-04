@@ -22,3 +22,10 @@ average_data_points <- function(i){
     group_by(ADM_0, ADM_1) %>%
     summarise(o_j = mean(o_j), admin = mean(admin), square = mean(square))
 }
+
+multi_col_average_up <- function(i, x, grp_flds){
+  
+  dat <- x[, c("population", grp_flds, i)]
+  average_up(dat, grp_flds, i)
+
+}
