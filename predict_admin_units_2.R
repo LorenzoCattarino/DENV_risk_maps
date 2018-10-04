@@ -21,10 +21,12 @@ ctx <- context::context_save(path = "context",
 
 var_to_fit <- "FOI"
 
-adm_level <- 2
+adm_level <- 1
 
-#stat <- "adm"
-stat <- "aver_sqr"
+stat <- "adm"
+#stat <- "aver_sqr"
+
+my_prj <- "+proj=eqc +lat_ts=0 +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 +a=6371007 +b=6371007 +units=m +no_defs"
 
 
 # define variables ------------------------------------------------------------
@@ -76,6 +78,10 @@ adm_shp <- readOGR(dsn = file.path("output", "shapefiles"),
 
 # pre processing -------------------------------------------------------------- 
 
+
+#adm_shp_prj <- spTransform(adm_shp, CRS(my_prj))
+
+#country_shp_prj <- spTransform(country_shp, CRS(my_prj))
 
 adm_shp_pred <- merge(adm_shp, 
                       prediction_dat[, c("OBJECTID", stat)], 
