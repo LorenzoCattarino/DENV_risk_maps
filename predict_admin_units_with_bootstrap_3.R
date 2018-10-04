@@ -18,12 +18,12 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  id = 14,
+  id = 16,
   shape_1 = 0,
   shape_2 = 5,
   shape_3 = 1e6,
   all_wgt = 1,
-  dependent_variable = "R0_1",
+  dependent_variable = "R0_3",
   pseudoAbs_value = 0.5,
   grid_size = 5,
   no_predictors = 23,
@@ -56,7 +56,7 @@ in_path <- file.path("output",
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "24Core")
+  config <- didehpc::didehpc_config(template = "20Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else{
