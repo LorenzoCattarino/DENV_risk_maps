@@ -5,20 +5,13 @@ quick_polygon_map <- function(adm_shp_fl,
                               out_pt, 
                               out_name){
   
-  dir.create(out_pt, FALSE, TRUE)
-  
-  png(file.path(out_pt, out_name), 
-      width = 18, 
-      height = 8, 
-      units = "cm",
-      pointsize = 12,
-      res = 300)
-  
   # country_list <- list("sp.polygons",
   #                      country,
   #                      col = NA,
   #                      fill = my_col[1],
   #                      first = TRUE)
+  
+  # browser()
   
   theme.novpadding <-list(layout.heights =
                             list(top.padding = 0,
@@ -37,24 +30,23 @@ quick_polygon_map <- function(adm_shp_fl,
                           axis.line = 
                             list(col = "transparent"))
   
-  #browser()
-  
   adm_shp_fl@data[is.na(adm_shp_fl@data[, var]), var] <- 0
   
-  max_var <- max(adm_shp_fl@data[, var], na.rm = T)
+  pretty_var_range <- pretty(adm_shp_fl@data[, var], n = 5)
+  max_var <- max(pretty_var_range)
   min_x <- adm_shp_fl@bbox[1,1]
   max_x <- adm_shp_fl@bbox[1,2]
     
   p <- spplot(adm_shp_fl, 
               var, 
-              at = seq(0, max_var, length.out = 100),
+              at = seq(0, max_var, length.out = length(my_col)),
               col = NA,
               scales = list(x = list(draw = FALSE, 
                                      at = seq(-150, 150, 50)), 
                             y = list(draw = FALSE,
                                      at = seq(-60, 60, 20))),
               xlim = c(min_x, max_x),
-              ylim = c(-60, 90),
+              ylim = c(-60, 60),
               col.regions = my_col,
               colorkey = list(space = "right", height = 0.4),
               par.settings = theme.novpadding)#,
@@ -66,6 +58,15 @@ quick_polygon_map <- function(adm_shp_fl,
   
   key$framevp$x <- unit(0.10, "npc")
   key$framevp$y <- unit(0.23, "npc")
+  
+  dir.create(out_pt, FALSE, TRUE)
+  
+  png(file.path(out_pt, out_name), 
+      width = 16, 
+      height = 5.5, 
+      units = "cm",
+      pointsize = 12,
+      res = 300)
   
   print(p)
   
