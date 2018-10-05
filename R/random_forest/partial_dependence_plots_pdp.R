@@ -39,7 +39,6 @@ wrapper_over_factor_combs <- function(x, predictor_rank){
                         tr_dts_pt = train_dts_in_pt,
                         par_dep_pt = pdp_out_pt,
                         var_imp_pt = v_imp_out_pt,
-                        model_type = model_type,
                         variables = my_predictors)
   
 }
@@ -49,7 +48,6 @@ wrapper_over_bsamples <- function(i,
                                   tr_dts_pt, 
                                   par_dep_pt, 
                                   var_imp_pt, 
-                                  model_type, 
                                   variables){
   
   nm <- paste0("sample_", i, ".rds")
@@ -62,7 +60,6 @@ wrapper_over_bsamples <- function(i,
                     tr_dts_pt,
                     par_dep_pt,
                     var_imp_pt,
-                    model_type, 
                     variables)  
   
 }
@@ -75,7 +72,6 @@ calculate_par_dep <- function(RF_obj_name,
                               tr_dts_path,
                               par_dep_path,
                               var_imp_path,
-                              model_type, 
                               variables) {
   
   # browser()
