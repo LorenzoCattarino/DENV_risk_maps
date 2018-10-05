@@ -1,6 +1,6 @@
 # calculate the partial depence of the model function on each explanatory variable
 
-options(didehpc.cluster = "fi--didemrchnb")
+options(didehpc.cluster = "fi--dideclusthn")
 
 CLUSTER <- TRUE
 
@@ -8,7 +8,7 @@ my_resources <- c(
   file.path("R", "random_forest", "partial_dependence_plots_pdp.R"),
   file.path("R", "utility_functions.R"))
 
-my_pkgs <- c("ranger", "pdp", "foreach")
+my_pkgs <- c("ranger", "pdp")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -23,21 +23,19 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "FOI",
-  no_predictors = 26)   
+  id = 12,
+  no_predictors = 26) 
 
 RF_mod_nm <- "RF_obj.rds"
 train_dts_nm <- "train_dts.rds"
 par_dep_nm <- "par_dep.rds"
 var_imp_nm <- "var_imp.rds"
 
-model_type_tag <- "_best_model_4"
-
 
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, model_type_tag)
+model_type <- paste0("model_", parameters$id)
 
 model_in_pt <- file.path("output",
                          "EM_algorithm",
@@ -69,13 +67,11 @@ v_imp_out_pt <- file.path("output",
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "16Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
+  obj <- didehpc::queue_didehpc(ctx)
   
 } else {
   
   context::context_load(ctx)
-  #context::parallel_cluster_start(8, ctx)
   
 }
 
@@ -101,7 +97,7 @@ my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 
 if(CLUSTER){
   
-  pd <- obj$enqueue(
+  pd_12 <- obj$enqueue(
     calculate_par_dep(RF_obj_name = RF_mod_nm, 
                       tr_dts_name = train_dts_nm,
                       par_dep_name = par_dep_nm,
@@ -110,7 +106,6 @@ if(CLUSTER){
                       tr_dts_path = train_dts_in_pt,
                       par_dep_path = pdp_out_pt,
                       var_imp_path = v_imp_out_pt,
-                      model_type = model_type,
                       variables = my_predictors))
   
 } else {
@@ -123,7 +118,6 @@ if(CLUSTER){
                           tr_dts_path = train_dts_in_pt,
                           par_dep_path = pdp_out_pt,
                           var_imp_path = v_imp_out_pt,
-                          model_type = model_type,
                           variables = my_predictors)
   
 }
