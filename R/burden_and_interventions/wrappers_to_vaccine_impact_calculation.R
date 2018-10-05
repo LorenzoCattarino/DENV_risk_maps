@@ -26,6 +26,23 @@ wrapper_to_multi_factor_vaccine_impact <- function(x,
   
   model_type <- paste0("model_", parms$id)
   
+  if(base_info[1] == "cell"){
+    
+    fl_pt <- file.path("output", 
+                       "predictions_world", 
+                       "bootstrap_models",
+                       model_type)
+    
+  } else {
+    
+    fl_pt <- file.path("output", 
+                       "predictions_world", 
+                       "bootstrap_models",
+                       model_type,
+                       "adm_1")    
+    
+  }
+  
   
   # load data -----------------------------------------------------------------  
   
@@ -36,11 +53,7 @@ wrapper_to_multi_factor_vaccine_impact <- function(x,
                                       lookup_table_nm),
                             header = TRUE)
   
-  burden <- readRDS(file.path("output", 
-                              "predictions_world", 
-                              "bootstrap_models",
-                              model_type, 
-                              burden_file_name))
+  burden <- readRDS(file.path(fl_pt, burden_file_name))
   
   
   # ---------------------------------------------------------------------------
