@@ -22,20 +22,8 @@ ctx <- context::context_save(path = "context",
 
 parameters <- list(
   id = 5,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1e6,
-  all_wgt = 1,
-  dependent_variable = "FOI",
-  pseudoAbs_value = -0.02,
-  grid_size = 5,
   no_predictors = 9,
-  resample_grid_size = 20,
-  foi_offset = 0.03,
-  no_trees = 500,
-  min_node_size = 20,
-  no_samples = 200,
-  EM_iter = 10) 
+  no_samples = 200) 
 
 
 # define variables ------------------------------------------------------------
@@ -113,7 +101,6 @@ t <- obj$enqueue(
                         tr_dts_pt = train_dts_in_pt,
                         par_dep_pt = pdp_out_pt,
                         var_imp_pt = v_imp_out_pt,
-                        model_type = model_type,
                         variables = my_predictors))
 
 
@@ -130,7 +117,6 @@ t <- obj$enqueue(
 #     tr_dts_pt = train_dts_in_pt,
 #     par_dep_pt = pdp_out_pt,
 #     var_imp_pt = v_imp_out_pt,
-#     model_type = model_type,
 #     variables = my_predictors)
 # 
 # } else {
@@ -142,7 +128,6 @@ t <- obj$enqueue(
 #     tr_dts_pt = train_dts_in_pt,
 #     par_dep_pt = pdp_out_pt,
 #     var_imp_pt = v_imp_out_pt,
-#     model_type = model_type,
 #     variables = my_predictors)
 # 
 # }
