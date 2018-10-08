@@ -16,7 +16,7 @@ my_resources <- c(
   file.path("R", "prepare_datasets", "average_up.r"),
   file.path("R", "utility_functions.r"))
 
-my_pkgs <- c("dplyr")
+my_pkgs <- c("dplyr", "matrixStats") # for rowMaxs
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -35,7 +35,6 @@ parameters <- list(
   no_samples = 200,
   wolbachia_scenario_id = 3,
   no_R0_assumptions = 3,
-  screening_ages = c(9, 16),
   burden_measure = c("infections", "cases", "hosp")) 
 
 parallel_2 <- TRUE
@@ -96,8 +95,8 @@ R0_pred <- readRDS(file.path("output",
 
 phi_set_id <- seq_len(parameters$no_R0_assumptions)
 
-fct_c <- setNames(expand.grid(phi_set_id, burden_measures, screening_ages, stringsAsFactors = FALSE),
-                  nm = c(phi_set_id_tag, "burden_measure", "screening_age"))
+fct_c <- setNames(expand.grid(phi_set_id, burden_measures, stringsAsFactors = FALSE),
+                  nm = c(phi_set_id_tag, "burden_measure"))
 
 fct_c <- cbind(id = seq_len(nrow(fct_c)), fct_c)
 
