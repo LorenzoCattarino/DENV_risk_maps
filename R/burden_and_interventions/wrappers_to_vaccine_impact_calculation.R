@@ -97,14 +97,36 @@ wrapper_to_replicate_vaccine_impact <- function(i,
                                                 parms,
                                                 preds, 
                                                 vaccine_lookup,
-                                                screen_age){
+                                                screen_age = NULL){
+  
+  browser()
+  
+  approx_all_ages <- function(j, vaccine_lookup, preds){
+    approx(vaccine_lookup[, "R0"], vaccine_lookup[, j], xout = preds)$y
+  }
   
   no_fits <- parms$no_samples
   
   col_ids <- as.character(seq_len(no_fits))
   
   preds_i <- preds[i, col_ids]
- 
-  approx(vaccine_lookup[, "R0"], vaccine_lookup[, screen_age], xout = preds_i)$y
+  
+  if(!is.null(screen_age)){
     
+    out <- approx(vaccine_lookup[, "R0"], vaccine_lookup[, screen_age], xout = preds_i)$y
+    
+  } else {
+    
+    all_ages <- seq_len(18)
+    
+    # look up reduction for each age
+    ret_all_ages <- vapply(all_ages[2:length(all_ages)], approx_all_ages, numeric(no_fits), vaccine_lookup, preds_i)
+    
+    # find max reduction across ages (columns)
+    out <- rowMaxs(ret_all_ages) 
+    
+  }
+  
+  out
+
 }
