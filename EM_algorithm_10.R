@@ -15,27 +15,24 @@ ctx <- context::context_save(path = "context",
                              packages = my_pkgs)
 
 context::context_load(ctx)
-#context::parallel_cluster_start(8, ctx)
 
 
 # define parameters ----------------------------------------------------------- 
 
 
 parameters <- list(
-  dependent_variable = "FOI",
+  id = 12,
   no_predictors = 26)   
 
 year.i <- 2007
 year.f <- 2014
 ppyear <- 64
 
-model_type_tag <- "_best_model_4"
-
 
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0(parameters$dependent_variable, model_type_tag)
+model_type <- paste0("model_", parameters$id)
 
 pdp_pt <- file.path("output",
                     "EM_algorithm",
@@ -143,7 +140,7 @@ dir.create(out_pt, FALSE, TRUE)
 
 png(file.path(out_pt, "partial_dependence_plots.png"),
     width = 16.5,
-    height = 20,
+    height = 18.5,
     units = "cm",
     pointsize = 12,
     res = 300)
