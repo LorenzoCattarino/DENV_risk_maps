@@ -7,7 +7,7 @@ This repository contains the data and code to make global predictions of dengue 
 - a dataset of bioclimatic, demographic and socioeconomic variables driving suitability of DENV tramsmission (1 km resolution)
 - a Random Forest model
 
-R0 predictions are then used to quantify the global impact of two main DENV control strategies, namely release of Wolbachia-infected mosquitos and childhood vaccination with the Sanofi Pasteur dengue vaccine.
+**R~0~** predictions are then used to quantify the global impact of two main DENV control strategies, namely release of Wolbachia-infected mosquitos and childhood vaccination with the Sanofi Pasteur dengue vaccine.
 
 ## FoI dataset
 381 estimates of FoI (i.e. the per capita rate at which susceptible individuals acquire infections) were sourced from age-stratified seroprevalence and case notification data carried out in a variety of settings globally.
@@ -19,4 +19,4 @@ This represents a set of environmental and socio-economic variables which facili
 To make predictions at a finer resolution than the data, spatial disaggregation and Expectation Maximization were employed. First, a bootstrap sample of the original data was created. This was achieved using a spatially explicit approach which allowed to spatially segregate the points inside the bootstrap samples from the points outside the bootstrap sample. Then the admin unit level covariates of the bootstrap sample were spatially disaggregated to 20 km resolution (arbitrary choice of resolution, representing a trade-off between increasing resolution and reducing computational time). A RF model was then trained to the 20 km resolution bootstrap samples (training set) and validated against the data points not present in the bootstrap samples (validation set).      
 
 ## Uncertainty 
-Predictions are the average of across 200 random forest models fitted to different bootstrap samples of the original dataset. 
+Predictions are the average across 200 random forest models fitted to different bootstrap samples of the original data. 
