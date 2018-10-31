@@ -41,14 +41,14 @@ for (i in seq_along(interventions)) {
     if(intervention_name == "wolbachia"){
       
       summary_table <- subset(summary_table_orig, treatment != 1)
-    
+      summary_table$treatment <- factor(summary_table$treatment, levels = c(0.7, 0.3))
+      
     } else {
       
       summary_table <- summary_table_orig
+      summary_table$treatment <- as.factor(summary_table$treatment)
       
     }
-    
-    summary_table$treatment <- as.factor(summary_table$treatment)
     
     y_values <- seq(0, 1, 0.2)
     
