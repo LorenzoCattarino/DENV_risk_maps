@@ -27,7 +27,7 @@ This represents a set of environmental and socio-economic variables which facili
 
 These variables were subsequently used as explanatory variables when fitting the geospatial model to predict average force of infection or *R<sub>0</sub>* (the response variables).
 
-## Random Forest
+## Model fitting
 To make predictions at a finer resolution than the data, spatial disaggregation and Expectation Maximization were employed. First, a bootstrap sample of the original data was created. This was achieved using a spatially explicit approach which allowed to spatially segregate the points inside the bootstrap samples from the points outside the bootstrap sample. Then the admin unit level covariates of the bootstrap sample were spatially disaggregated to 20 km resolution (arbitrary choice of resolution, representing a trade-off between increasing resolution and reducing computational time). A RF model was then trained to the 20 km resolution bootstrap samples (training set) and validated against the data points not present in the bootstrap samples (validation set).      
 
 ## Uncertainty 
