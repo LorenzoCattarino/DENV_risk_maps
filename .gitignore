@@ -1,0 +1,17 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+*.png
+*.java
+*.class
+*.bak
+*.out
+*.db
+/data
+/output
+/figures
+/doc
+/R_sources
+/context
