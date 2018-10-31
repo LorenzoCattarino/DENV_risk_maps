@@ -24,6 +24,7 @@ This represents a set of environmental and socio-economic variables which facili
 6) altitude
 7) urban accessibility 
 8) population density. 
+
 These variables were subsequently used as explanatory variables when fitting the geospatial model to predict average force of infection or *R<sub>0</sub>* (the response variables).
 
 ## Random Forest
