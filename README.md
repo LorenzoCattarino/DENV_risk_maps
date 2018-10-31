@@ -7,7 +7,7 @@ This repository contains the data and code to make global predictions of dengue 
 - a dataset of bioclimatic, demographic and socioeconomic variables driving suitability of DENV tramsmission (1 km resolution)
 - a Random Forest model
 
-R<sub>0 predictions are then used to quantify the global impact of two main DENV control strategies, namely release of Wolbachia-infected mosquitos and childhood vaccination with the Sanofi Pasteur dengue vaccine.
+R<sub>0</sub> predictions are then used to quantify the global impact of two main DENV control strategies, namely release of Wolbachia-infected mosquitos and childhood vaccination with the Sanofi Pasteur dengue vaccine.
 
 ## FoI dataset
 381 estimates of FoI (i.e. the per capita rate at which susceptible individuals acquire infections) were sourced from age-stratified seroprevalence and case notification data carried out in a variety of settings globally.
