@@ -8,7 +8,7 @@ This repository contains the data and code to make global predictions of dengue 
 - a Random Forest model
 
 R<sub>0</sub> predictions are then used to quantify the global impact of two main DENV control strategies: 
-1) the release of Wolbachia-infected mosquitos and,
+1) release of *Wolbachia*-infected mosquitos,
 2) childhood vaccination with the Sanofi Pasteur dengue vaccine.
 
 ## FoI dataset
