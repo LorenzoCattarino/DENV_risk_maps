@@ -1,5 +1,5 @@
 # Dengue maps
-Global mapping of dengue transmission intensity
+> Global mapping of dengue transmission intensity
 
 This repository contains the data and code to make global predictions of dengue (DENV) transmission intensity (both *R<sub>0</sub>* and Force of Infection) based on the environmental suitability of DENV transmission. Predictions are made using: 
 
