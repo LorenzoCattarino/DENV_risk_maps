@@ -10,7 +10,7 @@ my_resources <- c(
 my_pkgs <- c("colorRamps", "rgdal", "ggplot2", "raster", "grid", "gridExtra")
 
 context::context_log_start()
-ctx <- context::context_save(path = "context_2",
+ctx <- context::context_save(path = "context",
                              sources = my_resources,
                              packages = my_pkgs)
 
