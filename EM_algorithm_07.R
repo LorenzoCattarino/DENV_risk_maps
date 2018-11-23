@@ -156,11 +156,11 @@ fltr_adm <- inner_join(adm_dataset_2, foi_dataset[, grp_flds])
 sqr_preds <- all_sqr_predictions
 
 sqr_dataset_2 <- cbind(sqr_dataset,
-                       square = sqr_preds)
+                       cell = sqr_preds)
 
 average_sqr <- average_up(pxl_df = sqr_dataset_2,
                           grp_flds = grp_flds,
-                          var_names = "square")
+                          var_names = "cell")
 
 # #[c(140, 141, 170, 171)]
 # 
@@ -185,11 +185,11 @@ average_sqr <- average_up(pxl_df = sqr_dataset_2,
 
 df_lst <- list(foi_dataset[, c(grp_flds, "type", "o_j")],
                fltr_adm[, c(grp_flds, "admin")],
-               average_sqr[, c(grp_flds, "square")])#,
+               average_sqr[, c(grp_flds, "cell")])#,
 #average_pxl[, c(grp_fields, "mean_pxl_pred")]) 
 
 join_all <- Reduce(function(...) left_join(...), df_lst)
 
-join_all[join_all$type == "serology", "square"] <- sqr_dataset_2[sqr_dataset_2$type == "serology" & sqr_dataset_2$new_weight == 1, "square"]
+join_all[join_all$type == "serology", "cell"] <- sqr_dataset_2[sqr_dataset_2$type == "serology" & sqr_dataset_2$new_weight == 1, "cell"]
 
 write_out_rds(join_all, out_pt, out_name)
