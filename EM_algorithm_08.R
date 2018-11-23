@@ -28,7 +28,7 @@ parameters <- list(
   all_wgt = 1,
   no_predictors = 26)   
 
-mes_vars <- c("admin", "square")
+mes_vars <- c("admin", "cell")
 
 tags <- c("all_data", "no_psAb")
 
@@ -108,11 +108,11 @@ for (j in seq_along(tags)) {
   
   if(var_to_fit == "FOI"){
     
-    dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 0] <- 0
+    dts_1[, c("o_j", "admin", "cell")][dts_1[, c("o_j", "admin", "cell")] < 0] <- 0
     
   } else {
     
-    dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 1] <- psAbs_val
+    dts_1[, c("o_j", "admin", "cell")][dts_1[, c("o_j", "admin", "cell")] < 1] <- psAbs_val
     
   }
   
@@ -145,7 +145,7 @@ for (j in seq_along(tags)) {
   corr_coeff <- ddply(df, "scale", calculate_wgt_cor, "o_j", "value")
   
   facet_plot_names_x <- as_labeller(c(admin = "Level 1 administrative unit",
-                                      square = "20 km pixel"))
+                                      cell = "20 km pixel"))
   
   p <- ggplot(df, aes(x = "o_j", y = "value")) +
     facet_grid(. ~ scale,
