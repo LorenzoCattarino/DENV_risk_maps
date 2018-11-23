@@ -44,7 +44,7 @@ wrapper_to_replicate_R0_and_burden <- function(i,
     
     preds <- foi_data[i, col_ids]
     
-  } else{
+  } else {
     
     preds <- foi_data[i, "best"]
   }
