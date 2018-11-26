@@ -203,8 +203,8 @@ for (j in seq_along(vars)){                                 # loop over burden m
   treatment_levels <- unique(summary_table_2$treatment)
   
   summary_table_2[, "treatment"] <- factor(summary_table_2[, "treatment"],
-                                         levels = treatment_levels,
-                                         labels = treatment_levels)
+                                           levels = treatment_levels,
+                                           labels = treatment_levels)
   
   phi_factor_levels <- c("2S", "4S", "4S(sym = 2x asym)")
   
