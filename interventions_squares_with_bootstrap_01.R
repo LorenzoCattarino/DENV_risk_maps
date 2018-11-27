@@ -35,9 +35,8 @@ context::parallel_cluster_start(7, ctx)
 
 
 parameters <- list(
-  id = 15,
+  id = 24,
   grid_size = 5,
-  no_predictors = 23,
   resample_grid_size = 20,
   no_samples = 200,
   gamma_1 = 0.45,
@@ -57,7 +56,8 @@ phi_set_id_tag <- "phi_set_id"
 R0_assumptions <- list(
   v1 = c(1, 1, 0, 0),
   v2 = c(1, 1, 1, 1),  
-  v3 = calculate_infectiousness_wgts_for_sym_asym_assumption(parameters))
+  v3 = calculate_infectiousness_wgts_for_sym_asym_assumption(parameters),
+  v4 = rep(0, 4))
 
 FOI_values <- seq(0, 0.2, by = 0.0002)
 
@@ -138,9 +138,17 @@ fct_c <- setNames(expand.grid(phi_set_id, sf_vals),
 
 fct_c <- cbind(id = seq_len(nrow(fct_c)), fct_c)
 
-assumption <- as.numeric(unlist(strsplit(fit_var, "_"))[2])
+if(fit_var == "FOI"){
+  
+  assumption <- 4 
 
-fct_c <- subset(fct_c, phi_set_id == assumption)  
+} else {
+  
+  assumption <- as.numeric(unlist(strsplit(fit_var, "_"))[2])
+
+}
+
+fct_c <- subset(fct_c, phi_set_id == assumption)
 
 fct_c_2 <- left_join(fct_c, phi_combs, by = phi_set_id_tag)
 
@@ -281,7 +289,8 @@ if (CLUSTER) {
                             prob_fun = prob_fun,
                             parms = parameters,
                             base_info = base_info,
-                            out_path = out_path)
+                            out_path = out_path,
+                            var_to_fit = fit_var)
 
 } else {
   
@@ -301,6 +310,7 @@ if (CLUSTER) {
                  parms = parameters,
                  base_info = base_info,
                  out_path = out_path,
+                 var_to_fit = fit_var,
                  parallel = FALSE)
   
 }
