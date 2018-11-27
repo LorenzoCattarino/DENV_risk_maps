@@ -19,7 +19,7 @@ source(file.path("R", "utility_functions.R"))
 
 
 parameters <- list(
-  id = c(14, 15, 16),
+  id = c(22, 23, 24),
   no_samples = 200,
   desired_n_int = c(8, 6, 5),
   baseline_scenario_ids = c(1, 2, 3))   
@@ -27,6 +27,8 @@ parameters <- list(
 intervention_name <- "vaccine"
 
 treatment_name <- "screening_age" 
+
+phi_factor_levels <- c("2S", "4S", "4S(sym = 2x asym)")
 
 
 # define variables ------------------------------------------------------------
@@ -176,8 +178,6 @@ summary_table[, "treatment"] <- factor(summary_table[, "treatment"],
                                        levels = treatment_levels,
                                        labels = treatment_levels)
 
-phi_factor_levels <- c("2S", "4S", "4S(sym = 2x asym)")
-
 summary_table$phi_set_id <- factor(summary_table$phi_set_id, 
                                    levels = c(1, 2, 3), 
                                    labels = phi_factor_levels)
@@ -191,8 +191,6 @@ treatment_levels <- unique(summary_table_2$treatment)
 summary_table_2[, "treatment"] <- factor(summary_table_2[, "treatment"],
                                          levels = treatment_levels,
                                          labels = treatment_levels)
-
-phi_factor_levels <- c("2S", "4S", "4S(sym = 2x asym)")
 
 summary_table_2$phi_set_id <- factor(summary_table_2$phi_set_id, 
                                      levels = c(1, 2, 3), 
@@ -213,8 +211,8 @@ for (j in seq_along(burden_measures)) {
   summary_table_2_sub <- subset(summary_table_2, burden_measure == bur_meas)
   summary_tab_fl_nm <- paste0("prop_change_", bur_meas, "_", intervention_name, ".csv")
   write_out_csv(summary_table_2_sub, file.path("output", 
-                                           "predictions_world", 
-                                           "bootstrap_models"), 
+                                               "predictions_world", 
+                                               "bootstrap_models"), 
                 summary_tab_fl_nm)
   
   y_values <- pretty(0:max(summary_table_sub$mean), desired_n_int[j])
