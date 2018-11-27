@@ -40,7 +40,7 @@ for (i in seq_along(interventions)) {
     
     if(intervention_name == "wolbachia"){
       
-      summary_table <- subset(summary_table_orig, treatment != 1)
+      summary_table <- subset(summary_table_orig, treatment != 1 & phi_set_id != "FOI")
       summary_table$treatment <- factor(summary_table$treatment, levels = c(0.7, 0.3))
       
     } else {
