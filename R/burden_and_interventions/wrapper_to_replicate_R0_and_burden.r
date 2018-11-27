@@ -2,7 +2,7 @@ wrapper_to_replicate_R0_and_burden <- function(i,
                                                foi_data, 
                                                age_struct,
                                                scaling_factor,
-                                               FOI_to_R0_list,
+                                               FOI_to_R0_list = NULL,
                                                FOI_to_Inf_list,
                                                FOI_to_C_list,
                                                FOI_to_HC_list,
@@ -25,7 +25,7 @@ wrapper_to_replicate_R0_and_burden <- function(i,
   
   idx <- foi_data[i, "age_id"]
     
-  FOI_to_R0 <- FOI_to_R0_list[[idx]]
+  
   FOI_to_Inf <- FOI_to_Inf_list[[idx]]
   FOI_to_C <- FOI_to_C_list[[idx]]
   FOI_to_HC <- FOI_to_HC_list[[idx]] 
@@ -56,7 +56,18 @@ wrapper_to_replicate_R0_and_burden <- function(i,
   
 
   red_preds <- preds * scaling_factor
-  red_trans <- approx(FOI_to_R0[, "y"], FOI_to_R0[, "x"], xout = red_preds)$y
+  
+  if(!is.null(FOI_to_R0_list)){
+    
+    FOI_to_R0 <- FOI_to_R0_list[[idx]]
+    red_trans <- approx(FOI_to_R0[, "y"], FOI_to_R0[, "x"], xout = red_preds)$y
+  
+  } else {
+    
+    red_trans <- red_preds 
+    
+  }
+  
   Infections_pc <- approx(FOI_to_Inf[, "x"], FOI_to_Inf[, "y"], xout = red_trans)$y 
   Cases_pc <- approx(FOI_to_C[, "x"], FOI_to_C[, "y"], xout = red_trans)$y
   Hosp_cases_pc <- approx(FOI_to_HC[, "x"], FOI_to_HC[, "y"], xout = red_trans)$y
