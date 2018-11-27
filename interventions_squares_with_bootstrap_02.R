@@ -31,7 +31,7 @@ context::parallel_cluster_start(7, ctx)
 
 
 parameters <- list(
-  id = 16,
+  id = 24,
   no_samples = 200,
   wolbachia_scenario_id = 3,
   no_R0_assumptions = 3,
@@ -66,7 +66,7 @@ w_scenario_id <- parameters$wolbachia_scenario_id
 
 model_type <- paste0("model_", parameters$id)
 
-predictions_file_name <- paste0("response_r_", w_scenario_id, ".rds")
+predictions_file_name <- paste0("response_r_wolbachia_", w_scenario_id, ".rds")
 
 out_path <- file.path("output", 
                       "predictions_world", 
