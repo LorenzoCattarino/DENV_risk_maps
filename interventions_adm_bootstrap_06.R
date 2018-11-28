@@ -19,7 +19,7 @@ source(file.path("R", "utility_functions.R"))
 
 
 parameters <- list(
-  id = c(14, 15, 16),
+  id = c(22, 23, 24),
   no_samples = 200,
   desired_n_int = c(8, 6, 5),
   baseline_scenario_ids = c(1, 2, 3))   
@@ -172,13 +172,13 @@ for (k in seq_along(model_type)){                                  # loop over R
 summary_table <- do.call("rbind", out_ls)  
 
 summary_table$phi_set_id <- factor(summary_table$phi_set_id, 
-                                   levels = c(1, 2, 3), 
+                                   levels = seq_len(length(phi_factor_levels)), 
                                    labels = phi_factor_levels)
 
 summary_table_2 <- do.call("rbind", out_ls_2)  
 
 summary_table_2$phi_set_id <- factor(summary_table_2$phi_set_id, 
-                                     levels = c(1, 2, 3), 
+                                     levels = seq_len(length(phi_factor_levels)), 
                                      labels = phi_factor_levels)
 
 
