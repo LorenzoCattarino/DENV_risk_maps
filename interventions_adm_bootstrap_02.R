@@ -31,9 +31,9 @@ context::parallel_cluster_start(7, ctx)
 
 
 parameters <- list(
-  id = 16,
+  id = 22,
   no_samples = 200,
-  wolbachia_scenario_id = 3,
+  wolbachia_scenario_id = 1,
   no_R0_assumptions = 3,
   burden_measure = c("infections", "cases", "hosp")) 
 
@@ -58,8 +58,6 @@ bootstrap_experiments <- read.csv(file.path("output",
 
 
 burden_measures <- parameters$burden_measure
-
-screening_ages <- parameters$screening_ages
 
 w_scenario_id <- parameters$wolbachia_scenario_id
 
