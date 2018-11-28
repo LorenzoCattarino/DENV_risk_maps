@@ -35,10 +35,7 @@ context::parallel_cluster_start(7, ctx)
 
 
 parameters <- list(
-  id = 16,
-  grid_size = 5,
-  no_predictors = 23,
-  resample_grid_size = 20,
+  id = 24,
   no_samples = 200,
   gamma_1 = 0.45,
   rho = 0.85,
@@ -279,7 +276,8 @@ if (CLUSTER) {
                             prob_fun = prob_fun,
                             parms = parameters,
                             base_info = base_info,
-                            out_path = out_path)
+                            out_path = out_path,
+                            var_to_fit = fit_var)
   
 } else {
   
@@ -299,6 +297,7 @@ if (CLUSTER) {
                  parms = parameters,
                  base_info = base_info,
                  out_path = out_path,
+                 var_to_fit = fit_var,
                  parallel = FALSE)
   
 }
