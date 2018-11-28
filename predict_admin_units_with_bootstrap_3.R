@@ -3,7 +3,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"),
@@ -18,21 +18,8 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  id = 16,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1e6,
-  all_wgt = 1,
-  dependent_variable = "R0_3",
-  pseudoAbs_value = 0.5,
-  grid_size = 5,
-  no_predictors = 23,
-  resample_grid_size = 20,
-  foi_offset = 0.03,
-  no_trees = 500,
-  min_node_size = 20,
-  no_samples = 200,
-  EM_iter = 10) 
+  id = 24,
+  no_samples = 200) 
 
 vars_to_average <- "response"
 
@@ -62,7 +49,6 @@ if (CLUSTER) {
 } else{
   
   context::context_load(ctx)
-  context::parallel_cluster_start(7, ctx)
   
 }
 
@@ -70,42 +56,38 @@ if (CLUSTER) {
 # run one job -----------------------------------------------------------------
 
 
-t <- obj$enqueue(
-  wrapper_to_average_bsamples(
-    seq_along(vars_to_average)[1],
-    vars = vars_to_average,
-    in_path = in_path,
-    out_path = in_path,
-    col_names = col_names))
+# t <- obj$enqueue(
+#   wrapper_to_average_bsamples(
+#     seq_along(vars_to_average)[1],
+#     vars = vars_to_average,
+#     in_path = in_path,
+#     out_path = in_path,
+#     col_names = col_names))
 
 
 # run -------------------------------------------------------------------------
 
 
-# if (CLUSTER) {
-#   
-#   means_all_scenarios <- queuer::qlapply(
-#     seq_along(vars_to_average),
-#     wrapper_to_average_bsamples,
-#     obj,
-#     vars = vars_to_average,
-#     in_path = in_path,
-#     out_path = in_path,
-#     col_names = col_names)
-#   
-# } else {
-#   
-#   means_all_scenarios <- loop(
-#     seq_along(vars_to_average),
-#     wrapper_to_average_bsamples,
-#     vars = vars_to_average,
-#     in_path = in_path,
-#     out_path = in_path,
-#     col_names = col_names,
-#     parallel = FALSE)
-#   
-# }
-# 
-# if(!CLUSTER){
-#   context::parallel_cluster_stop()
-# }
+if (CLUSTER) {
+
+  means_all_scenarios <- queuer::qlapply(
+    seq_along(vars_to_average),
+    wrapper_to_average_bsamples,
+    obj,
+    vars = vars_to_average,
+    in_path = in_path,
+    out_path = in_path,
+    col_names = col_names)
+
+} else {
+
+  means_all_scenarios <- loop(
+    seq_along(vars_to_average),
+    wrapper_to_average_bsamples,
+    vars = vars_to_average,
+    in_path = in_path,
+    out_path = in_path,
+    col_names = col_names,
+    parallel = FALSE)
+
+}

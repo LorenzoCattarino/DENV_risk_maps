@@ -22,21 +22,9 @@ context::context_load(ctx)
 
 
 parameters <- list(
-  id = 16,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1e6,
-  all_wgt = 1,
-  dependent_variable = "R0_3",
-  pseudoAbs_value = 0.5,
-  grid_size = 5,
-  no_predictors = 23,
-  resample_grid_size = 20,
+  id = 24,
   foi_offset = 0.03,
-  no_trees = 500,
-  min_node_size = 20,
-  no_samples = 200,
-  EM_iter = 10) 
+  no_samples = 200) 
 
 out_fl_nm <- "response.rds"
 
@@ -49,8 +37,6 @@ grp_fields <- c("ID_0", "ID_1")
 
 
 model_type <- paste0("model_", parameters$id)
-
-var_to_fit <- parameters$dependent_variable
 
 foi_offset <- parameters$foi_offset
 
@@ -74,9 +60,16 @@ all_sqr_covariates <- readRDS(file.path("output",
                                         "env_variables", 
                                         "all_squares_env_var_0_1667_deg.rds"))
 
+fct_comb <- read.csv(file.path("output", 
+                               "EM_algorithm", 
+                               "bootstrap_models", 
+                               "boostrap_fit_experiments_uni.csv"))
+
 
 # pre processing -------------------------------------------------------------- 
 
+
+var_to_fit <- fct_comb[fct_comb$exp_id == parameters$id, "var"]
 
 fi <- list.files(global_predictions_in_path, 
                  pattern = "^sample",
