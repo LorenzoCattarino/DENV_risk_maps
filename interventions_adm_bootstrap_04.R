@@ -19,12 +19,14 @@ source(file.path("R", "utility_functions.R"))
 
 
 parameters <- list(
-  id = c(14, 15, 16),
+  id = c(22, 23, 24),
   no_samples = 200,
   desired_n_int = c(8, 6, 5),
   baseline_scenario_ids = c(1, 2, 3))   
 
 intervention_name <- "vaccine"
+
+phi_factor_levels <- c("2S", "4S", "4S(sym = 2x asym)")
 
 treatment_name <- "screening_age" 
 
@@ -69,22 +71,41 @@ out_ls_2 <- vector("list", length(model_type))
 
 fct_comb_ls <- lapply(file.path(in_path, fct_comb_fl_nm), read.csv, header = TRUE)
 
-age_struct <- read.csv(file.path("output", 
-                                 "datasets",
-                                 "country_age_structure.csv"), 
-                       header = TRUE) 
+age_struct_orig <- read.csv(file.path("output", 
+                                      "datasets",
+                                      "country_age_structure.csv"), 
+                            header = TRUE) 
+
+endemic_c <- read.csv(file.path("output", 
+                                "datasets", 
+                                "dengue_endemic_countries.csv"),
+                      stringsAsFactors = FALSE)
 
 
 # pre processing -------------------------------------------------------------- 
 
 
-age_struct$continent <- as.factor(countrycode(sourcevar = age_struct[, "country"], 
-                                              origin = "country.name", 
-                                              destination = "continent"))
+age_struct_orig$continent <- as.factor(countrycode(sourcevar = age_struct_orig[, "country"], 
+                                                   origin = "country.name", 
+                                                   destination = "continent"))
 
-age_struct$region <- as.factor(countrycode(sourcevar = age_struct[, "country"], 
-                                           origin = "country.name", 
-                                           destination = "region"))
+age_struct_orig$region <- as.factor(countrycode(sourcevar = age_struct_orig[, "country"], 
+                                                origin = "country.name", 
+                                                destination = "region"))
+
+# remove text in brackets 
+nice_strings <- gsub("\\s*\\([^\\)]+\\)", "", age_struct_orig$country)
+
+# remove text after comma
+nice_strings_2 <- gsub("(.*),.*", "\\1", nice_strings)
+
+# remove "*"
+nice_strings_3 <- gsub("\\*", "", nice_strings_2)
+
+age_struct_orig$country <- nice_strings_3
+
+# keep only dengue endemic countries 
+age_struct <- inner_join(age_struct_orig, endemic_c[, "ID_0", drop = FALSE], by = "ID_0")  
 
 
 # aggreaggating --------------------------------------------------------------- 
@@ -120,11 +141,12 @@ for (k in seq_along(model_type)){                                  # loop over R
     dat <- readRDS(file.path(my_in_path, root_name))
     
     one_dat <- as.data.frame(dat)
-    one_dat <- left_join(one_dat, age_struct[, c("continent", "region", "country", "ID_0")])
+    one_dat <- inner_join(one_dat, age_struct[, c("continent", "region", "country", "ID_0")])
     
     by_country <- one_dat %>% group_by(ID_0)
     country_sums <- by_country %>% summarise_at(var_to_sum, "sum")
     ret <- average_boot_samples_dim2(country_sums[, var_to_sum])
+    ret <- round(ret, -2)
     ret2 <- cbind(ID_0 = country_sums$ID_0, ret)
     ret3 <- merge(age_struct[, c("country", "ID_0")], ret2, by = "ID_0", all.x = FALSE)
     write_out_csv(ret3, 
@@ -134,6 +156,7 @@ for (k in seq_along(model_type)){                                  # loop over R
     by_continent <- one_dat %>% group_by(continent)
     continent_sums <- by_continent %>% summarise_at(var_to_sum, "sum")       
     ret <- average_boot_samples_dim2(continent_sums[, var_to_sum])
+    ret <- round(ret, -2)
     ret2 <- cbind(continent = continent_sums$continent, ret)  
     write_out_csv(ret2, 
                   my_out_path, 
@@ -142,6 +165,7 @@ for (k in seq_along(model_type)){                                  # loop over R
     by_region <- one_dat %>% group_by(region)
     region_sums <- by_region %>% summarise_at(var_to_sum, "sum")
     ret <- average_boot_samples_dim2(region_sums[, var_to_sum])
+    ret <- round(ret, -2)
     ret2 <- cbind(region = region_sums$region, ret)  
     write_out_csv(ret2, 
                   my_out_path, 
@@ -149,6 +173,7 @@ for (k in seq_along(model_type)){                                  # loop over R
     
     ret4 <- colSums(one_dat[, var_to_sum])
     ret5 <- average_boot_samples_dim1(ret4)
+    ret5 <- round(ret5, -2)
     
     small_out_ls[[i]] <- ret5
     
@@ -179,10 +204,8 @@ summary_table[, "treatment"] <- factor(summary_table[, "treatment"],
                                        levels = treatment_levels,
                                        labels = treatment_levels)
 
-phi_factor_levels <- c("2S", "4S", "4S(sym = 2x asym)")
-
 summary_table$phi_set_id <- factor(summary_table$phi_set_id, 
-                                   levels = c(1, 2, 3), 
+                                   levels = seq_len(length(phi_factor_levels)), 
                                    labels = phi_factor_levels)
 
 summary_table_2 <- do.call("rbind", out_ls_2)  
@@ -195,10 +218,8 @@ summary_table_2[, "treatment"] <- factor(summary_table_2[, "treatment"],
                                          levels = treatment_levels,
                                          labels = treatment_levels)
 
-phi_factor_levels <- c("2S", "4S", "4S(sym = 2x asym)")
-
 summary_table_2$phi_set_id <- factor(summary_table_2$phi_set_id, 
-                                     levels = c(1, 2, 3), 
+                                     levels = seq_len(length(phi_factor_levels)), 
                                      labels = phi_factor_levels)
 
 
