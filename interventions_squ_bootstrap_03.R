@@ -17,16 +17,16 @@ source(file.path("R", "utility_functions.R"))
 
 
 parameters <- list(
-  id = c(22, 23, 24, 21),
+  id = c(22, 23, 24),
   no_samples = 200,
   burden_measures = c("infections", "cases", "hosp"),
-  baseline_scenario_ids = c(1, 2, 3, 4))   
+  baseline_scenario_ids = c(1, 2, 3))   
 
 intervention_name <- "wolbachia"
 
 treatment_name <- "scaling_factor"
 
-phi_factor_levels <- c("2S", "4S", "4S(sym = 2x asym)", "FOI")
+phi_factor_levels <- c("2S", "4S", "4S(sym = 2x asym)")
 
 
 # define variables ------------------------------------------------------------
