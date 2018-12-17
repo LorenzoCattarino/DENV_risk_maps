@@ -4,19 +4,32 @@
 library(dplyr)
 library(ggplot2)
 
-out_fig_path <- file.path("figures", 
-                          "predictions_world", 
-                          "bootstrap_models")
 
-interventions <- c("wolbachia", "vaccine")
+# define parameters -----------------------------------------------------------
+
+
+sf_vals <- c(0.7, 0.3)
 
 leg_titles <- c(expression('R'['0']*' reduction'), "Screening age")
 
 burden_measures <- c("infections", "cases", "hosp") 
 
 y_axis_titles <- c("Reduction in infections", "Reduction in cases", "Reduction in hopsitalized cases")
+
+out_fig_path <- file.path("figures", 
+                          "predictions_world", 
+                          "bootstrap_models")
+
+interventions <- c("wolbachia", "vaccine")
+
   
-leg_labels <- list(c("30%", "70%"), c("9", "16"))
+
+# define variables ------------------------------------------------------------
+
+
+sf_vals_perc <- (1 - sf_vals) * 100
+
+leg_labels <- list(paste0(sf_vals_perc, "%"), c("9", "16"))
 
 
 # plotting ------------------------------------------------------------------
@@ -40,8 +53,8 @@ for (i in seq_along(interventions)) {
     
     if(intervention_name == "wolbachia"){
       
-      summary_table <- subset(summary_table_orig, treatment != 1 & phi_set_id != "FOI")
-      summary_table$treatment <- factor(summary_table$treatment, levels = c(0.7, 0.3))
+      summary_table <- subset(summary_table_orig, treatment %in% sf_vals & phi_set_id != "FOI")
+      summary_table$treatment <- factor(summary_table$treatment, levels = sf_vals)
       
     } else {
       
@@ -59,13 +72,15 @@ for (i in seq_along(interventions)) {
       scale_fill_manual(values = c("lightskyblue1", "lightskyblue4"),
                         labels = leg_labels[[i]],
                         guide = guide_legend(title = leg_titles[i],
-                                             keywidth = 2,
-                                             keyheight = 2)) +
+                                             keywidth = 1,
+                                             keyheight = 1)) +
       xlab(NULL) +
       scale_y_continuous(y_axis_title,
                          breaks = y_values,
                          labels = paste0(y_values * 100, "%"),
-                         limits = c(min(y_values), max(y_values))) +
+                         limits = c(min(y_values), max(y_values)),
+                         expand = expand_scale(mult = c(0, .05))) +
+      theme_bw() +
       theme(axis.title.x = element_blank(),
             axis.text.x = element_blank(),
             axis.ticks.x = element_blank(),
