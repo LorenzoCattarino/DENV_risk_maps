@@ -10,7 +10,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "burden_and_interventions", "wrapper_to_multi_factor_R0_and_burden.R"),
@@ -50,7 +50,7 @@ parameters <- list(
 
 parallel_2 <- TRUE
   
-sf_vals <- c(1, 0.7, 0.3)
+sf_vals <- seq(1, 0.1, -0.1)
 phi_set_id_tag <- "phi_set_id"
 
 R0_assumptions <- list(
@@ -112,6 +112,8 @@ age_struct <- read.csv(file.path("output",
 
 fit_var <- bootstrap_experiments[bootstrap_experiments$exp_id == parameters$id, "var"]
 
+task_b_name <- paste0("burden_", fit_var)
+  
 age_band_tgs <- grep("band", names(age_struct), value = TRUE)
 age_band_bnds <- get_age_band_bounds(age_band_tgs)
 age_band_L_bounds <- age_band_bnds[, 1]
@@ -241,7 +243,7 @@ sqr_preds <- as.matrix(sqr_preds)
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "20Core")
+  config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 }
@@ -290,8 +292,9 @@ if (CLUSTER) {
                             parms = parameters,
                             base_info = base_info,
                             out_path = out_path,
-                            var_to_fit = fit_var)
-
+                            var_to_fit = fit_var,
+                            name = task_b_name)
+  
 } else {
   
   burden <- loop(fctr_combs, 
