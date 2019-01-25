@@ -42,7 +42,9 @@ for (j in seq_along(burden_measures)) {
     scale_y_continuous(y_axis_title,
                        breaks = y_values,
                        labels = paste0(y_values * 100, "%"),
-                       limits = c(min(y_values), max(y_values))) +
+                       limits = c(min(y_values), max(y_values)),
+                       expand = expand_scale(mult = c(0, .05))) +
+    theme_bw() +
     theme(axis.title.x = element_blank(),
           axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
