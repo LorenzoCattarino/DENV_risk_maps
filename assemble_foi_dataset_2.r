@@ -1,5 +1,10 @@
 # Map overlay to find the admin unit of each data point 
 
+# NOTE: In this code the point in Dominican Republic is dropped. 
+# From 382 to 381 points. 
+# Check why!
+
+
 library(rgdal)
 
 source(file.path("R", "prepare_datasets", "geolocating_data_points.R"))
