@@ -29,3 +29,13 @@ multi_col_average_up <- function(i, x, grp_flds){
   average_up(dat, grp_flds, i)
 
 }
+
+remove_pop_col <- function(i){
+  i[, setdiff(names(i), c("ID_0", "population"))]
+}
+
+how_many_below_1 <- function(x){
+  
+  sum(x < 1)  
+  
+}
