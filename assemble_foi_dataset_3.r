@@ -11,6 +11,11 @@ source(file.path("R", "prepare_datasets", "functions_for_calculating_R0.r"))
 # define parameters ----------------------------------------------------------- 
 
 
+parameters <- list(
+  gamma_1 = 0.45,
+  rho = 0.85,
+  gamma_3 = 0.15)
+
 m_flds <- c("ID_0", "ID_1")
 
 base_info <- c("reference", 
@@ -26,14 +31,10 @@ base_info <- c("reference",
                "variance", 
                "population")
 
-gamma_1 <- 0.45
-rho <- 0.85
-gamma_3 <- 0.15
-
 phi_combs <- list(
   c(1, 1, 0, 0),
   c(1, 1, 1, 1),
-  calculate_infectiousness_wgts_for_sym_asym_assumption(gamma_1, rho, gamma_3))
+  calculate_infectiousness_wgts_for_sym_asym_assumption(parameters))
 
 prob_fun <- list("calculate_primary_infection_prob",
                  "calculate_secondary_infection_prob",
