@@ -70,8 +70,6 @@ casereport_data <- read.csv(file.path("data", "foi", "All_caseReport_data.csv"),
 
 serology_data$type <- "serology"
 
-casereport_data <- subset(casereport_data, ISO != "PHL")
-  
 casereport_data$type <- "caseReport"
 casereport_data$longitude <- NA
 casereport_data$latitude <- NA
