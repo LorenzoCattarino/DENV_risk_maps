@@ -70,13 +70,13 @@ casereport_data <- read.csv(file.path("data", "foi", "All_caseReport_data.csv"),
 
 serology_data$type <- "serology"
 
+serology_data <- serology_data[, fields]
+
 casereport_data$type <- "caseReport"
 casereport_data$longitude <- NA
 casereport_data$latitude <- NA
 
 casereport_data <- casereport_data[, fields]
-
-serology_data <- serology_data[, fields]
 
 All_FOI_estimates <- rbind(serology_data, casereport_data)
   
@@ -143,6 +143,4 @@ All_FOI_estimates[is.na(All_FOI_estimates$longitude), ] <- xy_tofind
 # save ------------------------------------------------------------------------  
 
 
-write.csv(All_FOI_estimates, 
-          file.path(foi_out_pt, foi_out_nm), 
-          row.names = FALSE)
+write_out_csv(All_FOI_estimates, foi_out_pt, foi_out_nm)
