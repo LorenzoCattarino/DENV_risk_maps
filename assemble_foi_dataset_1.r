@@ -70,11 +70,15 @@ casereport_data <- read.csv(file.path("data", "foi", "All_caseReport_data.csv"),
 
 serology_data$type <- "serology"
 
+casereport_data <- subset(casereport_data, ISO != "PHL")
+  
 casereport_data$type <- "caseReport"
 casereport_data$longitude <- NA
 casereport_data$latitude <- NA
 
 casereport_data <- casereport_data[, fields]
+
+serology_data <- serology_data[, fields]
 
 All_FOI_estimates <- rbind(serology_data, casereport_data)
   
@@ -114,9 +118,9 @@ for (i in seq_len(nrow(xy_tofind))){
     
     viewport_areas <- apply(geocode_results, 1, calculate_viewport_area)
     
-    result_match <- which(viewport_areas==max(viewport_areas))[1]
+    result_match <- which(viewport_areas == max(viewport_areas))[1]
     
-    location_xy <- geocode_results[result_match, c("lng","lat")]
+    location_xy <- geocode_results[result_match, c("lng", "lat")]
     
     location_xy <- as.matrix(location_xy)
     
