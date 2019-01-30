@@ -56,7 +56,7 @@ register_google(key = my_api_key, account_type = "premium", second_limit = 10000
 # loada data ------------------------------------------------------------------
 
 
-serology_data <- read.csv(file.path("data", "foi", "All_serology_data_2.csv"),
+serology_data <- read.csv(file.path("data", "foi", "All_serology_data.csv"),
                           header = TRUE,
                           stringsAsFactors = FALSE)
 
