@@ -32,8 +32,8 @@ for (j in seq_along(burden_measures)) {
                                       paste0("prop_change_", my_var_name,"_", intervention_name, ".csv")),
                             header = TRUE)
   
-  y_values <- seq(0, 1, 0.2)
-  
+  y_values <- seq(0, 0.4, 0.1)
+
   p <- ggplot(summary_table, aes(x = burden_measure, y = mean, ymin = lCI, ymax = uCI)) +
     geom_bar(stat = "identity", position = "dodge", width = 0.5, fill = "lightskyblue3") +
     geom_errorbar(width = .1, position = position_dodge(.9)) +
