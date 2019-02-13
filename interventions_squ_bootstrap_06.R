@@ -65,6 +65,12 @@ for (i in seq_along(interventions)) {
     
     y_values <- seq(0, 1, 0.2)
     
+    if(intervention_name == "vaccine"){
+      
+      y_values <- seq(0, 0.4, 0.1)
+    
+    } 
+    
     p <- ggplot(summary_table, aes(x = treatment, y = mean, fill = treatment, ymin = lCI, ymax = uCI)) +
       geom_bar(stat = "identity", position = "dodge", width = 1) +
       geom_errorbar(width = .25, position = position_dodge(.9)) +
