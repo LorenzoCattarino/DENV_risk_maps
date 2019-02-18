@@ -39,7 +39,8 @@ RF_preds_vs_obs_plot_stratif <- function(df, x, y, facet_var, file_name, file_pa
           axis.text.y = element_text(size = 10),
           plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
           strip.text.x = element_text(size = 12),
-          strip.text.y = element_text(size = 12))
+          strip.text.y = element_text(size = 12),
+          plot.title = element_text(vjust = 0.5))
 
   p2 <- p +
     geom_text(data = corr_coeff, 
