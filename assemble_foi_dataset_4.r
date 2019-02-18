@@ -6,12 +6,12 @@ library(dplyr)
 library(colorRamps)
 
 
-# ---------------------------------------- load data
+# load data ------------------------------------------------------------------- 
 
 
 All_FOI_estimates <- read.csv(file.path("output", 
-                                        "R_0", 
-                                        "All_R_0_estimates.csv"), 
+                                        "foi", 
+                                        "FOI_estimates_lon_lat_gadm_R0.csv"), 
                               header = TRUE)
 
 pseudoAbsences <- read.csv(file.path("output", 
@@ -23,7 +23,7 @@ world_shp_admin_1_dengue <- readOGR(dsn = file.path("output", "shapefiles"),
                                     layer = "gadm28_adm1_dengue")
 
 
-# ---------------------------------------- pre processing
+# pre processing -------------------------------------------------------------- 
 
 
 data_points <- SpatialPoints(All_FOI_estimates[, c("longitude", "latitude")])
@@ -40,7 +40,7 @@ pseudoAbsence_points_list <- list(
   pch = 21, fill = "yellow", col = NA, cex = 0.7)
 
 
-# ---------------------------------------- plot
+# plot ------------------------------------------------------------------------ 
 
 
 png(file.path("figures", "data", "dengue_points_and_absence_mask.png"), 
