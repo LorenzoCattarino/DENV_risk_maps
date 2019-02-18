@@ -3,7 +3,6 @@ exp_max_algorithm <- function(parms,
                               pxl_dataset,
                               my_predictors, 
                               grp_flds, 
-                              var_to_fit,
                               map_col = NULL,
                               RF_obj_path = NULL, 
                               RF_obj_name = NULL,
@@ -16,7 +15,9 @@ exp_max_algorithm <- function(parms,
                               adm_dataset = NULL){
   
   
+  var_to_fit <- parms$dependent_variable
   niter <- parms$EM_iter
+  
   if(var_to_fit == "FOI") {
     
     l_f <- parms$pseudoAbs_value[1]
@@ -26,8 +27,7 @@ exp_max_algorithm <- function(parms,
     l_f <- parms$pseudoAbs_value[2]
     
   }
-  no_trees <- parms$no_trees
-  min_node_size <- parms$min_node_size
+  
   foi_offset <- parms$foi_offset
   
   l_f_2 <- l_f + foi_offset
@@ -104,11 +104,10 @@ exp_max_algorithm <- function(parms,
     
     training_dataset <- dd[, c("u_i", my_predictors, "wgt_prime")]
     
-    RF_obj <- fit_ranger_RF(dependent_variable = "u_i", 
+    RF_obj <- fit_ranger_RF(parms = parms,
+                            dependent_variable = "u_i", 
                             predictors = my_predictors, 
-                            training_dataset = training_dataset, 
-                            no_trees = no_trees, 
-                            min_node_size = min_node_size, 
+                            training_dataset = training_dataset,
                             my_weights = "wgt_prime")
     
     RF_ms_i <- RF_obj$prediction.error
@@ -221,7 +220,7 @@ exp_max_algorithm <- function(parms,
     
 
     # 7. calculate population weighted mean of pixel level predictions -------- 
-    
+
 
     p_i_by_adm <- dd_2 %>% group_by_(.dots = grp_flds)
     
@@ -455,7 +454,6 @@ exp_max_algorithm_boot <- function(i,
                                     pxl_dataset = pxl_dts_boot_3,
                                     my_predictors = my_preds, 
                                     grp_flds = grp_flds, 
-                                    var_to_fit = var_to_fit,
                                     RF_obj_path = RF_obj_path,
                                     RF_obj_name = out_name,
                                     diagn_tab_path = diagn_tab_path, 
