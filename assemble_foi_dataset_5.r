@@ -30,8 +30,8 @@ foi_out_nm <- "All_FOI_estimates_and_predictors.csv"
 
 
 All_FOI_R0_estimates <- read.csv(file.path("output", 
-                                           "R_0", 
-                                           "All_R_0_estimates.csv"), 
+                                           "foi", 
+                                           "FOI_estimates_lon_lat_gadm_R0.csv"), 
                                  header = TRUE, 
                                  stringsAsFactors = FALSE)
 
