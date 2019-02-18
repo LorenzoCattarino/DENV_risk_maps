@@ -6,10 +6,15 @@ library(grid)
 
 # load functions 
 source(file.path("R", "prepare_datasets", "functions_for_calculating_R0.r"))
+source(file.path("R", "utility_functions.R"))
 
 
 # define parameters ----------------------------------------------------------- 
 
+
+foi_out_pt <- file.path("output", "foi")
+
+foi_out_nm <- "FOI_estimates_lon_lat_gadm_R0.csv"
 
 parameters <- list(
   gamma_1 = 0.45,
@@ -136,45 +141,43 @@ All_R_0_estimates <- setNames(cbind(All_FOI_estimates_3[, base_info],
 # save output ----------------------------------------------------------------- 
 
 
-write.csv(All_R_0_estimates, 
-            file.path("output", "R_0", "All_R_0_estimates.csv"), 
-            row.names = FALSE)
+write_out_csv(All_R_0_estimates, foi_out_pt, foi_out_nm)
 
 
 # plot ------------------------------------------------------------------------ 
 
 
-All_R_0_estimates <- All_R_0_estimates[order(All_R_0_estimates$FOI), ]
-
-All_R_0_estimates$ID_point <- seq_len(nrow(All_R_0_estimates))
-
-png(file.path("figures", "data", "reprod_number_plot.png"), 
-    width = 20, 
-    height = 14, 
-    units = "in", 
-    pointsize = 12,
-    bg = "white", 
-    res = 300)
-
-lambda_plot <- ggplot(All_R_0_estimates, 
-                      aes(x = ID_point, y = FOI, colour = type)) +
-               geom_point(size = 0.8) +
-               scale_x_continuous(name = "Country code", 
-                                  breaks = seq_len(nrow(All_R_0_estimates)), 
-                                  expand = c(0.002, 0)) +
-               scale_y_continuous(name = "FOI") +
-               theme(axis.text.x = element_text(size = 5, angle = 90, hjust = 0.5, vjust = 0.5),
-                     panel.grid.minor = element_blank())
-
-R_0_plot <- ggplot(All_R_0_estimates, aes(x = ID_point, y = R0_2, colour = type)) +
-            geom_point(size = 0.8) +
-            scale_x_continuous(name = "Country code", 
-                               breaks = seq_len(nrow(All_R_0_estimates)), 
-                               expand = c(0.002, 0)) +
-            scale_y_continuous(name = "R_0") +
-            theme(axis.text.x = element_text(size = 5, angle = 90, hjust = 0.5, vjust = 0.5),
-                  panel.grid.minor = element_blank())
-
-grid.draw(rbind(ggplotGrob(lambda_plot), ggplotGrob(R_0_plot), size = "first"))
-                   
-dev.off()
+# All_R_0_estimates <- All_R_0_estimates[order(All_R_0_estimates$FOI), ]
+# 
+# All_R_0_estimates$ID_point <- seq_len(nrow(All_R_0_estimates))
+# 
+# png(file.path("figures", "data", "reprod_number_plot.png"), 
+#     width = 20, 
+#     height = 14, 
+#     units = "in", 
+#     pointsize = 12,
+#     bg = "white", 
+#     res = 300)
+# 
+# lambda_plot <- ggplot(All_R_0_estimates, 
+#                       aes(x = ID_point, y = FOI, colour = type)) +
+#                geom_point(size = 0.8) +
+#                scale_x_continuous(name = "Country code", 
+#                                   breaks = seq_len(nrow(All_R_0_estimates)), 
+#                                   expand = c(0.002, 0)) +
+#                scale_y_continuous(name = "FOI") +
+#                theme(axis.text.x = element_text(size = 5, angle = 90, hjust = 0.5, vjust = 0.5),
+#                      panel.grid.minor = element_blank())
+# 
+# R_0_plot <- ggplot(All_R_0_estimates, aes(x = ID_point, y = R0_2, colour = type)) +
+#             geom_point(size = 0.8) +
+#             scale_x_continuous(name = "Country code", 
+#                                breaks = seq_len(nrow(All_R_0_estimates)), 
+#                                expand = c(0.002, 0)) +
+#             scale_y_continuous(name = "R_0") +
+#             theme(axis.text.x = element_text(size = 5, angle = 90, hjust = 0.5, vjust = 0.5),
+#                   panel.grid.minor = element_blank())
+# 
+# grid.draw(rbind(ggplotGrob(lambda_plot), ggplotGrob(R_0_plot), size = "first"))
+#                    
+# dev.off()
