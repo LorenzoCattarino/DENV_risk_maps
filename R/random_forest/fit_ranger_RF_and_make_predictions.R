@@ -1,9 +1,12 @@
-fit_ranger_RF <- function(dependent_variable, 
+fit_ranger_RF <- function(parms,
+                          dependent_variable, 
                           predictors, 
                           training_dataset, 
-                          no_trees, 
-                          min_node_size, 
                           my_weights){
+  
+  num_threds <- parms$ranger_threds
+  min_node_size <- parms$min_node_size
+  no_trees <- parms$no_trees
   
   wgts <- training_dataset[, my_weights]
   
@@ -17,7 +20,7 @@ fit_ranger_RF <- function(dependent_variable,
          write.forest = TRUE,
          min.node.size = min_node_size,
          verbose = TRUE,
-         num.threads = 1)
+         num.threads = num_threds)
   
 }
 
