@@ -9,7 +9,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "burden_and_interventions", "wrappers_to_vaccine_impact_calculation.R"),
@@ -23,9 +23,6 @@ ctx <- context::context_save(path = "context",
                              packages = my_pkgs,
                              sources = my_resources)
 
-context::context_load(ctx)
-context::parallel_cluster_start(7, ctx)
-
 
 # define parameters -----------------------------------------------------------  
 
@@ -36,7 +33,8 @@ parameters <- list(
   wolbachia_scenario_id = 3,
   no_R0_assumptions = 3,
   screening_ages = c(9, 16),
-  burden_measure = c("infections", "cases", "hosp")) 
+  burden_measure = c("infections", "cases", "hosp"),
+  vacc_estimates = c("mean", "L95", "U95")) 
 
 parallel_2 <- TRUE
 
@@ -58,6 +56,8 @@ bootstrap_experiments <- read.csv(file.path("output",
 # define variables ------------------------------------------------------------
 
 
+vacc_estimates <- parameters$vacc_estimates
+
 burden_measures <- parameters$burden_measure
 
 screening_ages <- parameters$screening_ages
@@ -78,6 +78,22 @@ fit_var <- bootstrap_experiments[bootstrap_experiments$exp_id == parameters$id, 
 assumption <- as.numeric(unlist(strsplit(fit_var, "_"))[2])
 
 
+# are you using the cluster? --------------------------------------------------
+
+
+if (CLUSTER) {
+  
+  config <- didehpc::didehpc_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
+  
+} else {
+  
+  context::context_load(ctx)
+  context::parallel_cluster_start(7, ctx)
+  
+}
+
+
 # load data -------------------------------------------------------------------  
 
 
@@ -94,8 +110,12 @@ R0_pred <- readRDS(file.path("output",
 
 phi_set_id <- seq_len(parameters$no_R0_assumptions)
 
-fct_c <- setNames(expand.grid(phi_set_id, burden_measures, screening_ages, stringsAsFactors = FALSE),
-                  nm = c(phi_set_id_tag, "burden_measure", "screening_age"))
+fct_c <- setNames(expand.grid(phi_set_id, 
+                              burden_measures, 
+                              screening_ages, 
+                              vacc_estimates,
+                              stringsAsFactors = FALSE),
+                  nm = c(phi_set_id_tag, "burden_measure", "screening_age", "estimate"))
 
 fct_c <- cbind(id = seq_len(nrow(fct_c)), fct_c)
 
@@ -112,35 +132,48 @@ fctr_combs <- df_to_list(fct_c_2, use_names = TRUE)
 R0_pred_2 <- as.matrix(R0_pred)
 
 
+# submit one job --------------------------------------------------------------  
+
+
+# t <- obj$enqueue(
+#   wrapper_to_multi_factor_vaccine_impact(
+#     fctr_combs[[1]],
+#     preds = R0_pred_2, 
+#     parallel_2 = parallel_2, 
+#     parms = parameters, 
+#     base_info = base_info, 
+#     out_path = out_path))
+
+
 # submit ----------------------------------------------------------------------
 
 
 if (CLUSTER) {
-  
+
   vaccine_impact <- queuer::qlapply(fctr_combs,
                                     wrapper_to_multi_factor_vaccine_impact,
                                     obj,
-                                    preds = R0_pred_2, 
-                                    parallel_2 = parallel_2, 
-                                    parms = parameters, 
-                                    base_info = base_info, 
+                                    preds = R0_pred_2,
+                                    parallel_2 = parallel_2,
+                                    parms = parameters,
+                                    base_info = base_info,
                                     out_path = out_path)
-  
+
 } else {
-  
-  vaccine_impact <- loop(fctr_combs, 
+
+  vaccine_impact <- loop(fctr_combs,
                          wrapper_to_multi_factor_vaccine_impact,
-                         preds = R0_pred_2, 
-                         parallel_2 = parallel_2, 
-                         parms = parameters, 
-                         base_info = base_info, 
+                         preds = R0_pred_2,
+                         parallel_2 = parallel_2,
+                         parms = parameters,
+                         base_info = base_info,
                          out_path = out_path,
                          parallel = FALSE)
-  
+
 }
 
 if (!CLUSTER){
-  
+
   context::parallel_cluster_stop()
-  
+
 }
