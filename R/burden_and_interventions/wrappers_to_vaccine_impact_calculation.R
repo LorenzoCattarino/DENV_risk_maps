@@ -9,11 +9,13 @@ wrapper_to_multi_factor_vaccine_impact <- function(x,
   screen_age <- x$screening_age
   phi_set_id <- x$phi_set_id
   burden_measure <- x$burden_measure
+  estimate <- x$estimate
   
   cat("ID run =", run_ID, "\n")
   cat("screening age =", screen_age, "\n")
   cat("R0 assumption =", phi_set_id, "\n")
   cat("burden measure =", burden_measure, "\n")
+  cat("vaccine estimate =", estimate, "\n")
   
   no_fits <- parms$no_samples
   w_scenario_id <- parms$wolbachia_scenario_id
@@ -22,7 +24,11 @@ wrapper_to_multi_factor_vaccine_impact <- function(x,
   
   burden_file_name <- paste0(out_file_tag, "_num_wolbachia_", w_scenario_id, ".rds")
   
-  lookup_table_nm <- paste0("R0_to_prop_", burden_measure,"_averted_lookup_", phi_set_id, ".csv")
+  lookup_table_nm <- sprintf("R0_to_prop_%s_averted_lookup_%s_%s%s", 
+                            burden_measure, 
+                            phi_set_id, 
+                            estimate,
+                            ".csv")
   
   model_type <- paste0("model_", parms$id)
   
@@ -98,8 +104,6 @@ wrapper_to_replicate_vaccine_impact <- function(i,
                                                 preds, 
                                                 vaccine_lookup,
                                                 screen_age = NULL){
-  
-  browser()
   
   approx_all_ages <- function(j, vaccine_lookup, preds){
     approx(vaccine_lookup[, "R0"], vaccine_lookup[, j], xout = preds)$y
