@@ -45,18 +45,42 @@ for (i in seq_along(interventions)) {
     
     y_axis_title <- y_axis_titles[j]
     
-    summary_table_orig <- read.csv(file.path("output", 
-                                             "predictions_world", 
-                                             "bootstrap_models",
-                                             paste0("prop_change_", my_var_name,"_", intervention_name, ".csv")),
-                                   header = TRUE)
-    
     if(intervention_name == "wolbachia"){
+      
+      summary_table_orig <- read.csv(file.path("output", 
+                                               "predictions_world", 
+                                               "bootstrap_models",
+                                               paste0("prop_change_", my_var_name, "_", intervention_name, ".csv")),
+                                     header = TRUE)
       
       summary_table <- subset(summary_table_orig, treatment %in% sf_vals & phi_set_id != "FOI")
       summary_table$treatment <- factor(summary_table$treatment, levels = sf_vals)
       
     } else {
+      
+      summary_table_orig_mean <- read.csv(file.path("output", 
+                                                    "predictions_world", 
+                                                    "bootstrap_models",
+                                                    paste0("prop_change_", my_var_name, "_mean_", intervention_name, ".csv")),
+                                          header = TRUE)
+      
+      summary_table_orig_L95 <- read.csv(file.path("output", 
+                                                   "predictions_world", 
+                                                   "bootstrap_models",
+                                                   paste0("prop_change_", my_var_name, "_L95_", intervention_name, ".csv")),
+                                         header = TRUE)
+      
+      summary_table_orig_U95 <- read.csv(file.path("output", 
+                                                   "predictions_world", 
+                                                   "bootstrap_models",
+                                                   paste0("prop_change_", my_var_name, "_U95_", intervention_name, ".csv")),
+                                         header = TRUE)
+      
+      summary_table_orig <- summary_table_orig_mean
+      
+      summary_table_orig$lCI <- summary_table_orig_L95$mean
+      
+      summary_table_orig$uCI <- summary_table_orig_U95$mean
       
       summary_table <- summary_table_orig
       summary_table$treatment <- as.factor(summary_table$treatment)
