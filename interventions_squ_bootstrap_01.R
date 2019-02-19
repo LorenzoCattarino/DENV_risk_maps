@@ -15,7 +15,6 @@ CLUSTER <- TRUE
 my_resources <- c(
   file.path("R", "burden_and_interventions", "wrapper_to_multi_factor_R0_and_burden.R"),
   file.path("R", "burden_and_interventions", "wrapper_to_replicate_R0_and_burden.R"),  
-  file.path("R", "burden_and_interventions", "wrapper_to_R0_and_burden.R"),
   file.path("R", "burden_and_interventions", "functions_for_calculating_burden.R"),
   file.path("R", "prepare_datasets", "functions_for_calculating_R0.R"),
   file.path("R", "utility_functions.R"))
