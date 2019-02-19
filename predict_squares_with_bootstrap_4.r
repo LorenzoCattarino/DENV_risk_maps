@@ -1,4 +1,4 @@
-# Makes a map of the square predictions
+# Makes a map of the square predictions and save the raster
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -20,12 +20,12 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  id = 20,
+  id = 21,
   shape_1 = 0,
   shape_2 = 5,
   shape_3 = 1e6,
   all_wgt = 1,
-  dependent_variable = "R0_3",
+  dependent_variable = "FOI",
   grid_size = 1 / 120,
   no_predictors = 26,
   resample_grid_size = 20,
@@ -46,7 +46,7 @@ R0_1_z_range <- c(0, 8)
 R0_2_z_range <- c(0, 4)
 R0_3_z_range <- c(0, 5)
 
-z_range <- R0_3_z_range
+z_range <- FOI_z_range
 
 
 # define variables ------------------------------------------------------------
@@ -101,3 +101,22 @@ quick_raster_map(pred_df = df_long,
                  out_pt = out_path, 
                  out_name = out_fl_nm,
                  z_range = z_range)
+
+
+# save the raster -------------------------------------------------------------
+
+
+my_ras <- raster::rasterFromXYZ(df_long[, c("longitude","latitude", statistic)])
+
+# check 
+# raster::plot(my_ras, zlim=c(0,0.06), col = my_col)
+
+# save 
+raster::writeRaster(my_ras, filename = file.path(in_path, "foi_map.tif"), format = "GTiff", overwrite = TRUE)
+
+# test
+# my_ras <- raster::raster(file.path("output", 
+#                                    "predictions_world",
+#                                    "bootstrap_models",
+#                                    "model_21", 
+#                                    "foi_map.tif"))
