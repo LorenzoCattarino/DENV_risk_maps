@@ -4,7 +4,6 @@
 # total number of infections and cases, summed over all squares, AND:
 # total number of infections and cases, summed by country 
 
-# 2) create barplots of total numbers
 
 library(dplyr)
 library(data.table)
@@ -21,7 +20,6 @@ source(file.path("R", "utility_functions.R"))
 parameters <- list(
   id = c(22, 23, 24),
   no_samples = 200,
-  desired_n_int = c(8, 6, 5),
   baseline_scenario_ids = c(1, 2, 3))   
 
 intervention_name <- "vaccine"
@@ -35,8 +33,6 @@ phi_factor_levels <- c("2S", "4S", "4S(sym = 2x asym)")
 
 
 baseline_scenario_ids <- parameters$baseline_scenario_ids 
-
-desired_n_int <- parameters$desired_n_int
 
 model_type <- paste0("model_", parameters$id)
 
@@ -52,10 +48,6 @@ out_table_path <- file.path("output",
                             "bootstrap_models", 
                             model_type,
                             intervention_name)
-
-out_fig_path <- file.path("figures", 
-                          "predictions_world", 
-                          "bootstrap_models")
 
 fct_comb_fl_nm <- paste0("scenario_table_", intervention_name, ".csv")
 
@@ -205,6 +197,13 @@ summary_table$phi_set_id <- factor(summary_table$phi_set_id,
                                    levels = c(1, 2, 3), 
                                    labels = phi_factor_levels)
 
+summary_tab_fl_nm <- paste0("total_", intervention_name, ".csv")
+
+write_out_csv(summary_table, file.path("output", 
+                                       "predictions_world", 
+                                       "bootstrap_models"), 
+              summary_tab_fl_nm)
+
 summary_table_2 <- do.call("rbind", out_ls_2)  
 
 names(summary_table_2)[names(summary_table_2) == treatment_name] <- "treatment"
@@ -219,62 +218,9 @@ summary_table_2$phi_set_id <- factor(summary_table_2$phi_set_id,
                                      levels = c(1, 2, 3), 
                                      labels = phi_factor_levels)
 
+summary_tab_fl_nm_2 <- paste0("prop_change_", intervention_name, ".csv")
 
-# plotting ------------------------------------------------------------------
-
-
-burden_measures <- c("infections", "cases", "hosp") 
-
-for (j in seq_along(burden_measures)) {
-  
-  bur_meas <- burden_measures[j]
-  
-  summary_table_sub <- subset(summary_table, burden_measure == bur_meas)
-  
-  summary_table_2_sub <- subset(summary_table_2, burden_measure == bur_meas)
-  summary_tab_fl_nm <- paste0("prop_change_", bur_meas, "_", intervention_name, ".csv")
-  write_out_csv(summary_table_2_sub, file.path("output", 
-                                               "predictions_world", 
-                                               "bootstrap_models"), 
-                summary_tab_fl_nm)
-  
-  y_values <- pretty(0:max(summary_table_sub$mean), desired_n_int[j])
-  max_y_value <- max(summary_table_sub$uCI)
-  
-  p <- ggplot(summary_table_sub, aes(treatment, mean, fill = treatment, ymin = lCI, ymax = uCI)) + 
-    geom_bar(stat = "identity", position = "dodge", width = 1) +
-    geom_errorbar(width = .25, position = position_dodge(.9)) +
-    facet_grid(. ~ phi_set_id) +
-    scale_fill_manual(values = c("lightskyblue1", "lightskyblue4"),
-                      labels = c("9", "16"),
-                      guide = guide_legend(title = "Screening age",
-                                           keywidth = 2, 
-                                           keyheight = 2)) +
-    xlab(NULL) +
-    scale_y_continuous("Mean (95% CI)", 
-                       breaks = y_values, 
-                       labels = format(y_values/1000000), 
-                       limits = c(min(y_values), max_y_value)) +
-    theme(axis.title.x = element_blank(),
-          axis.text.x = element_blank(),
-          axis.ticks.x = element_blank(),
-          axis.text.y = element_text(size = 12),
-          plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
-          strip.text.x = element_text(size = 8))
-  
-  dir.create(out_fig_path, FALSE, TRUE)
-  
-  barplot_fl_nm <- paste0("total_", bur_meas, "_", intervention_name, ".png")
-  
-  png(file.path(out_fig_path, barplot_fl_nm),
-      width = 17,
-      height = 7,
-      units = "cm",
-      pointsize = 12,
-      res = 300)
-  
-  print(p)
-  
-  dev.off()
-  
-}
+write_out_csv(summary_table_2, file.path("output", 
+                                         "predictions_world", 
+                                         "bootstrap_models"), 
+              summary_tab_fl_nm_2)
