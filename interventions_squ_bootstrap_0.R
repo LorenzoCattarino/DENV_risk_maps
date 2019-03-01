@@ -1,8 +1,27 @@
-# Calculates look up tables for burden calculation
+# Calculates look up tables:
 
-# 1) FOI -> number of infections
-# 2) FOI -> number of cases
-# 3) FOI -> number of hospitalized cases 
+# 1) R0_1 -> FOI
+# 2) R0_2 -> FOI
+# 3) R0_3 -> FOI
+# 4) FOI -> Infections
+# 5) FOI -> Cases
+# 6) FOI -> Hospitalized cases 
+
+# using a fixed set of values of 
+# proportions of infections which are symptomatic.
+
+# Calculates look up tables:
+
+# 1) R0_3 -> FOI
+# 2) FOI -> Cases
+# 3) FOI -> Hospitalized cases 
+
+# using also the posterior distribution of
+# proportions of infections which are symptomatic.
+
+
+# -----------------------------------------------------------------------------
+
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -26,8 +45,8 @@ ctx <- context::context_save(path = "context",
 # define extra parameters -----------------------------------------------------
 
 
-extra_prms <- list(id = 22,
-                   prop_sym_parms_nm = c("gamma_1", "rho", "gamma_3"))
+extra_prms <- list(target_nm = list("I", "C", "HC", "R0_1", "R0_2", "R0_3"),
+                   parallel_2 = TRUE)
 
 
 # are you using the cluster? --------------------------------------------------
@@ -35,7 +54,7 @@ extra_prms <- list(id = 22,
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "24Core")
+  config <- didehpc::didehpc_config(template = "16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -51,18 +70,15 @@ if (CLUSTER) {
 
 parameters <- create_parameter_list(extra_params = extra_prms)
 
-model_type <- paste0("model_", parameters$id)
-
 out_path <- file.path("output", 
                       "predictions_world", 
-                      "bootstrap_models", 
-                      model_type)
+                      "bootstrap_models")
 
 no_samples <- parameters$no_samples
-  
-FOI_values <- parameters$FOI_grid
 
-prop_sym_parms_nm <- parameters$prop_sym_parms_nm
+mean_prop_sympt <- parameters$prop_sympt
+
+target_nm <- parameters$target_nm
 
 
 # load data ------------------------------------------------------------------- 
@@ -73,7 +89,8 @@ age_struct <- read.csv(file.path("output",
                                  "country_age_structure.csv"), 
                        header = TRUE) 
 
-param_post <- read.table(file.path("data", "sym_prop_param_post.txt"))
+param_post <- read.table(file.path("data", "sym_prop_param_post.txt"),
+                         header = TRUE)
 
 
 # pre processing --------------------------------------------------------------
@@ -88,55 +105,35 @@ param_post <- param_post[seq_len(no_samples), -c(1, 5)]
   
 param_post <- as.matrix(param_post)
 
-colnames(param_post) <- prop_sym_parms_nm
+param_post_inf_weights <- t(apply(param_post, 
+                                  1, 
+                                  calculate_infectiousness_wgts_for_sym_asym_assumption))
 
-target_fun <- list("calculate_cases", "calculate_hosp_cases")
+target_fun <- list(calculate_infections = "calculate_infections",
+                   calculate_cases = "calculate_cases", 
+                   calculate_hosp_cases = "calculate_hosp_cases", 
+                   calculate_R0 = "calculate_R0")
 
-target_nm <- list("C", "HC")
+additional_dts <- list(prop_sym = param_post, inf_weights = param_post_inf_weights)
 
+vec_phis_R0_3 <- calculate_infectiousness_wgts_for_sym_asym_assumption(mean_prop_sympt)
 
-# create FOI -> Inf lookup table ---------------------------------------------- 
-
-
-if(!file.exists(file.path(out_path, "FOI_to_I_lookup_tables.rds"))){
-  
-  Infection_values <- loop(seq_len(nrow(age_struct)), 
-                           wrapper_to_lookup,
-                           age_struct = age_struct, 
-                           tags = age_band_tgs, 
-                           FOI_values = FOI_values, 
-                           my_fun = "calculate_infections",
-                           age_band_lower_bounds = age_band_L_bounds,
-                           age_band_upper_bounds = age_band_U_bounds,
-                           parallel = TRUE)
-  
-  FOI_to_Inf_list <- lapply(Infection_values, cbind_FOI_to_lookup, FOI_values)
-  
-  saveRDS(FOI_to_Inf_list, file.path(out_path, "FOI_to_I_lookup_tables.rds"))
-  
-} else {
-  
-  FOI_to_Inf_list <- readRDS(file.path(out_path, "FOI_to_I_lookup_tables.rds"))
-  
-}
+parameters <- c(parameters, list(vec_phis_R0_3 = vec_phis_R0_3))
 
 
 # submit one job --------------------------------------------------------------
 
 
 # lookup <- obj$enqueue(
-#   create_lookup_tables(seq_along(target_fun)[[1]],
+#   create_lookup_tables(target_nm[[1]],
 #                        target_fun = target_fun,
-#                        target_nm = target_nm,
+#                        additional_dts = additional_dts,
 #                        out_path = out_path,
 #                        age_struct = age_struct,
-#                        age_band_tgs = age_band_tgs,
-#                        FOI_values = FOI_values,
+#                        age_band_tags = age_band_tgs,
 #                        age_band_L_bounds = age_band_L_bounds,
 #                        age_band_U_bounds = age_band_U_bounds,
-#                        param_post = param_post,
-#                        parms = parameters,
-#                        parallel = TRUE))
+#                        parms = parameters))
 
 
 # submit a bundle -------------------------------------------------------------
@@ -144,36 +141,31 @@ if(!file.exists(file.path(out_path, "FOI_to_I_lookup_tables.rds"))){
 
 if (CLUSTER) {
 
-  lookup <- queuer::qlapply(seq_along(target_fun),
+  lookup <- queuer::qlapply(target_nm,
                             create_lookup_tables,
                             obj,
                             target_fun = target_fun,
-                            target_nm = target_nm,
+                            additional_dts = additional_dts,
                             out_path = out_path,
                             age_struct = age_struct,
-                            age_band_tgs = age_band_tgs,
-                            FOI_values = FOI_values,
+                            age_band_tags = age_band_tgs,
                             age_band_L_bounds = age_band_L_bounds,
                             age_band_U_bounds = age_band_U_bounds,
-                            param_post = param_post,
-                            parms = parameters,
-                            parallel = TRUE)
+                            parms = parameters)
 
 } else {
 
-  lookup <- loop(seq_along(target_fun),
+  lookup <- loop(target_nm,
                  create_lookup_tables,
                  target_fun = target_fun,
-                 target_nm = target_nm,
+                 additional_dts = additional_dts,
                  out_path = out_path,
                  age_struct = age_struct,
-                 age_band_tgs = age_band_tgs,
-                 FOI_values = FOI_values,
+                 age_band_tags = age_band_tgs,
                  age_band_L_bounds = age_band_L_bounds,
                  age_band_U_bounds = age_band_U_bounds,
-                 param_post = param_post,
                  parms = parameters,
-                 parallel = TRUE)
+                 parallel = FALSE)
 
 }
 
