@@ -1,16 +1,17 @@
 # Functions to calculate R0 using the 'at equilibrium' numbers of total primary to quaternary infections
 
-calculate_infectiousness_wgts_for_sym_asym_assumption <- function(parms){
+calculate_infectiousness_wgts_for_sym_asym_assumption <- function(prop_sym_parms){
   
-  w_1 <- parms$gamma_1
-  w_2 <- parms$rho
-  w_3 <- parms$gamma_3
+  w_1 <- prop_sym_parms[1]  
+  w_2 <- prop_sym_parms[2]
+  w_3 <- prop_sym_parms[3]
   
   phi_2 <- 1
   phi_1 <- (w_1 * 2 + (1 - w_1)) / (w_2 * 2 + (1 - w_2)) 
-  phi_3 <- phi_4 <- (w_3 * 2 + (1 - w_3)) / (w_2 * 2 + (1 - w_2))
+  phi_3 <- (w_3 * 2 + (1 - w_3)) / (w_2 * 2 + (1 - w_2))
   
-  c(phi_1, phi_2, phi_3, phi_4)
+  c(phi_1, phi_2, phi_3)
+
 }
 
 get_age_band_bounds <- function(tags) {
@@ -59,22 +60,31 @@ wrapper_to_R0 <- function(
   m_j <- age_struct[age_struct$ID_0 == foi_data[i, "ID_0"], age_band_tags]
   FOI <- foi_data[i, "FOI"]
   
-  calculate_R0(
-    FOI = FOI, 
-    N = 1, 
-    n_j = m_j, 
-    age_band_lower_bounds = age_band_lower_bounds, 
-    age_band_upper_bounds = age_band_upper_bounds,
-    vec_phis = vec_phis, 
-    prob_fun = prob_fun)
-
+  calculate_R0(FOI = FOI, 
+               n_j = m_j, 
+               age_band_lower_bounds = age_band_lower_bounds, 
+               age_band_upper_bounds = age_band_upper_bounds,
+               vec_phis = vec_phis, 
+               prob_fun = prob_fun)
+  
 }
 
-calculate_R0 <- function(
-  FOI, N, n_j, 
-  prob_fun, age_band_lower_bounds, age_band_upper_bounds,
-  vec_phis){
+calculate_R0 <- function(FOI, 
+                         N = 1, 
+                         n_j,
+                         age_band_lower_bounds, 
+                         age_band_upper_bounds,
+                         weights_vec){
+    
+  phi_1 <- weights_vec[1] 
+  phi_2 <- weights_vec[2] 
+  phi_3 <- weights_vec[3] 
   
+  prob_fun <- list("calculate_primary_infection_prob",
+                   "calculate_secondary_infection_prob",
+                   "calculate_tertiary_infection_prob",
+                   "calculate_quaternary_infection_prob")
+
   infection_probabilities <- lapply(
     prob_fun, 
     do.call,
@@ -90,7 +100,7 @@ calculate_R0 <- function(
   
   total_infection_numbers <- vapply(infection_numbers_j, sum, numeric(1))
   
-  FOI * N / (sum(total_infection_numbers * vec_phis))
+  FOI * N / (sum(total_infection_numbers * c(phi_1, phi_2, phi_3, phi_3)))
   
 }
 
