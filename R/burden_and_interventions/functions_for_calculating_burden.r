@@ -1,8 +1,12 @@
 calculate_infections <- function(FOI, 
                                  n_j, 
-                                 prob_fun, 
                                  age_band_lower_bounds, 
                                  age_band_upper_bounds){
+  
+  prob_fun <- list("calculate_primary_infection_prob",
+                   "calculate_secondary_infection_prob",
+                   "calculate_tertiary_infection_prob",
+                   "calculate_quaternary_infection_prob")
   
   infection_probabilities <- lapply(
     prob_fun, 
@@ -25,14 +29,18 @@ calculate_infections <- function(FOI,
 
 calculate_cases <- function(FOI, 
                             n_j, 
-                            prob_fun, 
                             age_band_lower_bounds, 
                             age_band_upper_bounds,
-                            parms){
+                            weights_vec){
   
-  rho <- parms$rho 
-  gamma_1 <- parms$gamma_1
-  gamma_3 <- parms$gamma_3
+  prob_fun <- list("calculate_primary_infection_prob",
+                   "calculate_secondary_infection_prob",
+                   "calculate_tertiary_infection_prob",
+                   "calculate_quaternary_infection_prob")
+  
+  gamma_1 <- weights_vec[1]
+  rho <- weights_vec[2] 
+  gamma_3 <- weights_vec[3]
   
   infection_probabilities <- lapply(
     prob_fun, 
@@ -60,19 +68,23 @@ calculate_cases <- function(FOI,
 
 calculate_hosp_cases <- function(FOI, 
                                  n_j, 
-                                 prob_fun, 
                                  age_band_lower_bounds, 
                                  age_band_upper_bounds,
-                                 parms){
+                                 parms,
+                                 weights_vec){
   
-  rho <- parms$rho 
-  gamma_1 <- parms$gamma_1
-  gamma_3 <- parms$gamma_3
+  prob_fun <- list("calculate_primary_infection_prob",
+                   "calculate_secondary_infection_prob",
+                   "calculate_tertiary_infection_prob",
+                   "calculate_quaternary_infection_prob")
+  
+  gamma_1 <- weights_vec[1]
+  rho <- weights_vec[2] 
+  gamma_3 <- weights_vec[3]
   
   Q_1 <- parms$Q_1
   Q_2 <- parms$Q_2
   Q_3 <- parms$Q_3
-  Q_4 <- parms$Q_4
     
   infection_probabilities <- lapply(
     prob_fun, 
@@ -90,20 +102,11 @@ calculate_hosp_cases <- function(FOI,
   I3_rate <- infection_incidences[[3]] 
   I4_rate <- infection_incidences[[4]]    
   
-  case_1_number_j <- calculate_case_number(gamma_1 * I1_rate, n_j)
+  tot_incid_rate_j <- Q_2 * rho * I2_rate + (Q_1 * gamma_1 * I1_rate) + (gamma_3 * Q_3 * (I3_rate + I4_rate))
   
-  case_2_number_j <- calculate_case_number(rho * I2_rate, n_j)
+  case_number_j <- calculate_case_number(tot_incid_rate_j, n_j)
   
-  case_3_number_j <- calculate_case_number(gamma_3 * I3_rate, n_j)
-  
-  case_4_number_j <- calculate_case_number(gamma_3 * I4_rate, n_j)
-  
-  case_1_number <- sum(case_1_number_j) * 4
-  case_2_number <- sum(case_2_number_j) * 4
-  case_3_number <- sum(case_3_number_j) * 4
-  case_4_number <- sum(case_4_number_j) * 4
-  
-  (Q_1 * case_1_number) + (Q_2 * case_2_number) + (Q_3 * case_3_number) + (Q_4 * case_4_number)  
+  sum(case_number_j) * 4
 
 }
 
@@ -113,14 +116,49 @@ wrapper_to_lookup <- function(i,
                               FOI_values, 
                               my_fun, ...){
   
-  m_j <- age_struct[i, tags]
-  vapply(
-    FOI_values,
-    my_fun,
-    numeric(1),
-    n_j = m_j,
-    ...)
+  my_FUN <- match.fun(my_fun)
   
+  m_j <- age_struct[i, tags]
+  
+  vapply(FOI_values,
+         my_FUN,
+         numeric(1),
+         n_j = m_j,
+         ...)
+  
+}
+
+wrapper_to_lookup_2D <- function(i, 
+                                 age_struct, 
+                                 param_post,
+                                 tags, 
+                                 FOI_values, 
+                                 my_fun,
+                                 ...){
+  
+  my_FUN <- match.fun(my_fun)
+    
+  m_j <- age_struct[i, tags]
+  
+  param_sets <- nrow(param_post)
+  
+  out <- matrix(0, nrow = length(FOI_values), ncol = param_sets)
+  
+  for (j in seq_len(param_sets)){
+    
+    my_weights <- param_post[j, ]
+    
+    out[, j] <- vapply(FOI_values,
+                       my_FUN,
+                       numeric(1),
+                       n_j = m_j,
+                       weights_vec = my_weights,
+                       ...)
+    
+  }
+  
+  out  
+
 }
 
 fix_R0_lookup_limits <- function(i) {
@@ -135,4 +173,18 @@ cbind_FOI_to_lookup <- function(i, FOI_values) {
   
   cbind(x = FOI_values, y = i)
 
+}
+
+interpolate_using_mat_indices <- function(lookup_mat, rowIndices, colIndices, rowIndices_next, FOI_grid, FOI_values){
+  
+  # browser()
+  
+  Infections_pc <- lookup_mat[rowIndices + nrow(lookup_mat) * (colIndices - 1)]
+  Infections_pc_next <- lookup_mat[rowIndices_next + nrow(lookup_mat) * (colIndices - 1)]
+  
+  m <- (Infections_pc_next - Infections_pc) / (FOI_grid[rowIndices_next] - FOI_grid[rowIndices]) # slope formula
+  b <- Infections_pc-(m*FOI_grid[rowIndices]) # solve for b
+  
+  m * (FOI_values) + b
+  
 }
