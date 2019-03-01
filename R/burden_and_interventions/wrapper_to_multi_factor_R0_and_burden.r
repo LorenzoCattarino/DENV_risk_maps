@@ -4,22 +4,22 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
                                                   age_band_tags, 
                                                   age_band_lower_bounds, 
                                                   age_band_upper_bounds,
-                                                  parallel_2, 
                                                   FOI_values, 
                                                   FOI_to_Inf_list, 
                                                   FOI_to_C_list, 
                                                   FOI_to_HC_list,
                                                   prob_fun, 
                                                   parms, 
-                                                  base_info, 
                                                   out_path,
                                                   var_to_fit){
   
   
-  # browser()
+  #browser()
   
   no_fits <- parms$no_samples
   fit_type <- parms$fit_type
+  parallel_2 <- parms$parallel_2
+  base_info <- parms$base_info
   
   var_names <- c("response_r", "transformed_r", "I_num", "C_num", "H_num")
   
@@ -41,9 +41,8 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
   
   vec_phis <- c(phi_1, phi_2, phi_3, phi_4)
   
-  if(var_to_fit == "FOI"){
+  if (var_to_fit == "FOI") {
     
-
     burden_estimates <- loop(
       seq_len(nrow(foi_data)),
       wrapper_to_replicate_R0_and_burden, 
@@ -56,22 +55,16 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
       age_band_lower_bounds = age_band_lower_bounds,
       age_band_upper_bounds = age_band_upper_bounds,
       age_band_tags = age_band_tags,
-      vec_phis = vec_phis, 
-      prob_fun = prob_fun,
-      no_fits = no_fits,
-      var_to_fit = var_to_fit, 
-      fit_type = fit_type,
       vars = var_names,
+      parms = parms,
       parallel = parallel_2)
 
-    
   } else {
-    
     
     # ---------------------------------------- create FOI -> R0 look up tables
     
     
-    if(!file.exists(file.path(out_path, paste0("FOI_to_R0_lookup_tables_", phi_set_id ,".rds")))){
+    if (!file.exists(file.path(out_path, paste0("FOI_to_R0_lookup_tables_", phi_set_id ,".rds")))) {
       
       R0_values <- loop(seq_len(nrow(age_data)), 
                         wrapper_to_lookup,
@@ -80,7 +73,6 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
                         FOI_values = FOI_values, 
                         my_fun = calculate_R0,
                         N = 1,
-                        prob_fun = prob_fun,
                         age_band_lower_bounds = age_band_lower_bounds, 
                         age_band_upper_bounds = age_band_upper_bounds,
                         vec_phis = vec_phis,
@@ -90,11 +82,11 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
       
       FOI_to_R0_list <- lapply(FOI_to_R0_list, fix_R0_lookup_limits)
       
-      saveRDS(FOI_to_R0_list, file.path(out_path, paste0("FOI_to_R0_lookup_tables_", phi_set_id ,".rds")))  
+      saveRDS(FOI_to_R0_list, file.path(out_path, paste0("FOI_to_R0_lookup_tables_", phi_set_id , ".rds")))  
       
     } else {
       
-      FOI_to_R0_list <- readRDS(file.path(out_path, paste0("FOI_to_R0_lookup_tables_", phi_set_id ,".rds")))
+      FOI_to_R0_list <- readRDS(file.path(out_path, paste0("FOI_to_R0_lookup_tables_", phi_set_id , ".rds")))
       
     } 
     
@@ -115,12 +107,8 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
       age_band_lower_bounds = age_band_lower_bounds,
       age_band_upper_bounds = age_band_upper_bounds,
       age_band_tags = age_band_tags,
-      vec_phis = vec_phis, 
-      prob_fun = prob_fun,
-      no_fits = no_fits,
-      var_to_fit = var_to_fit, 
-      fit_type = fit_type,
       vars = var_names,
+      parms = parms,
       parallel = parallel_2)
     
   }
@@ -128,10 +116,10 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
 
   # ---------------------------------------- reshape and save
   
-  
-  if(fit_type == "boot"){
+
+  if (fit_type == "boot") {
     
-    for (b in seq_along(var_names)){
+    for (b in seq_along(var_names)) {
       
       ret1 <- lapply(burden_estimates, "[", var_names[b], TRUE)
       
@@ -147,7 +135,7 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
     
   } else {
     
-    for (b in seq_along(var_names)){
+    for (b in seq_along(var_names)) {
       
       ret1 <- lapply(burden_estimates, "[", var_names[b], TRUE)
       
