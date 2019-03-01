@@ -9,17 +9,22 @@ wrapper_to_replicate_R0_and_burden <- function(i,
                                                age_band_lower_bounds, 
                                                age_band_upper_bounds, 
                                                age_band_tags,
-                                               vec_phis, 
-                                               prob_fun, 
-                                               no_fits, 
-                                               var_to_fit, 
-                                               fit_type,
-                                               vars){
+                                               vars,
+                                               parms){
   
   
   # ---------------------------------------------------------------------------
   # get the right look up table for each square  
   
+
+  # cat("pixel number =", i, "\n")
+  
+  no_fits <- parms$no_samples 
+  fit_type <- parms$fit_type
+  fixed_prop_sym <- parms$fixed_prop_sym
+  FOI_grid <- parms$FOI_grid
+  
+  FOI_grid_res <- max(FOI_grid) / length(FOI_grid)
   
   idx <- foi_data[i, "age_id"]
     
@@ -47,7 +52,7 @@ wrapper_to_replicate_R0_and_burden <- function(i,
     
     preds <- foi_data[i, "best"]
   }
-  
+
   N <- foi_data[i, "population"]
   
   
@@ -68,9 +73,43 @@ wrapper_to_replicate_R0_and_burden <- function(i,
     
   }
   
+  FOI_grid <- FOI_to_Inf[, 1]
+  
+  rowIndices <- floor(red_trans / FOI_grid_res) # this gives a 0-based index
+  rowIndices <- rowIndices + 1 # correct for 1-based R indexing
+  rowIndices_next <- rowIndices + 1
+  
+  if(fixed_prop_sym) {
+    
+    # fixed set of sym parameters for all bootstrap samples
+    colIndices <- rep(1, length(red_trans))  
+    
+  } else {
+    
+    # different set of sym parameters for each bootstrap sample: 
+    colIndices <- seq_len(no_fits)
+    
+  }
+  
   Infections_pc <- approx(FOI_to_Inf[, "x"], FOI_to_Inf[, "y"], xout = red_trans)$y 
-  Cases_pc <- approx(FOI_to_C[, "x"], FOI_to_C[, "y"], xout = red_trans)$y
-  Hosp_cases_pc <- approx(FOI_to_HC[, "x"], FOI_to_HC[, "y"], xout = red_trans)$y
+  
+  Cases_pc <- interpolate_using_mat_indices(lookup_mat = FOI_to_C,
+                                            rowIndices = rowIndices, 
+                                            colIndices = colIndices, 
+                                            rowIndices_next = rowIndices_next,
+                                            FOI_grid = FOI_grid, 
+                                            FOI_values = red_trans)
+  
+  Hosp_cases_pc <- interpolate_using_mat_indices(lookup_mat = FOI_to_HC,
+                                                 rowIndices = rowIndices, 
+                                                 colIndices = colIndices, 
+                                                 rowIndices_next = rowIndices_next,
+                                                 FOI_grid = FOI_grid, 
+                                                 FOI_values = red_trans)
+  
+  #Cases_pc <- approx(FOI_to_C[, "x"], FOI_to_C[, "y"], xout = red_trans)$y
+  #Hosp_cases_pc <- approx(FOI_to_HC[, "x"], FOI_to_HC[, "y"], xout = red_trans)$y
+
   Infections <- Infections_pc * N
   Cases <- Cases_pc * N
   HCases <- Hosp_cases_pc * N 
