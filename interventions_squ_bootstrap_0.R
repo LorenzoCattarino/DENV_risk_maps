@@ -12,7 +12,6 @@
 
 # Calculates look up tables:
 
-# 1) R0_3 -> FOI
 # 2) FOI -> Cases
 # 3) FOI -> Hospitalized cases 
 
