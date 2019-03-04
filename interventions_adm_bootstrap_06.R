@@ -8,7 +8,6 @@
 
 library(dplyr)
 library(data.table)
-library(ggplot2)
 library(countrycode)
 
 source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
@@ -114,7 +113,7 @@ for (k in seq_along(model_type)){                                  # loop over R
     root_name <- paste0(out_file_tag, "_num_", intervention_name, "_", scenario_id, ".rds")
     
     baseline_id <- baseline_scenario_ids[k]
-    baseline_fl_nm <- paste0(out_file_tag, "_num_wolbachia_", baseline_id, ".rds")
+    baseline_fl_nm <- paste0(out_file_tag, "_num_wolbachia_", baseline_id, "_fixed.rds")
     baseline <- readRDS(file.path(my_in_path, baseline_fl_nm)) 
     
     dat <- readRDS(file.path(my_in_path, root_name))
@@ -175,64 +174,24 @@ summary_table$phi_set_id <- factor(summary_table$phi_set_id,
                                    levels = seq_len(length(phi_factor_levels)), 
                                    labels = phi_factor_levels)
 
+summary_tab_fl_nm <- paste0("total_", intervention_name, ".csv")
+
+write_out_csv(summary_table, file.path("output", 
+                                       "predictions_world", 
+                                       "bootstrap_models",
+                                       "adm_1"), 
+              summary_tab_fl_nm)
+
 summary_table_2 <- do.call("rbind", out_ls_2)  
 
 summary_table_2$phi_set_id <- factor(summary_table_2$phi_set_id, 
                                      levels = seq_len(length(phi_factor_levels)), 
                                      labels = phi_factor_levels)
 
+summary_tab_fl_nm_2 <- paste0("prop_change_", intervention_name, ".csv")
 
-# plotting ------------------------------------------------------------------
-
-
-burden_measures <- c("infections", "cases", "hosp") 
-
-for (j in seq_along(burden_measures)) {
-  
-  bur_meas <- burden_measures[j]
-  
-  summary_table_sub <- subset(summary_table, burden_measure == bur_meas)
-  
-  summary_table_2_sub <- subset(summary_table_2, burden_measure == bur_meas)
-  summary_tab_fl_nm <- paste0("prop_change_", bur_meas, "_", intervention_name, ".csv")
-  write_out_csv(summary_table_2_sub, file.path("output", 
-                                               "predictions_world", 
-                                               "bootstrap_models",
-                                               "adm_1"), 
-                summary_tab_fl_nm)
-  
-  y_values <- pretty(0:max(summary_table_sub$mean), desired_n_int[j])
-  max_y_value <- max(summary_table_sub$uCI)
-  
-  p <- ggplot(summary_table_sub, aes(bur_meas, mean, ymin = lCI, ymax = uCI)) + 
-    geom_bar(stat = "identity", position = "dodge", width = 0.5, fill = "lightskyblue3") +
-    geom_errorbar(width = .1, position = position_dodge(.9)) +
-    facet_grid(. ~ phi_set_id) +
-    xlab(NULL) +
-    scale_y_continuous("Mean (95% CI)", 
-                       breaks = y_values, 
-                       labels = format(y_values/1000000), 
-                       limits = c(min(y_values), max_y_value)) +
-    theme(axis.title.x = element_blank(),
-          axis.text.x = element_blank(),
-          axis.ticks.x = element_blank(),
-          axis.text.y = element_text(size = 12),
-          plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
-          strip.text.x = element_text(size = 8))
-  
-  dir.create(out_fig_path, FALSE, TRUE)
-  
-  barplot_fl_nm <- paste0("total_", bur_meas, "_", intervention_name, ".png")
-  
-  png(file.path(out_fig_path, barplot_fl_nm),
-      width = 17,
-      height = 7,
-      units = "cm",
-      pointsize = 12,
-      res = 300)
-  
-  print(p)
-  
-  dev.off()
-  
-}
+write_out_csv(summary_table_2, file.path("output", 
+                                         "predictions_world", 
+                                         "bootstrap_models",
+                                         "adm_1"), 
+              summary_tab_fl_nm_2)
