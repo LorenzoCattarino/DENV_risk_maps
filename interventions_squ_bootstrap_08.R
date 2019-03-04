@@ -102,7 +102,7 @@ for (j in seq_along(burden_measures)) {
   tot_num_table <- subset(tot_num_table_orig, treatment != 1 & phi_set_id != "FOI")
   tot_num_table$treatment <- 1 - tot_num_table$treatment
   
-  y_values <- pretty(tot_num_table$mean)
+  y_values <- pretty(tot_num_table$uCI)
   
   p2 <- ggplot(tot_num_table) +
     geom_ribbon(aes(x = treatment, 
