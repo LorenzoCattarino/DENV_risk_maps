@@ -78,9 +78,9 @@ for (i in seq_along(interventions)) {
       
       summary_table_orig <- summary_table_orig_mean
       
-      summary_table_orig$lCI <- summary_table_orig_L95$mean
+      summary_table_orig$lCI <- summary_table_orig_L95$mean - (1.92 * summary_table_orig$sd)
       
-      summary_table_orig$uCI <- summary_table_orig_U95$mean
+      summary_table_orig$uCI <- summary_table_orig_U95$mean + (1.92 * summary_table_orig$sd)
       
       summary_table <- summary_table_orig
       summary_table$treatment <- as.factor(summary_table$treatment)
