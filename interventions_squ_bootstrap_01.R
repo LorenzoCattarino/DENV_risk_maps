@@ -1,12 +1,26 @@
-# Calculates
-# for each model fit, 
-# R0-Wolbachia effect assumption combinations and 
-# 20 km square:
-#
-# 1) FOI or (R0) corresponding to the response originally fitted
-# 2) number of infections
-# 3) number of cases
-# 4) number of hospitalized cases 
+# Calculates look up tables:
+
+# 1) R0_1 -> FOI
+# 2) R0_2 -> FOI
+# 3) R0_3 -> FOI
+# 4) FOI -> Infections
+# 5) FOI -> Cases
+# 6) FOI -> Hospitalized cases 
+
+# using a fixed set of values of 
+# proportions of infections which are symptomatic.
+
+# Calculates look up tables:
+
+# 2) FOI -> Cases
+# 3) FOI -> Hospitalized cases 
+
+# using also the posterior distribution of
+# proportions of infections which are symptomatic.
+
+
+# -----------------------------------------------------------------------------
+
 
 options(didehpc.cluster = "fi--didemrchnb")
 
@@ -14,8 +28,7 @@ CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "burden_and_interventions", "functions_for_calculating_burden.R"),
-  file.path("R", "burden_and_interventions", "wrapper_to_multi_factor_R0_and_burden.R"),
-  file.path("R", "burden_and_interventions", "wrapper_to_replicate_R0_and_burden.R"),
+  file.path("R", "burden_and_interventions", "create_burden_lookup.R"),
   file.path("R", "prepare_datasets", "functions_for_calculating_R0.R"),
   file.path("R", "utility_functions.R"),
   file.path("R", "create_parameter_list.R"))
@@ -31,17 +44,8 @@ ctx <- context::context_save(path = "context",
 # define extra parameters -----------------------------------------------------
 
 
-extra_prms <- list(id = 21,
-                   fit_type = "boot",
-                   parallel_2 = TRUE,
-                   phi_set_id_tag = "phi_set_id",
-                   base_info = c("cell", 
-                                 "latitude", 
-                                 "longitude", 
-                                 "population", 
-                                 "ID_0", 
-                                 "ID_1", 
-                                 "ID_2"))
+extra_prms <- list(target_nm = list("I", "C", "HC", "R0_1", "R0_2", "R0_3"),
+                   parallel_2 = TRUE)
 
 
 # are you using the cluster? --------------------------------------------------
@@ -65,133 +69,70 @@ if (CLUSTER) {
 
 parameters <- create_parameter_list(extra_params = extra_prms)
 
-model_type <- paste0("model_", parameters$id)
-
-lookup_path <- file.path("output", 
-                         "predictions_world", 
-                         "bootstrap_models")
-
 out_path <- file.path("output", 
                       "predictions_world", 
-                      "bootstrap_models", 
-                      model_type)
+                      "bootstrap_models")
 
-no_R0_assumptions <- 4
-  
-sf_vals <- parameters$sf_vals
+no_samples <- parameters$no_samples
 
-phi_set_id_tag <- parameters$phi_set_id_tag
+mean_prop_sympt <- parameters$prop_sympt
+
+target_nm <- parameters$target_nm
 
 
 # load data ------------------------------------------------------------------- 
 
-
-FOI_to_Inf_list <- readRDS(file.path(lookup_path, "FOI_to_I_lookup_tables.rds"))
-
-FOI_to_C_list <- readRDS(file.path(lookup_path, "FOI_to_C_lookup_tables.rds"))
-
-FOI_to_HC_list <- readRDS(file.path(lookup_path, "FOI_to_HC_lookup_tables.rds"))
-
-FOI_to_R0_1_list <- readRDS(file.path(lookup_path, "FOI_to_R0_1_lookup_tables.rds"))
-
-FOI_to_R0_2_list <- readRDS(file.path(lookup_path, "FOI_to_R0_2_lookup_tables.rds"))
-
-FOI_to_R0_3_list <- readRDS(file.path(lookup_path, "FOI_to_R0_3_lookup_tables.rds"))
-
-FOI_to_C_list_fixed <- readRDS(file.path(lookup_path, "FOI_to_C_lookup_tables_fixed_params.rds"))
-
-FOI_to_HC_list_fixed <- readRDS(file.path(lookup_path, "FOI_to_HC_lookup_tables_fixed_params.rds"))
-
-bootstrap_experiments <- read.csv(file.path("output", 
-                                            "EM_algorithm", 
-                                            "bootstrap_models", 
-                                            "boostrap_fit_experiments_uni.csv"),
-                                  stringsAsFactors = FALSE)
-
-sqr_preds <- readRDS(file.path("output", 
-                               "predictions_world",
-                               "bootstrap_models",
-                               model_type,
-                               "response.rds"))
 
 age_struct <- read.csv(file.path("output", 
                                  "datasets",
                                  "country_age_structure.csv"), 
                        header = TRUE) 
 
+param_post <- read.table(file.path("data", "sym_prop_param_post.txt"),
+                         header = TRUE)
+
 
 # pre processing --------------------------------------------------------------
 
 
-fit_var <- bootstrap_experiments[bootstrap_experiments$exp_id == parameters$id, "var"]
-
-task_b_name <- paste0("burden_", fit_var)
-  
 age_band_tgs <- grep("band", names(age_struct), value = TRUE)
 age_band_bnds <- get_age_band_bounds(age_band_tgs)
 age_band_L_bounds <- age_band_bnds[, 1]
 age_band_U_bounds <- age_band_bnds[, 2] + 1
 
-age_struct$age_id <- seq_len(nrow(age_struct))
-
-# keep only the predictions for which there is age data available
-sqr_preds <- inner_join(age_struct[, c("age_id", "ID_0")],
-                        sqr_preds, 
-                        by = "ID_0")
-
-sqr_preds <- as.matrix(sqr_preds)
-
-# sqr_preds <- sqr_preds[52697:52707,]
-
-
-# create table of scenarios --------------------------------------------------- 
-
-
-phi_set_id <- seq_len(no_R0_assumptions)
-
-fct_c <- setNames(expand.grid(phi_set_id, sf_vals),
-                  nm = c(phi_set_id_tag, "scaling_factor"))
-
-fct_c <- cbind(id = seq_len(nrow(fct_c)), fct_c)
-
-if(fit_var == "FOI"){
+param_post <- param_post[seq_len(no_samples), -c(1, 5)]
   
-  assumption <- 4 
+param_post <- as.matrix(param_post)
 
-} else {
-  
-  assumption <- as.numeric(unlist(strsplit(fit_var, "_"))[2])
+param_post_inf_weights <- t(apply(param_post, 
+                                  1, 
+                                  calculate_infectiousness_wgts_for_sym_asym_assumption))
 
-}
+target_fun <- list(calculate_infections = "calculate_infections",
+                   calculate_cases = "calculate_cases", 
+                   calculate_hosp_cases = "calculate_hosp_cases", 
+                   calculate_R0 = "calculate_R0")
 
-fct_c <- subset(fct_c, phi_set_id == assumption)
+additional_dts <- list(prop_sym = param_post, inf_weights = param_post_inf_weights)
 
-write_out_csv(fct_c, out_path, "scenario_table_wolbachia.csv")
+vec_phis_R0_3 <- calculate_infectiousness_wgts_for_sym_asym_assumption(mean_prop_sympt)
 
-fctr_combs <- df_to_list(fct_c, use_names = TRUE)
+parameters <- c(parameters, list(vec_phis_R0_3 = vec_phis_R0_3))
 
 
 # submit one job --------------------------------------------------------------
 
 
-# burden <- obj$enqueue(
-#   wrapper_to_multi_factor_R0_and_burden(fctr_combs[[1]],
-#                                         foi_data = sqr_preds,
-#                                         age_data = age_struct,
-#                                         age_band_tags = age_band_tgs,
-#                                         age_band_lower_bounds = age_band_L_bounds,
-#                                         age_band_upper_bounds = age_band_U_bounds,
-#                                         FOI_to_Inf_list = FOI_to_Inf_list,
-#                                         FOI_to_C_list = FOI_to_C_list,
-#                                         FOI_to_C_list_fixed = FOI_to_C_list_fixed,
-#                                         FOI_to_HC_list = FOI_to_HC_list,
-#                                         FOI_to_HC_list_fixed = FOI_to_HC_list_fixed,
-#                                         FOI_to_R0_1_list = FOI_to_R0_1_list,
-#                                         FOI_to_R0_2_list = FOI_to_R0_2_list,
-#                                         FOI_to_R0_3_list = FOI_to_R0_3_list,
-#                                         parms = parameters,
-#                                         out_path = out_path,
-#                                         var_to_fit = fit_var))
+# lookup <- obj$enqueue(
+#   create_lookup_tables(target_nm[[1]],
+#                        target_fun = target_fun,
+#                        additional_dts = additional_dts,
+#                        out_path = out_path,
+#                        age_struct = age_struct,
+#                        age_band_tags = age_band_tgs,
+#                        age_band_L_bounds = age_band_L_bounds,
+#                        age_band_U_bounds = age_band_U_bounds,
+#                        parms = parameters))
 
 
 # submit a bundle -------------------------------------------------------------
@@ -199,53 +140,36 @@ fctr_combs <- df_to_list(fct_c, use_names = TRUE)
 
 if (CLUSTER) {
 
-  burden <- queuer::qlapply(fctr_combs,
-                            wrapper_to_multi_factor_R0_and_burden,
+  lookup <- queuer::qlapply(target_nm,
+                            create_lookup_tables,
                             obj,
-                            foi_data = sqr_preds,
-                            age_data = age_struct,
-                            age_band_tags = age_band_tgs,
-                            age_band_lower_bounds = age_band_L_bounds,
-                            age_band_upper_bounds = age_band_U_bounds,
-                            FOI_to_Inf_list = FOI_to_Inf_list,
-                            FOI_to_C_list = FOI_to_C_list,
-                            FOI_to_C_list_fixed = FOI_to_C_list_fixed,
-                            FOI_to_HC_list = FOI_to_HC_list,
-                            FOI_to_HC_list_fixed = FOI_to_HC_list_fixed,
-                            FOI_to_R0_1_list = FOI_to_R0_1_list,
-                            FOI_to_R0_2_list = FOI_to_R0_2_list,
-                            FOI_to_R0_3_list = FOI_to_R0_3_list,
-                            parms = parameters,
+                            target_fun = target_fun,
+                            additional_dts = additional_dts,
                             out_path = out_path,
-                            var_to_fit = fit_var,
-                            name = task_b_name)
-  
+                            age_struct = age_struct,
+                            age_band_tags = age_band_tgs,
+                            age_band_L_bounds = age_band_L_bounds,
+                            age_band_U_bounds = age_band_U_bounds,
+                            parms = parameters)
+
 } else {
-  
-  burden <- loop(fctr_combs, 
-                 wrapper_to_multi_factor_R0_and_burden,
-                 foi_data = sqr_preds,
-                 age_data = age_struct,
-                 age_band_tags = age_band_tgs,
-                 age_band_lower_bounds = age_band_L_bounds,
-                 age_band_upper_bounds = age_band_U_bounds,
-                 FOI_to_Inf_list = FOI_to_Inf_list,
-                 FOI_to_C_list = FOI_to_C_list,
-                 FOI_to_C_list_fixed = FOI_to_C_list_fixed,
-                 FOI_to_HC_list = FOI_to_HC_list,
-                 FOI_to_HC_list_fixed = FOI_to_HC_list_fixed,
-                 FOI_to_R0_1_list = FOI_to_R0_1_list,
-                 FOI_to_R0_2_list = FOI_to_R0_2_list,
-                 FOI_to_R0_3_list = FOI_to_R0_3_list,
-                 parms = parameters,
+
+  lookup <- loop(target_nm,
+                 create_lookup_tables,
+                 target_fun = target_fun,
+                 additional_dts = additional_dts,
                  out_path = out_path,
-                 var_to_fit = fit_var,
+                 age_struct = age_struct,
+                 age_band_tags = age_band_tgs,
+                 age_band_L_bounds = age_band_L_bounds,
+                 age_band_U_bounds = age_band_U_bounds,
+                 parms = parameters,
                  parallel = FALSE)
-  
+
 }
 
 if (!CLUSTER){
-  
+
   context::parallel_cluster_stop()
-  
+
 }

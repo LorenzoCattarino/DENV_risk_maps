@@ -1,89 +1,84 @@
-# Plot proportional reduction in infections, cases and hospitalized cases 
-# for an intervention with a general blocking effect on R0 
 
-library(dplyr)
+# create barplots of total numbers for vaccine impact
+
 library(ggplot2)
-library(RColorBrewer)
+
+source(file.path("R", "utility_functions.R"))
 
 
 # define parameters -----------------------------------------------------------
 
 
-sf_vals <- seq(0.9, 0.1, -0.1)
+desired_n_int <- c(8, 6, 5)
 
-leg_titles <- c(expression('R'['0']*' reduction'), "Screening age")
+intervention_name <- "vaccine" 
+  
+vacc_estimates = c("mean", "L95", "U95")
 
 burden_measures <- c("infections", "cases", "hosp") 
 
-y_axis_titles <- c("Reduction in infections", "Reduction in cases", "Reduction in hopsitalized cases")
-
 out_fig_path <- file.path("figures", 
                           "predictions_world", 
-                          "bootstrap_models",
-                          "general_intervention")
-
-interventions <- "wolbachia"
+                          "bootstrap_models")
 
 
-# define variables ------------------------------------------------------------
+# load data ------------------------------------------------------------------- 
 
 
-sf_vals_perc <- (1 - sf_vals) * 100
+summary_table <- read.csv(file.path("output", 
+                                    "predictions_world", 
+                                    "bootstrap_models",
+                                    paste0("total_", intervention_name, ".csv")))
 
-leg_labels <- list(paste0(sf_vals_perc, "%"), c("9", "16"))
+summary_table_2 <- read.csv(file.path("output", 
+                                      "predictions_world", 
+                                      "bootstrap_models",
+                                      paste0("prop_change_", intervention_name, ".csv")))
 
-my_col <- brewer.pal(9, "YlGnBu")
+
+# pre processing --------------------------------------------------------------
+
+
+summary_table$treatment <- as.factor(summary_table$treatment)
 
 
 # plotting --------------------------------------------------------------------
 
 
-for (i in seq_along(interventions)) {
+for (j in seq_along(burden_measures)) {
   
-  for (j in seq_along(burden_measures)) {
+  for (i in seq_along(vacc_estimates)) {
     
-    my_var_name <- burden_measures[j]
+    bur_meas <- burden_measures[j]
     
-    intervention_name <- interventions[i]
+    vacc_est <- vacc_estimates[i]
     
-    y_axis_title <- y_axis_titles[j]
+    summary_table_sub <- subset(summary_table, burden_measure == bur_meas & estimate == vacc_est)
     
-    summary_table_orig <- read.csv(file.path("output", 
-                                             "predictions_world", 
-                                             "bootstrap_models",
-                                             paste0("prop_change_", my_var_name, "_", intervention_name, ".csv")),
-                                   header = TRUE)
+    summary_table_2_sub <- subset(summary_table_2, burden_measure == bur_meas & estimate == vacc_est)
+    summary_tab_fl_nm <- paste0("prop_change_", bur_meas, "_", vacc_est, "_", intervention_name, ".csv")
+    write_out_csv(summary_table_2_sub, file.path("output", 
+                                                 "predictions_world", 
+                                                 "bootstrap_models"), 
+                  summary_tab_fl_nm)
     
-    if(intervention_name == "wolbachia"){
-      
-      summary_table <- subset(summary_table_orig, treatment != 1 & phi_set_id != "FOI")
-      summary_table$treatment <- factor(summary_table$treatment, levels = sf_vals)
-      
-    } else {
-      
-      summary_table <- summary_table_orig
-      summary_table$treatment <- as.factor(summary_table$treatment)
-      
-    }
+    y_values <- pretty(0:max(summary_table_sub$mean), desired_n_int[j])
+    max_y_value <- max(summary_table_sub$uCI)
     
-    y_values <- seq(0, 1, 0.2)
-    
-    p <- ggplot(summary_table, aes(x = treatment, y = mean, fill = treatment, ymin = lCI, ymax = uCI)) +
+    p <- ggplot(summary_table_sub, aes(treatment, mean, fill = treatment, ymin = lCI, ymax = uCI)) + 
       geom_bar(stat = "identity", position = "dodge", width = 1) +
       geom_errorbar(width = .25, position = position_dodge(.9)) +
       facet_grid(. ~ phi_set_id) +
-      scale_fill_manual(values = my_col,
-                        labels = leg_labels[[i]],
-                        guide = guide_legend(title = leg_titles[i],
-                                             keywidth = 1,
-                                             keyheight = 1)) +
+      scale_fill_manual(values = c("lightskyblue1", "lightskyblue4"),
+                        labels = c("9", "16"),
+                        guide = guide_legend(title = "Screening age",
+                                             keywidth = 2, 
+                                             keyheight = 2)) +
       xlab(NULL) +
-      scale_y_continuous(y_axis_title,
-                         breaks = y_values,
-                         labels = paste0(y_values * 100, "%"),
-                         limits = c(min(y_values), max(y_values)),
-                         expand = expand_scale(mult = c(0, .05))) +
-      theme_bw() +
+      scale_y_continuous("Mean (95% CI)", 
+                         breaks = y_values, 
+                         labels = format(y_values/1000000), 
+                         limits = c(min(y_values), max_y_value)) +
       theme(axis.title.x = element_blank(),
             axis.text.x = element_blank(),
             axis.ticks.x = element_blank(),
@@ -93,11 +88,11 @@ for (i in seq_along(interventions)) {
     
     dir.create(out_fig_path, FALSE, TRUE)
     
-    barplot_fl_nm <- paste0("proportional_reduction_in_", my_var_name, "_", intervention_name, ".png")
+    barplot_fl_nm <- paste0("total_", bur_meas, "_", vacc_est, "_", intervention_name, ".png")
     
     png(file.path(out_fig_path, barplot_fl_nm),
         width = 17,
-        height = 9,
+        height = 7,
         units = "cm",
         pointsize = 12,
         res = 300)
