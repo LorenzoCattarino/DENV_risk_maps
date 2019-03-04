@@ -13,8 +13,8 @@ CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "burden_and_interventions", "wrappers_to_vaccine_impact_calculation.R"),
-  file.path("R", "prepare_datasets", "average_up.r"),
-  file.path("R", "utility_functions.r"))
+  file.path("R", "prepare_datasets", "average_up.R"),
+  file.path("R", "utility_functions.R"))
   
 my_pkgs <- c("dplyr")
 
@@ -83,7 +83,7 @@ assumption <- as.numeric(unlist(strsplit(fit_var, "_"))[2])
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "24Core")
+  config <- didehpc::didehpc_config(template = "16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -102,7 +102,6 @@ R0_pred <- readRDS(file.path("output",
                              "bootstrap_models",
                              model_type, 
                              predictions_file_name))
-
   
 
 # create table of scenarios --------------------------------------------------- 
