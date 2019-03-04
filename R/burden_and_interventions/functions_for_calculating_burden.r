@@ -177,8 +177,6 @@ cbind_FOI_to_lookup <- function(i, FOI_values) {
 
 interpolate_using_mat_indices <- function(lookup_mat, rowIndices, colIndices, rowIndices_next, FOI_grid, FOI_values){
   
-  # browser()
-  
   Infections_pc <- lookup_mat[rowIndices + nrow(lookup_mat) * (colIndices - 1)]
   Infections_pc_next <- lookup_mat[rowIndices_next + nrow(lookup_mat) * (colIndices - 1)]
   
