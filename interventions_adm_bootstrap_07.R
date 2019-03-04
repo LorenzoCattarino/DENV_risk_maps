@@ -1,5 +1,5 @@
 # Plot proportional reduction in infections, cases and hospitalized cases 
-# for vaccination when when optimally picking screening age
+# for vaccination when optimally picking screening age
 
 library(dplyr)
 library(ggplot2)
@@ -25,14 +25,36 @@ for (j in seq_along(burden_measures)) {
   
   y_axis_title <- y_axis_titles[j]
   
-  summary_table <- read.csv(file.path("output", 
-                                      "predictions_world", 
-                                      "bootstrap_models",
-                                      "adm_1",
-                                      paste0("prop_change_", my_var_name,"_", intervention_name, ".csv")),
-                            header = TRUE)
+  summary_table_orig_mean <- read.csv(file.path("output", 
+                                                "predictions_world", 
+                                                "bootstrap_models",
+                                                "adm_1",
+                                                paste0("prop_change_", my_var_name, "_mean_", intervention_name, ".csv")),
+                                      header = TRUE)
   
-  y_values <- seq(0, 0.4, 0.1)
+  summary_table_orig_L95 <- read.csv(file.path("output", 
+                                               "predictions_world", 
+                                               "bootstrap_models",
+                                               "adm_1",
+                                               paste0("prop_change_", my_var_name, "_L95_", intervention_name, ".csv")),
+                                     header = TRUE)
+  
+  summary_table_orig_U95 <- read.csv(file.path("output", 
+                                               "predictions_world", 
+                                               "bootstrap_models",
+                                               "adm_1",
+                                               paste0("prop_change_", my_var_name, "_U95_", intervention_name, ".csv")),
+                                     header = TRUE)
+  
+  summary_table_orig <- summary_table_orig_mean
+  
+  summary_table_orig$lCI <- summary_table_orig_L95$mean - (1.92 * summary_table_orig$sd)
+  
+  summary_table_orig$uCI <- summary_table_orig_U95$mean + (1.92 * summary_table_orig$sd)
+  
+  summary_table <- summary_table_orig
+  
+  y_values <- seq(0, 0.5, 0.1)
 
   p <- ggplot(summary_table, aes(x = burden_measure, y = mean, ymin = lCI, ymax = uCI)) +
     geom_bar(stat = "identity", position = "dodge", width = 0.5, fill = "lightskyblue3") +
