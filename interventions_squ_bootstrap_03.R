@@ -17,16 +17,16 @@ source(file.path("R", "utility_functions.R"))
 
 
 parameters <- list(
-  id = c(22, 23, 24),
+  id = c(22, 23, 24, 21),
   no_samples = 200,
   burden_measures = c("infections", "cases", "hosp"),
-  baseline_scenario_ids = c(1, 2, 3))   
+  baseline_scenario_ids = c(1, 2, 3, 4))   
 
 intervention_name <- "wolbachia"
 
 treatment_name <- "scaling_factor"
 
-phi_factor_levels <- c("2S", "4S", "4S(sym = 2x asym)")
+phi_factor_levels <- c("2S", "4S", "4S(sym = 2x asym)", "FOI")
 
 
 # define variables ------------------------------------------------------------
@@ -124,17 +124,11 @@ for (j in seq_along(vars)){                                 # loop over burden m
     
     my_fct_comb <- fct_comb_ls[[k]]
     
-    fi <- list.files(my_in_path, 
-                     pattern = paste0("^", root_name),
-                     full.names = TRUE)
+    fi <- file.path(my_in_path, paste0(root_name, "_", my_fct_comb$id, ".rds"))
+
+    message(fi)
     
-    num.sort <- as.numeric(gsub(".*_|\\.rds$", "\\1", fi, perl = TRUE))
-    
-    fi_sort <- fi[order(num.sort)]
-    
-    message(fi_sort)
-    
-    dat <- lapply(fi_sort, readRDS)
+    dat <- lapply(fi, readRDS)
     
     small_out_ls <- vector("list", length(dat))
     small_out_ls_2 <- vector("list", length(dat))
