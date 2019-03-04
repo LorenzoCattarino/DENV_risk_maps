@@ -22,7 +22,7 @@ wrapper_to_multi_factor_vaccine_impact <- function(x,
   
   out_file_tag <- toupper(substr(burden_measure, 1, 1))
   
-  burden_file_name <- paste0(out_file_tag, "_num_wolbachia_", w_scenario_id, ".rds")
+  burden_file_name <- paste0(out_file_tag, "_num_wolbachia_", w_scenario_id, "_fixed.rds")
   
   lookup_table_nm <- sprintf("R0_to_prop_%s_averted_lookup_%s_%s%s", 
                             burden_measure, 
