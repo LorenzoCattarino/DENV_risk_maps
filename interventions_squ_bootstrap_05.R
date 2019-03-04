@@ -7,7 +7,6 @@
 
 library(dplyr)
 library(data.table)
-library(ggplot2)
 library(countrycode)
 
 source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
@@ -124,7 +123,7 @@ for (k in seq_along(model_type)){                                  # loop over R
     root_name <- paste0(out_file_tag, "_num_", intervention_name, "_", scenario_id, ".rds")
     
     baseline_id <- baseline_scenario_ids[k]
-    baseline_fl_nm <- paste0(out_file_tag, "_num_wolbachia_", baseline_id, ".rds")
+    baseline_fl_nm <- paste0(out_file_tag, "_num_wolbachia_", baseline_id, "_fixed.rds")
     baseline <- readRDS(file.path(my_in_path, baseline_fl_nm)) 
     
     dat <- readRDS(file.path(my_in_path, root_name))
