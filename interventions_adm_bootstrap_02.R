@@ -31,11 +31,12 @@ context::parallel_cluster_start(7, ctx)
 
 
 parameters <- list(
-  id = 22,
+  id = 24,
   no_samples = 200,
-  wolbachia_scenario_id = 1,
+  wolbachia_scenario_id = 3,
   no_R0_assumptions = 3,
-  burden_measure = c("infections", "cases", "hosp")) 
+  burden_measure = c("infections", "cases", "hosp"),
+  vacc_estimates = c("mean", "L95", "U95")) 
 
 parallel_2 <- TRUE
 
@@ -56,6 +57,8 @@ bootstrap_experiments <- read.csv(file.path("output",
 
 # define variables ------------------------------------------------------------
 
+
+vacc_estimates <- parameters$vacc_estimates
 
 burden_measures <- parameters$burden_measure
 
@@ -93,8 +96,11 @@ R0_pred <- readRDS(file.path("output",
 
 phi_set_id <- seq_len(parameters$no_R0_assumptions)
 
-fct_c <- setNames(expand.grid(phi_set_id, burden_measures, stringsAsFactors = FALSE),
-                  nm = c(phi_set_id_tag, "burden_measure"))
+fct_c <- setNames(expand.grid(phi_set_id, 
+                              burden_measures, 
+                              vacc_estimates,
+                              stringsAsFactors = FALSE),
+                  nm = c(phi_set_id_tag, "burden_measure", "estimate"))
 
 fct_c <- cbind(id = seq_len(nrow(fct_c)), fct_c)
 
