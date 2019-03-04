@@ -26,6 +26,12 @@ desired_n_int <- parameters$desired_n_int
 
 burden_measures <- parameters$burden_measures
 
+sf_vals <- c(0.7, 0.3)
+
+sf_vals_perc <- (1 - sf_vals) * 100
+
+leg_labels <- paste0(sf_vals_perc, "%")
+
 
 # plotting --------------------------------------------------------------------
 
@@ -45,7 +51,7 @@ for (i in seq_along(burden_measures)){
                                            "bootstrap_models",
                                            summary_tab_fl_nm))
   
-  summary_table <- subset(summary_table_orig, phi_set_id != "FOI")
+  summary_table <- subset(summary_table_orig, treatment %in% sf_vals & phi_set_id != "FOI")
   
   treatment_levels <- unique(summary_table$treatment)
   
@@ -60,8 +66,8 @@ for (i in seq_along(burden_measures)){
     geom_bar(stat = "identity", position = "dodge", width = 1) +
     geom_errorbar(width = .25, position = position_dodge(.9)) +
     facet_grid(. ~ phi_set_id) +
-    scale_fill_manual(values = c("lightskyblue1", "lightskyblue3", "lightskyblue4"),
-                      labels = c("0%", "50%", "70%"),
+    scale_fill_manual(values = c("lightskyblue1", "lightskyblue4"),
+                      labels = leg_labels,
                       guide = guide_legend(title = expression('R'['0']*' reduction'),
                                            keywidth = 2,
                                            keyheight = 2)) +
