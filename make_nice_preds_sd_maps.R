@@ -1,7 +1,7 @@
 
 options(didehpc.cluster = "fi--dideclusthn")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "plotting", "functions_for_plotting_raster_maps.R"),
@@ -21,12 +21,12 @@ ctx <- context::context_save(path = "context",
 parameters <- list(
   resample_grid_size = 20,
   plot_wdt = 17,
-  plot_hgt = 17, 
+  plot_hgt = 11, 
   barwdt = 1.5,
   barhgt = 6,
   pol_brd_sz = 0.1,
-  leg_pos_x = 0.10,
-  leg_pos_y = 0.3,
+  leg_pos_x = 0.05,
+  leg_pos_y = 0.4,
   leg_txt_sz = 10,
   leg_ttl_sz = 12,
   map_proj = "+proj=moll")
@@ -83,6 +83,8 @@ bbox <- readOGR(dsn = file.path("data", "shapefiles", "ne_50m_graticules_all"),
 # pre processing -------------------------------------------------------------- 
 
 
+my_ext <- extent(-130, 180, -60, 38)
+
 res <- (1 / 120) * gr_size
 
 lats <- seq(-90, 90, by = res)
@@ -90,13 +92,36 @@ lons <- seq(-180, 180, by = res)
 
 countries <- countries[!countries@data$NAME_ENGLI == "Caspian Sea", ]
 
-countries <- spTransform(countries, CRS(map_proj))
+fl_ex <- file.exists(file.path("output", "shapefiles", "gadm28_adm0_eras_cropped.shp"))
 
-countries_df <- fortify(countries)
+if(fl_ex){
+  
+  countries_cropped <- readOGR(dsn = file.path("output", "shapefiles"),
+                               layer = "gadm28_adm0_eras_cropped",
+                               stringsAsFactors = FALSE,
+                               integer64 = "allow.loss")
+  
+} else {
+  
+  countries_cropped <- crop(countries, my_ext)
+  
+  writeOGR(countries_cropped, 
+           dsn = file.path("output", "shapefiles"), 
+           layer = "gadm28_adm0_eras_cropped", 
+           driver = "ESRI Shapefile")
+  
+}
 
-bbox <- spTransform(bbox, CRS(map_proj))
 
-bbox_df<- fortify(bbox)
+# countries <- spTransform(countries_cropped, CRS(map_proj))
+
+countries_df <- fortify(countries_cropped)
+
+bbox <- crop(bbox, my_ext)
+
+# bbox <- spTransform(bbox, CRS(map_proj))
+  
+bbox_df <- fortify(bbox)
 
 pred_mat <- prediction_df_to_matrix(lats, lons, pred, "mean")
 
@@ -106,7 +131,9 @@ pred_mat_ls <- list(x = lons,
 
 pred_r_mat <- raster(pred_mat_ls)
 
-pred_r_mat <- projectRaster(pred_r_mat, crs = map_proj)
+pred_r_mat <- crop(pred_r_mat, my_ext)
+
+# pred_r_mat <- projectRaster(pred_r_mat, crs = map_proj)
 
 pred_r_spdf <- as(pred_r_mat, "SpatialPixelsDataFrame")
 
@@ -136,7 +163,9 @@ sd_mat_ls <- list(x = lons,
 
 sd_r_mat <- raster(sd_mat_ls)
 
-sd_r_mat <- projectRaster(sd_r_mat, crs = map_proj)
+sd_r_mat <- crop(sd_r_mat, my_ext)
+
+# sd_r_mat <- projectRaster(sd_r_mat, crs = map_proj)
 
 sd_r_spdf <- as(sd_r_mat, "SpatialPixelsDataFrame")
 
