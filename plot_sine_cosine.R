@@ -1,7 +1,7 @@
 library(ggplot2)
 library(dplyr)
 
-x = runif(10000, 0, 20)
+x <- runif(10000, 0, 20)
 
 data_df <- data.frame(time = x, sin_x = sin(x), cos_x = cos(x))
 
@@ -11,7 +11,18 @@ data_df_long <- melt(
   variable.name = "fun",
   value.name = "function_value")
 
-ggplot(data_df_long, aes(time, function_value, colour = fun)) +
-  geom_line(size = 1.4)
+png(file.path("figures", "sin_cos_figure.png"), 
+    width = 16.5, 
+    height = 8, 
+    units = "cm", 
+    pointsize = 12,
+    res = 300)
 
-ggsave(file.path("figures", "sin_cos_figure.png"))
+p <- ggplot() +
+  geom_line(data = data_df_long, 
+            aes(time, function_value, colour = fun), 
+            size = 1.4)
+
+print(p) 
+
+dev.off()
