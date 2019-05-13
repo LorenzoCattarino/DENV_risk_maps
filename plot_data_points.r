@@ -20,7 +20,7 @@ poly_bd_sz <- 0.1
 
 All_FOI_estimates <- read.csv(file.path("output", 
                                         "foi", 
-                                        "FOI_estimates_lon_lat.csv"),
+                                        "All_FOI_estimates_and_predictors.csv"),
                               stringsAsFactors = FALSE) 
 
 countries <- readOGR(dsn = file.path("output", "shapefiles"), 
@@ -64,11 +64,11 @@ p <- ggplot() +
              aes(x = longitude, y = latitude), 
              size = 0.5,
              colour = "blue") +
-  coord_equal() + # does not change underlying data
+  coord_equal() +
   theme_void() +
   theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
 
 print(p)
 
 dev.off()
-  
+ 
