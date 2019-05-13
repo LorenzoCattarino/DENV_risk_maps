@@ -54,7 +54,8 @@ make_nice_map <- function(parms,
           legend.position = c(leg_pos_x, leg_pos_y),
           legend.text = element_text(size = leg_txt_sz),
           legend.title = element_text(face = "bold", size = leg_ttl_sz),
-          legend.box.background = element_rect(fill = "white", colour = "black"))
+          legend.box.background = element_rect(fill = "white", colour = "black"),
+          legend.box.margin = margin(0.1, 0.1, 0.1, 0.1, unit = "cm"))
   
   
   # plot sd -------------------------------------------------------------------
@@ -92,7 +93,8 @@ make_nice_map <- function(parms,
           legend.position = c(leg_pos_x, leg_pos_y),
           legend.text = element_text(size = leg_txt_sz),
           legend.title = element_text(face = "bold", size = leg_ttl_sz),
-          legend.box.background = element_rect(fill = "white", colour = "black"))
+          legend.box.background = element_rect(fill = "white", colour = "black"),
+          legend.box.margin = margin(0.1, 0.1, 0.1, 0.1, unit = "cm"))
   
   
   # save ------------------------------------------------------------------------
