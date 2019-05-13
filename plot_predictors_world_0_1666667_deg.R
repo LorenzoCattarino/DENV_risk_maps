@@ -109,6 +109,12 @@ for (i in seq_along(my_predictors)){
     
   message(scale)
   
+  if (my_pred == "travel_time") { 
+    
+    all_sqr_covariates[, my_pred] <- log(all_sqr_covariates[, my_pred])  
+  
+  }
+  
   all_sqr_covariates[, my_pred] <- all_sqr_covariates[, my_pred] / scale
   
   out_fl_nm <- paste0(my_pred, ".png")
