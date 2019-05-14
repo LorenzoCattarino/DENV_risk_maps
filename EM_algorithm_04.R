@@ -2,7 +2,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
@@ -25,19 +25,20 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
+  id = 1,
+  dependent_variable = "FOI",  
+  pseudoAbs_value = -0.02,
+  no_predictors = 26,
   resample_grid_size = 20,
-  dependent_variable = "R0_3",
   shape_1 = 0,
   shape_2 = 5,
   shape_3 = 1.6e6,
-  pseudoAbs_value = 0.5,
   foi_offset = 0.03,
   no_trees = 500,
   min_node_size = 20,
+  ranger_threds = NULL,
   all_wgt = 1,
-  wgt_limits = c(1, 500),
-  EM_iter = 10,
-  no_predictors = 26) 
+  EM_iter = 10) 
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
@@ -53,14 +54,14 @@ foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
 pxl_dts_name <- "covariates_and_foi_20km.rds"
 
-model_id <- 12
-
 extra_predictors <- NULL
 
 
 # define variables ------------------------------------------------------------
 
 
+model_id <- parameters$id
+  
 var_to_fit <- parameters$dependent_variable
 
 foi_offset <- parameters$foi_offset
@@ -74,6 +75,11 @@ all_wgt <- parameters$all_wgt
 model_type <- paste0("model_", model_id)
 
 res <- (1 / 120) * parameters$resample_grid_size
+
+augmented_pxl_data_out_pth <- file.path("output",
+                                        "EM_algorithm",
+                                        "best_fit_models",
+                                        "env_variables")
 
 RF_out_pth <- file.path("output", 
                         "EM_algorithm", 
@@ -111,7 +117,7 @@ sct_plt_pth <- file.path("figures",
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "16Core")
+  config <- didehpc::didehpc_config(template = "20Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
 
 } else {
@@ -149,14 +155,6 @@ adm_covariates <- read.csv(file.path("output",
 
 
 map_col <- matlab.like(100)
-
-# pxl_data$NightTemp_const_term <- ifelse(pxl_data$NightTemp_const_term > 6000, 6000, pxl_data$NightTemp_const_term)
-# pxl_data$log_pop_den <- ifelse(pxl_data$log_pop_den > 0.6, 0.6, pxl_data$log_pop_den)
-# pxl_data[pxl_data$square == 229595, "population"] <- 10000
-# grid_size <- (1 / 120) * 20
-# sqr_area_km <- (grid_size * 111.32)^2
-# pxl_data[pxl_data$square == 229595, "pop_den"] <- pxl_data[pxl_data$square == 229595, "population"] / sqr_area_km
-# pxl_data[pxl_data$square == 229595, "log_pop_den"] <- log(1 + pxl_data[pxl_data$square == 229595, "pop_den"])
 
 names(foi_data)[names(foi_data) == var_to_fit] <- "o_j"
 
@@ -197,9 +195,12 @@ for (i in seq_len(nrow(sero_points))){
 
   sero_long <- sero_points[i, "long.int"]
   sero_lat <- sero_points[i, "lat.int"]
+  data_id <- sero_points[i, "data_id"]
 
-  matches <- pxl_data$type == "serology" & pxl_data$lat.int == sero_lat & pxl_data$long.int == sero_long
+  matches <- pxl_data$data_id == data_id & pxl_data$type == "serology" & pxl_data$lat.int == sero_lat & pxl_data$long.int == sero_long
 
+  pxl_data[matches,]
+  
   if(sum(matches) != 0){
 
     message(i)
@@ -217,7 +218,7 @@ for (i in seq_len(nrow(sero_points))){
 }
 
 missing_square <- sero_points[sero_points$no_square == 1, ]
-# write.csv(missing_square, file.path("output", "EM_algorithm", "missing_squares_for_orginal_datapoints.csv"), row.names = FALSE)
+# write_out_csv(missing_square, augmented_pxl_data_out_pth, "missing_squares.csv")
 
 sero_pxl_no_dup <- pxl_data$type == "serology" & pxl_data$new_weight == 1
 
@@ -230,11 +231,7 @@ sero_pxl_dup$data_id <- sero_points$data_id
 pxl_data_3 <- rbind(pxl_data_2, sero_pxl_dup)
 
 # save augmented pixel dataset 
-write_out_rds(pxl_data_3, file.path("output",
-                                    "EM_algorithm",
-                                    "best_fit_models",
-                                    "env_variables"),
-              "env_vars_20km_2.rds")
+write_out_rds(pxl_data_3, augmented_pxl_data_out_pth, "env_vars_20km_2.rds")
 
 pxl_data_3 <- inner_join(pxl_data_3, foi_data[, c(grp_flds, "o_j")])
 
@@ -270,14 +267,12 @@ if (CLUSTER) {
       pxl_dataset = pxl_data_3,
       my_predictors = my_predictors, 
       grp_flds = grp_flds,
-      var_to_fit = var_to_fit,
       map_col = map_col,
       RF_obj_path = RF_out_pth,
       RF_obj_name = out_md_nm,
       diagn_tab_path = diag_t_pth, 
       diagn_tab_name = diag_t_nm,
       map_path = map_pth, 
-      map_name = map_nm,
       sct_plt_path = sct_plt_pth,
       train_dts_path = train_dts_pth, 
       train_dts_name = tra_dts_nm,
@@ -291,14 +286,12 @@ if (CLUSTER) {
     pxl_dataset = pxl_data_3, 
     my_predictors = my_predictors, 
     grp_flds = grp_flds,
-    var_to_fit = var_to_fit,
     map_col = map_col,
     RF_obj_path = RF_out_pth,
     RF_obj_name = out_md_nm,
     diagn_tab_path = diag_t_pth, 
     diagn_tab_name = diag_t_nm,
     map_path = map_pth, 
-    map_name = map_nm,
     sct_plt_path = sct_plt_pth,
     train_dts_path = train_dts_pth, 
     train_dts_name = tra_dts_nm,
