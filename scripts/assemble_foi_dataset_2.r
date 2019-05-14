@@ -96,11 +96,7 @@ adm_shp <- readOGR(dsn = file.path("output", "shapefiles"),
                    integer64 = "allow.loss")
 
 
-# pre processing --------------------------------------------------------------
-
-
-# remove Philippines CaseReport data
-FOI_estimates <- subset(FOI_estimates, !(ISO == "PHL" & type == "caseReport")) 
+### Pre processing
 
 
 # find adm0 and adm1 codes ----------------------------------------------------
