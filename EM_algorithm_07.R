@@ -25,10 +25,11 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "R0_3",
-  pseudoAbs_value = 0.5,
-  foi_offset = 0.03,
-  no_predictors = 26)   
+  id = 1,
+  dependent_variable = "FOI",
+  pseudoAbs_value = -0.02,
+  no_predictors = 26,
+  foi_offset = 0.03)   
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
@@ -40,7 +41,7 @@ foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
 covariate_dts_nm <- "env_vars_20km_2.rds"
 
-model_id <- 12
+model_id <- parameters$id
 
 extra_predictors <- NULL
 
@@ -156,11 +157,11 @@ fltr_adm <- inner_join(adm_dataset_2, foi_dataset[, grp_flds])
 sqr_preds <- all_sqr_predictions
 
 sqr_dataset_2 <- cbind(sqr_dataset,
-                       cell = sqr_preds)
+                       square = sqr_preds)
 
 average_sqr <- average_up(pxl_df = sqr_dataset_2,
                           grp_flds = grp_flds,
-                          var_names = "cell")
+                          var_names = "square")
 
 # #[c(140, 141, 170, 171)]
 # 
@@ -185,11 +186,11 @@ average_sqr <- average_up(pxl_df = sqr_dataset_2,
 
 df_lst <- list(foi_dataset[, c(grp_flds, "type", "o_j")],
                fltr_adm[, c(grp_flds, "admin")],
-               average_sqr[, c(grp_flds, "cell")])#,
+               average_sqr[, c(grp_flds, "square")])#,
 #average_pxl[, c(grp_fields, "mean_pxl_pred")]) 
 
 join_all <- Reduce(function(...) left_join(...), df_lst)
 
-join_all[join_all$type == "serology", "cell"] <- sqr_dataset_2[sqr_dataset_2$type == "serology" & sqr_dataset_2$new_weight == 1, "cell"]
+join_all[join_all$type == "serology", "square"] <- sqr_dataset_2[sqr_dataset_2$type == "serology" & sqr_dataset_2$new_weight == 1, "square"]
 
 write_out_rds(join_all, out_pt, out_name)
