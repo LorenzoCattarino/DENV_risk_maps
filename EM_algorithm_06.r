@@ -3,7 +3,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
   file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
@@ -26,26 +26,28 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  dependent_variable = "R0_3",
+  id = 1,
+  dependent_variable = "FOI",
+  pseudoAbs_value = -0.02,
+  no_predictors = 26,
+  resample_grid_size = 20,
   shape_1 = 0,
   shape_2 = 5,
   shape_3 = 1.6e6,
-  pseudoAbs_value = 0.5,
   foi_offset = 0.03,
   no_trees = 500,
   min_node_size = 20,
+  ranger_threds = NULL,
   all_wgt = 1,
-  wgt_limits = c(1, 500),
-  EM_iter = 10,
-  no_predictors = 26) 
-
-model_id <- 12
+  EM_iter = 10) 
 
 extra_predictors <- NULL
 
 
 # define variables ------------------------------------------------------------
 
+
+model_id <- parameters$id
 
 var_to_fit <- parameters$dependent_variable
 
@@ -55,7 +57,16 @@ model_type <- paste0("model_", model_id)
 
 out_fl_nm <- "square_predictions_all_data.rds"
 
-out_pt <- file.path("output", "EM_algorithm", "best_fit_models", model_type)
+out_pt <- file.path("output", 
+                    "EM_algorithm", 
+                    "best_fit_models", 
+                    model_type)
+
+RF_out_pth <- file.path("output", 
+                        "EM_algorithm", 
+                        "best_fit_models",
+                        model_type,
+                        "optimized_model_objects")
 
 
 # rebuild the queue object? --------------------------------------------------- 
@@ -100,14 +111,26 @@ my_predictors <- c(my_predictors, extra_predictors)
 # get results ----------------------------------------------------------------- 
 
 
-all_tasks <- obj$task_times()
+if(CLUSTER){
+  
+  all_tasks <- obj$task_times()
+  
+  # loads the LAST task
+  my_task_id <- all_tasks[nrow(all_tasks), "task_id"]
+  
+  EM_alg_run_t <- obj$task_get(my_task_id)
+  
+  RF_obj <- EM_alg_run_t$result()
+  
+} else {
+  
+  RF_obj <- readRDS(file.path(RF_out_pth, "RF_obj.rds"))
+  
+}
 
-# loads the LAST task
-my_task_id <- all_tasks[nrow(all_tasks), "task_id"]
 
-EM_alg_run_t <- obj$task_get(my_task_id)
+# make predictions ------------------------------------------------------------
 
-RF_obj <- EM_alg_run_t$result()
 
 prediction_set <- make_ranger_predictions(RF_obj, pxl_data_covariates, my_predictors)
   
