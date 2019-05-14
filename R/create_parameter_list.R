@@ -15,7 +15,7 @@ create_parameter_list <- function(grid_size = 5,
                                   no_trees = 500,
                                   min_node_size = 20,
                                   all_wgt = 1,
-                                  extra_params) {
+                                  extra_params = NULL) {
   
   pm_list <- list()
   
