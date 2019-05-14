@@ -26,16 +26,18 @@ get_age_band_bounds <- function(tags) {
   
 }
 
-wrapper_to_multi_factor_R0 <- function(
-  x, foi_data, age_struct, 
-  age_band_tags, age_band_lower_bounds, age_band_upper_bounds, prob_fun){
+wrapper_to_multi_factor_R0 <- function(x, 
+                                       foi_data, 
+                                       age_struct, 
+                                       age_band_tags,
+                                       age_band_lower_bounds, 
+                                       age_band_upper_bounds){
   
   phi_1 <- x[1]
   phi_2 <- x[2]
   phi_3 <- x[3]
-  phi_4 <- x[4]
   
-  vec_phis <- c(phi_1, phi_2, phi_3, phi_4)
+  vec_phis <- c(phi_1, phi_2, phi_3, phi_3)
   
   n <- nrow(foi_data)
   
@@ -47,15 +49,17 @@ wrapper_to_multi_factor_R0 <- function(
          age_band_lower_bounds = age_band_L_bounds, 
          age_band_upper_bounds = age_band_U_bounds, 
          age_band_tags = age_band_tgs,
-         vec_phis = vec_phis,
-         prob_fun = prob_fun)
+         vec_phis = vec_phis)
   
 }
 
-wrapper_to_R0 <- function(
-  i, foi_data, age_struct, 
-  age_band_tags, age_band_lower_bounds, age_band_upper_bounds, 
-  vec_phis, prob_fun){
+wrapper_to_R0 <- function(i, 
+                          foi_data, 
+                          age_struct, 
+                          age_band_tags, 
+                          age_band_lower_bounds, 
+                          age_band_upper_bounds, 
+                          vec_phis){
   
   m_j <- age_struct[age_struct$ID_0 == foi_data[i, "ID_0"], age_band_tags]
   FOI <- foi_data[i, "FOI"]
@@ -64,8 +68,7 @@ wrapper_to_R0 <- function(
                n_j = m_j, 
                age_band_lower_bounds = age_band_lower_bounds, 
                age_band_upper_bounds = age_band_upper_bounds,
-               vec_phis = vec_phis, 
-               prob_fun = prob_fun)
+               weights_vec = vec_phis)
   
 }
 
