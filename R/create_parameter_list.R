@@ -9,6 +9,12 @@ create_parameter_list <- function(grid_size = 5,
                                   Q_2 = 0.1,
                                   FOI_grid = seq(0, 0.2, 0.0002),
                                   sf_vals = seq(1, 0.1, -0.1),
+                                  shape_1 = 0,
+                                  shape_2 = 5,
+                                  shape_3 = 1e6,
+                                  no_trees = 500,
+                                  min_node_size = 20,
+                                  all_wgt = 1,
                                   extra_params) {
   
   pm_list <- list()
@@ -24,6 +30,12 @@ create_parameter_list <- function(grid_size = 5,
   pm_list$Q_2 <- Q_2
   pm_list$FOI_grid <- FOI_grid
   pm_list$sf_vals <- sf_vals
+  pm_list$shape_1 <- shape_1
+  pm_list$shape_2 <- shape_2
+  pm_list$shape_3 <- shape_3
+  pm_list$no_trees <- no_trees
+  pm_list$min_node_size <- min_node_size
+  pm_list$all_wgt <- all_wgt
   
   c(pm_list, extra_params)
    
