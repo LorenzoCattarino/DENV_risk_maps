@@ -1,3 +1,4 @@
+# Computes the min distance between each data point and any other data points
 
 library(geosphere) # for distm()
 
