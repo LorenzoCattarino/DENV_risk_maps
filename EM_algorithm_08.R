@@ -20,15 +20,16 @@ source(file.path("R", "utility_functions.R"))
 
 
 parameters <- list(
-  dependent_variable = "R0_3",
+  id = 1,
+  dependent_variable = "FOI",
+  pseudoAbs_value = -0.02,
+  no_predictors = 26,
   shape_1 = 0,
   shape_2 = 5,
   shape_3 = 1.6e6,
-  pseudoAbs_value = 0.5,
-  all_wgt = 1,
-  no_predictors = 26)   
+  all_wgt = 1)   
 
-mes_vars <- c("admin", "cell")
+mes_vars <- c("admin", "square")
 
 tags <- c("all_data", "no_psAb")
 
@@ -37,7 +38,7 @@ data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
 
 foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
-model_id <- 12
+model_id <- parameters$id
 
 
 # define variables ------------------------------------------------------------
@@ -108,11 +109,11 @@ for (j in seq_along(tags)) {
   
   if(var_to_fit == "FOI"){
     
-    dts_1[, c("o_j", "admin", "cell")][dts_1[, c("o_j", "admin", "cell")] < 0] <- 0
+    dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 0] <- 0
     
   } else {
     
-    dts_1[, c("o_j", "admin", "cell")][dts_1[, c("o_j", "admin", "cell")] < 1] <- psAbs_val
+    dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 1] <- psAbs_val
     
   }
   
@@ -145,7 +146,7 @@ for (j in seq_along(tags)) {
   corr_coeff <- ddply(df, "scale", calculate_wgt_cor, "o_j", "value")
   
   facet_plot_names_x <- as_labeller(c(admin = "Level 1 administrative unit",
-                                      cell = "20 km pixel"))
+                                      square = "20 km pixel"))
   
   p <- ggplot(df, aes(x = "o_j", y = "value")) +
     facet_grid(. ~ scale,
