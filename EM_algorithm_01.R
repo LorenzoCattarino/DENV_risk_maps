@@ -11,7 +11,10 @@ source(file.path("R", "utility_functions.R"))
 
 join_fields <- c("data_id", "ID_0", "ID_1")
 
-out_pt <- file.path("output", "EM_algorithm", "best_fit_models", "env_variables")
+out_pth <- file.path("output", 
+                     "EM_algorithm", 
+                     "best_fit_models", 
+                     "env_variables")
 
 
 # load data -------------------------------------------------------------------
@@ -30,4 +33,10 @@ all_sqr_covariates <- readRDS(file.path("output",
 
 pxl_data <- inner_join(all_sqr_covariates, foi_data[, join_fields])
 
-write_out_rds(pxl_data, out_pt, "env_vars_20km.rds")
+if(length(unique(pxl_data$data_id)) != nrow(foi_data)){
+  
+  stop("Some data points are missing their cell")
+
+}
+
+write_out_rds(pxl_data, out_pth, "env_vars_20km.rds")
