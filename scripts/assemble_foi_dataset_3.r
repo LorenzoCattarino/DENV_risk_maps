@@ -7,6 +7,7 @@ library(grid)
 # load functions 
 source(file.path("R", "prepare_datasets", "functions_for_calculating_R0.r"))
 source(file.path("R", "utility_functions.R"))
+source(file.path("R", "create_parameter_list.R"))
 
 
 # define parameters ----------------------------------------------------------- 
@@ -16,43 +17,35 @@ foi_out_pt <- file.path("output", "foi")
 
 foi_out_nm <- "FOI_estimates_lon_lat_gadm_R0.csv"
 
-parameters <- list(
-  gamma_1 = 0.45,
-  rho = 0.85,
-  gamma_3 = 0.15)
-
-m_flds <- c("ID_0", "ID_1")
-
-base_info <- c("reference", 
-               "date",
-               "type", 
-               "country",
-               "ISO", 
-               "longitude", 
-               "latitude", 
-               "ID_0", 
-               "ID_1", 
-               "FOI", 
-               "variance", 
-               "population")
-
-phi_combs <- list(
-  c(1, 1, 0, 0),
-  c(1, 1, 1, 1),
-  calculate_infectiousness_wgts_for_sym_asym_assumption(parameters))
-
-prob_fun <- list("calculate_primary_infection_prob",
-                 "calculate_secondary_infection_prob",
-                 "calculate_tertiary_infection_prob",
-                 "calculate_quaternary_infection_prob")
-
+extra_prms <- list(m_flds = c("ID_0", "ID_1"),
+                   base_info = c("reference", 
+                                 "date",
+                                 "type", 
+                                 "country",
+                                 "ISO", 
+                                 "longitude", 
+                                 "latitude", 
+                                 "ID_0", 
+                                 "ID_1", 
+                                 "FOI", 
+                                 "variance", 
+                                 "population"))
+                   
 
 # define variables ------------------------------------------------------------ 
 
 
-comb_no <- length(phi_combs)
+parameters <- create_parameter_list(extra_params = extra_prms)
 
-var <- paste0("R0_", seq_len(comb_no))
+mean_prop_sympt <- parameters$prop_sympt
+
+vec_phis_R0_1 <- parameters$vec_phis_R0_1
+
+vec_phis_R0_2 <- parameters$vec_phis_R0_2
+
+m_flds <- parameters$m_flds
+
+base_info <- parameters$base_info
 
 
 # load data -------------------------------------------------------------------  
@@ -77,6 +70,17 @@ adm_1_env_vars <- read.csv(file.path("output",
 
 # extract info from age structure ---------------------------------------------  
 
+
+vec_phis_R0_3 <- calculate_infectiousness_wgts_for_sym_asym_assumption(mean_prop_sympt)
+
+phi_combs <- list(
+  vec_phis_R0_1,
+  vec_phis_R0_2,
+  vec_phis_R0_3)
+
+comb_no <- length(phi_combs)
+
+var <- paste0("R0_", seq_len(comb_no))
 
 # Get names of age band columns
 age_band_tgs <- grep("band", names(country_age_struc), value = TRUE)
@@ -126,8 +130,7 @@ R_0 <- vapply(
   age_struct = country_age_struc, 
   age_band_tags = age_band_tgs, 
   age_band_lower_bounds = age_band_L_bounds, 
-  age_band_upper_bounds = age_band_U_bounds, 
-  prob_fun = prob_fun)
+  age_band_upper_bounds = age_band_U_bounds)
 
 
 # attach base info ------------------------------------------------------------ 
