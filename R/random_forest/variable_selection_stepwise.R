@@ -4,42 +4,35 @@
 
 stepwise_addition_boot <- function(i, 
                                    boot_ls, 
-                                   y_var, 
                                    parms, 
                                    predictors, 
                                    foi_data,
-                                   out_path,
-                                   addition){
+                                   out_path){
   
   stepwise_addition <- function(j){
     
     ID_run <- j
       
     no_steps_L1 <- parms$no_steps_L1
-    no_steps_L2 <- parms$no_steps_L2
-    no_trees <- parms$no_trees
-    min_node_size <- parms$min_node_size
     
     stepwise_dir <- "addition"
 
     my_out_path <- file.path(out_path, 
-                             paste("sample", ID_sample, sep="_"), 
+                             paste("sample", ID_sample, sep = "_"), 
                              stepwise_dir,
-                             paste("run", ID_run, sep="_"))
+                             paste("run", ID_run, sep = "_"))
 
     multi_steps_wrapper(dataset = adm_dts_boot, 
                         predictors = predictors, 
-                        no_steps = no_steps_L1, 
+                        no_steps = no_steps_L1,
+                        parms = parms,
                         level_num = 1,
-                        addition = addition,
-                        y_var = y_var, 
-                        no_trees = no_trees, 
-                        min_node_size = min_node_size, 
                         foi_data = foi_data,
                         out_path = my_out_path)
     
   }
   
+  y_var <- parms$var_to_fit
   psAb_val <- parms$pseudoAbs_value
   no_reps <- parms$no_reps
     
@@ -56,11 +49,8 @@ stepwise_addition_boot <- function(i,
 multi_steps_wrapper <- function(dataset, 
                                 predictors, 
                                 no_steps = NULL, 
+                                parms,
                                 level_num,
-                                addition,
-                                y_var, 
-                                no_trees, 
-                                min_node_size, 
                                 foi_data,
                                 out_path){
   
@@ -68,6 +58,10 @@ multi_steps_wrapper <- function(dataset,
   
   # Transform character to numeric
   vector_of_predictors <- which(names(dataset) %in% predictors)
+
+  y_var <- parms$var_to_fit
+  addition <- parms$addition
+  parallel_2 <- parms$parallel_2
   
   if (addition) {
     
@@ -128,12 +122,11 @@ multi_steps_wrapper <- function(dataset,
     
     ret <- loop(combinations_of_predictors, 
                 combs_predictor_wrapper, 
+                parms = parms,
                 dataset = dataset, 
                 y_var = y_var, 
-                no_trees = no_trees, 
-                min_node_size = min_node_size, 
                 foi_data = foi_data,
-                parallel = FALSE)
+                parallel = parallel_2)
     
     # extract results 
     diagnostics <- do.call("rbind", ret)
@@ -305,21 +298,19 @@ get_removal_results <- function(x){
 }  
 
 combs_predictor_wrapper <- function(i, 
+                                    parms,
                                     dataset,
                                     y_var,
-                                    no_trees,
-                                    min_node_size,
                                     foi_data) {
   
   cat("combination of predictors =", i, "\n") 
   
   my_preds <- names(dataset)[i]
   
-  fit_predict_and_error(dataset = dataset, 
+  fit_predict_and_error(parms = parms,
+                        dataset = dataset, 
                         y_var = y_var, 
                         my_preds = my_preds,
-                        no_trees = no_trees, 
-                        min_node_size = min_node_size, 
                         foi_data = foi_data)
   
 }
