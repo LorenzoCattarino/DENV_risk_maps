@@ -2,7 +2,9 @@ wrapper_to_replicate_R0_and_burden <- function(i,
                                                foi_data, 
                                                age_struct,
                                                scaling_factor,
-                                               FOI_to_R0_list = NULL,
+                                               FOI_to_R0_1_list = FOI_to_R0_1_list,
+                                               FOI_to_R0_2_list = FOI_to_R0_2_list,
+                                               FOI_to_R0_3_list = FOI_to_R0_3_list,
                                                FOI_to_Inf_list,
                                                FOI_to_C_list,
                                                FOI_to_HC_list,
@@ -11,7 +13,8 @@ wrapper_to_replicate_R0_and_burden <- function(i,
                                                age_band_tags,
                                                vars,
                                                parms,
-                                               fixed_prop_sym){
+                                               fixed_prop_sym,
+                                               var_to_fit){
   
   
   # browser()
@@ -64,14 +67,25 @@ wrapper_to_replicate_R0_and_burden <- function(i,
   
   red_preds <- preds * scaling_factor
   
-  if(!is.null(FOI_to_R0_list)){
-    
-    FOI_to_R0 <- FOI_to_R0_list[[idx]]
-    red_trans <- approx(FOI_to_R0[, "y"], FOI_to_R0[, "x"], xout = red_preds)$y
-    
-  } else {
+  if(var_to_fit == "FOI"){
     
     red_trans <- red_preds 
+    
+    ## added on 13052019
+    FOI_to_R0 <- FOI_to_R0_1_list[[idx]]
+    red_trans_1 <- approx(FOI_to_R0[, "x"], FOI_to_R0[, "y"], xout = red_trans)$y
+    
+    FOI_to_R0 <- FOI_to_R0_2_list[[idx]]
+    red_trans_2 <- approx(FOI_to_R0[, "x"], FOI_to_R0[, "y"], xout = red_trans)$y
+  
+    FOI_to_R0 <- FOI_to_R0_3_list[[idx]]
+    red_trans_3 <- approx(FOI_to_R0[, "x"], FOI_to_R0[, "y"], xout = red_trans)$y
+  
+  } else {
+    
+    FOI_to_R0_list <- get(sprintf("FOI_to_%s_list", var_to_fit))
+    FOI_to_R0 <- FOI_to_R0_list[[idx]]
+    red_trans <- approx(FOI_to_R0[, "y"], FOI_to_R0[, "x"], xout = red_preds)$y
     
   }
 
@@ -110,8 +124,18 @@ wrapper_to_replicate_R0_and_burden <- function(i,
   Infections <- Infections_pc * N
   Cases <- Cases_pc * N
   HCases <- Hosp_cases_pc * N 
-  out <- rbind(red_preds, red_trans, Infections, Cases, HCases)
-  rownames(out) <- vars
+  
+  if(var_to_fit == "FOI"){
+    
+    out <- rbind(red_preds, red_trans_1, red_trans_2, red_trans_3, Infections, Cases, HCases)
+    rownames(out) <- vars
+    
+  } else {
+    
+    out <- rbind(red_preds, red_trans, Infections, Cases, HCases)
+    rownames(out) <- vars
+    
+  }
   
   out
   
