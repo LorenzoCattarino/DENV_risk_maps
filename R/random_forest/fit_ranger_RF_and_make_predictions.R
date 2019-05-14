@@ -51,20 +51,18 @@ wrapper_to_make_ranger_preds <- function(i,
   
 }
 
-fit_predict_and_error <- function(dataset, 
+fit_predict_and_error <- function(parms,
+                                  dataset, 
                                   y_var, 
                                   my_preds,
-                                  no_trees, 
-                                  min_node_size,
                                   foi_data) {
   
   train_set <- dataset[, c(y_var, my_preds, "new_weight")]
   
-  RF_obj <- fit_ranger_RF(dependent_variable = y_var, 
+  RF_obj <- fit_ranger_RF(parms = parms,
+                          dependent_variable = y_var, 
                           predictors = my_preds, 
                           training_dataset = train_set, 
-                          no_trees = no_trees, 
-                          min_node_size = min_node_size,
                           my_weights = "new_weight")
   
   p_i <- make_ranger_predictions(mod_obj = RF_obj, 
