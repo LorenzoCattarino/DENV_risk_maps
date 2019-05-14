@@ -61,3 +61,17 @@ lm_eqn <- function(df, y, x){
                         r2 = format(r2, digits = 4)))
   as.character(as.expression(eq))                 
 }
+
+save_plot <- function(plot_obj, out_pth, out_fl_nm, wdt, hgt){
+  
+  dir.create(out_pth, FALSE, TRUE)
+  png(file.path(out_pth, paste0(out_fl_nm, ".png")),
+      width = wdt,
+      height = hgt,
+      units = "cm",
+      pointsize = 12,
+      res = 300)
+  print(plot_obj)
+  on.exit(dev.off())
+  
+}
