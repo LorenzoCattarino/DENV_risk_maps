@@ -20,12 +20,12 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  id = 24,
+  id = 21,
   shape_1 = 0,
   shape_2 = 5,
   shape_3 = 1e6,
   all_wgt = 1,
-  dependent_variable = "R0_3",
+  dependent_variable = "FOI",
   grid_size = 1 / 120,
   no_predictors = 26,
   resample_grid_size = 20,
@@ -35,7 +35,7 @@ parameters <- list(
   no_samples = 200,
   EM_iter = 10) 
 
-vars_to_average <- "transformed_r_wolbachia_3"
+vars_to_average <- "transformed_3_r_wolbachia_4"
 
 statistic <- "mean"
 
@@ -46,7 +46,7 @@ R0_1_z_range <- c(0, 8)
 R0_2_z_range <- c(0, 4)
 R0_3_z_range <- c(0, 5)
 
-z_range <- FOI_z_range
+z_range <- R0_3_z_range
 
 base_info <- c("cell",
                "latitude",
