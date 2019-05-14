@@ -18,13 +18,13 @@ ctx <- context::context_save(path = "context",
 
 
 parameters <- list(
-  id = 24,
+  id = 21,
   shape_1 = 0,
   shape_2 = 5,
   shape_3 = 1e6,
   all_wgt = 1,
-  dependent_variable = "R0_3",
-  pseudoAbs_value = 0.5,
+  dependent_variable = "FOI",
+  pseudoAbs_value = -0.02,
   grid_size = 1 / 120,
   no_predictors = 26,
   resample_grid_size = 20,
@@ -34,7 +34,7 @@ parameters <- list(
   no_samples = 200,
   EM_iter = 10) 
 
-vars_to_average <- "transformed_r_wolbachia_3"
+vars_to_average <- "transformed_3_r_wolbachia_4"
 
 
 # define variables ------------------------------------------------------------
