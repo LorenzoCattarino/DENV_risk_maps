@@ -18,9 +18,8 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
                                                   var_to_fit){
 
   
-  var_names <- c("response_r", "transformed_r", "I_num", "C_num", "H_num")
+  # var_names <- c("response_r", "transformed_r", "I_num", "C_num", "H_num")
   
-  no_fits <- parms$no_samples
   fit_type <- parms$fit_type
   parallel_2 <- parms$parallel_2
   base_info <- parms$base_info
@@ -32,12 +31,17 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
   
   if (var_to_fit == "FOI") {
     
+    var_names <- c("response_r", "transformed_1_r", "transformed_2_r", "transformed_3_r", "I_num", "C_num", "H_num")
+    
     burden_estimates <- loop(
       seq_len(nrow(foi_data)),
       wrapper_to_replicate_R0_and_burden, 
       foi_data = foi_data, 
       age_struct = age_data,
       scaling_factor = sf,
+      FOI_to_R0_1_list = FOI_to_R0_1_list,
+      FOI_to_R0_2_list = FOI_to_R0_2_list,
+      FOI_to_R0_3_list = FOI_to_R0_3_list,
       FOI_to_Inf_list = FOI_to_Inf_list,
       FOI_to_C_list = FOI_to_C_list,
       FOI_to_HC_list = FOI_to_HC_list,
@@ -47,11 +51,12 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
       vars = var_names,
       parms = parms,
       fixed_prop_sym = FALSE,
+      var_to_fit = var_to_fit,
       parallel = parallel_2)
     
   } else {
     
-    FOI_to_R0_list <- get(sprintf("FOI_to_%s_list", var_to_fit))
+    var_names <- c("response_r", "transformed_r", "I_num", "C_num", "H_num")
     
     burden_estimates <- loop(
       seq_len(nrow(foi_data)),
@@ -59,7 +64,9 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
       foi_data = foi_data, 
       age_struct = age_data,
       scaling_factor = sf,
-      FOI_to_R0_list = FOI_to_R0_list,
+      FOI_to_R0_1_list = FOI_to_R0_1_list,
+      FOI_to_R0_2_list = FOI_to_R0_2_list,
+      FOI_to_R0_3_list = FOI_to_R0_3_list,
       FOI_to_Inf_list = FOI_to_Inf_list,
       FOI_to_C_list = FOI_to_C_list,
       FOI_to_HC_list = FOI_to_HC_list,
@@ -69,6 +76,7 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
       vars = var_names,
       parms = parms,
       fixed_prop_sym = FALSE,
+      var_to_fit = var_to_fit,
       parallel = parallel_2)
     
     if (sf == 1) {
@@ -79,7 +87,9 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
         foi_data = foi_data, 
         age_struct = age_data,
         scaling_factor = sf,
-        FOI_to_R0_list = FOI_to_R0_list,
+        FOI_to_R0_1_list = FOI_to_R0_1_list,
+        FOI_to_R0_2_list = FOI_to_R0_2_list,
+        FOI_to_R0_3_list = FOI_to_R0_3_list,
         FOI_to_Inf_list = FOI_to_Inf_list,
         FOI_to_C_list = FOI_to_C_list_fixed,
         FOI_to_HC_list = FOI_to_HC_list_fixed,
@@ -89,6 +99,7 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
         vars = var_names,
         parms = parms,
         fixed_prop_sym = TRUE,
+        var_to_fit = var_to_fit,
         parallel = parallel_2)
       
     }
@@ -98,7 +109,7 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
 
   # ---------------------------------------- reshape and save
   
-
+  
   if (fit_type == "boot") {
     
     for (b in seq_along(var_names)) {
