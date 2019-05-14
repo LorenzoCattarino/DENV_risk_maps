@@ -12,8 +12,6 @@ stepwise_addition_boot <- function(i,
   stepwise_addition <- function(j){
     
     ID_run <- j
-      
-    no_steps_L1 <- parms$no_steps_L1
     
     stepwise_dir <- "addition"
 
@@ -24,7 +22,6 @@ stepwise_addition_boot <- function(i,
 
     multi_steps_wrapper(dataset = adm_dts_boot, 
                         predictors = predictors, 
-                        no_steps = no_steps_L1,
                         parms = parms,
                         level_num = 1,
                         foi_data = foi_data,
@@ -48,7 +45,6 @@ stepwise_addition_boot <- function(i,
 
 multi_steps_wrapper <- function(dataset, 
                                 predictors, 
-                                no_steps = NULL, 
                                 parms,
                                 level_num,
                                 foi_data,
@@ -67,19 +63,13 @@ multi_steps_wrapper <- function(dataset,
     
     stepwise_dir <- "addition"
     
+    no_steps <- length(vector_of_predictors) 
+    
   } else {
     
     stepwise_dir <- "removal"
     
     no_steps <- length(vector_of_predictors)-1
-  
-  }
-  
-  if (length(vector_of_predictors) < no_steps) {
-    
-    warning("Number of predictors smaller than number of addition steps", call. = FALSE)
-    
-    no_steps <- length(vector_of_predictors)         
   
   }
   
@@ -233,18 +223,29 @@ save_addition_best_preds <- function(i, results, names, out_pth){
   
 }
 
+save_removal_outputs <- function(i, results, out_pth){
+  
+  dts <- results[[i]]
+  
+  out_nm <- "output_from_removal.rds"
+  
+  out_pth <- file.path(out_pth, paste0("sample_", i), "removal")
+  
+  write_out_rds(dts, out_pth, out_nm)
+  
+}
+
 stepwise_removal_boot <- function(i, 
                                   boot_ls, 
-                                  y_var, 
                                   parms, 
                                   predictors,
                                   foi_data,
-                                  out_path,
-                                  addition){
+                                  out_path) {
   
   stepwise_dir <- "removal"
   
   psAb_val <- parms$pseudoAbs_value
+  y_var <- parms$var_to_fit
   
   ID_sample <- i  
   
@@ -266,17 +267,11 @@ stepwise_removal_boot <- function(i,
     predictors <- predictor_file$name
     
   } 
-  
-  no_trees <- parms$no_trees
-  min_node_size <- parms$min_node_size
 
   ret <- multi_steps_wrapper(dataset = adm_dts_boot, 
                              predictors = predictors, 
+                             parms = parms,
                              level_num = 1,
-                             addition = addition,
-                             y_var = y_var, 
-                             no_trees = no_trees, 
-                             min_node_size = min_node_size, 
                              foi_data = foi_data,
                              out_path = my_out_path)
   
