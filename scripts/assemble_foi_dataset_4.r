@@ -5,6 +5,8 @@ library(rgdal)
 library(dplyr)
 library(colorRamps)
 
+source(file.path("R", "utility_functions.R"))
+
 
 # load data ------------------------------------------------------------------- 
 
@@ -32,24 +34,16 @@ pseudoAbsence_points <- SpatialPoints(pseudoAbsences[, c("longitude","latitude")
 data_points_list <- list(
   "sp.points",
   data_points,
-  pch = 21, fill = "dodgerblue", col = NA, cex = 0.7)
+  pch = 21, fill = "dodgerblue", col = NA, cex = 0.5)
 
 pseudoAbsence_points_list <- list(
   "sp.points", 
   pseudoAbsence_points,
-  pch = 21, fill = "yellow", col = NA, cex = 0.7)
+  pch = 21, fill = "yellow", col = NA, cex = 0.5)
 
 
 # plot ------------------------------------------------------------------------ 
 
-
-png(file.path("figures", "data", "dengue_points_and_absence_mask.png"), 
-    width = 18, 
-    height = 10, 
-    units = "in", 
-    pointsize = 12,
-    bg = "white", 
-    res = 200)
 
 p <- spplot(world_shp_admin_1_dengue, "dengue", lwd = 0.5,
             scales = list(x = list(draw = TRUE, 
@@ -62,6 +56,8 @@ p <- spplot(world_shp_admin_1_dengue, "dengue", lwd = 0.5,
             sp.layout = list(data_points_list,
                              pseudoAbsence_points_list))
 
-print(p)
-
-dev.off()
+save_plot(plot_obj = p, 
+          out_pth = file.path("figures", "data"), 
+          out_fl_nm = "dengue_points_and_absence_mask", 
+          wdt = 18, 
+          hgt = 10) 
