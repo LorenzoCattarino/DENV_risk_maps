@@ -6,7 +6,8 @@ my_resources <- c(
   file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samples.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "prepare_datasets", "grid_up.R"),
-  file.path("R", "utility_functions.R"))
+  file.path("R", "utility_functions.R"),
+  file.path("R", "create_parameter_list.R"))
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -19,20 +20,13 @@ context::parallel_cluster_start(8, ctx)
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  grid_size = 10,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1.6e6,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
-  no_samples = 200)   
-
 out_fl_nm <- "bootstrap_samples.rds"
 
 
 # define variables ------------------------------------------------------------
 
+
+parameters <- create_parameter_list()
 
 grid_size <- parameters$grid_size
 

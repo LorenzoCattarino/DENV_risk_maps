@@ -5,9 +5,9 @@
 
 source(file.path("R", "prepare_datasets", "functions_for_creating_bootstrap_samples.R"))
 source(file.path("R", "utility_functions.R"))
+source(file.path("R", "create_parameter_list.R"))
 
-parameters <- list(
-  grid_size = 10)   
+parameters <- create_parameter_list() 
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
