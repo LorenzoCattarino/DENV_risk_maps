@@ -7,7 +7,8 @@ my_resources <- c(
   file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "random_forest", "variable_selection_stepwise.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
-  file.path("R", "utility_functions.R"))
+  file.path("R", "utility_functions.R"),
+  file.path("R", "create_parameter_list.R"))
 
 my_pkgs <- c("ranger", "ggplot2")
 
@@ -20,13 +21,12 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  grid_size = 5,
-  no_steps_L1 = 28)     
-
-top_ones <- parameters$no_steps_L1 # all of them
-
-var_to_fit <- "FOI"
+extra_prms <- list(
+  var_to_fit = "FOI",
+  pseudoAbs_value = -0.02,
+  no_reps = 10, 
+  addition = FALSE,
+  parallel_2 = TRUE)
 
 out_fig_name <- "Frequency_of_the_numbers_of_selected_preds.png"
 
@@ -34,17 +34,11 @@ out_tab_name <- "predictor_rank.csv"
 
 out_fig_path <- file.path("figures", 
                           "variable_selection", 
-                          "stepwise")
+                          "stepwise_v3")
 
 out_tab_path <- file.path("output", 
                           "variable_selection", 
-                          "stepwise")
-
-
-# define variables ------------------------------------------------------------
-
-
-my_dir <- paste0("grid_size_", parameters$grid_size)
+                          "stepwise_v3")
 
 
 # rebuild the queue object? --------------------------------------------------- 
@@ -61,6 +55,14 @@ if (CLUSTER) {
   context::parallel_cluster_start(8, ctx)
   
 }
+
+
+# define variables ------------------------------------------------------------
+
+
+parameters <- create_parameter_list(extra_params = extra_prms)
+
+my_dir <- paste0("grid_size_", parameters$grid_size)
 
 
 # load data -------------------------------------------------------------------
@@ -85,11 +87,27 @@ bsample_step_removal_t <- obj$task_bundle_get(my_task_id)
 bsample_step_removal <- bsample_step_removal_t$results()
 
 
+# save all outputs ------------------------------------------------------------
+
+
+lapply(seq_along(bsample_step_removal), 
+       save_removal_outputs, 
+       results = bsample_step_removal, 
+       out_pth = out_tab_path)
+
+
+# plot some outputs -----------------------------------------------------------
+
+
+lapply(seq_along(bsample_step_removal)[1:10], 
+       plot_RMSE_removal, 
+       bsample_step_removal, 
+       out_fig_path)
+
+
 #  get predictor names --------------------------------------------------------
 
 
-# plot raw datata 
-lapply(seq_along(bsample_step_removal)[1:10], plot_RMSE_removal, bsample_step_removal, out_fig_path)
 
 # predictors are ranked according to the selection frequency 
 # across bootstrap samples 
@@ -129,15 +147,4 @@ p <- ggplot(all_no_sel_vars, aes(no_sel_vars)) +
   scale_y_continuous("Frequency") +
   scale_x_continuous("Number of selected variables")
 
-dir.create(out_fig_path, FALSE, TRUE)
-
-png(file.path(out_fig_path, out_fig_name), 
-    width = 10, 
-    height = 10, 
-    units = "cm",
-    pointsize = 12,
-    res = 200)
-
-print(p)
-
-dev.off()
+save_plot(p, out_fig_path, out_fig_name, 10, 10)

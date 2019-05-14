@@ -7,7 +7,8 @@ my_resources <- c(
   file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "random_forest", "variable_selection_stepwise.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
-  file.path("R", "utility_functions.R"))
+  file.path("R", "utility_functions.R"),
+  file.path("R", "create_parameter_list.R"))
 
 my_pkgs <- "ranger"
 
@@ -20,28 +21,16 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  grid_size = 5,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1e6,
-  no_trees = 500,
-  min_node_size = 20,
-  no_steps_L1 = 28,   
-  no_steps_L2 = 0,   
+extra_prms <- list(
+  var_to_fit = "FOI",
   pseudoAbs_value = -0.02,
-  all_wgt = 1,
-  wgt_limits = c(1, 500),
-  no_reps = 10,
-  no_samples = 200)   
-
-addition <- TRUE
-
-var_to_fit <- "FOI"
+  no_reps = 10, 
+  addition = TRUE,
+  parallel_2 = TRUE)
 
 out_path <- file.path("output", 
                       "variable_selection", 
-                      "stepwise")
+                      "stepwise_v3")
 
 altitude_var_names <- "altitude"
 
@@ -49,14 +38,8 @@ fourier_transform_elements <- c("const_term",	"Re0",	"Im0",	"Re1",	"Im1")
 
 FTs_data_names <- c("DayTemp", "EVI", "MIR", "NightTemp", "RFE")
 
-extra_predictors <- c("log_pop_den", "travel_time")
+extra_predictors <- "log_pop_den"
   
-                      
-# define variables ------------------------------------------------------------
-
-
-my_dir <- paste0("grid_size_", parameters$grid_size)
-
 
 # are you using the cluster? -------------------------------------------------- 
 
@@ -74,12 +57,22 @@ if (CLUSTER) {
 }
 
 
+# define variables ------------------------------------------------------------
+
+
+parameters <- create_parameter_list(extra_params = extra_prms)
+
+my_dir <- paste0("grid_size_", parameters$grid_size)
+
+var_to_fit <- parameters$var_to_fit
+
+
 # load data -------------------------------------------------------------------
 
 
 foi_data <- read.csv(file.path("output", 
                                "foi", 
-                               "All_FOI_estimates_linear_env_var_area_salje.csv"),
+                               "All_FOI_estimates_and_predictors_dis.csv"),
                      stringsAsFactors = FALSE) 
 
 boot_samples <- readRDS(file.path("output", 
@@ -116,12 +109,10 @@ no_samples <- parameters$no_samples
 #   stepwise_addition_boot(
 #     seq_len(no_samples)[1],
 #     boot_ls = boot_samples,
-#     y_var = var_to_fit,
 #     parms = parameters,
 #     predictors = all_predictors,
 #     foi_data = foi_data,
-#     out_path = out_path,
-#     addition = addition))
+#     out_path = out_path))
 
 
 # submit all jobs -------------------------------------------------------------
@@ -134,12 +125,10 @@ if (CLUSTER) {
     stepwise_addition_boot,
     obj,
     boot_ls = boot_samples,
-    y_var = var_to_fit,
     parms = parameters,
     predictors = all_predictors,
     foi_data = foi_data,
-    out_path = out_path,
-    addition = addition)
+    out_path = out_path)
 
 } else {
 
@@ -147,12 +136,10 @@ if (CLUSTER) {
     seq_len(no_samples)[1],
     stepwise_addition_boot,
     boot_ls = boot_samples,
-    y_var = var_to_fit,
     parms = parameters,
     predictors = all_predictors,
     foi_data = foi_data,
-    out_path = out_path,
-    addition = addition)
+    out_path = out_path)
 
 }
 
