@@ -53,11 +53,11 @@ sd <- vapply(
   age_dat = age_distr[, age_bounds_num_2],
   mean_vals = mean_ages) 
   
-age_distr$mean <- mean_ages
+age_distr$mean_age <- mean_ages
 
-age_distr$sd <- sd
+age_distr$sd_age <- sd
 
-age_distr <- age_distr[order(age_distr$mean), ]
+age_distr <- age_distr[order(age_distr$mean_age), ]
 
 
 # save ------------------------------------------------------------------------
@@ -69,9 +69,9 @@ write_out_csv(age_distr, dts_out_pt, dts_out_nm)
 # plot ------------------------------------------------------------------------
 
 
-age_distr$mean_label <- paste0("Mean = ", round(age_distr$mean, 2))
+age_distr$mean_label <- paste0("Mean = ", round(age_distr$mean_age, 2))
 
-age_distr$sd_label <- paste0("SD = ", round(age_distr$sd, 2))
+age_distr$sd_label <- paste0("SD = ", round(age_distr$sd_age, 2))
 
 dir.create(out_path, FALSE, TRUE)
 
