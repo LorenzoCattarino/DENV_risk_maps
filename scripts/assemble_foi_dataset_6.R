@@ -28,5 +28,5 @@ new_foi_data <- cbind(foi_data, neighbor = foi_data[min.d,"data_id"],
 new_foi_data$distance <- new_foi_data$distance / 1000
 
 write.csv(new_foi_data, 
-          file.path("output", "foi", "All_FOI_estimates_and_predictors_dis.csv"), 
+          file.path("output", "foi", "All_FOI_estimates_and_predictors.csv"), 
           row.names = FALSE)
