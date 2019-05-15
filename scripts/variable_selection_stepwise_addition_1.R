@@ -72,7 +72,7 @@ var_to_fit <- parameters$var_to_fit
 
 foi_data <- read.csv(file.path("output", 
                                "foi", 
-                               "All_FOI_estimates_and_predictors_dis.csv"),
+                               "All_FOI_estimates_and_predictors.csv"),
                      stringsAsFactors = FALSE) 
 
 boot_samples <- readRDS(file.path("output", 
