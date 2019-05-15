@@ -2,7 +2,6 @@
 
 library(dplyr)
 library(ggplot2)
-# library(ggrepel)
 
 source(file.path("R", "utility_functions.R"))
 
@@ -26,35 +25,8 @@ mean_age_data <- read.csv(file.path("output",
 
 foi_data_2 <- left_join(foi_data, mean_age_data[, c("ID_0", "mean_age", "sd_age")])
 
-# foi_data_2$country <- as.factor(foi_data_2$country)
-#   
-# labels_spl <- split(foi_data_2, foi_data_2$country)
-#   
-# for (i in seq_along(labels_spl)){
-#   
-#   my_country <- names(labels_spl[i])
-#   # message(my_country)
-#   
-#   dts <- labels_spl[[i]]
-#   
-#   the_casereports <- dts$type == "caseReport"
-#   
-#   if(sum(the_casereports)>0){
-#   
-#     message(i)
-#     message(my_country)
-#     dts[the_casereports,]$country[2:sum(the_casereports)] <- ""
-#     labels_spl[[i]] <- dts
-#   }
-#   
-# }
-# 
-# foi_data_2_sort <- unsplit(foi_data_2, foi_data_2$country)
-
 my_plot <- ggplot(subset(foi_data_2, type != "pseudoAbsence")) +
-  geom_point(aes(FOI, mean_age, colour = type), size = 1) #+
-# geom_text_repel(aes(FOI, mean_age, label = country),
-#                  size = 1)
+  geom_point(aes(FOI, mean_age, colour = type), size = 1)
 
 save_plot(my_plot, 
           file.path("figures", "data"),
