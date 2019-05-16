@@ -61,7 +61,7 @@ foi_data <- read.csv(file.path("output", "foi", foi_dts_nm),
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
-                                     "stepwise",
+                                     "stepwise_v3",
                                      "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 

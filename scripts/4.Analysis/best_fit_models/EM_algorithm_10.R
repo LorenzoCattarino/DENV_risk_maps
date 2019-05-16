@@ -57,7 +57,7 @@ out_pt <- file.path("figures",
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
-                                     "stepwise",
+                                     "stepwise_v3",
                                      "predictor_rank.csv"),
                            stringsAsFactors = FALSE)
 
