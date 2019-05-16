@@ -5,7 +5,8 @@ options(didehpc.cluster = "fi--didemrchnb")
 my_resources <- c(
   file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
-  file.path("R", "utility_functions.R"))
+  file.path("R", "utility_functions.R"),
+  file.path("R", "create_parameter_list.R"))
 
 my_pkgs <- "ranger"
 
@@ -18,18 +19,11 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  dependent_variable = "FOI",
-  pseudoAbs_value = -0.02,
-  no_predictors = 26,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1.6e6,
-  foi_offset = 0.03,
-  no_trees = 500,
-  min_node_size = 20,
-  ranger_threds = NULL,
-  all_wgt = 1) 
+extra_prms <- list(dependent_variable = "FOI",
+                   pseudoAbs_value = -0.02,
+                   no_predictors = 26,
+                   foi_offset = 0.03,
+                   ranger_threds = NULL)
 
 out_name <- "all_data.rds"  
 
@@ -40,6 +34,8 @@ extra_predictors <- NULL
 
 # define variables ------------------------------------------------------------
 
+
+parameters <- create_parameter_list(extra_params = extra_prms)
 
 var_to_fit <- parameters$dependent_variable
 

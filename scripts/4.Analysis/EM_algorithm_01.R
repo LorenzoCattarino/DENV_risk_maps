@@ -1,6 +1,5 @@
 # Filters the global 20 km square dataset based on the original foi dataset 
 
-
 library(dplyr)
 
 source(file.path("R", "utility_functions.R"))
@@ -20,7 +19,9 @@ out_pth <- file.path("output",
 # load data -------------------------------------------------------------------
 
 
-foi_data <- read.csv(file.path("output", "foi", "All_FOI_estimates_and_predictors.csv"),
+foi_data <- read.csv(file.path("output", 
+                               "foi", 
+                               "All_FOI_estimates_and_predictors.csv"),
                      stringsAsFactors = FALSE) 
 
 all_sqr_covariates <- readRDS(file.path("output", 
