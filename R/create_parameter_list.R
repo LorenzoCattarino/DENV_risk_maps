@@ -15,6 +15,8 @@ create_parameter_list <- function(grid_size = 5,
                                   no_trees = 500,
                                   min_node_size = 20,
                                   all_wgt = 1,
+                                  pseudoAbs_value = c(-0.02, 0.5),
+                                  foi_offset = 0.03,
                                   extra_params = NULL) {
   
   pm_list <- list()
@@ -36,6 +38,8 @@ create_parameter_list <- function(grid_size = 5,
   pm_list$no_trees <- no_trees
   pm_list$min_node_size <- min_node_size
   pm_list$all_wgt <- all_wgt
+  pm_list$pseudoAbs_value <- pseudoAbs_value
+  pm_list$foi_offset <- foi_offset
   
   c(pm_list, extra_params)
    
