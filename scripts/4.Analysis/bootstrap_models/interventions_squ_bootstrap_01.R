@@ -70,8 +70,7 @@ if (CLUSTER) {
 parameters <- create_parameter_list(extra_params = extra_prms)
 
 out_path <- file.path("output", 
-                      "predictions_world", 
-                      "bootstrap_models")
+                      "predictions_world")
 
 no_samples <- parameters$no_samples
 
