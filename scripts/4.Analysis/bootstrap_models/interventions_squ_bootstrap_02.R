@@ -68,8 +68,7 @@ parameters <- create_parameter_list(extra_params = extra_prms)
 model_type <- paste0("model_", parameters$id)
 
 lookup_path <- file.path("output", 
-                         "predictions_world", 
-                         "bootstrap_models")
+                         "predictions_world")
 
 out_path <- file.path("output", 
                       "predictions_world", 
