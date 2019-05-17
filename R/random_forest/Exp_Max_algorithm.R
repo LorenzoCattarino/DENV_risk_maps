@@ -18,7 +18,7 @@ exp_max_algorithm <- function(parms,
   var_to_fit <- parms$dependent_variable
   niter <- parms$EM_iter
   
-  if(var_to_fit == "FOI") {
+  if(var_to_fit == "FOI" | var_to_fit == "Z") {
     
     l_f <- parms$pseudoAbs_value[1]
     
@@ -53,7 +53,7 @@ exp_max_algorithm <- function(parms,
     # 1. calculate scaling factors -------------------------------------------- 
     
     
-    p_i_by_adm <- pxl_dataset %>% group_by_(.dots = grp_flds)
+    p_i_by_adm <- pxl_dataset %>% group_by(.dots = grp_flds)
     
     a_sum <- p_i_by_adm %>% summarise(a_sum = sum(pop_weight * p_i))
     
@@ -78,7 +78,7 @@ exp_max_algorithm <- function(parms,
     
     u_i <- rep(0, nrow(dd))
     
-    if(var_to_fit == "FOI"){
+    if(var_to_fit == "FOI" | var_to_fit == "Z"){
       
       # u_i[!psAbs] <- (((dd$o_j[!psAbs] - l_f) * (dd$p_i[!psAbs] - l_f)) / (dd$a_sum[!psAbs] - l_f)) + l_f # when using only pop prop weights
       u_i[!psAbs] <- (dd$o_j[!psAbs] * dd$p_i[!psAbs]) / dd$a_sum[!psAbs] # when using updating weights
@@ -128,7 +128,7 @@ exp_max_algorithm <- function(parms,
     
     dd_1 <- dd
     
-    if(var_to_fit == "FOI"){
+    if(var_to_fit == "FOI" | var_to_fit == "Z"){
       
       dd_1$p_i <- dd$p_i - foi_offset  
     
@@ -165,7 +165,7 @@ exp_max_algorithm <- function(parms,
     # fix 20 km predictions ---------------------------------------------------  
     
     
-    if(var_to_fit == "FOI"){
+    if(var_to_fit == "FOI" | var_to_fit == "Z"){
       
       dd_2$u_i[psAbs] <- zero_2 
       dd_2$p_i[psAbs] <- ifelse(dd_2$p_i[psAbs] < zero_2, zero_2, dd_2$p_i[psAbs]) 
@@ -203,7 +203,7 @@ exp_max_algorithm <- function(parms,
     
     psAbs_adm <- cc$type == "pseudoAbsence" 
     
-    if(var_to_fit == "FOI"){
+    if(var_to_fit == "FOI" | var_to_fit == "Z"){
       
       cc$o_j[psAbs_adm] <- zero_2   
       cc$adm_pred[psAbs_adm] <- ifelse(cc$adm_pred[psAbs_adm] < zero_2, 
@@ -222,7 +222,7 @@ exp_max_algorithm <- function(parms,
     # 7. calculate population weighted mean of pixel level predictions -------- 
 
 
-    p_i_by_adm <- dd_2 %>% group_by_(.dots = grp_flds)
+    p_i_by_adm <- dd_2 %>% group_by(.dots = grp_flds)
     
     mean_p_i <- p_i_by_adm %>% summarise(mean_p_i = sum(p_i * pop_weight))
     
@@ -320,7 +320,7 @@ exp_max_algorithm_boot <- function(i,
   
   
   var_to_fit <- parms$dependent_variable
-  if(var_to_fit == "FOI") {
+  if(var_to_fit == "FOI" | var_to_fit == "Z") {
     
     psAbs <- parms$pseudoAbs_value[1]
     
@@ -355,19 +355,12 @@ exp_max_algorithm_boot <- function(i,
   # pre process the bootstrapped foi data set --------------------------------- 
   
   
-  if(var_to_fit == "FOI"){
-    
-    names(foi_data_boot)[names(foi_data_boot) == "FOI"] <- "o_j"
-    
-  } else {
-    
-    names(foi_data_boot)[names(foi_data_boot) == var_to_fit] <- "o_j"
-    
-  }
+  names(foi_data_boot)[names(foi_data_boot) == var_to_fit] <- "o_j"
+
   
   foi_data_boot[foi_data_boot$type == "pseudoAbsence", "o_j"] <- psAbs
   
-  if(var_to_fit == "FOI"){
+  if(var_to_fit == "FOI" | var_to_fit == "Z"){
     
     foi_data_boot[, "o_j"] <- foi_data_boot[, "o_j"] + foi_offset
     
@@ -437,7 +430,7 @@ exp_max_algorithm_boot <- function(i,
   # calculate population proportion weights ----------------------------------- 
   
   
-  pxl_dts_grp <- pxl_dts_boot_3 %>% group_by_(.dots = grp_flds) 
+  pxl_dts_grp <- pxl_dts_boot_3 %>% group_by(.dots = grp_flds) 
   
   aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
   
