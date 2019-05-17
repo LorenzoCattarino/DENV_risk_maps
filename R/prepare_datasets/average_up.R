@@ -2,7 +2,7 @@ average_up <- function(pxl_df, grp_flds, var_names){
   
   # browser()
   
-  by_grp <- pxl_df %>% group_by_(.dots = grp_flds)
+  by_grp <- pxl_df %>% group_by(.dots = grp_flds)
   
   wtd_mean_pixel_data <- by_grp %>% summarise_at(var_names,
     funs(weighted.mean(., population, na.rm = TRUE)))
