@@ -4,7 +4,7 @@ fit_ranger_RF <- function(parms,
                           training_dataset, 
                           my_weights){
   
-  num_threds <- parms$ranger_threds
+  num_threads <- parms$ranger_threads
   min_node_size <- parms$min_node_size
   no_trees <- parms$no_trees
   
@@ -20,7 +20,7 @@ fit_ranger_RF <- function(parms,
          write.forest = TRUE,
          min.node.size = min_node_size,
          verbose = TRUE,
-         num.threads = num_threds)
+         num.threads = num_threads)
   
 }
 
