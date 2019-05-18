@@ -39,7 +39,31 @@ paths_from <- list(
             "gadm28_adm1_eras.shp"),
   file.path("output", 
             "shapefiles",
-            "gadm28_adm1_dengue.shp"))
+            "gadm28_adm1_dengue.shp"),
+  file.path("output", 
+            "predictions_world", 
+            "FOI_to_I_lookup_tables.rds"),
+  file.path("output", 
+            "predictions_world", 
+            "FOI_to_C_lookup_tables.rds"),
+  file.path("output", 
+            "predictions_world", 
+            "FOI_to_HC_lookup_tables.rds"),
+  file.path("output", 
+            "predictions_world", 
+            "FOI_to_R0_1_lookup_tables.rds"),
+  file.path("output", 
+            "predictions_world", 
+            "FOI_to_R0_2_lookup_tables.rds"),
+  file.path("output", 
+            "predictions_world", 
+            "FOI_to_R0_3_lookup_tables.rds"),
+  file.path("output", 
+            "predictions_world", 
+            "FOI_to_C_lookup_tables_fixed_params.rds"),
+  file.path("output", 
+            "predictions_world", 
+            "FOI_to_HC_lookup_tables_fixed_params.rds"))
 
 for (i in seq_along(paths_from)){
   
