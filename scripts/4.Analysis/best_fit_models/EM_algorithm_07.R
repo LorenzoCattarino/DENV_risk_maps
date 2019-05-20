@@ -5,31 +5,24 @@
 # 3) population weighted average of the square predictions, within the observation's admin unit
 # 4) population weighted average of the 1 km pixel predictions, within the observation's admin unit
 
-options(didehpc.cluster = "fi--didemrchnb")
+library(ranger)
+library(dplyr)
+library(data.table)
 
-my_resources <- c(
-  file.path("R", "prepare_datasets", "average_up.R"),
-  file.path("R", "prepare_datasets", "remove_NA_rows.R"),
-  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
-  file.path("R", "utility_functions.R"))
-
-my_pkgs <- c("ranger", "dplyr", "data.table")
-
-context::context_log_start()
-ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
+source(file.path("R", "prepare_datasets", "average_up.R"))
+source(file.path("R", "prepare_datasets", "remove_NA_rows.R"))
+source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
+source(file.path("R", "utility_functions.R"))
+source(file.path("R", "create_parameter_list.R"))
 
 
 # define parameters -----------------------------------------------------------
 
 
-parameters <- list(
-  id = 1,
-  dependent_variable = "FOI",
-  pseudoAbs_value = -0.02,
-  no_predictors = 26,
-  foi_offset = 0.03)   
+extra_prms <- list(id = 13,
+                   dependent_variable = "Z",
+                   pseudoAbs_value = -0.02,
+                   no_predictors = 26)   
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
@@ -41,17 +34,29 @@ foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
 covariate_dts_nm <- "env_vars_20km_2.rds"
 
-model_id <- parameters$id
-
 extra_predictors <- NULL
 
 
 # define variables ------------------------------------------------------------
 
 
+parameters <- create_parameter_list(extra_params = extra_prms)
+
+model_id <- parameters$id
+
 var_to_fit <- parameters$dependent_variable
   
 foi_offset <- parameters$foi_offset
+
+if(var_to_fit == "FOI" | var_to_fit == "Z") {
+  
+  pseudoAbs_value <- parameters$pseudoAbs_value[1]
+  
+} else {
+  
+  pseudoAbs_value <- parameters$pseudoAbs_value[2]
+  
+}
 
 model_type <- paste0("model_", model_id)
 
@@ -66,12 +71,6 @@ out_pt <- file.path("output",
                     "best_fit_models",
                     model_type,
                     "predictions_data")
-
-
-# are you using the cluster? -------------------------------------------------- 
-
-
-context::context_load(ctx)
 
 
 # load data ------------------------------------------------------------------- 
@@ -120,7 +119,7 @@ all_sqr_predictions <- readRDS(file.path("output",
 
 names(foi_dataset)[names(foi_dataset) == var_to_fit] <- "o_j"
 
-foi_dataset[foi_dataset$type == "pseudoAbsence", "o_j"] <- parameters$pseudoAbs_value
+foi_dataset[foi_dataset$type == "pseudoAbsence", "o_j"] <- pseudoAbs_value
 
 adm_dataset <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 
@@ -134,7 +133,15 @@ my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 my_predictors <- c(my_predictors, extra_predictors)
 
 
-# submit one job -------------------------------------------------------------- 
+#### added on 17052019 - but it needs to go before (e.g. to assemble_foi_data_set_x)
+mean_age_data <- read.csv(file.path("output",
+                                    "datasets",
+                                    "country_age_structure_mean.csv"),
+                          stringsAsFactors = FALSE)
+adm_dataset <- inner_join(adm_dataset, mean_age_data[, c("ID_0", "mean_age", "sd_age")])
+###
+
+# run ------------------------------------------------------------------------- 
 
 
 RF_obj <- readRDS(file.path(RF_obj_path, RF_obj_nm))
@@ -145,8 +152,23 @@ adm_pred <- make_ranger_predictions(RF_obj, adm_dataset_2, my_predictors)
 
 if(var_to_fit == "FOI"){
   
-  adm_pred <- adm_pred - foi_offset 
+  adm_pred <- adm_pred - foi_offset
   all_sqr_predictions <- all_sqr_predictions - foi_offset
+
+}
+
+sqr_preds <- all_sqr_predictions
+
+sqr_dataset_2 <- cbind(sqr_dataset,
+                       square = sqr_preds)
+
+sqr_dataset_2 <- inner_join(sqr_dataset_2, mean_age_data[, c("ID_0", "mean_age", "sd_age")])
+
+if(var_to_fit == "Z"){
+  
+  foi_dataset$o_j <- foi_dataset$o_j * foi_dataset$mean_age
+  adm_pred <- (adm_pred - foi_offset) * adm_dataset$mean_age
+  sqr_dataset_2$square <- (sqr_dataset_2$square - foi_offset) * sqr_dataset_2$mean_age
 
 }
 
@@ -154,40 +176,13 @@ adm_dataset_2$admin <- adm_pred
   
 fltr_adm <- inner_join(adm_dataset_2, foi_dataset[, grp_flds])
 
-sqr_preds <- all_sqr_predictions
-
-sqr_dataset_2 <- cbind(sqr_dataset,
-                       square = sqr_preds)
-
 average_sqr <- average_up(pxl_df = sqr_dataset_2,
                           grp_flds = grp_flds,
                           var_names = "square")
 
-# #[c(140, 141, 170, 171)]
-# 
-# tile_prds <- loop(
-#   seq_along(tile_ids),
-#   load_predict_filter,
-#   ids_vec = tile_ids,
-#   predictors = predictors,
-#   RF_obj = RF_obj,
-#   foi_dts = foi_dataset,
-#   grp_flds = grp_fields,
-#   parallel = FALSE)
-# 
-# tile_prds_rb <- do.call("rbind", tile_prds)
-# 
-# average_pxl <- average_up(
-#   pxl_df = tile_prds_rb,
-#   grp_flds = grp_fields,
-#   var_names = "pred")
-# 
-# names(average_pxl)[names(average_pxl) == "pred"] <- "mean_pxl_pred"
-
 df_lst <- list(foi_dataset[, c(grp_flds, "type", "o_j")],
                fltr_adm[, c(grp_flds, "admin")],
-               average_sqr[, c(grp_flds, "square")])#,
-#average_pxl[, c(grp_fields, "mean_pxl_pred")]) 
+               average_sqr[, c(grp_flds, "square")])
 
 join_all <- Reduce(function(...) left_join(...), df_lst)
 
