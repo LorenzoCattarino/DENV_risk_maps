@@ -1,45 +1,18 @@
-# Load back in from the context folder the ranger model object 
+# Load back in the ranger model object 
 # Make square-level predictions for the entire 20km dataset
 
-options(didehpc.cluster = "fi--didemrchnb")
+library(ranger)
 
-CLUSTER <- FALSE
-
-my_resources <- c(
-  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
-  file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
-  file.path("R", "random_forest", "exp_max_algorithm.R"),
-  file.path("R", "plotting", "functions_for_plotting_raster_maps.R"),
-  file.path("R", "plotting", "generic_scatter_plot.R"),
-  file.path("R", "prepare_datasets", "calculate_wgt_corr.R"),
-  file.path("R", "utility_functions.R"))  
-
-my_pkgs <- c("ranger", "dplyr", "fields", "ggplot2", "weights", "colorRamps")
-
-context::context_log_start()
-ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
+source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
+source(file.path("R", "utility_functions.R"))  
 
 
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  id = 1,
-  dependent_variable = "FOI",
-  pseudoAbs_value = -0.02,
-  no_predictors = 26,
-  resample_grid_size = 20,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1.6e6,
-  foi_offset = 0.03,
-  no_trees = 500,
-  min_node_size = 20,
-  ranger_threds = NULL,
-  all_wgt = 1,
-  EM_iter = 10) 
+parameters <- list(id = 13,
+                   dependent_variable = "Z",
+                   no_predictors = 26) 
 
 extra_predictors <- NULL
 
@@ -69,21 +42,6 @@ RF_out_pth <- file.path("output",
                         "optimized_model_objects")
 
 
-# rebuild the queue object? --------------------------------------------------- 
-
-
-if (CLUSTER) {
-  
-  config <- didehpc::didehpc_config(template = "16Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
-  
-} else {
-  
-  context::context_load(ctx)
-  
-}
-
-
 # load data -------------------------------------------------------------------
 
 
@@ -111,22 +69,7 @@ my_predictors <- c(my_predictors, extra_predictors)
 # get results ----------------------------------------------------------------- 
 
 
-if(CLUSTER){
-  
-  all_tasks <- obj$task_times()
-  
-  # loads the LAST task
-  my_task_id <- all_tasks[nrow(all_tasks), "task_id"]
-  
-  EM_alg_run_t <- obj$task_get(my_task_id)
-  
-  RF_obj <- EM_alg_run_t$result()
-  
-} else {
-  
-  RF_obj <- readRDS(file.path(RF_out_pth, "RF_obj.rds"))
-  
-}
+RF_obj <- readRDS(file.path(RF_out_pth, "RF_obj.rds"))
 
 
 # make predictions ------------------------------------------------------------
