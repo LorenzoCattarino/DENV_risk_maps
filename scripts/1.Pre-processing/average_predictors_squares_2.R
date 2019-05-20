@@ -6,7 +6,7 @@ options(didehpc.cluster = "fi--didemrchnb")
 my_resources <- c(
   file.path("R", "utility_functions.R"))
 
-my_pkgs <- "data.table"
+my_pkgs <- c("dplyr", "data.table")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -22,12 +22,21 @@ context::parallel_cluster_start(8, ctx)
 
 in_pt <- file.path("output", 
                    "env_variables",
-                   "tile_set_2_20km",
+                   "tile_set_20km",
                    "gadm")
 
 out_fl_nm <- "all_squares_env_var_0_1667_deg.rds"
 
 out_pt <- file.path("output", "env_variables")
+
+
+# load data -------------------------------------------------------------------
+
+
+mean_age_data <- read.csv(file.path("output",
+                                    "datasets",
+                                    "country_age_structure_mean.csv"),
+                          stringsAsFactors = FALSE)
 
 
 # pre processing -------------------------------------------------------------- 
@@ -55,5 +64,8 @@ all_sqr_covariates <- do.call("rbind", all_tiles)
 all_sqr_covariates$cell <- seq_len(nrow(all_sqr_covariates))
 
 all_sqr_covariates$log_pop_den <- log(1 + all_sqr_covariates$pop_den) 
+
+all_sqr_covariates <- inner_join(all_sqr_covariates, 
+                                 mean_age_data[, c("ID_0", "mean_age", "sd_age")])
 
 write_out_rds(all_sqr_covariates, out_pt, out_fl_nm)
