@@ -1,24 +1,16 @@
 # Estimate foi for each 20 km square of the dataset disaggregated from the entire original foi dataset
 
-options(didehpc.cluster = "fi--didemrchnb")
+library(ranger)
 
-my_resources <- c(
-  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
-  file.path("R", "utility_functions.R"))  
-
-my_pkgs <- "ranger"
-
-context::context_log_start()
-ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
+source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
+source(file.path("R", "utility_functions.R"))  
 
 
 # define parameters ----------------------------------------------------------- 
 
 
 parameters <- list(
-  dependent_variable = "FOI",
+  dependent_variable = "Z",
   no_predictors = 26)   
 
 aggr_dts_name <- "env_vars_20km.rds"
@@ -38,12 +30,6 @@ out_pth <- file.path("output",
                      "best_fit_models",
                      paste0("env_variables_", parameters$dependent_variable, "_fit"))
   
-  
-# start up -------------------------------------------------------------------- 
-
-
-context::context_load(ctx)
-
 
 # load data -------------------------------------------------------------------
 
