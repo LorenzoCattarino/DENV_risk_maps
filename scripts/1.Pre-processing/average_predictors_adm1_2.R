@@ -7,7 +7,7 @@ my_resources <- c(
   file.path("R", "prepare_datasets", "average_up.R"),
   file.path("R", "utility_functions.R"))
 
-my_pkgs <- "data.table"
+my_pkgs <- c("dplyr", "data.table")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -23,7 +23,7 @@ context::parallel_cluster_start(8, ctx)
 
 group_fields <- c("ID_0", "ID_1")
 
-in_pt <- file.path("output", "env_variables", "tile_set_2_adm1")
+in_pt <- file.path("output", "env_variables", "tile_set_adm1")
 
 altitude_var <- "altitude"
 fourier_transform_elem <- c("const_term",	"Re0",	"Im0",	"Re1",	"Im1")
