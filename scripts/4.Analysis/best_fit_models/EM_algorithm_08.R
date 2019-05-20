@@ -14,20 +14,15 @@ source(file.path("R", "plotting", "plot_RF_preds_vs_obs_by_cv_dataset.R"))
 source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
 source(file.path("R", "prepare_datasets", "calculate_wgt_corr.R"))
 source(file.path("R", "utility_functions.R"))
+source(file.path("R", "create_parameter_list.R"))
 
 
 # define parameters -----------------------------------------------------------  
 
 
-parameters <- list(
-  id = 1,
-  dependent_variable = "FOI",
-  pseudoAbs_value = -0.02,
-  no_predictors = 26,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1.6e6,
-  all_wgt = 1)   
+extra_prms <- list(id = 13,
+                   dependent_variable = "Z",
+                   no_predictors = 26)
 
 mes_vars <- c("admin", "square")
 
@@ -38,17 +33,29 @@ data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
 
 foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
-model_id <- parameters$id
-
 
 # define variables ------------------------------------------------------------
 
+
+parameters <- create_parameter_list(extra_params = extra_prms)
+
+model_id <- parameters$id
 
 var_to_fit <- parameters$dependent_variable
 
 psAbs_val <- parameters$pseudoAbs_value
 
 model_type <- paste0("model_", model_id)
+
+if(var_to_fit == "FOI" | var_to_fit == "Z") {
+  
+  pseudoAbs_value <- parameters$pseudoAbs_value[1]
+  
+} else {
+  
+  pseudoAbs_value <- parameters$pseudoAbs_value[2]
+  
+}
 
 in_path <- file.path("output",
                      "EM_algorithm",
@@ -107,13 +114,13 @@ for (j in seq_along(tags)) {
   
   dts_1 <- readRDS(file.path(in_path, dts_nm))
   
-  if(var_to_fit == "FOI"){
+  if(var_to_fit == "FOI" | var_to_fit == "Z"){
     
     dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 0] <- 0
     
   } else {
     
-    dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 1] <- psAbs_val
+    dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 1] <- pseudoAbs_value
     
   }
   
@@ -128,8 +135,6 @@ for (j in seq_along(tags)) {
   ret <- dplyr::left_join(all_av_preds_mlt, foi_data[, c("data_id", "new_weight")])
   
   fl_nm_av <- paste0("pred_vs_obs_plot_averages_", tag, ".png")
-  
-  #browser()
   
   df <- ret
   x <- "o_j"
