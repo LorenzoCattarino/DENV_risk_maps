@@ -1,44 +1,31 @@
 # Runs the EM algorithm on the entire original foi dataset
 
-options(didehpc.cluster = "fi--didemrchnb")
+library(ranger)
+library(dplyr)
+library(fields)
+library(ggplot2)
+library(weights)
+library(colorRamps)
+library(raster)
 
-CLUSTER <- FALSE
-
-my_resources <- c(
-  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
-  file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
-  file.path("R", "random_forest", "exp_max_algorithm.R"),
-  file.path("R", "plotting", "functions_for_plotting_raster_maps.R"),
-  file.path("R", "plotting", "generic_scatter_plot.R"),
-  file.path("R", "prepare_datasets", "calculate_wgt_corr.R"),
-  file.path("R", "utility_functions.R"))
-
-my_pkgs <- c("ranger", "dplyr", "fields", "ggplot2", "weights", "colorRamps", "raster")
-
-context::context_log_start()
-ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
+source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
+source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
+source(file.path("R", "random_forest", "exp_max_algorithm.R"))
+source(file.path("R", "plotting", "functions_for_plotting_raster_maps.R"))
+source(file.path("R", "plotting", "generic_scatter_plot.R"))
+source(file.path("R", "prepare_datasets", "calculate_wgt_corr.R"))
+source(file.path("R", "utility_functions.R"))
+source(file.path("R", "create_parameter_list.R"))
 
 
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  id = 1,
-  dependent_variable = "FOI",  
-  pseudoAbs_value = -0.02,
-  no_predictors = 26,
-  resample_grid_size = 20,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1.6e6,
-  foi_offset = 0.03,
-  no_trees = 500,
-  min_node_size = 20,
-  ranger_threds = NULL,
-  all_wgt = 1,
-  EM_iter = 10) 
+extra_prms <- list(id = 13,
+                   dependent_variable = "Z",  
+                   no_predictors = 26,
+                   ranger_threads = NULL,
+                   EM_iter = 10) 
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
@@ -60,6 +47,8 @@ extra_predictors <- NULL
 # define variables ------------------------------------------------------------
 
 
+parameters <- create_parameter_list(extra_params = extra_prms)
+
 model_id <- parameters$id
   
 var_to_fit <- parameters$dependent_variable
@@ -68,7 +57,15 @@ foi_offset <- parameters$foi_offset
 
 number_of_predictors <- parameters$no_predictors
 
-pseudoAbsence_value <- parameters$pseudoAbs_value
+if(var_to_fit == "FOI" | var_to_fit == "Z") {
+  
+  pseudoAbs_value <- parameters$pseudoAbs_value[1]
+  
+} else {
+  
+  pseudoAbs_value <- parameters$pseudoAbs_value[2]
+  
+}
 
 all_wgt <- parameters$all_wgt
 
@@ -112,21 +109,6 @@ sct_plt_pth <- file.path("figures",
                          "iteration_fits")
 
 
-# are you using the cluster? --------------------------------------------------  
-
-
-if (CLUSTER) {
-  
-  config <- didehpc::didehpc_config(template = "20Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
-
-} else {
-  
-  context::context_load(ctx)
-
-}
-
-
 # load data ------------------------------------------------------------------- 
 
 
@@ -158,13 +140,13 @@ map_col <- matlab.like(100)
 
 names(foi_data)[names(foi_data) == var_to_fit] <- "o_j"
 
-foi_data[foi_data$type == "pseudoAbsence", "o_j"] <- pseudoAbsence_value
+foi_data[foi_data$type == "pseudoAbsence", "o_j"] <- pseudoAbs_value
 
 foi_data$new_weight <- all_wgt
 pAbs_wgt <- get_sat_area_wgts(foi_data, parameters)
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
-if(var_to_fit == "FOI"){
+if(var_to_fit == "FOI" | var_to_fit == "Z"){
   
   foi_data[, "o_j"] <- foi_data[, "o_j"] + foi_offset
   
@@ -239,7 +221,7 @@ pxl_data_3 <- inner_join(pxl_data_3, foi_data[, c(grp_flds, "o_j")])
 # get pop weights -------------------------------------------------------------
 
 
-pxl_dts_grp <- pxl_data_3 %>% group_by_(.dots = grp_flds) 
+pxl_dts_grp <- pxl_data_3 %>% group_by(.dots = grp_flds) 
 
 aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
 
@@ -255,50 +237,21 @@ my_predictors <- predictor_rank$name[1:number_of_predictors]
 my_predictors <- c(my_predictors, extra_predictors)
 
 
-# submit job ------------------------------------------------------------------ 
+# run job --------------------------------------------------------------------- 
 
 
-if (CLUSTER) {
-  
-  EM_alg_run <- obj$enqueue(
-    exp_max_algorithm(
-      parms = parameters,
-      orig_dataset = foi_data,
-      pxl_dataset = pxl_data_3,
-      my_predictors = my_predictors, 
-      grp_flds = grp_flds,
-      map_col = map_col,
-      RF_obj_path = RF_out_pth,
-      RF_obj_name = out_md_nm,
-      diagn_tab_path = diag_t_pth, 
-      diagn_tab_name = diag_t_nm,
-      map_path = map_pth, 
-      sct_plt_path = sct_plt_pth,
-      train_dts_path = train_dts_pth, 
-      train_dts_name = tra_dts_nm,
-      adm_dataset = adm_covariates))
-  
-} else {
-  
-  EM_alg_run <- exp_max_algorithm(
-    parms = parameters,
-    orig_dataset = foi_data,
-    pxl_dataset = pxl_data_3, 
-    my_predictors = my_predictors, 
-    grp_flds = grp_flds,
-    map_col = map_col,
-    RF_obj_path = RF_out_pth,
-    RF_obj_name = out_md_nm,
-    diagn_tab_path = diag_t_pth, 
-    diagn_tab_name = diag_t_nm,
-    map_path = map_pth, 
-    sct_plt_path = sct_plt_pth,
-    train_dts_path = train_dts_pth, 
-    train_dts_name = tra_dts_nm,
-    adm_dataset = adm_covariates)
-  
-}
-
-if (!CLUSTER) {
-  context::parallel_cluster_stop()
-}
+EM_alg_run <- exp_max_algorithm(parms = parameters,
+                                orig_dataset = foi_data,
+                                pxl_dataset = pxl_data_3, 
+                                my_predictors = my_predictors, 
+                                grp_flds = grp_flds,
+                                map_col = map_col,
+                                RF_obj_path = RF_out_pth,
+                                RF_obj_name = out_md_nm,
+                                diagn_tab_path = diag_t_pth, 
+                                diagn_tab_name = diag_t_nm,
+                                map_path = map_pth, 
+                                sct_plt_path = sct_plt_pth,
+                                train_dts_path = train_dts_pth, 
+                                train_dts_name = tra_dts_nm,
+                                adm_dataset = adm_covariates)
