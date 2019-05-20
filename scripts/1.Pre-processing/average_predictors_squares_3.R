@@ -52,7 +52,7 @@ all_sqr_covariates_df <- as.data.frame(all_sqr_covariates)
 saveRDS(all_sqr_covariates_df, 
         file.path("output", 
                   "env_variables", 
-                  "all_squares_env_var_0_1667_deg_dis.rds"))
+                  "all_squares_env_var_0_1667_deg.rds"))
 
 
 # histogram -------------------------------------------------------------------
