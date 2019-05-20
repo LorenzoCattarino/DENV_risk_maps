@@ -34,7 +34,7 @@ save_plot(my_plot,
           12,
           8)
 
-foi_data_2$Z <- foi_data_2$FOI / foi_data_2$mean_age 
+foi_data_2$Z <- 35 * (foi_data_2$FOI / foi_data_2$mean_age)
 
 write_out_csv(foi_data_2, 
               file.path("output", "foi"), 
