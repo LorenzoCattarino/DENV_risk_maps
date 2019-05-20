@@ -25,6 +25,11 @@ adm_dataset <- read.csv(file.path("output",
   
 shp_fl_adm1 <- readOGR(file.path("data", "shapefiles", "gadm28_levels.shp"), "gadm28_adm1")
 
+mean_age_data <- read.csv(file.path("output",
+                                    "datasets",
+                                    "country_age_structure_mean.csv"),
+                          stringsAsFactors = FALSE)
+
 
 # calculate population density ------------------------------------------------
 
@@ -44,6 +49,8 @@ shp_pr@data <- shp_pr@data[!duplicated(shp_pr@data[, c("ID_0", "ID_1")]), ]
 ret <- inner_join(adm_dataset, shp_pr@data[, c("ID_0", "ID_1", "Shape_Area")], by = c("ID_0", "ID_1"))
 
 ret$log_pop_den <- log(1 + (ret$population / ret$Shape_Area))  
+
+ret <- inner_join(ret, mean_age_data[, c("ID_0", "mean_age", "sd_age")])
 
 
 # save ------------------------------------------------------------------------
