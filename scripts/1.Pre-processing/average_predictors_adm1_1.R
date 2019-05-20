@@ -39,7 +39,7 @@ resample <- FALSE
 
 new_res <- 0
 
-out_pt <- file.path("output", "env_variables", "tile_set_2_adm1")
+out_pt <- file.path("output", "env_variables", "tile_set_adm1")
 
 
 # are you using the cluster? --------------------------------------------------  
