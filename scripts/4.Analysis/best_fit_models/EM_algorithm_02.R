@@ -1,29 +1,19 @@
 # Fits RF to all original foi data (using fixed RF parameters) 
 
-options(didehpc.cluster = "fi--didemrchnb")
+library(ranger)
 
-my_resources <- c(
-  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
-  file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
-  file.path("R", "utility_functions.R"),
-  file.path("R", "create_parameter_list.R"))
-
-my_pkgs <- "ranger"
-
-context::context_log_start()
-ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
+source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
+source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
+source(file.path("R", "utility_functions.R"))
+source(file.path("R", "create_parameter_list.R"))
 
 
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(dependent_variable = "FOI",
-                   pseudoAbs_value = -0.02,
+extra_prms <- list(dependent_variable = "Z",
                    no_predictors = 26,
-                   foi_offset = 0.03,
-                   ranger_threds = NULL)
+                   ranger_threads = NULL)
 
 out_name <- "all_data.rds"  
 
@@ -47,12 +37,6 @@ out_pth <- file.path("output",
                      paste0("model_objects_", var_to_fit, "_fit"))
 
 
-# start up -------------------------------------------------------------------- 
-
-
-context::context_load(ctx)
-
-
 # load data ------------------------------------------------------------------- 
 
 
@@ -69,8 +53,18 @@ predictor_rank <- read.csv(file.path("output",
 # pre processing -------------------------------------------------------------- 
 
 
+if(var_to_fit == "FOI" | var_to_fit == "Z") {
+  
+  pseudoAbs_value <- parameters$pseudoAbs_value[1]
+  
+} else {
+  
+  pseudoAbs_value <- parameters$pseudoAbs_value[2]
+  
+}
+
 # set pseudo absence value
-foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- parameters$pseudoAbs_value
+foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- pseudoAbs_value
 
 # assign weights
 foi_data$new_weight <- parameters$all_wgt
@@ -80,7 +74,7 @@ foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 my_predictors <- c(my_predictors, extra_predictors)
 
-if(var_to_fit == "FOI"){
+if(var_to_fit == "FOI" | var_to_fit == "Z"){
   
   foi_data[, var_to_fit] <- foi_data[, var_to_fit] + foi_offset
 
