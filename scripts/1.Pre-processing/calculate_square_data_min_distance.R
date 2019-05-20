@@ -1,4 +1,7 @@
 
+# calculate minimum distance between each square and the data 
+# and attach it to the square dataset
+
 library(geosphere) # for distm()
 library(ggplot2)
 
