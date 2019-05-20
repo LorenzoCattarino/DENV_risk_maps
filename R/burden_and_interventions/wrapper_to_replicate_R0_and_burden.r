@@ -67,7 +67,7 @@ wrapper_to_replicate_R0_and_burden <- function(i,
   
   red_preds <- preds * scaling_factor
   
-  if(var_to_fit == "FOI"){
+  if(var_to_fit == "FOI" | var_to_fit == "Z"){
     
     red_trans <- red_preds 
     
@@ -125,7 +125,7 @@ wrapper_to_replicate_R0_and_burden <- function(i,
   Cases <- Cases_pc * N
   HCases <- Hosp_cases_pc * N 
   
-  if(var_to_fit == "FOI"){
+  if(var_to_fit == "FOI" | var_to_fit == "Z"){
     
     out <- rbind(red_preds, red_trans_1, red_trans_2, red_trans_3, Infections, Cases, HCases)
     rownames(out) <- vars
