@@ -4,10 +4,9 @@
 #
 # 1) R0 or (FOI) 
 # 2) corresponding FOI or (R0) (depending on the response originally fitted)
-# 3) number of cases 
-# 4) number of infections
-# 5) incidence of infections (per 1000)
-# 6) incidence of cases (per 1000)
+# 3) number of infections
+# 4) number of cases
+# 5) number of hospitalized cases  
 
 
 options(didehpc.cluster = "fi--didemrchnb")
@@ -37,7 +36,6 @@ extra_prms <- list(id = 13,
                    dependent_variable = "Z",
                    fit_type = "best",
                    parallel_2 = TRUE,
-                   phi_set_id_tag = "phi_set_id",
                    base_info = c("cell", 
                                  "latitude", 
                                  "longitude", 
@@ -65,8 +63,6 @@ out_path <- file.path("output",
 no_R0_assumptions <- 4
 
 sf_vals <- parameters$sf_vals
-
-phi_set_id_tag <- parameters$phi_set_id_tag
 
 
 # load data ------------------------------------------------------------------- 
@@ -132,7 +128,7 @@ sqr_preds <- as.matrix(sqr_preds)
 phi_set_id <- seq_len(no_R0_assumptions)
 
 fct_c <- setNames(expand.grid(phi_set_id, sf_vals),
-                  nm = c(phi_set_id_tag, "scaling_factor"))
+                  nm = c("phi_set_id", "scaling_factor"))
 
 fct_c <- cbind(id = seq_len(nrow(fct_c)), fct_c)
 
