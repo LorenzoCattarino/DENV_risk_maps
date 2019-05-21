@@ -1,5 +1,5 @@
 
-options(didehpc.cluster = "fi--didemrchnb")
+options(didehpc.cluster = "fi--dideclusthn")
 
 CLUSTER <- TRUE
 
@@ -22,8 +22,7 @@ ctx <- context::context_save(path = "context",
 
 
 extra_prms <- list(
-  var_to_fit = "FOI",
-  pseudoAbs_value = -0.02,
+  var_to_fit = "Z",
   no_reps = 10, 
   addition = TRUE,
   parallel_2 = TRUE,
@@ -44,7 +43,7 @@ plot_out_path <- file.path("figures",
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "12and16Core")
+  config <- didehpc::didehpc_config(template = "8Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
