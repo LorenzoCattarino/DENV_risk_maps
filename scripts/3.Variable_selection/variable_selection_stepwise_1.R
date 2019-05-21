@@ -1,5 +1,5 @@
 
-options(didehpc.cluster = "fi--didemrchnb")
+options(didehpc.cluster = "fi--dideclusthn")
 
 CLUSTER <- TRUE
 
@@ -22,8 +22,7 @@ ctx <- context::context_save(path = "context",
 
 
 extra_prms <- list(
-  var_to_fit = "FOI",
-  pseudoAbs_value = -0.02,
+  var_to_fit = "Z",
   no_reps = 10, 
   addition = TRUE,
   parallel_2 = TRUE)
@@ -46,7 +45,7 @@ extra_predictors <- "log_pop_den"
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "12and16Core")
+  config <- didehpc::didehpc_config(template = "8Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -65,6 +64,8 @@ parameters <- create_parameter_list(extra_params = extra_prms)
 my_dir <- paste0("grid_size_", parameters$grid_size)
 
 var_to_fit <- parameters$var_to_fit
+
+pseudoAbs_value <- parameters$pseudoAbs_value[var_to_fit]
 
 
 # load data -------------------------------------------------------------------
@@ -91,7 +92,7 @@ all_FT_names <- paste(all_combs$Var1, all_combs$Var2, sep = "_")
 
 all_predictors <- c(altitude_var_names, all_FT_names, extra_predictors)
 
-foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- parameters$pseudoAbs_value
+foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- pseudoAbs_value
 
 foi_data$new_weight <- parameters$all_wgt
 
