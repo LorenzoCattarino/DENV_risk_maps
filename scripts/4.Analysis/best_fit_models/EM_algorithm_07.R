@@ -21,7 +21,6 @@ source(file.path("R", "create_parameter_list.R"))
 
 extra_prms <- list(id = 13,
                    dependent_variable = "Z",
-                   pseudoAbs_value = -0.02,
                    no_predictors = 26)   
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
@@ -33,8 +32,6 @@ out_name <- "all_scale_predictions.rds"
 foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
 covariate_dts_nm <- "env_vars_20km_2.rds"
-
-extra_predictors <- NULL
 
 
 # define variables ------------------------------------------------------------
@@ -48,15 +45,7 @@ var_to_fit <- parameters$dependent_variable
   
 foi_offset <- parameters$foi_offset
 
-if(var_to_fit == "FOI" | var_to_fit == "Z") {
-  
-  pseudoAbs_value <- parameters$pseudoAbs_value[1]
-  
-} else {
-  
-  pseudoAbs_value <- parameters$pseudoAbs_value[2]
-  
-}
+pseudoAbs_value <- parameters$pseudoAbs_value[var_to_fit]
 
 model_type <- paste0("model_", model_id)
 
@@ -130,16 +119,7 @@ NA_pixel_tile_ids <- NA_pixel_tiles$tile_id
 tile_ids_2 <- tile_ids[!tile_ids %in% NA_pixel_tile_ids]  
 
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
-my_predictors <- c(my_predictors, extra_predictors)
 
-
-#### added on 17052019 - but it needs to go before (e.g. to assemble_foi_data_set_x)
-mean_age_data <- read.csv(file.path("output",
-                                    "datasets",
-                                    "country_age_structure_mean.csv"),
-                          stringsAsFactors = FALSE)
-adm_dataset <- inner_join(adm_dataset, mean_age_data[, c("ID_0", "mean_age", "sd_age")])
-###
 
 # run ------------------------------------------------------------------------- 
 
@@ -157,20 +137,18 @@ if(var_to_fit == "FOI"){
 
 }
 
+if(var_to_fit == "Z"){
+  
+  foi_dataset$o_j <- (foi_dataset$o_j * foi_dataset$mean_age) / 35
+  adm_pred <- ((adm_pred - foi_offset) * adm_dataset$mean_age) / 35
+  all_sqr_predictions <- ((all_sqr_predictions - foi_offset) * sqr_dataset$mean_age) / 35
+
+}
+
 sqr_preds <- all_sqr_predictions
 
 sqr_dataset_2 <- cbind(sqr_dataset,
                        square = sqr_preds)
-
-sqr_dataset_2 <- inner_join(sqr_dataset_2, mean_age_data[, c("ID_0", "mean_age", "sd_age")])
-
-if(var_to_fit == "Z"){
-  
-  foi_dataset$o_j <- foi_dataset$o_j * foi_dataset$mean_age
-  adm_pred <- (adm_pred - foi_offset) * adm_dataset$mean_age
-  sqr_dataset_2$square <- (sqr_dataset_2$square - foi_offset) * sqr_dataset_2$mean_age
-
-}
 
 adm_dataset_2$admin <- adm_pred
   
