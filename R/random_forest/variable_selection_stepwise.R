@@ -30,7 +30,7 @@ stepwise_addition_boot <- function(i,
   }
   
   y_var <- parms$var_to_fit
-  psAb_val <- parms$pseudoAbs_value
+  psAb_val <- parms$pseudoAbs_value[y_var]
   no_reps <- parms$no_reps
     
   ID_sample <- i
@@ -244,8 +244,8 @@ stepwise_removal_boot <- function(i,
   
   stepwise_dir <- "removal"
   
-  psAb_val <- parms$pseudoAbs_value
   y_var <- parms$var_to_fit
+  psAb_val <- parms$pseudoAbs_value[y_var]
   
   ID_sample <- i  
   
