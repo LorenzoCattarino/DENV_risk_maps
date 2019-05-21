@@ -14,8 +14,6 @@ parameters <- list(id = 13,
                    dependent_variable = "Z",
                    no_predictors = 26) 
 
-extra_predictors <- NULL
-
 
 # define variables ------------------------------------------------------------
 
@@ -62,8 +60,6 @@ predictor_rank <- read.csv(file.path("output",
 
 
 my_predictors <- predictor_rank$name[1:number_of_predictors]
-
-my_predictors <- c(my_predictors, extra_predictors)
 
 
 # get results ----------------------------------------------------------------- 
