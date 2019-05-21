@@ -41,8 +41,6 @@ foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
 pxl_dts_name <- "covariates_and_foi_20km.rds"
 
-extra_predictors <- NULL
-
 
 # define variables ------------------------------------------------------------
 
@@ -57,15 +55,7 @@ foi_offset <- parameters$foi_offset
 
 number_of_predictors <- parameters$no_predictors
 
-if(var_to_fit == "FOI" | var_to_fit == "Z") {
-  
-  pseudoAbs_value <- parameters$pseudoAbs_value[1]
-  
-} else {
-  
-  pseudoAbs_value <- parameters$pseudoAbs_value[2]
-  
-}
+pseudoAbs_value <- parameters$pseudoAbs_value[var_to_fit]
 
 all_wgt <- parameters$all_wgt
 
@@ -234,7 +224,6 @@ pxl_data_3$pop_weight <- pxl_data_3$population / pxl_data_3$pop_sqr_sum
 
 
 my_predictors <- predictor_rank$name[1:number_of_predictors]
-my_predictors <- c(my_predictors, extra_predictors)
 
 
 # run job --------------------------------------------------------------------- 
