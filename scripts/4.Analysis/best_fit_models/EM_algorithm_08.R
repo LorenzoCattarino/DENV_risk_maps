@@ -47,16 +47,8 @@ psAbs_val <- parameters$pseudoAbs_value
 
 model_type <- paste0("model_", model_id)
 
-if(var_to_fit == "FOI" | var_to_fit == "Z") {
+pseudoAbs_value <- parameters$pseudoAbs_value[var_to_fit]
   
-  pseudoAbs_value <- parameters$pseudoAbs_value[1]
-  
-} else {
-  
-  pseudoAbs_value <- parameters$pseudoAbs_value[2]
-  
-}
-
 in_path <- file.path("output",
                      "EM_algorithm",
                      "best_fit_models",
