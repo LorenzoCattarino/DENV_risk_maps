@@ -19,8 +19,6 @@ out_fl_nm <- "covariates_and_foi_20km.rds"
 
 model_obj_nm <- "all_data.rds"
 
-extra_predictors <- NULL
-
 
 # define variables ------------------------------------------------------------
 
@@ -57,7 +55,6 @@ predictor_rank <- read.csv(file.path("output",
 
 
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
-my_predictors <- c(my_predictors, extra_predictors)
 
 
 # submit job ------------------------------------------------------------------ 
