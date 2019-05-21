@@ -19,8 +19,6 @@ out_name <- "all_data.rds"
 
 foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
-extra_predictors <- NULL
-
 
 # define variables ------------------------------------------------------------
 
@@ -53,15 +51,7 @@ predictor_rank <- read.csv(file.path("output",
 # pre processing -------------------------------------------------------------- 
 
 
-if(var_to_fit == "FOI" | var_to_fit == "Z") {
-  
-  pseudoAbs_value <- parameters$pseudoAbs_value[1]
-  
-} else {
-  
-  pseudoAbs_value <- parameters$pseudoAbs_value[2]
-  
-}
+pseudoAbs_value <- parameters$pseudoAbs_value[var_to_fit]
 
 # set pseudo absence value
 foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- pseudoAbs_value
@@ -72,7 +62,6 @@ pAbs_wgt <- get_sat_area_wgts(foi_data, parameters)
 foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
-my_predictors <- c(my_predictors, extra_predictors)
 
 if(var_to_fit == "FOI" | var_to_fit == "Z"){
   
