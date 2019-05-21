@@ -19,8 +19,6 @@ RF_mod_name <- "RF_obj.rds"
 
 base_info <- c("cell", "latitude", "longitude", "population", "ID_0", "ID_1", "ID_2")
 
-extra_predictors <- NULL
-
 
 # define variables ------------------------------------------------------------
 
@@ -62,7 +60,6 @@ predictor_rank <- read.csv(file.path("output",
 
 
 my_predictors <- predictor_rank$name[1:parameters$no_predictors]
-my_predictors <- c(my_predictors, extra_predictors)
 
 
 # submit one job -------------------------------------------------------------- 
@@ -78,24 +75,14 @@ if(var_to_fit == "FOI"){
 
 }
 
-#### added on 17052019 - but it needs to go before (e.g. to assemble_foi_data_set_x)
-mean_age_data <- read.csv(file.path("output",
-                                    "datasets",
-                                    "country_age_structure_mean.csv"),
-                          stringsAsFactors = FALSE)
-all_sqr_covariates <- cbind(all_sqr_covariates, p_i = p_i)
-library(dplyr)
-all_sqr_covariates <- inner_join(all_sqr_covariates, mean_age_data[, c("ID_0", "mean_age", "sd_age")])
-####
-
 if(var_to_fit == "Z"){
   
-  all_sqr_covariates$p_i <- (all_sqr_covariates$p_i - foi_offset) * all_sqr_covariates$mean_age
+  p_i <- ((p_i - foi_offset) * all_sqr_covariates$mean_age) / 35
   
 }
 
-all_sqr_covariates$p_i[all_sqr_covariates$p_i < 0] <- 0
+p_i[p_i < 0] <- 0
 
-world_sqr_preds <- cbind(all_sqr_covariates[, c(base_info, "mean_age", "sd_age")], best = all_sqr_covariates$p_i)
+world_sqr_preds <- cbind(all_sqr_covariates[, base_info], best = p_i)
 
 write_out_rds(world_sqr_preds, out_pt, out_fl_nm)  
