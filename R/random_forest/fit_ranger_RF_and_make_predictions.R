@@ -77,7 +77,7 @@ fit_predict_and_error <- function(parms,
   
   valid_points <- all_points[!all_points %in% unique_train_points]
   
-  y.data <- foi_data$FOI 
+  y.data <- foi_data[, y_var] 
   
   my_weights <- foi_data$new_weight
   
