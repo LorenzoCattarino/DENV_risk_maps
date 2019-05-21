@@ -18,8 +18,6 @@ wrapper_to_multi_factor_R0_and_burden <- function(x,
                                                   var_to_fit){
 
   
-  # var_names <- c("response_r", "transformed_r", "I_num", "C_num", "H_num")
-  
   fit_type <- parms$fit_type
   parallel_2 <- parms$parallel_2
   base_info <- parms$base_info
