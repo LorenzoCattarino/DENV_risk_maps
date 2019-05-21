@@ -24,16 +24,8 @@ EM_full_routine <- function(x,
   no_trees <- parms$no_trees
   min_node_size <- parms$min_node_size
   
-  if(var_to_fit == "FOI") {
-    
-    psAbs <- parms$pseudoAbs_value[1]
-    
-  } else {
-    
-    psAbs <- parms$pseudoAbs_value[2]
-    
-  }
-  
+  psAbs <- parms$pseudoAbs_value[var_to_fit]
+
   cat("pseudo absence value =", psAbs, "\n")
   
   foi_offset <- parms$foi_offset
