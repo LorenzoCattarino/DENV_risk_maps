@@ -1,4 +1,4 @@
-wrapper_over_factor_combs <- function(x, predictor_rank){
+wrapper_over_factor_combs <- function(x, predictor_rank, parms){
   
   model_type <- paste0("model_", x$exp_id)
   no_pred <- x$no_pred
@@ -35,6 +35,7 @@ wrapper_over_factor_combs <- function(x, predictor_rank){
   my_predictors <- predictor_rank$name[1:no_pred]
   
   wrapper_over_bsamples(i = single_job_id,
+                        parms = parms,
                         RF_obj_pt = model_in_pt,
                         tr_dts_pt = train_dts_in_pt,
                         par_dep_pt = pdp_out_pt,
@@ -44,6 +45,7 @@ wrapper_over_factor_combs <- function(x, predictor_rank){
 }
 
 wrapper_over_bsamples <- function(i, 
+                                  parms,
                                   RF_obj_pt, 
                                   tr_dts_pt, 
                                   par_dep_pt, 
@@ -52,10 +54,12 @@ wrapper_over_bsamples <- function(i,
   
   nm <- paste0("sample_", i, ".rds")
 
-  calculate_par_dep(nm,
-                    nm,
-                    nm,
-                    nm,
+  parms$RF_obj_name <- nm
+  parms$tr_dts_name <- nm
+  parms$par_dep_name <- nm
+  parms$var_imp_name <- nm
+  
+  calculate_par_dep(parms,
                     RF_obj_pt,
                     tr_dts_pt,
                     par_dep_pt,
@@ -64,10 +68,7 @@ wrapper_over_bsamples <- function(i,
   
 }
   
-calculate_par_dep <- function(RF_obj_name,
-                              tr_dts_name,
-                              par_dep_name,
-                              var_imp_name,
+calculate_par_dep <- function(parms,
                               RF_obj_path, 
                               tr_dts_path,
                               par_dep_path,
@@ -75,6 +76,13 @@ calculate_par_dep <- function(RF_obj_name,
                               variables) {
   
   # browser()
+  
+  RF_obj_name <- parms$RF_obj_name                              
+  tr_dts_name <- parms$tr_dts_name
+  par_dep_name <- parms$par_dep_name
+  var_imp_name <- parms$var_imp_name
+  
+  parallel_2 <- parms$parallel_2
   
   RF_obj_f_path <- file.path(RF_obj_path, RF_obj_name)
   tr_dts_f_path <- file.path(tr_dts_path, tr_dts_name)
@@ -89,7 +97,7 @@ calculate_par_dep <- function(RF_obj_name,
     partial(pred.var = i, ...) 
   }
   
-  pdps <- lapply(variables, helper, object = RF_obj, train = dat, parallel = FALSE)
+  pdps <- lapply(variables, helper, object = RF_obj, train = dat, parallel = parallel_2)
     
   write_out_rds(pdps, par_dep_path, par_dep_name)
   write_out_rds(var_importances, var_imp_path, var_imp_name)
