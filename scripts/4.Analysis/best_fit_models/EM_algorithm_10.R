@@ -1,37 +1,34 @@
 # extract partial dependence information and 
 # make partial dependence plots
 
-options(didehpc.cluster = "fi--didemrchnb")
+library(ggplot2)
 
-my_resources <- c(
-  file.path("R", "random_forest", "partial_dependence_plots_pdp.R"),
-  file.path("R", "utility_functions.R"))
-
-my_pkgs <- c("ggplot2")
-
-context::context_log_start()
-ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
-
-context::context_load(ctx)
+source(file.path("R", "random_forest", "partial_dependence_plots_pdp.R"))
+source(file.path("R", "utility_functions.R"))
+source(file.path("R", "create_parameter_list.R"))
 
 
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  id = 12,
-  no_predictors = 26)   
-
-year.i <- 2007
-year.f <- 2014
-ppyear <- 64
+extra_prms <- list(id = 13,
+                   no_predictors = 26,
+                   year.i = 2007,
+                   year.f = 2014,
+                   ppyear = 64)   
 
 
 # define variables ------------------------------------------------------------
 
 
+parameters <- create_parameter_list(extra_params = extra_prms)
+
+year.i <- parameters$year.i
+
+year.f <- parameters$year.f
+
+ppyear <- parameters$ppyear
+  
 model_type <- paste0("model_", parameters$id)
 
 pdp_pt <- file.path("output",
