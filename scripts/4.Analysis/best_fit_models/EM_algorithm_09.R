@@ -1,15 +1,15 @@
 # calculate the partial depence of the model function on each explanatory variable
 
-options(didehpc.cluster = "fi--dideclusthn")
+options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "random_forest", "partial_dependence_plots_pdp.R"),
   file.path("R", "utility_functions.R"),
   file.path("R", "create_parameter_list.R"))
 
-my_pkgs <- c("ranger", "pdp")
+my_pkgs <- c("ranger", "pdp", "foreach")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -24,8 +24,8 @@ extra_prms <- list(id = 13,
                    no_predictors = 26,
                    RF_obj_name = "RF_obj.rds",
                    tr_dts_name = "train_dts.rds",
-                   par_dep_nm = "par_dep.rds",
-                   var_imp_nm = "var_imp.rds",
+                   par_dep_name = "par_dep.rds",
+                   var_imp_name = "var_imp.rds",
                    parallel_2 = TRUE)
 
 
@@ -34,12 +34,13 @@ extra_prms <- list(id = 13,
 
 if (CLUSTER) {
   
-  obj <- didehpc::queue_didehpc(ctx)
+  config <- didehpc::didehpc_config(template = "16Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
   
   context::context_load(ctx)
-  
+  context::parallel_cluster_start(8, ctx)
 }
 
 
