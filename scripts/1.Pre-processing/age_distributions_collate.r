@@ -47,6 +47,8 @@ country_border_shp_fl <- rgdal::readOGR(dsn = file.path("data",
 
 birth_rates[, br_col_names[1]] <- birth_rates[, br_col_names[1]] * 1000
 
+birth_rates[, br_col_names[2]] <- birth_rates[, br_col_names[2]] / 1000
+
 numeric_columns <- grep("band", names(age_struct_data), value = TRUE)
 
 numeric_columns <- numeric_columns[!numeric_columns %in% c("band_80_99", "band_85_99", "band_100_plus")]
