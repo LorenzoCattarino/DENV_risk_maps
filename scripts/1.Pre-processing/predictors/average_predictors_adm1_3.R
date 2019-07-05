@@ -20,14 +20,14 @@ out_pt <- file.path("output", "env_variables")
 
 adm_dataset <- read.csv(file.path("output",
                                   "env_variables",
-                                  "All_adm1_env_var.csv"),
+                                  "all_adm1_env_var.csv"),
                         stringsAsFactors = FALSE)
   
 shp_fl_adm1 <- readOGR(file.path("data", "shapefiles", "gadm28_levels.shp"), "gadm28_adm1")
 
-mean_age_data <- read.csv(file.path("output",
+age_struct_data <- read.csv(file.path("output",
                                     "datasets",
-                                    "country_age_structure_mean.csv"),
+                                    "country_age_structure.csv"),
                           stringsAsFactors = FALSE)
 
 
@@ -50,7 +50,7 @@ ret <- inner_join(adm_dataset, shp_pr@data[, c("ID_0", "ID_1", "Shape_Area")], b
 
 ret$log_pop_den <- log(1 + (ret$population / ret$Shape_Area))  
 
-ret <- inner_join(ret, mean_age_data[, c("ID_0", "mean_age", "sd_age")])
+ret <- inner_join(ret, age_struct_data[, c("ID_0", "birth_rate", "mean_age", "sd_age")])
 
 
 # save ------------------------------------------------------------------------
