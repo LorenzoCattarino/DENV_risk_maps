@@ -1,5 +1,5 @@
 
-options(didehpc.cluster = "fi--dideclusthn")
+options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
 
@@ -31,11 +31,11 @@ extra_prms <- list(
 
 table_out_path <- file.path("output", 
                             "variable_selection", 
-                            "stepwise_v3")
+                            "stepwise_v4")
 
 plot_out_path <- file.path("figures", 
                            "variable_selection", 
-                           "stepwise_v3")
+                           "stepwise_v4")
 
 
 # rebuild the queue object? --------------------------------------------------- 
@@ -43,7 +43,7 @@ plot_out_path <- file.path("figures",
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "8Core")
+  config <- didehpc::didehpc_config(template = "12and16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {

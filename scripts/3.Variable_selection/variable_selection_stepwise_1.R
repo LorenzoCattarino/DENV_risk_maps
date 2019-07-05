@@ -1,5 +1,5 @@
 
-options(didehpc.cluster = "fi--dideclusthn")
+options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
 
@@ -29,7 +29,7 @@ extra_prms <- list(
 
 out_path <- file.path("output", 
                       "variable_selection", 
-                      "stepwise_v3")
+                      "stepwise_v4")
 
 altitude_var_names <- "altitude"
 
@@ -45,7 +45,7 @@ extra_predictors <- "log_pop_den"
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "8Core")
+  config <- didehpc::didehpc_config(template = "12and16Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
