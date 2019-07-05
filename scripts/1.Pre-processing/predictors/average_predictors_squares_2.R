@@ -33,9 +33,9 @@ out_pt <- file.path("output", "env_variables")
 # load data -------------------------------------------------------------------
 
 
-mean_age_data <- read.csv(file.path("output",
+age_struct_data <- read.csv(file.path("output",
                                     "datasets",
-                                    "country_age_structure_mean.csv"),
+                                    "country_age_structure.csv"),
                           stringsAsFactors = FALSE)
 
 
@@ -66,6 +66,6 @@ all_sqr_covariates$cell <- seq_len(nrow(all_sqr_covariates))
 all_sqr_covariates$log_pop_den <- log(1 + all_sqr_covariates$pop_den) 
 
 all_sqr_covariates <- inner_join(all_sqr_covariates, 
-                                 mean_age_data[, c("ID_0", "mean_age", "sd_age")])
+                                 age_struct_data[, c("ID_0", "birth_rate", "mean_age", "sd_age")])
 
 write_out_rds(all_sqr_covariates, out_pt, out_fl_nm)
