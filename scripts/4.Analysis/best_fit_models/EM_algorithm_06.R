@@ -5,18 +5,21 @@ library(ranger)
 
 source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
 source(file.path("R", "utility_functions.R"))  
+source(file.path("R", "create_parameter_list.R"))
 
 
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(id = 13,
+extra_prms <- list(id = 14,
                    dependent_variable = "Z",
                    no_predictors = 26) 
 
 
 # define variables ------------------------------------------------------------
 
+
+parameters <- create_parameter_list(extra_params = extra_prms)
 
 model_id <- parameters$id
 
@@ -39,6 +42,8 @@ RF_out_pth <- file.path("output",
                         model_type,
                         "optimized_model_objects")
 
+covariates_dir <- parameters$covariates_dir
+
 
 # load data -------------------------------------------------------------------
 
@@ -51,7 +56,7 @@ pxl_data_covariates <- readRDS(file.path("output",
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
-                                     "stepwise_v3",
+                                     covariates_dir,
                                      "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
