@@ -21,14 +21,12 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(
-  var_to_fit = "Z",
-  addition = FALSE,
-  parallel_2 = TRUE)
-
-out_path <- file.path("output", 
-                      "variable_selection", 
-                      "stepwise_v4")
+extra_prms <- list(var_to_fit = "FOI",
+                   addition = FALSE,
+                   parallel_2 = TRUE,
+                   stepwise_exp_id = 5,
+                   extra_predictors = c("log_pop_den", 
+                                        "birth_rate"))
 
 altitude_var_names <- "altitude"
 
@@ -36,15 +34,13 @@ fourier_transform_elements <- c("const_term",	"Re0",	"Im0",	"Re1",	"Im1")
 
 FTs_data_names <- c("DayTemp", "EVI", "MIR", "NightTemp", "RFE")
 
-extra_predictors <- "log_pop_den"
-
 
 # are you using the cluster? -------------------------------------------------- 
 
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "12and16Core")
+  config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -65,6 +61,14 @@ my_dir <- paste0("grid_size_", parameters$grid_size)
 var_to_fit <- parameters$var_to_fit
 
 pseudoAbs_value <- parameters$pseudoAbs_value[var_to_fit]
+
+stepwise_exp_dir <- paste0("stepwise_v", parameters$stepwise_exp_id)
+
+out_path <- file.path("output", 
+                      "variable_selection", 
+                      stepwise_exp_dir)
+
+extra_predictors <- parameters$extra_predictors
 
 
 # load data -------------------------------------------------------------------
