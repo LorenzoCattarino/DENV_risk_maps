@@ -21,6 +21,7 @@ create_parameter_list <- function(grid_size = 5,
                                                       R0_3 = 0.5,
                                                       Z = -0.02),
                                   foi_offset = 0.03,
+                                  covariates_dir = "stepwise_v4",
                                   extra_params = NULL) {
   
   pm_list <- list()
@@ -44,6 +45,7 @@ create_parameter_list <- function(grid_size = 5,
   pm_list$all_wgt <- all_wgt
   pm_list$pseudoAbs_value <- pseudoAbs_value
   pm_list$foi_offset <- foi_offset
+  pm_list$covariates_dir <- covariates_dir
   
   c(pm_list, extra_params)
    
