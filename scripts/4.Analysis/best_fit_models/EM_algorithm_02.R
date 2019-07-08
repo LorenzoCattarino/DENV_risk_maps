@@ -34,6 +34,8 @@ out_pth <- file.path("output",
                      "best_fit_models", 
                      paste0("model_objects_", var_to_fit, "_fit"))
 
+covariates_dir <- parameters$covariates_dir
+
 
 # load data ------------------------------------------------------------------- 
 
@@ -43,7 +45,7 @@ foi_data <- read.csv(file.path("output", "foi", foi_dts_nm),
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
-                                     "stepwise_v3",
+                                     covariates_dir,
                                      "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
