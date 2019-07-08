@@ -11,13 +11,20 @@ source(file.path("R", "create_parameter_list.R"))
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 13,
+extra_prms <- list(id = 14,
                    dependent_variable = "Z",
-                   no_predictors = 26)   
+                   no_predictors = 26,
+                   base_info = c("cell", 
+                                 "latitude", 
+                                 "longitude", 
+                                 "population", 
+                                 "ID_0", 
+                                 "ID_1", 
+                                 "ID_2"))   
 
 RF_mod_name <- "RF_obj.rds"
 
-base_info <- c("cell", "latitude", "longitude", "population", "ID_0", "ID_1", "ID_2")
+out_fl_nm <- "response.rds"
 
 
 # define variables ------------------------------------------------------------
@@ -33,7 +40,9 @@ foi_offset <- parameters$foi_offset
 
 out_pt <- file.path("output", "predictions_world", "best_fit_models", model_type)
   
-out_fl_nm <- "response.rds"
+base_info <- parameters$base_info
+
+covariates_dir <- parameters$covariates_dir
 
 
 # load data ------------------------------------------------------------------- 
@@ -51,7 +60,7 @@ RF_obj_path <- file.path("output",
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
-                                     "stepwise_v3",
+                                     covariates_dir,
                                      "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
@@ -77,7 +86,7 @@ if(var_to_fit == "FOI"){
 
 if(var_to_fit == "Z"){
   
-  p_i <- ((p_i - foi_offset) * all_sqr_covariates$mean_age) / 35
+  p_i <- (p_i - foi_offset) * all_sqr_covariates$birth_rate * 35
   
 }
 
