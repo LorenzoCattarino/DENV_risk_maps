@@ -61,14 +61,17 @@ lm_eqn <- function(df, y, x){
   frmla <- as.formula(paste0(y, " ~ ", x, " - 1"))
   m <- lm(frmla, df)
   
-  #browser()
+  # browser()
   
   # calculates R2
   r2 <- 1 - crossprod(residuals(m)) / crossprod(df[,y] - mean(df[,y]))
   #r2 <- summary(m)$r.squared # R 
   
+  model_slope <- as.numeric(coef(m))
+  
   eq <- substitute(italic(y) == b %.% italic(x)*","~~italic(R)^2~"="~r2, 
-                   list(b = format(coef(m), digits = 4), 
+                   list(b = format(model_slope, digits = 4), 
                         r2 = format(r2, digits = 4)))
+  
   as.character(as.expression(eq))                 
 }
