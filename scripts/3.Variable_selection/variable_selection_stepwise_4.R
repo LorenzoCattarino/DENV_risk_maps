@@ -21,22 +21,14 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(
-  var_to_fit = "Z",
-  addition = FALSE,
-  parallel_2 = TRUE)
+extra_prms <- list(var_to_fit = "FOI",
+                   addition = FALSE,
+                   parallel_2 = TRUE,
+                   stepwise_exp_id = 5)
 
 out_fig_name <- "Frequency_of_the_numbers_of_selected_preds.png"
 
 out_tab_name <- "predictor_rank.csv"
-
-out_fig_path <- file.path("figures", 
-                          "variable_selection", 
-                          "stepwise_v4")
-
-out_tab_path <- file.path("output", 
-                          "variable_selection", 
-                          "stepwise_v4")
 
 
 # rebuild the queue object? --------------------------------------------------- 
@@ -44,7 +36,7 @@ out_tab_path <- file.path("output",
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "12and16Core")
+  config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -61,6 +53,16 @@ if (CLUSTER) {
 parameters <- create_parameter_list(extra_params = extra_prms)
 
 my_dir <- paste0("grid_size_", parameters$grid_size)
+
+stepwise_exp_dir <- paste0("stepwise_v", parameters$stepwise_exp_id)
+
+out_fig_path <- file.path("figures", 
+                          "variable_selection", 
+                          stepwise_exp_dir)
+
+out_tab_path <- file.path("output", 
+                          "variable_selection", 
+                          stepwise_exp_dir)
 
 
 # load data -------------------------------------------------------------------
