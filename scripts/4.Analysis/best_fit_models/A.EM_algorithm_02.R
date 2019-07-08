@@ -11,7 +11,7 @@ source(file.path("R", "create_parameter_list.R"))
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(dependent_variable = "Z",
+extra_prms <- list(dependent_variable = "FOI",
                    no_predictors = 26,
                    ranger_threads = NULL)
 

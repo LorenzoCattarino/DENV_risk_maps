@@ -20,8 +20,8 @@ source(file.path("R", "create_parameter_list.R"))
 # define parameters -----------------------------------------------------------  
 
 
-extra_prms <- list(id = 14,
-                   dependent_variable = "Z",
+extra_prms <- list(id = 15,
+                   dependent_variable = "FOI",
                    no_predictors = 26)
 
 mes_vars <- c("admin", "square")

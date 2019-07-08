@@ -4,12 +4,13 @@ library(ranger)
 
 source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
 source(file.path("R", "utility_functions.R"))  
+source(file.path("R", "create_parameter_list.R"))
 
 
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(dependent_variable = "Z",
+extra_prms <- list(dependent_variable = "FOI",
                    no_predictors = 26)   
 
 aggr_dts_name <- "env_vars_20km.rds"
@@ -21,6 +22,8 @@ model_obj_nm <- "all_data.rds"
 
 # define variables ------------------------------------------------------------
 
+
+parameters <- create_parameter_list(extra_params = extra_prms)
 
 out_pth <- file.path("output", 
                      "EM_algorithm", 

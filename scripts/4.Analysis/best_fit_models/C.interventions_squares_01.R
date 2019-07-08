@@ -30,8 +30,8 @@ context::parallel_cluster_start(8, ctx)
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 14,
-                   dependent_variable = "Z",
+extra_prms <- list(id = 15,
+                   dependent_variable = "FOI",
                    fit_type = "best",
                    parallel_2 = TRUE,
                    base_info = c("cell", 

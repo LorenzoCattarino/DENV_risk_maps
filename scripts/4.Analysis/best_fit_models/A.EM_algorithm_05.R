@@ -13,8 +13,8 @@ source(file.path("R", "plotting", "plot_EM_diagnostics.R"))
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(id = 14,
-                   dependent_variable = "Z")   
+parameters <- list(id = 15,
+                   dependent_variable = "FOI")   
 
 
 # define variables ------------------------------------------------------------
