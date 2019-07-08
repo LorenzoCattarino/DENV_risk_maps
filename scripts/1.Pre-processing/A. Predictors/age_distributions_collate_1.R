@@ -112,8 +112,6 @@ final_age_struct_data$birth_rate <- final_age_struct_data$Births / tot_country_p
 
 final_age_struct_data <- final_age_struct_data [order(final_age_struct_data$country), ]
 
-final_age_struct_data <- final_age_struct_data[, setdiff(colnames(final_age_struct_data), br_col_names)]
-
 
 # save ------------------------------------------------------------------------ 
 
