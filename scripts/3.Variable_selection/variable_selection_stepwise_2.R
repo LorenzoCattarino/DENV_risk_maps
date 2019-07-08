@@ -21,21 +21,13 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(
-  var_to_fit = "Z",
-  no_reps = 10, 
-  addition = TRUE,
-  parallel_2 = TRUE,
-  top_ones_within_reps = 10,
-  top_ones_across_reps = 20)
-
-table_out_path <- file.path("output", 
-                            "variable_selection", 
-                            "stepwise_v4")
-
-plot_out_path <- file.path("figures", 
-                           "variable_selection", 
-                           "stepwise_v4")
+extra_prms <- list(var_to_fit = "FOI",
+                   no_reps = 10, 
+                   addition = TRUE,
+                   parallel_2 = TRUE,
+                   top_ones_within_reps = 10,
+                   top_ones_across_reps = 20,
+                   stepwise_exp_id = 5)
 
 
 # rebuild the queue object? --------------------------------------------------- 
@@ -43,7 +35,7 @@ plot_out_path <- file.path("figures",
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "12and16Core")
+  config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -63,6 +55,16 @@ my_dir <- paste0("grid_size_", parameters$grid_size)
 
 top_ones_within_reps <- parameters$top_ones_within_reps
 top_ones_across_reps <- parameters$top_ones_across_reps
+
+stepwise_exp_dir <- paste0("stepwise_v", parameters$stepwise_exp_id)
+
+table_out_path <- file.path("output", 
+                            "variable_selection", 
+                            stepwise_exp_dir)
+
+plot_out_path <- file.path("figures", 
+                           "variable_selection", 
+                           stepwise_exp_dir)
 
 
 # load data -------------------------------------------------------------------
