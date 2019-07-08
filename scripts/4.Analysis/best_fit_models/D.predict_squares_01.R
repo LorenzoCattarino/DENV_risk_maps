@@ -11,22 +11,21 @@ source(file.path("R", "utility_functions.R"))
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(id = 13)   
+parameters <- list(id = 14,
+                   FOI_z_range = c(0, 0.06),
+                   R0_1_z_range = c(0, 8),
+                   R0_2_z_range = c(0, 4),
+                   R0_3_z_range = c(0, 5))   
 
 vars_to_average <- "response"
 
 statistic <- "best"
 
-FOI_z_range <- c(0, 0.06)
-R0_1_z_range <- c(0, 8)
-R0_2_z_range <- c(0, 4)
-R0_3_z_range <- c(0, 5)
-
-z_range <- FOI_z_range
-
 
 # define variables ------------------------------------------------------------
 
+
+z_range <- parameters$FOI_3_z_range
 
 model_type <- paste0("model_", parameters$id)
 
