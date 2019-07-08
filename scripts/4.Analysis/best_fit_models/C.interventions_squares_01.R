@@ -22,6 +22,7 @@ context::context_log_start()
 ctx <- context::context_save(path = "context",
                              packages = my_pkgs,
                              sources = my_resources)
+
 context::context_load(ctx)
 context::parallel_cluster_start(8, ctx)
 
