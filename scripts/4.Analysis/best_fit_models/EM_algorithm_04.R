@@ -21,7 +21,7 @@ source(file.path("R", "create_parameter_list.R"))
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 13,
+extra_prms <- list(id = 14,
                    dependent_variable = "Z",  
                    no_predictors = 26,
                    ranger_threads = NULL,
@@ -98,6 +98,8 @@ sct_plt_pth <- file.path("figures",
                          model_type,
                          "iteration_fits")
 
+covariates_dir <- parameters$covariates_dir
+
 
 # load data ------------------------------------------------------------------- 
 
@@ -113,7 +115,7 @@ pxl_data <- readRDS(file.path("output",
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
-                                     "stepwise_v3",
+                                     covariates_dir,
                                      "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
