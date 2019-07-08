@@ -19,7 +19,7 @@ source(file.path("R", "create_parameter_list.R"))
 # define parameters -----------------------------------------------------------
 
 
-extra_prms <- list(id = 13,
+extra_prms <- list(id = 14,
                    dependent_variable = "Z",
                    no_predictors = 26)   
 
@@ -61,6 +61,8 @@ out_pt <- file.path("output",
                     model_type,
                     "predictions_data")
 
+covariates_dir <- parameters$covariates_dir
+
 
 # load data ------------------------------------------------------------------- 
 
@@ -81,7 +83,7 @@ adm_dataset <- read.csv(file.path("output",
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
-                                     "stepwise_v3",
+                                     covariates_dir,
                                      "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
@@ -139,9 +141,9 @@ if(var_to_fit == "FOI"){
 
 if(var_to_fit == "Z"){
   
-  foi_dataset$o_j <- (foi_dataset$o_j * foi_dataset$mean_age) / 35
-  adm_pred <- ((adm_pred - foi_offset) * adm_dataset$mean_age) / 35
-  all_sqr_predictions <- ((all_sqr_predictions - foi_offset) * sqr_dataset$mean_age) / 35
+  foi_dataset$o_j <- foi_dataset$o_j * foi_dataset$birth_rate * 35
+  adm_pred <- (adm_pred - foi_offset) * adm_dataset$birth_rate * 35
+  all_sqr_predictions <- (all_sqr_predictions - foi_offset) * sqr_dataset$birth_rate * 35
 
 }
 
