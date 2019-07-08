@@ -18,16 +18,8 @@ exp_max_algorithm <- function(parms,
   var_to_fit <- parms$dependent_variable
   niter <- parms$EM_iter
   
-  if(var_to_fit == "FOI" | var_to_fit == "Z") {
-    
-    l_f <- parms$pseudoAbs_value[1]
-    
-  } else {
-    
-    l_f <- parms$pseudoAbs_value[2]
-    
-  }
-  
+  l_f <- parms$pseudoAbs_value[var_to_fit]
+   
   foi_offset <- parms$foi_offset
   
   l_f_2 <- l_f + foi_offset
@@ -320,15 +312,9 @@ exp_max_algorithm_boot <- function(i,
   
   
   var_to_fit <- parms$dependent_variable
-  if(var_to_fit == "FOI" | var_to_fit == "Z") {
-    
-    psAbs <- parms$pseudoAbs_value[1]
-    
-  } else {
-    
-    psAbs <- parms$pseudoAbs_value[2]
-    
-  }
+  
+  psAbs <- parms$pseudoAbs_value[var_to_fit]
+
   foi_offset <- parms$foi_offset
   
   res <- (1 / 120) * parms$resample_grid_size
