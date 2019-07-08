@@ -8,9 +8,6 @@
 # 4) number of cases
 # 5) number of hospitalized cases  
 
-
-options(didehpc.cluster = "fi--didemrchnb")
-
 my_resources <- c(
   file.path("R", "burden_and_interventions", "functions_for_calculating_burden.R"),
   file.path("R", "burden_and_interventions", "wrapper_to_multi_factor_R0_and_burden.R"),
@@ -32,7 +29,7 @@ context::parallel_cluster_start(8, ctx)
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 13,
+extra_prms <- list(id = 14,
                    dependent_variable = "Z",
                    fit_type = "best",
                    parallel_2 = TRUE,
