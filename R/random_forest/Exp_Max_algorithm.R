@@ -225,6 +225,8 @@ exp_max_algorithm <- function(parms,
     
     if(!is.null(sct_plt_path)){
       
+      # browser()
+      
       # plot of observed admin values vs pop-wgt average predicted square values
       
       av_sqr_sp_nm <- paste0("pred_vs_obs_av_sqr_iter_", i, ".png")
