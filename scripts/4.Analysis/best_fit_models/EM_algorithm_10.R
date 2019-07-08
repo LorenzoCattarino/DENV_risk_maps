@@ -48,13 +48,15 @@ out_pt <- file.path("figures",
                     "best_fit_models",
                     model_type)
 
+covariates_dir <- parameters$covariates_dir
+
 
 # load data -------------------------------------------------------------------
 
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
-                                     "stepwise_v3",
+                                     covariates_dir,
                                      "predictor_rank.csv"),
                            stringsAsFactors = FALSE)
 
