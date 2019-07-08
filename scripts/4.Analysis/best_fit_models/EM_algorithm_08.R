@@ -20,7 +20,7 @@ source(file.path("R", "create_parameter_list.R"))
 # define parameters -----------------------------------------------------------  
 
 
-extra_prms <- list(id = 13,
+extra_prms <- list(id = 14,
                    dependent_variable = "Z",
                    no_predictors = 26)
 
@@ -72,7 +72,7 @@ out_table_path <- file.path("output",
 
 
 foi_data <- read.csv(file.path("output", "foi", foi_dts_nm),
-                        stringsAsFactors = FALSE) 
+                     stringsAsFactors = FALSE) 
 
 
 # pre processing --------------------------------------------------------------
