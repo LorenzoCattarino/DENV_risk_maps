@@ -9,9 +9,8 @@ source(file.path("R", "utility_functions.R"))
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  dependent_variable = "Z",
-  no_predictors = 26)   
+parameters <- list(dependent_variable = "Z",
+                   no_predictors = 26)   
 
 aggr_dts_name <- "env_vars_20km.rds"
 
@@ -28,6 +27,8 @@ out_pth <- file.path("output",
                      "best_fit_models",
                      paste0("env_variables_", parameters$dependent_variable, "_fit"))
   
+covariates_dir <- parameters$covariates_dir
+
 
 # load data -------------------------------------------------------------------
 
@@ -46,7 +47,7 @@ pxl_data <- readRDS(file.path("output",
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
-                                     "stepwise_v3",
+                                     covariates_dir,
                                      "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
