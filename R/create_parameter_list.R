@@ -21,7 +21,7 @@ create_parameter_list <- function(grid_size = 5,
                                                       R0_3 = 0.5,
                                                       Z = -0.02),
                                   foi_offset = 0.03,
-                                  covariates_dir = "stepwise_v4",
+                                  covariates_dir = "stepwise_v5",
                                   extra_params = NULL) {
   
   pm_list <- list()
