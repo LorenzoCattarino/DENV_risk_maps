@@ -2,7 +2,6 @@ exp_max_algorithm <- function(parms,
                               orig_dataset, 
                               pxl_dataset,
                               my_predictors, 
-                              grp_flds, 
                               map_col = NULL,
                               RF_obj_path = NULL, 
                               RF_obj_name = NULL,
@@ -18,6 +17,7 @@ exp_max_algorithm <- function(parms,
   var_to_fit <- parms$dependent_variable
   niter <- parms$EM_iter
   id_field <- parms$id_fld
+  grp_flds <- parms$grp_flds
   
   l_f <- parms$pseudoAbs_value[var_to_fit]
    
