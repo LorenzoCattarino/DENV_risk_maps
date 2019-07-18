@@ -1,5 +1,9 @@
 preprocess <- function(parms, foi_data, pxl_data) {
   
+  join_fields <- parms$join_fields 
+    
+  id_field <- parms$id_fld
+  
   var_to_fit <- parms$dependent_variable
   
   all_wgt <- parms$all_wgt
@@ -11,7 +15,9 @@ preprocess <- function(parms, foi_data, pxl_data) {
   foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- pseudoAbs_value
   
   foi_data$new_weight <- all_wgt
-  pAbs_wgt <- get_sat_area_wgts(foi_data, parameters)
+  
+  pAbs_wgt <- get_sat_area_wgts(foi_data, parms)
+  
   foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
   
   if(var_to_fit == "FOI" | var_to_fit == "Z"){
@@ -28,7 +34,7 @@ preprocess <- function(parms, foi_data, pxl_data) {
   
   pxl_data_3 <- set_wgts_to_sero_cells(foi_data, pxl_data_2, parms)
   
-  if(length(unique(pxl_data_3$data_id)) != nrow(foi_data)){
+  if(length(unique(pxl_data_3[, id_field])) != nrow(foi_data)){
     
     stop("Some data points are missing their cell")
     
