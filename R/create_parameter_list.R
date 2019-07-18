@@ -22,6 +22,7 @@ create_parameter_list <- function(grid_size = 5,
                                                       Z = -0.02),
                                   foi_offset = 0.03,
                                   covariates_dir = "stepwise_v5",
+                                  EM_iter = 10,
                                   extra_params = NULL) {
   
   pm_list <- list()
@@ -46,7 +47,15 @@ create_parameter_list <- function(grid_size = 5,
   pm_list$pseudoAbs_value <- pseudoAbs_value
   pm_list$foi_offset <- foi_offset
   pm_list$covariates_dir <- covariates_dir
+  pm_list$EM_iter <- EM_iter
   
-  c(pm_list, extra_params)
+  if(sum(!is.na(match(names(extra_params), names(pm_list))))!=0){
+    
+    stop (message(cat("Extra params in ... share names with default param names. Please check:\n",
+                      names(extra_params)[!is.na(match(names(extra_params),names(pm_list)))])))
+  
+  }
+  
+  append(pm_list, extra_params)
    
 } 
