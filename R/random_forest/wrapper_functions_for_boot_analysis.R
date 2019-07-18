@@ -40,7 +40,7 @@ get_bsample_and_preprocess <- function(i,
 
 get_bsample_and_fit_RF <- function(i, 
                                    parms,
-                                   boot_ls, 
+                                   foi_data_path, 
                                    my_preds, 
                                    out_path) {
   
@@ -50,7 +50,7 @@ get_bsample_and_fit_RF <- function(i,
   
   aa <- paste0("sample_", i, ".rds")
   
-  adm_dts_boot <- boot_ls[[i]]
+  adm_dts_boot <- readRDS(file.path(foi_data_path, aa))
   
   # adm_dts_boot[adm_dts_boot$type == "pseudoAbsence", y_var] <- psAb_val
   # 
@@ -102,9 +102,8 @@ get_bsample_and_predict <- function(i,
 
 get_bsample_and_EM_fit <- function(i, 
                                    parms,
-                                   boot_samples, 
+                                   foi_data_path,
                                    my_preds, 
-                                   grp_flds, 
                                    RF_obj_path,
                                    diagn_tab_path,
                                    map_path, 
@@ -122,7 +121,7 @@ get_bsample_and_EM_fit <- function(i,
   
   
   var_to_fit <- parms$dependent_variable
-  
+  grp_flds <- parms$grp_flds
   
   # get output name -----------------------------------------------------------  
   
@@ -135,7 +134,7 @@ get_bsample_and_EM_fit <- function(i,
   # load bootstrapped data sets -----------------------------------------------  
   
   
-  foi_data <- boot_samples[[i]]
+  foi_data <- readRDS(file.path(foi_data_path, aa))
   
   pxl_data <- readRDS(file.path(pxl_dts_pt, aa))
   
@@ -150,23 +149,22 @@ get_bsample_and_EM_fit <- function(i,
   
   # calculate population weights
   
-  pxl_dts_grp <- pxl_data_2 %>% group_by(.dots = grp_flds) 
+  pxl_dts_grp <- pxl_data_2 %>% 
+    group_by(.dots = grp_flds) %>% 
+    summarise(pop_sqr_sum = sum(population))
   
-  aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
-  
-  pxl_data_3 <- left_join(pxl_data_2, aa)
+  pxl_data_3 <- left_join(pxl_data_2, pxl_dts_grp)
   
   pxl_data_3$pop_weight <- pxl_data_3$population / pxl_data_3$pop_sqr_sum
   
   
   # run the EM ----------------------------------------------------------------  
   
-  
+
   RF_obj_optim <- exp_max_algorithm(parms = parms, 
                                     orig_dataset = foi_data, 
                                     pxl_dataset = pxl_data_3,
                                     my_predictors = my_preds, 
-                                    grp_flds = grp_flds, 
                                     RF_obj_path = RF_obj_path,
                                     RF_obj_name = aa,
                                     diagn_tab_path = diagn_tab_path, 
