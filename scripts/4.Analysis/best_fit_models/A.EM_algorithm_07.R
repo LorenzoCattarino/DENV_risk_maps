@@ -7,7 +7,6 @@
 
 library(ranger)
 library(dplyr)
-library(data.table)
 
 source(file.path("R", "prepare_datasets", "average_up.R"))
 source(file.path("R", "prepare_datasets", "remove_NA_rows.R"))
@@ -21,17 +20,12 @@ source(file.path("R", "create_parameter_list.R"))
 
 extra_prms <- list(id = 15,
                    dependent_variable = "FOI",
-                   no_predictors = 26)   
+                   no_predictors = 26,
+                   id_fld = "data_id")   
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
-RF_obj_nm <- "RF_obj.rds"
-
 out_name <- "all_scale_predictions.rds"
-
-foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
-
-covariate_dts_nm <- "env_vars_20km_2.rds"
 
 
 # define variables ------------------------------------------------------------
@@ -63,18 +57,25 @@ out_pt <- file.path("output",
 
 covariates_dir <- parameters$covariates_dir
 
+id_field <- parameters$id_fld
+
 
 # load data ------------------------------------------------------------------- 
 
 
-foi_dataset <- read.csv(file.path("output", "foi", foi_dts_nm),
-                        stringsAsFactors = FALSE) 
+foi_dataset <- readRDS(file.path("output", 
+                                 "EM_algorithm", 
+                                 "best_fit_models", 
+                                 model_type,
+                                 "adm_foi_data",
+                                 "adm_foi_data.rds"))  
 
 sqr_dataset <- readRDS(file.path("output",
                                  "EM_algorithm",
                                  "best_fit_models",
+                                 model_type,
                                  "env_variables",
-                                 covariate_dts_nm))
+                                 "env_vars_20km.rds"))
 
 adm_dataset <- read.csv(file.path("output",
                                   "env_variables",
@@ -104,6 +105,8 @@ all_sqr_predictions <- readRDS(file.path("output",
                                          model_type,
                                          "square_predictions_all_data.rds"))
 
+RF_obj <- readRDS(file.path(RF_obj_path, "RF_obj.rds"))
+
 
 # pre processing --------------------------------------------------------------
 
@@ -111,8 +114,6 @@ all_sqr_predictions <- readRDS(file.path("output",
 names(foi_dataset)[names(foi_dataset) == var_to_fit] <- "o_j"
 
 foi_dataset[foi_dataset$type == "pseudoAbsence", "o_j"] <- pseudoAbs_value
-
-adm_dataset <- adm_dataset[!duplicated(adm_dataset[, c("ID_0", "ID_1")]), ]
 
 tile_ids <- tile_summary$tile.id
 
@@ -126,14 +127,11 @@ my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 # run ------------------------------------------------------------------------- 
 
 
-RF_obj <- readRDS(file.path(RF_obj_path, RF_obj_nm))
-
-adm_dataset_2 <- remove_NA_rows(adm_dataset, my_predictors)
-
-adm_pred <- make_ranger_predictions(RF_obj, adm_dataset_2, my_predictors)
+adm_pred <- make_ranger_predictions(RF_obj, adm_dataset, my_predictors)
 
 if(var_to_fit == "FOI"){
   
+  foi_dataset$o_j <- foi_dataset$o_j - foi_offset
   adm_pred <- adm_pred - foi_offset
   all_sqr_predictions <- all_sqr_predictions - foi_offset
 
@@ -150,22 +148,27 @@ if(var_to_fit == "Z"){
 sqr_preds <- all_sqr_predictions
 
 sqr_dataset_2 <- cbind(sqr_dataset,
-                       square = sqr_preds)
+                       p_i = sqr_preds)
 
-adm_dataset_2$admin <- adm_pred
+adm_dataset$admin <- adm_pred
   
-fltr_adm <- inner_join(adm_dataset_2, foi_dataset[, grp_flds])
+fltr_adm <- inner_join(adm_dataset, foi_dataset[, grp_flds])
 
 average_sqr <- average_up(pxl_df = sqr_dataset_2,
                           grp_flds = grp_flds,
-                          var_names = "square")
+                          var_names = "p_i")
 
-df_lst <- list(foi_dataset[, c(grp_flds, "type", "o_j")],
+average_sqr <- rename(average_sqr, mean_p_i = p_i)
+
+df_lst <- list(foi_dataset[, c(grp_flds, "type", "o_j", "new_weight")],
                fltr_adm[, c(grp_flds, "admin")],
-               average_sqr[, c(grp_flds, "square")])
+               average_sqr[, c(grp_flds, "mean_p_i")])
 
 join_all <- Reduce(function(...) left_join(...), df_lst)
 
-join_all[join_all$type == "serology", "square"] <- sqr_dataset_2[sqr_dataset_2$type == "serology" & sqr_dataset_2$new_weight == 1, "square"]
-
-write_out_rds(join_all, out_pt, out_name)
+join_all_2 <- fitted_sero_cell_to_adm(join_all, 
+                                      sqr_dataset_2, 
+                                      c(id_field, "p_i"), 
+                                      c(grp_flds, "type", "new_weight", "o_j", "admin", "mean_p_i"))
+  
+write_out_rds(join_all_2, out_pt, out_name)  
