@@ -17,6 +17,7 @@ exp_max_algorithm <- function(parms,
   
   var_to_fit <- parms$dependent_variable
   niter <- parms$EM_iter
+  id_field <- parms$id_fld
   
   l_f <- parms$pseudoAbs_value[var_to_fit]
    
@@ -126,8 +127,6 @@ exp_max_algorithm <- function(parms,
     
     } 
     
-    # write.csv(dd_1, paste0("dd_", i, ".csv"), row.names = FALSE)
-    
     my_col <- colorRamps::matlab.like(100)
     
     if(!is.null(map_col)){
@@ -220,8 +219,12 @@ exp_max_algorithm <- function(parms,
     
     aa <- inner_join(cc, mean_p_i)
     
-    aa[aa$type == "serology" & aa$new_weight == 1, "mean_p_i"] <- dd_2[dd_2$type == "serology" & dd_2$new_weight == 1, "p_i"]
-    # write.csv(aa, paste0("aa_", i, ".csv"), row.names = FALSE)
+    # take the pixel level prediction (not the mean of all predictions) 
+    # for serology data 
+    aa_2 <- fitted_sero_cell_to_adm(aa, 
+                                    dd_2, 
+                                    c(id_field, "p_i"), 
+                                    c(grp_flds, "type", "new_weight", "o_j", "adm_pred", "mean_p_i"))
     
     if(!is.null(sct_plt_path)){
       
@@ -231,7 +234,7 @@ exp_max_algorithm <- function(parms,
       
       av_sqr_sp_nm <- paste0("pred_vs_obs_av_sqr_iter_", i, ".png")
       
-      generic_scatter_plot(df = aa, 
+      generic_scatter_plot(df = aa_2, 
                            x = "o_j", 
                            y = "mean_p_i", 
                            file_name = av_sqr_sp_nm, 
@@ -243,7 +246,7 @@ exp_max_algorithm <- function(parms,
       
       adm_sp_nm <- paste0("pred_vs_obs_adm_iter_", i, ".png")
       
-      generic_scatter_plot(df = aa, 
+      generic_scatter_plot(df = aa_2, 
                            x = "o_j", 
                            y = "adm_pred", 
                            file_name = adm_sp_nm, 
@@ -255,14 +258,14 @@ exp_max_algorithm <- function(parms,
     # 8. calculate admin unit level sum of square ----------------------------- 
     
       
-    ss_j <- sum(aa$new_weight * (aa$mean_p_i - aa$o_j)^2)
+    ss_j <- sum(aa_2$new_weight * (aa_2$mean_p_i - aa_2$o_j)^2)
     
     
     # calculate correlation of obs vs pixel and adm predictions ---------------
     
     
-    r_av_sqr <- calculate_wgt_cor(aa, "o_j", "mean_p_i")
-    r_adm <- calculate_wgt_cor(aa, "o_j", "adm_pred")
+    r_av_sqr <- calculate_wgt_cor(aa_2, "o_j", "mean_p_i")
+    r_adm <- calculate_wgt_cor(aa_2, "o_j", "adm_pred")
     
     
     # --------------------------------------
@@ -287,170 +290,4 @@ exp_max_algorithm <- function(parms,
   }
   
   RF_obj
-}
-
-exp_max_algorithm_boot <- function(i, 
-                                   parms,
-                                   boot_samples, 
-                                   my_preds, 
-                                   grp_flds, 
-                                   RF_obj_path,
-                                   diagn_tab_path,
-                                   map_path, 
-                                   sct_plt_path,
-                                   adm_dataset, 
-                                   pxl_dts_pt,
-                                   train_dts_path,
-                                   data_squares,
-                                   all_squares,
-                                   data_sqr_predictions_out_path,
-                                   all_sqr_predictions_out_path){
-  
-
-  # browser()
-  
-  
-  # define variables ---------------------------------------------------------- 
-  
-  
-  var_to_fit <- parms$dependent_variable
-  
-  psAbs <- parms$pseudoAbs_value[var_to_fit]
-
-  foi_offset <- parms$foi_offset
-  
-  res <- (1 / 120) * parms$resample_grid_size
-  
-  pxl_dts_nm <- paste0("sample_", i, ".rds")
-  
-  
-  # load bootstrapped data sets -----------------------------------------------  
-  
-  
-  pxl_dts_boot <- readRDS(file.path(pxl_dts_pt, pxl_dts_nm))
-  
-  foi_data_boot <- boot_samples[[i]]
-  
-  
-  # get output name -----------------------------------------------------------  
-  
-  
-  out_name <- paste0("sample_", i, ".rds")
-  cc <- file.path(map_path, paste0("sample_", i))
-  ff <- file.path(sct_plt_path, paste0("sample_", i))
-  
-  
-  # pre process the bootstrapped foi data set --------------------------------- 
-  
-  
-  names(foi_data_boot)[names(foi_data_boot) == var_to_fit] <- "o_j"
-
-  
-  foi_data_boot[foi_data_boot$type == "pseudoAbsence", "o_j"] <- psAbs
-  
-  if(var_to_fit == "FOI" | var_to_fit == "Z"){
-    
-    foi_data_boot[, "o_j"] <- foi_data_boot[, "o_j"] + foi_offset
-    
-  }
-  
-  
-  # attach original data and weights to square dataset ------------------------ 
-  
-  
-  pxl_dts_boot <- inner_join(pxl_dts_boot, foi_data_boot[, c(grp_flds, "type", "new_weight")])  
-  
-  
-  # fix serology new_weights ----------------------------------------------------
-  
-
-  pxl_dts_boot[pxl_dts_boot$type == "serology", "new_weight"] <- 0
-  
-  sero_points <- foi_data_boot[foi_data_boot$type == "serology", ]
-  
-  pxl_dts_boot$lat.int <- round(pxl_dts_boot$latitude / res)
-  pxl_dts_boot$long.int <- round(pxl_dts_boot$longitude / res)
-  
-  sero_points$lat.int <- round(sero_points$latitude / res)
-  sero_points$long.int <- round(sero_points$longitude / res)
-  
-  sero_points$cell <- 0
-  sero_points$no_square <- 0
-  
-  for (j in seq_len(nrow(sero_points))){
-    
-    sero_long <- sero_points[j, "long.int"]
-    sero_lat <- sero_points[j, "lat.int"]
-    
-    matches <- pxl_dts_boot$type == "serology" & pxl_dts_boot$lat.int == sero_lat & pxl_dts_boot$long.int == sero_long
-    
-    if(sum(matches) != 0){
-      
-      message(j)
-      
-      cell_id <- which(matches == TRUE)[1]
-      sero_points[j, "cell"] <- cell_id
-      pxl_dts_boot[cell_id, "new_weight"] <- 1
-      
-    } else {
-      
-      sero_points[j, "no_square"] <- 1
-      
-    }
-    
-  }
-
-  missing_square <- sero_points[sero_points$no_square == 1, ]
-
-  sero_pxl_no_dup <- pxl_dts_boot$type == "serology" & pxl_dts_boot$new_weight == 1
-  
-  pxl_dts_boot_2 <- pxl_dts_boot[!sero_pxl_no_dup, ]
-  
-  sero_pxl_dup <- pxl_dts_boot[sero_points$cell, ]
-  
-  sero_pxl_dup$unique_id <- sero_points$unique_id
-  
-  pxl_dts_boot_3 <- rbind(pxl_dts_boot_2, sero_pxl_dup)
-  
-  pxl_dts_boot_3 <- inner_join(pxl_dts_boot_3, foi_data_boot[, c(grp_flds, "o_j")])  
-  
-  
-  # calculate population proportion weights ----------------------------------- 
-  
-  
-  pxl_dts_grp <- pxl_dts_boot_3 %>% group_by(.dots = grp_flds) 
-  
-  aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
-  
-  pxl_dts_boot_3 <- left_join(pxl_dts_boot_3, aa)
-  
-  pxl_dts_boot_3$pop_weight <- pxl_dts_boot_3$population / pxl_dts_boot_3$pop_sqr_sum
-  
-  
-  # run the EM ----------------------------------------------------------------  
-  
-  
-  RF_obj_optim <- exp_max_algorithm(parms = parms, 
-                                    orig_dataset = foi_data_boot, 
-                                    pxl_dataset = pxl_dts_boot_3,
-                                    my_predictors = my_preds, 
-                                    grp_flds = grp_flds, 
-                                    RF_obj_path = RF_obj_path,
-                                    RF_obj_name = out_name,
-                                    diagn_tab_path = diagn_tab_path, 
-                                    diagn_tab_name = out_name,
-                                    map_path = cc, 
-                                    sct_plt_path = ff,
-                                    train_dts_path = train_dts_path,
-                                    train_dts_name = out_name,
-                                    adm_dataset = adm_dataset)
-  
-  p_i_all <- make_ranger_predictions(RF_obj_optim, data_squares, my_preds)
-  
-  global_predictions <- make_ranger_predictions(RF_obj_optim, all_squares, my_preds)
-  
-  write_out_rds(p_i_all, data_sqr_predictions_out_path, out_name)
-  
-  write_out_rds(global_predictions, all_sqr_predictions_out_path, out_name)
-  
 }
