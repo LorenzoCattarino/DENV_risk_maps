@@ -1,7 +1,7 @@
 # Creates a scatter plot of:  
 #
 # 1) admin unit observation vs admin unit prediction 
-# 2) admin unit observation vs population weighted average of the square predictions (within admin unit)
+# 2) admin unit observation vs population weighted average of the mean_p_I predictions (within admin unit)
 # 3) admin unit observation vs population weighted average of the 1 km pixel predictions (within admin unit)
 
 
@@ -11,7 +11,6 @@ library(plyr)
 library(weights) # for wtd.cor()
 
 source(file.path("R", "plotting", "plot_RF_preds_vs_obs_by_cv_dataset.R"))
-source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
 source(file.path("R", "prepare_datasets", "calculate_wgt_corr.R"))
 source(file.path("R", "utility_functions.R"))
 source(file.path("R", "create_parameter_list.R"))
@@ -21,17 +20,14 @@ source(file.path("R", "create_parameter_list.R"))
 
 
 extra_prms <- list(id = 15,
-                   dependent_variable = "FOI",
-                   no_predictors = 26)
+                   dependent_variable = "FOI")
 
-mes_vars <- c("admin", "square")
+mes_vars <- c("admin", "mean_p_i")
 
 tags <- c("all_data", "no_psAb")
 
 data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
                        c("serology", "caseReport"))
-
-foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
 
 
 # define variables ------------------------------------------------------------
@@ -42,8 +38,6 @@ parameters <- create_parameter_list(extra_params = extra_prms)
 model_id <- parameters$id
 
 var_to_fit <- parameters$dependent_variable
-
-psAbs_val <- parameters$pseudoAbs_value
 
 model_type <- paste0("model_", model_id)
 
@@ -68,35 +62,10 @@ out_table_path <- file.path("output",
                             "scatter_plots")
 
 
-# load data ------------------------------------------------------------------- 
-
-
-foi_data <- read.csv(file.path("output", "foi", foi_dts_nm),
-                     stringsAsFactors = FALSE) 
-
-
-# pre processing --------------------------------------------------------------
-
-
-no_datapoints <- nrow(foi_data)
-
-no_pseudoAbs <- sum(foi_data$type == "pseudoAbsence") 
-
-no_pnts_vec <- c(no_datapoints, no_datapoints - no_pseudoAbs) 
-
-foi_data$new_weight <- parameters$all_wgt
-
-pAbs_wgt <- get_sat_area_wgts(foi_data, parameters)
-
-foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
-
-
 # start -----------------------------------------------------------------------
 
 
 for (j in seq_along(tags)) {
-  
-  no_pnts <- no_pnts_vec[j]
   
   dt_typ <- data_types_vec[[j]]
   
@@ -108,27 +77,24 @@ for (j in seq_along(tags)) {
   
   if(var_to_fit == "FOI" | var_to_fit == "Z"){
     
-    dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 0] <- 0
+    dts_1[, c("o_j", "admin", "mean_p_i")][dts_1[, c("o_j", "admin", "mean_p_i")] < 0] <- 0
     
   } else {
     
-    dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 1] <- pseudoAbs_value
+    dts_1[, c("o_j", "admin", "mean_p_i")][dts_1[, c("o_j", "admin", "mean_p_i")] < 1] <- pseudoAbs_value
     
   }
   
   dts <- dts_1[dts_1$type %in% dt_typ, ]
   
-  all_av_preds_mlt <- melt(
-    dts,
-    id.vars = c("data_id", "ID_0", "ID_1", "o_j"),
-    measure.vars = mes_vars,
-    variable.name = "scale")
-  
-  ret <- dplyr::left_join(all_av_preds_mlt, foi_data[, c("data_id", "new_weight")])
+  df <- melt(dts,
+              id.vars = c("data_id", "ID_0", "ID_1", "o_j", "new_weight"),
+              measure.vars = mes_vars,
+              variable.name = "scale")
   
   fl_nm_av <- paste0("pred_vs_obs_plot_averages_", tag, ".png")
   
-  df <- ret
+  # df <- ret
   x <- "o_j"
   y <- "value"
   facet_var <- "scale" 
@@ -143,7 +109,7 @@ for (j in seq_along(tags)) {
   corr_coeff <- ddply(df, "scale", calculate_wgt_cor, "o_j", "value")
   
   facet_plot_names_x <- as_labeller(c(admin = "Level 1 administrative unit",
-                                      square = "20 km pixel"))
+                                      mean_p_i = "20 km pixel"))
   
   p <- ggplot(df, aes(x = "o_j", y = "value")) +
     facet_grid(. ~ scale,
