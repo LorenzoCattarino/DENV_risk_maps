@@ -10,9 +10,9 @@
 
 
 get_bsample_and_preprocess <- function(i, 
+                                       parms,
                                        boot_samples, 
                                        all_squares,
-                                       jn_flds,
                                        out_file_path_1, 
                                        out_file_path_2,
                                        out_file_name){
