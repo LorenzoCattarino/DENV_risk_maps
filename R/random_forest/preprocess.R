@@ -1,6 +1,6 @@
 preprocess <- function(parms, foi_data, pxl_data) {
   
-  join_fields <- parms$join_fields 
+  join_fields <- parms$grp_flds
     
   id_field <- parms$id_fld
   
