@@ -1,21 +1,19 @@
 # Runs the EM algorithm on the entire original foi dataset
 
 library(ranger)
-library(dplyr)
 library(fields)
 library(ggplot2)
 library(weights)
-library(colorRamps)
-library(raster)
+library(dplyr)
 
 source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
-source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
 source(file.path("R", "random_forest", "exp_max_algorithm.R"))
 source(file.path("R", "plotting", "functions_for_plotting_raster_maps.R"))
 source(file.path("R", "plotting", "generic_scatter_plot.R"))
 source(file.path("R", "prepare_datasets", "calculate_wgt_corr.R"))
 source(file.path("R", "utility_functions.R"))
 source(file.path("R", "create_parameter_list.R"))
+source(file.path("R", "prepare_datasets", "average_up.R"))
 
 
 # define parameters ----------------------------------------------------------- 
@@ -25,7 +23,7 @@ extra_prms <- list(id = 15,
                    dependent_variable = "FOI",  
                    no_predictors = 26,
                    ranger_threads = NULL,
-                   EM_iter = 10) 
+                   id_fld = "data_id") 
 
 grp_flds <- c("ID_0", "ID_1", "data_id")
 
@@ -37,10 +35,6 @@ map_nm <- "map"
 
 tra_dts_nm <- "train_dts.rds"
 
-foi_dts_nm <- "All_FOI_estimates_and_predictors.csv"
-
-pxl_dts_name <- "covariates_and_foi_20km.rds"
-
 
 # define variables ------------------------------------------------------------
 
@@ -51,22 +45,9 @@ model_id <- parameters$id
   
 var_to_fit <- parameters$dependent_variable
 
-foi_offset <- parameters$foi_offset
-
 number_of_predictors <- parameters$no_predictors
 
-pseudoAbs_value <- parameters$pseudoAbs_value[var_to_fit]
-
-all_wgt <- parameters$all_wgt
-
 model_type <- paste0("model_", model_id)
-
-res <- (1 / 120) * parameters$resample_grid_size
-
-augmented_pxl_data_out_pth <- file.path("output",
-                                        "EM_algorithm",
-                                        "best_fit_models",
-                                        "env_variables")
 
 RF_out_pth <- file.path("output", 
                         "EM_algorithm", 
@@ -104,14 +85,19 @@ covariates_dir <- parameters$covariates_dir
 # load data ------------------------------------------------------------------- 
 
 
-foi_data <- read.csv(file.path("output", "foi", foi_dts_nm),
-                     stringsAsFactors = FALSE) 
+foi_data <- readRDS(file.path("output", 
+                              "EM_algorithm", 
+                              "best_fit_models", 
+                              model_type,
+                              "adm_foi_data",
+                              "adm_foi_data.rds")) 
 
 pxl_data <- readRDS(file.path("output", 
                               "EM_algorithm", 
                               "best_fit_models",
-                              paste0("env_variables_", var_to_fit, "_fit"), 
-                              pxl_dts_name))
+                              model_type,
+                              "env_variables_and_init_pred", 
+                              "covariates_and_foi_20km.rds"))
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
@@ -128,104 +114,24 @@ adm_covariates <- read.csv(file.path("output",
 # pre processing --------------------------------------------------------------
 
 
-map_col <- matlab.like(100)
+map_col <- colorRamps::matlab.like(100)
+
+my_predictors <- predictor_rank$name[1:number_of_predictors]
 
 names(foi_data)[names(foi_data) == var_to_fit] <- "o_j"
 
-foi_data[foi_data$type == "pseudoAbsence", "o_j"] <- pseudoAbs_value
-
-foi_data$new_weight <- all_wgt
-pAbs_wgt <- get_sat_area_wgts(foi_data, parameters)
-foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
-
-if(var_to_fit == "FOI" | var_to_fit == "Z"){
-  
-  foi_data[, "o_j"] <- foi_data[, "o_j"] + foi_offset
-  
-}
-
-adm_covariates <- adm_covariates[!duplicated(adm_covariates[, c("ID_0", "ID_1")]), ]
-
-pxl_data <- inner_join(pxl_data, foi_data[, c(grp_flds, "type", "new_weight")])
+pxl_data_2 <- inner_join(pxl_data, foi_data[, c(grp_flds, "o_j")])
 
 
-# fix serology new_weights ----------------------------------------------------
+# calculate population weights
 
-
-pxl_data[pxl_data$type == "serology", "new_weight"] <- 0
-
-sero_points <- foi_data[foi_data$type == "serology", ]
-
-pxl_data$lat.int <- round(pxl_data$latitude / res)
-pxl_data$long.int <- round(pxl_data$longitude / res)
-
-sero_points$lat.int <- round(sero_points$latitude / res)
-sero_points$long.int <- round(sero_points$longitude / res)
-
-sero_points$cell <- 0
-sero_points$no_square <- 0
-
-for (i in seq_len(nrow(sero_points))){
-
-  sero_long <- sero_points[i, "long.int"]
-  sero_lat <- sero_points[i, "lat.int"]
-  data_id <- sero_points[i, "data_id"]
-
-  matches <- pxl_data$data_id == data_id & pxl_data$type == "serology" & pxl_data$lat.int == sero_lat & pxl_data$long.int == sero_long
-
-  pxl_data[matches,]
-  
-  if(sum(matches) != 0){
-
-    message(i)
-
-    cell_id <- which(matches == TRUE)[1]
-    sero_points[i, "cell"] <- cell_id
-    pxl_data[cell_id, "new_weight"] <- 1
-
-  } else {
-
-    sero_points[i, "no_square"] <- 1
-
-  }
-
-}
-
-missing_square <- sero_points[sero_points$no_square == 1, ]
-# write_out_csv(missing_square, augmented_pxl_data_out_pth, "missing_squares.csv")
-
-sero_pxl_no_dup <- pxl_data$type == "serology" & pxl_data$new_weight == 1
-
-pxl_data_2 <- pxl_data[!sero_pxl_no_dup, ]
-
-sero_pxl_dup <- pxl_data[sero_points$cell, ]
-
-sero_pxl_dup$data_id <- sero_points$data_id
-
-pxl_data_3 <- rbind(pxl_data_2, sero_pxl_dup)
-
-# save augmented pixel dataset 
-write_out_rds(pxl_data_3, augmented_pxl_data_out_pth, "env_vars_20km_2.rds")
-
-pxl_data_3 <- inner_join(pxl_data_3, foi_data[, c(grp_flds, "o_j")])
-
-
-# get pop weights -------------------------------------------------------------
-
-
-pxl_dts_grp <- pxl_data_3 %>% group_by(.dots = grp_flds) 
+pxl_dts_grp <- pxl_data_2 %>% group_by(.dots = grp_flds) 
 
 aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
 
-pxl_data_3 <- left_join(pxl_data_3, aa)
+pxl_data_3 <- left_join(pxl_data_2, aa)
 
 pxl_data_3$pop_weight <- pxl_data_3$population / pxl_data_3$pop_sqr_sum
-
-
-# -----------------------------------------------------------------------------
-
-
-my_predictors <- predictor_rank$name[1:number_of_predictors]
 
 
 # run job --------------------------------------------------------------------- 
