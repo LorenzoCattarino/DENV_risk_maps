@@ -125,11 +125,11 @@ pxl_data_2 <- inner_join(pxl_data, foi_data[, c(grp_flds, "o_j")])
 
 # calculate population weights
 
-pxl_dts_grp <- pxl_data_2 %>% group_by(.dots = grp_flds) 
+pxl_dts_grp <- pxl_data_2 %>% 
+  group_by(.dots = grp_flds) %>% 
+  summarise(pop_sqr_sum = sum(population))
 
-aa <- pxl_dts_grp %>% summarise(pop_sqr_sum = sum(population))
-
-pxl_data_3 <- left_join(pxl_data_2, aa)
+pxl_data_3 <- left_join(pxl_data_2, pxl_dts_grp)
 
 pxl_data_3$pop_weight <- pxl_data_3$population / pxl_data_3$pop_sqr_sum
 
