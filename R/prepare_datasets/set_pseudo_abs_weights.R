@@ -41,3 +41,67 @@ get_area_scaled_wgts <- function(foi_data, wgt_limits){
 approx_one <- function(i, a, b){
   approx(a, b, xout = i)$y
 }
+
+set_wgts_to_sero_cells <- function(foi_data, pxl_data, parms){
+  
+  res <- (1 / 120) * parms$resample_grid_size
+  
+  id_fld <- parms$id_fld
+  
+  pxl_data[pxl_data$type == "serology", "new_weight"] <- 0
+  
+  sero_points <- foi_data[foi_data$type == "serology", ]
+  
+  pxl_data$lat.int <- round(pxl_data$latitude / res)
+  pxl_data$long.int <- round(pxl_data$longitude / res)
+  
+  sero_points$lat.int <- round(sero_points$latitude / res)
+  sero_points$long.int <- round(sero_points$longitude / res)
+  
+  sero_points$cell <- 0
+  sero_points$no_square <- 0
+  
+  for (i in seq_len(nrow(sero_points))){
+    
+    sero_long <- sero_points[i, "long.int"]
+    sero_lat <- sero_points[i, "lat.int"]
+    data_id <- sero_points[i, id_fld]
+    
+    matches <- pxl_data[, id_fld] == data_id & pxl_data$type == "serology" & pxl_data$lat.int == sero_lat & pxl_data$long.int == sero_long
+    
+    if(sum(matches) != 0){
+      
+      # message(i)
+      # print(sum(matches))
+      
+      cell_id <- which(matches == TRUE)[1]
+      sero_points[i, "cell"] <- cell_id
+      pxl_data[cell_id, "new_weight"] <- 1
+      
+    } else {
+      
+      sero_points[i, "no_square"] <- 1
+      
+    }
+    
+  }
+  
+  missing_square <- sero_points[sero_points$no_square == 1, ]
+  
+  message("missing squares = ", nrow(missing_square))
+  
+  # write_out_csv(missing_square, augmented_pxl_data_out_pth, "missing_squares.csv")
+  
+  # sero_pxl_no_dup <- pxl_data$type == "serology" & pxl_data$new_weight == 1
+  
+  # pxl_data_2 <- pxl_data[!sero_pxl_no_dup, ]
+  
+  # sero_pxl_dup <- pxl_data[sero_points$cell, ]
+  
+  # sero_pxl_dup$data_id <- sero_points$data_id
+  
+  # pxl_data_3 <- rbind(pxl_data_2, sero_pxl_dup)
+  
+  pxl_data
+  
+}
