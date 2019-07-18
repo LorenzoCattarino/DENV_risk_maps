@@ -66,9 +66,11 @@ all_adm1_covariates_dupl <- do.call("rbind", all_tiles)
 
 ret <- average_up(all_adm1_covariates_dupl, group_fields, my_predictors)
 
+ret_2 <- ret[!duplicated(ret[, c("ID_0", "ID_1")]), ]
+
 
 # save ------------------------------------------------------------------------
 
 
-write_out_csv(ret, out_pt, out_fl_nm)
+write_out_csv(ret_2, out_pt, out_fl_nm)
 
