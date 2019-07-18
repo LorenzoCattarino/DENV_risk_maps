@@ -51,8 +51,9 @@ covariates_dir <- parameters$covariates_dir
 pxl_data_covariates <- readRDS(file.path("output",
                                          "EM_algorithm",
                                          "best_fit_models",
+                                         model_type,
                                          "env_variables",
-                                         "env_vars_20km_2.rds"))
+                                         "env_vars_20km.rds"))
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
