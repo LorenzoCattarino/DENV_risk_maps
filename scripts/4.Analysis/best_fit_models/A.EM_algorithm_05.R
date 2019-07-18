@@ -24,8 +24,6 @@ model_id <- parameters$id
 
 model_type <- paste0("model_", model_id)
 
-# strip_labs <- gsub('([[:punct:]])|\\s+','_', strip_labs)
-
 diag_t_pth <- file.path("output", 
                         "EM_algorithm", 
                         "best_fit_models",
