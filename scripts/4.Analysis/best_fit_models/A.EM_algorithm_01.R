@@ -2,9 +2,10 @@
 
 library(dplyr)
 
+source(file.path("R", "utility_functions.R"))
 source(file.path("R", "create_parameter_list.R"))
 source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
-source(file.path("R", "utility_functions.R"))
+source(file.path("R", "random_forest", "preprocess.R"))
 
 
 # define parameters -----------------------------------------------------------
@@ -63,35 +64,13 @@ pxl_data <- readRDS(file.path("output",
 # pre processing --------------------------------------------------------------
 
 
-foi_data[foi_data$type == "pseudoAbsence", var_to_fit] <- pseudoAbs_value
+foi_data_2 <- preprocess_adm_dta(parameters, foi_data)
 
-foi_data$new_weight <- all_wgt
-pAbs_wgt <- get_sat_area_wgts(foi_data, parameters)
-foi_data[foi_data$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
-
-if(var_to_fit == "FOI" | var_to_fit == "Z"){
-  
-  foi_data[, var_to_fit] <- foi_data[, var_to_fit] + foi_offset
-  
-}
-
-
-# join ------------------------------------------------------------------------
-
-
-pxl_data_2 <- inner_join(pxl_data, foi_data[, c(join_fields, "type", "new_weight")])
-
-pxl_data_3 <- set_wgts_to_sero_cells(foi_data, pxl_data_2, parameters)
-
-if(length(unique(pxl_data_3$data_id)) != nrow(foi_data)){
-  
-  stop("Some data points are missing their cell")
-  
-}
+pxl_data_2 <- preprocess_pxl_data(parms, foi_data_2, pxl_data)
 
 
 # save outputs ----------------------------------------------------------------
 
 
 write_out_rds(foi_data, out_pth_1, "adm_foi_data.rds")
-write_out_rds(pxl_data_3, out_pth_2, "env_vars_20km.rds")
+write_out_rds(pxl_data_2, out_pth_2, "env_vars_20km.rds")
