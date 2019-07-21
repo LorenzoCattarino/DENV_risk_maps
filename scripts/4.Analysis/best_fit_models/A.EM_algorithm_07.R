@@ -37,6 +37,8 @@ model_id <- parameters$id
 
 var_to_fit <- parameters$dependent_variable
   
+number_of_predictors <- parameters$no_predictors
+
 foi_offset <- parameters$foi_offset
 
 model_type <- paste0("model_", model_id)
@@ -98,18 +100,18 @@ RF_obj <- readRDS(file.path(RF_obj_path, "RF_obj.rds"))
 # pre processing --------------------------------------------------------------
 
 
-my_predictors <- predictor_rank$name[1:parameters$no_predictors]
+my_predictors <- predictor_rank$name[1:number_of_predictors]
 
 
 # run ------------------------------------------------------------------------- 
 
 
-join_all_2 <- join_predictions(parms = parameters, 
-                               foi_dataset = foi_dataset, 
-                               RF_obj = RF_obj, 
-                               adm_dataset = adm_dataset,
-                               my_predictors = my_predictors, 
-                               all_sqr_predictions = all_sqr_predictions, 
-                               sqr_dataset = sqr_dataset)
-  
-write_out_rds(join_all_2, out_pt, out_name)  
+join_all <- join_predictions(parms = parameters, 
+                             foi_dataset = foi_dataset, 
+                             RF_obj = RF_obj, 
+                             adm_dataset = adm_dataset,
+                             my_predictors = my_predictors, 
+                             all_sqr_predictions = all_sqr_predictions, 
+                             sqr_dataset = sqr_dataset)
+
+write_out_rds(join_all, out_pt, out_name)  
