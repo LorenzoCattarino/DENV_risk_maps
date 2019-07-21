@@ -11,34 +11,21 @@ library(ggplot2)
 library(plyr)
 library(weights) # for wtd.cor()
 
+source(file.path("R", "utility_functions.R"))
+source(file.path("R", "create_parameter_list.R"))
 source(file.path("R", "plotting", "plot_RF_preds_vs_obs_by_cv_dataset.R"))
 source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
 source(file.path("R", "prepare_datasets", "calculate_sd.R"))
 source(file.path("R", "prepare_datasets", "calculate_wgt_corr.R"))
-source(file.path("R", "utility_functions.R"))
 
 
 # define parameters -----------------------------------------------------------  
 
 
-parameters <- list(
-  id = 1,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1e6,
-  all_wgt = 1,
-  dependent_variable = "FOI",
-  pseudoAbs_value = -0.02,
-  grid_size = 1 / 120,
-  no_predictors = 9,
-  resample_grid_size = 20,
-  foi_offset = 0.03,
-  no_trees = 500,
-  min_node_size = 20,
-  no_samples = 200,
-  EM_iter = 10) 
+extra_prms <- list(id = 29,
+                   dependent_variable = "FOI") 
 
-mes_vars <- c("admin", "cell")
+mes_vars <- c("admin", "mean_p_i")
 
 tags <- c("all_data", "no_psAb")
 
@@ -49,13 +36,13 @@ data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
 # define variables ------------------------------------------------------------
 
 
+parameters <- create_parameter_list(extra_params = extra_prms)
+
 model_type <- paste0("model_", parameters$id)
 
 var_to_fit <- parameters$dependent_variable
 
 psAbs_val <- parameters$pseudoAbs_value
-
-my_dir <- paste0("grid_size_", parameters$grid_size)
 
 in_path <- file.path("output",
                      "EM_algorithm",
@@ -83,17 +70,14 @@ out_table_path <- file.path("output",
                             "scatter_plots")
 
 
-# load data -------------------------------------------------------------------
-
-
-foi_dataset <- read.csv(file.path("output", 
-                                  "foi", 
-                                  "All_FOI_estimates_and_predictors.csv"),
-                        stringsAsFactors = FALSE) 
-
-
 # pre processing --------------------------------------------------------------
 
+
+fi <- list.files(in_path, pattern = ".*.rds", full.names = TRUE)
+
+all_pred_tables <- EM_alg_run <- lapply(fi, readRDS) 
+
+foi_dataset <- all_pred_tables[[1]]
 
 no_samples <- parameters$no_samples
 
@@ -102,12 +86,6 @@ no_datapoints <- nrow(foi_dataset)
 no_pseudoAbs <- sum(foi_dataset$type == "pseudoAbsence") 
 
 no_pnts_vec <- c(no_datapoints, no_datapoints - no_pseudoAbs) 
-
-foi_dataset$new_weight <- parameters$all_wgt
-
-pAbs_wgt <- get_sat_area_wgts(foi_dataset, parameters)
-
-foi_dataset[foi_dataset$type == "pseudoAbsence", "new_weight"] <- pAbs_wgt
 
 
 # start ----------------------------------------------------------------------- 
@@ -127,7 +105,6 @@ for (j in seq_along(tags)) {
   
   all_adm_preds <- matrix(0, nrow = no_pnts, ncol = no_samples)
   all_sqr_preds <- matrix(0, nrow = no_pnts, ncol = no_samples)
-  #all_pxl_preds <- matrix(0, nrow = no_pnts, ncol = no_samples)
   train_ids <- matrix(0, nrow = no_pnts, ncol = no_samples)
   test_ids <- matrix(0, nrow = no_pnts, ncol = no_samples)
   
@@ -137,17 +114,15 @@ for (j in seq_along(tags)) {
   
   for (i in seq_len(no_samples)) {
     
-    dts_nm <- paste0("sample_", i, ".rds")
-    
-    dts_1 <- readRDS(file.path(in_path, dts_nm))
+    dts_1 <- all_pred_tables[[i]]
     
     if(var_to_fit == "FOI"){
       
-      dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 0] <- 0
+      dts_1[, c("o_j", "admin", "mean_p_i")][dts_1[, c("o_j", "admin", "mean_p_i")] < 0] <- 0
       
     } else {
       
-      dts_1[, c("o_j", "admin", "square")][dts_1[, c("o_j", "admin", "square")] < 1] <- psAbs_val
+      dts_1[, c("o_j", "admin", "mean_p_i")][dts_1[, c("o_j", "admin", "mean_p_i")] < 1] <- psAbs_val
       
     }
     
@@ -157,8 +132,7 @@ for (j in seq_along(tags)) {
     #####
     
     all_adm_preds[,i] <- dts$admin
-    all_sqr_preds[,i] <- dts$square
-    #all_pxl_preds[,i] <- dts$mean_pxl_pred
+    all_sqr_preds[,i] <- dts$mean_p_i
     train_ids[,i] <- dts$train
     test_ids[,i] <- 1 - dts$train
     
@@ -168,23 +142,6 @@ for (j in seq_along(tags)) {
     names(dts)[names(dts) == "train"] <- "dataset"
     
     dts$dataset <- factor(x = dts$dataset, levels = c(1, 0), labels = c("train", "test"))
-    
-    # # rotate df from wide to long to allow faceting
-    # dts_mlt <- melt(
-    #   dts, 
-    #   id.vars = c("data_id", "ADM_0", "ADM_1", "o_j", "dataset"),
-    #   measure.vars = mes_vars,
-    #   variable.name = "scale")
-    # 
-    # fl_nm <- paste0("pred_vs_obs_plot_sample_", i, "_", tag, ".png")
-    # 
-    # RF_preds_vs_obs_plot_stratif(
-    #   df = dts_mlt,
-    #   x = "o_j",
-    #   y = "value",
-    #   facet_var = "scale",
-    #   file_name = fl_nm,
-    #   file_path = out_fig_path)
     
   }
   
@@ -202,43 +159,38 @@ for (j in seq_along(tags)) {
   mean_sqr_pred_train <- rowSums(all_sqr_preds * train_ids) / train_sets_n
   mean_sqr_pred_test <- rowSums(all_sqr_preds * test_ids) / test_sets_n
   
-  #mean_pxl_pred_train <- rowSums(all_pxl_preds * train_ids) / train_sets_n
-  #mean_pxl_pred_test <- rowSums(all_pxl_preds * test_ids) / test_sets_n
-  
   sd_mean_adm_pred_train <- vapply(seq_len(no_pnts), calculate_sd, 1, all_adm_preds, train_ids)
   sd_mean_adm_pred_test <- vapply(seq_len(no_pnts), calculate_sd, 1, all_adm_preds, test_ids)
   
   sd_mean_sqr_pred_train <- vapply(seq_len(no_pnts), calculate_sd, 1, all_sqr_preds, train_ids)
   sd_mean_sqr_pred_test <- vapply(seq_len(no_pnts), calculate_sd, 1, all_sqr_preds, test_ids)
   
-  av_train_preds <- data.frame(dts[,c("data_id", "ID_0", "ID_1", "o_j")],
+  av_train_preds <- data.frame(dts[,c("data_id", "ID_0", "ID_1", "o_j", "new_weight")],
                                admin = mean_adm_pred_train,
-                               cell = mean_sqr_pred_train,
+                               mean_p_i = mean_sqr_pred_train,
                                admin_sd = sd_mean_adm_pred_train,
                                cell_sd = sd_mean_sqr_pred_train,
-                               #pixel = mean_pxl_pred_train,
                                dataset = "train")
   
-  av_test_preds <- data.frame(dts[,c("data_id", "ID_0", "ID_1", "o_j")],
+  av_test_preds <- data.frame(dts[,c("data_id", "ID_0", "ID_1", "o_j", "new_weight")],
                               admin = mean_adm_pred_test,
-                              cell = mean_sqr_pred_test,
+                              mean_p_i = mean_sqr_pred_test,
                               admin_sd = sd_mean_adm_pred_test,
                               cell_sd = sd_mean_sqr_pred_test,
-                              #pixel = mean_pxl_pred_test,
                               dataset = "test")
   
   all_av_preds <- rbind(av_train_preds, av_test_preds)
   write_out_csv(all_av_preds, out_table_path, paste0("pred_vs_obs_plot_averages_", tag, ".csv"))
   
-  all_av_preds_mlt <- melt(
+  ret <- melt(
     all_av_preds,
-    id.vars = c("data_id", "ID_0", "ID_1", "o_j", "dataset"),
+    id.vars = c("data_id", "ID_0", "ID_1", "o_j", "dataset", "new_weight"),
     measure.vars = mes_vars,
     variable.name = "scale")
   
   fl_nm_av <- paste0("pred_vs_obs_plot_averages_", tag, ".png")
   
-  ret <- dplyr::left_join(all_av_preds_mlt, foi_dataset[, c("data_id", "new_weight")])
+  # ret <- dplyr::left_join(all_av_preds_mlt, foi_dataset[, c("data_id", "new_weight")])
   
   RF_preds_vs_obs_plot_stratif(df = ret,
                                x = "o_j",
