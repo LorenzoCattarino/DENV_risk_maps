@@ -114,8 +114,6 @@ adm_covariates <- read.csv(file.path("output",
 # pre processing --------------------------------------------------------------
 
 
-map_col <- colorRamps::matlab.like(100)
-
 my_predictors <- predictor_rank$name[1:number_of_predictors]
 
 names(foi_data)[names(foi_data) == var_to_fit] <- "o_j"
@@ -141,8 +139,6 @@ EM_alg_run <- exp_max_algorithm(parms = parameters,
                                 orig_dataset = foi_data,
                                 pxl_dataset = pxl_data_3, 
                                 my_predictors = my_predictors, 
-                                grp_flds = grp_flds,
-                                map_col = map_col,
                                 RF_obj_path = RF_out_pth,
                                 RF_obj_name = out_md_nm,
                                 diagn_tab_path = diag_t_pth, 
