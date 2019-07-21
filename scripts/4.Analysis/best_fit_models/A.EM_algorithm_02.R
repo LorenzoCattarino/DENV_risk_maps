@@ -32,6 +32,8 @@ var_to_fit <- parameters$dependent_variable
 
 foi_offset <- parameters$foi_offset
   
+number_of_predictors <- parameters$no_predictors
+
 out_pth <- file.path("output", 
                      "EM_algorithm", 
                      "best_fit_models", 
@@ -61,7 +63,7 @@ predictor_rank <- read.csv(file.path("output",
 # pre processing -------------------------------------------------------------- 
 
 
-my_predictors <- predictor_rank$name[1:parameters$no_predictors]
+my_predictors <- predictor_rank$name[1:number_of_predictors]
 
 training_dataset <- foi_data[, c(var_to_fit, my_predictors, "new_weight")]
 
