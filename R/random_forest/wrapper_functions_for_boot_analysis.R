@@ -14,23 +14,20 @@ get_bsample_and_preprocess <- function(i,
                                        boot_samples, 
                                        all_squares,
                                        out_file_path_1, 
-                                       out_file_path_2,
-                                       out_file_name){
+                                       out_file_path_2){
   
   # load
   foi_data <- boot_samples[[i]]
   
-  run_preprocess <- preprocess(parms, foi_data, all_squares)
-  
-  foi_data_2 <- run_preprocess[[1]]
+  foi_data_2 <- preprocess_adm_dta(parms, foi_data)
     
-  all_squares_2 <- run_preprocess[[2]]
+  all_squares_2 <- preprocess_pxl_data(parms, foi_data_2, all_squares)
   
-  a <- out_file_name[i]
+  aa <- paste0("sample_", i, ".rds")
   
   # save
-  write_out_rds(foi_data_2, out_file_path_1, a)
-  write_out_rds(all_squares_2, out_file_path_2, a)
+  write_out_rds(foi_data_2, out_file_path_1, aa)
+  write_out_rds(all_squares_2, out_file_path_2, aa)
   
 }
   
@@ -126,9 +123,10 @@ get_bsample_and_EM_fit <- function(i,
   # get output name -----------------------------------------------------------  
   
   
-  aa <- paste0("sample_", i, ".rds")
-  cc <- file.path(map_path, aa)
-  ff <- file.path(sct_plt_path, aa)
+  tag <- paste0("sample_", i)
+  aa <- paste0(tag, ".rds")
+  cc <- file.path(map_path, tag)
+  ff <- file.path(sct_plt_path, tag)
   
   
   # load bootstrapped data sets -----------------------------------------------  
@@ -182,5 +180,54 @@ get_bsample_and_EM_fit <- function(i,
   write_out_rds(p_i_all, data_sqr_predictions_out_path, aa)
   
   write_out_rds(global_predictions, all_sqr_predictions_out_path, aa)
+  
+}
+
+get_bsample_and_join_predictions <- function(i, 
+                                             model_path, 
+                                             original_foi,
+                                             boot_foi_data_path,
+                                             adm_dts, 
+                                             predictors, 
+                                             data_sqr_predictions_path,
+                                             sqr_dts, 
+                                             out_path,
+                                             parms){
+  
+    
+  aa <- paste0("sample_", i, ".rds")
+  
+  
+  # load model and bootstrapped data sets -------------------------------------
+  
+  
+  RF_obj <- readRDS(file.path(model_path, aa))
+  
+  boot_foi_data <- readRDS(file.path(boot_foi_data_path, aa))
+    
+  sqr_preds <- readRDS(file.path(data_sqr_predictions_path, aa))
+  
+  
+  # run -----------------------------------------------------------------------
+  
+
+  join_all <- join_predictions(parms = parms, 
+                               foi_dataset = original_foi, 
+                               RF_obj = RF_obj, 
+                               adm_dataset = adm_dts,
+                               my_predictors = predictors, 
+                               all_sqr_predictions = sqr_preds, 
+                               sqr_dataset = sqr_dts)
+  
+  ids <- unique(boot_foi_data$data_id)
+  
+  train_ids <- rep(0, nrow(original_foi))
+  
+  train_ids[ids] <- 1
+  
+  join_all$train <- train_ids
+  
+  write_out_rds(join_all, out_path, aa)
+  
   
 }
