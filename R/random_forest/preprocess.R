@@ -1,8 +1,4 @@
-preprocess <- function(parms, foi_data, pxl_data) {
-  
-  join_fields <- parms$grp_flds
-    
-  id_field <- parms$id_fld
+preprocess_adm_dta <- function(parms, foi_data) {
   
   var_to_fit <- parms$dependent_variable
   
@@ -27,8 +23,17 @@ preprocess <- function(parms, foi_data, pxl_data) {
   }
   
   
-  # join ------------------------------------------------------------------------
+  foi_data
   
+}
+
+preprocess_pxl_data <- function(parms, foi_data, pxl_data) {
+    
+  join_fields <- parms$grp_flds
+  
+  id_field <- parms$id_fld
+  
+  # join (filtering) 
   
   pxl_data_2 <- inner_join(pxl_data, foi_data[, c(join_fields, "type", "new_weight")])
   
@@ -40,6 +45,6 @@ preprocess <- function(parms, foi_data, pxl_data) {
     
   }
   
-  list(foi_data, pxl_data_3)
+  pxl_data_3
   
 }
