@@ -5,8 +5,10 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
+  file.path("R", "utility_functions.R"),
+  file.path("R", "create_parameter_list.R"),
   file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
-  file.path("R", "utility_functions.R"))
+  file.path("R", "random_forest", "wrapper_functions_for_boot_analysis.R"))
 
 my_pkgs <- "ranger"
 
@@ -19,30 +21,31 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  id = 1,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1e6,
-  all_wgt = 1,
-  dependent_variable = "FOI",
-  pseudoAbs_value = -0.02,
-  grid_size = 1 / 120,
-  no_predictors = 9,
-  resample_grid_size = 20,
-  foi_offset = 0.03,
-  no_trees = 500,
-  min_node_size = 20,
-  no_samples = 200,
-  EM_iter = 10) 
+extra_prms <- list(id = 29,
+                   dependent_variable = "FOI",
+                   no_predictors = 26) 
+
+
+# are you using the cluster? -------------------------------------------------- 
+
+
+if (CLUSTER) {
+  
+  obj <- didehpc::queue_didehpc(ctx)
+  
+} else {
+  
+  context::context_load(ctx)
+  
+}
 
 
 # define variables ------------------------------------------------------------
 
 
-model_type <- paste0("model_", parameters$id)
+parameters <- create_parameter_list(extra_params = extra_prms)
 
-my_dir <- paste0("grid_size_", parameters$grid_size)
+model_type <- paste0("model_", parameters$id)
 
 in_path <- file.path("output", 
                      "EM_algorithm",
@@ -65,20 +68,7 @@ out_pth <- file.path("output",
                      "env_variables_and_init_pred", 
                      "boot_samples")
 
-
-# are you using the cluster? -------------------------------------------------- 
-
-
-if (CLUSTER) {
-  
-  config <- didehpc::didehpc_config(template = "16Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
-  
-} else {
-  
-  context::context_load(ctx)
-  
-}
+covariates_dir <- parameters$covariates_dir
 
 
 # load data ------------------------------------------------------------------- 
@@ -86,7 +76,7 @@ if (CLUSTER) {
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
-                                     "stepwise",
+                                     covariates_dir,
                                      "predictor_rank.csv"), 
                            stringsAsFactors = FALSE)
 
@@ -103,7 +93,7 @@ no_samples <- parameters$no_samples
 
 
 # t <- obj$enqueue(
-#   load_predict_and_save(
+#   get_bsample_and_predict(
 #     seq_len(no_samples)[1],
 #     RF_obj_path = RF_obj_path,
 #     my_preds = my_predictors,
@@ -118,7 +108,7 @@ if (CLUSTER) {
 
   initial_square_preds <- queuer::qlapply(
     seq_len(no_samples),
-    load_predict_and_save,
+    get_bsample_and_predict,
     obj,
     RF_obj_path = RF_obj_path,
     my_preds = my_predictors,
@@ -128,8 +118,8 @@ if (CLUSTER) {
 } else {
 
   initial_square_preds <- lapply(
-    seq_len(no_samples),
-    load_predict_and_save,
+    seq_len(no_samples)[1],
+    get_bsample_and_predict,
     RF_obj_path = RF_obj_path,
     my_preds = my_predictors,
     out_path = out_pth,
