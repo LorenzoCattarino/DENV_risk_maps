@@ -14,7 +14,7 @@ RF_preds_vs_obs_plot_stratif <- function(df, x, y, facet_var, file_name, file_pa
                       calculate_wgt_cor, x, y)
   
   facet_plot_names_x <- as_labeller(c(admin = "Level 1 administrative unit",
-                                      cell = "20 km pixel"))
+                                      mean_p_i = "20 km pixel"))
 
   facet_plot_names_y <- as_labeller(c(train = "Train set",
                                       test = "Test set"))
