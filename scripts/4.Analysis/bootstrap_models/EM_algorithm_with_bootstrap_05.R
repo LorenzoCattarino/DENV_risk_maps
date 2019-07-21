@@ -7,38 +7,25 @@
 
 library(ggplot2)
 
+source(file.path("R", "create_parameter_list.R"))
 source(file.path("R", "plotting", "plot_EM_diagnostics.R"))
 
 
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  id = 1,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1e6,
-  all_wgt = 1,
-  dependent_variable = "FOI",
-  pseudoAbs_value = -0.02,
-  grid_size = 1 / 120,
-  no_predictors = 9,
-  resample_grid_size = 20,
-  foi_offset = 0.03,
-  no_trees = 500,
-  min_node_size = 20,
-  no_samples = 200,
-  EM_iter = 10) 
+extra_prms <- list(id = 29,
+                   dependent_variable = "FOI") 
 
 
 # define variables ------------------------------------------------------------
 
 
+parameters <- create_parameter_list(extra_params = extra_prms)
+
 model_type <- paste0("model_", parameters$id)
 
 no_samples <- parameters$no_samples
-
-#strip_labs_2 <- gsub("([[:punct:]])|\\s+", "_", strip_labs)
 
 diag_t_pth <- file.path("output", 
                         "EM_algorithm", 
