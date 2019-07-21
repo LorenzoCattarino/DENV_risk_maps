@@ -6,10 +6,13 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "prepare_datasets", "filter_all_squares_by_bsample.R"),
-  file.path("R", "utility_functions.R"))
+  file.path("R", "utility_functions.R"),
+  file.path("R", "create_parameter_list.R"),
+  file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
+  file.path("R", "random_forest", "preprocess.R"),
+  file.path("R", "random_forest", "wrapper_functions_for_boot_analysis.R"))
 
-my_pkgs <- c("data.table", "dplyr")
+my_pkgs <- "dplyr"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -20,43 +23,10 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  id = 1,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1e6,
-  all_wgt = 1,
-  dependent_variable = "FOI",
-  pseudoAbs_value = -0.02,
-  grid_size = 1 / 120,
-  no_predictors = 9,
-  resample_grid_size = 20,
-  foi_offset = 0.03,
-  no_trees = 500,
-  min_node_size = 20,
-  no_samples = 200,
-  EM_iter = 10) 
-
-join_fields <- c("unique_id", "data_id", "ID_0", "ID_1")
-
-
-# define variables ------------------------------------------------------------
-
-
-model_type <- paste0("model_", parameters$id)
-
-no_samples <- parameters$no_samples
-
-my_dir <- paste0("grid_size_", parameters$grid_size)
-
-out_pt <- file.path("output", 
-                    "EM_algorithm",
-                    "bootstrap_models",
-                    model_type, 
-                    "env_variables", 
-                    "boot_samples")
-
-out_fl_nm_all <- paste0("sample_", seq_len(no_samples), ".rds")
+extra_prms <- list(id = 29,
+                   dependent_variable = "FOI",
+                   id_fld = "unique_id",
+                   grp_flds = c("unique_id", "data_id", "ID_0", "ID_1"))
 
 
 # are you using the cluster? -------------------------------------------------- 
@@ -64,14 +34,39 @@ out_fl_nm_all <- paste0("sample_", seq_len(no_samples), ".rds")
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "20Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
+  obj <- didehpc::queue_didehpc(ctx)
   
 } else {
   
   context::context_load(ctx)
   
 }
+
+
+# define variables ------------------------------------------------------------
+
+
+parameters <- create_parameter_list(extra_params = extra_prms)
+
+model_type <- paste0("model_", parameters$id)
+
+no_samples <- parameters$no_samples
+
+my_dir <- paste0("grid_size_", parameters$grid_size)
+
+out_pth_1 <- file.path("output", 
+                       "EM_algorithm", 
+                       "bootstrap_models", 
+                       model_type,
+                       "adm_foi_data",
+                       "boot_samples")
+
+out_pth_2 <- file.path("output", 
+                       "EM_algorithm",
+                       "bootstrap_models",
+                       model_type, 
+                       "env_variables", 
+                       "boot_samples")
 
 
 # load data ------------------------------------------------------------------- 
@@ -87,18 +82,37 @@ all_sqr_covariates <- readRDS(file.path("output",
                                         "env_variables", 
                                         "all_squares_env_var_0_1667_deg.rds"))
 
+foi_dataset <- read.csv(file.path("output", 
+                                  "foi", 
+                                  "All_FOI_estimates_and_predictors.csv"),
+                        stringsAsFactors = FALSE) 
+
+
+# preprocess full original foi data set and save it ---------------------------
+
+
+foi_dataset_2 <- preprocess_adm_dta(parameters, foi_dataset)
+
+write_out_rds(foi_dataset_2, 
+              file.path("output", 
+                        "EM_algorithm", 
+                        "bootstrap_models", 
+                        model_type,
+                        "adm_foi_data"),
+              "adm_foi_data.rds")
+
 
 # submit one test job --------------------------------------------------------- 
 
 
 # t <- obj$enqueue(
-#   filter_all_squares_by_bsample(
+#   get_bsample_and_preprocess(
 #     seq_len(no_samples)[1],
+#     parms = parameters,
 #     boot_samples = boot_samples,
 #     all_squares = all_sqr_covariates,
-#     jn_flds = join_fields,
-#     out_file_path = out_pt,
-#     out_file_name = out_fl_nm_all))
+#     out_file_path_1 = out_pth_1,
+#     out_file_path_2 = out_pth_2))
 
 
 # submit all jobs ------------------------------------------------------------- 
@@ -108,23 +122,23 @@ if (CLUSTER) {
 
   pxl_jobs <- queuer::qlapply(
     seq_len(no_samples),
-    filter_all_squares_by_bsample,
+    get_bsample_and_preprocess,
     obj,
+    parms = parameters,
     boot_samples = boot_samples,
     all_squares = all_sqr_covariates,
-    jn_flds = join_fields,
-    out_file_path = out_pt,
-    out_file_name = out_fl_nm_all)
+    out_file_path_1 = out_pth_1,
+    out_file_path_2 = out_pth_2)
 
 } else {
 
   pxl_jobs <- lapply(
     seq_len(no_samples)[1],
-    filter_all_squares_by_bsample,
+    get_bsample_and_preprocess,
+    parms = parameters,
     boot_samples = boot_samples,
     all_squares = all_sqr_covariates,
-    jn_flds = join_fields,
-    out_file_path = out_pt,
-    out_file_name = out_fl_nm_all)
+    out_file_path_1 = out_pth_1,
+    out_file_path_2 = out_pth_2)
 
 }
