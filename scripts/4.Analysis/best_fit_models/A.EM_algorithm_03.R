@@ -26,6 +26,8 @@ model_id <- parameters$id
 
 model_type <- paste0("model_", model_id)
 
+number_of_predictors <- parameters$no_predictors
+
 out_pth <- file.path("output", 
                      "EM_algorithm", 
                      "best_fit_models",
@@ -62,7 +64,7 @@ predictor_rank <- read.csv(file.path("output",
 # pre processing --------------------------------------------------------------
 
 
-my_predictors <- predictor_rank$name[1:parameters$no_predictors]
+my_predictors <- predictor_rank$name[1:number_of_predictors]
 
 
 # submit job ------------------------------------------------------------------ 
