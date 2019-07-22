@@ -5,15 +5,17 @@ CLUSTER <- TRUE
 my_resources <- c(
   file.path("R", "utility_functions.R"),
   file.path("R", "create_parameter_list.R"),
-  file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
   file.path("R", "random_forest", "preprocess.R"),
   file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
   file.path("R", "random_forest", "exp_max_algorithm.R"),
+  file.path("R", "random_forest", "join_predictions.R"),
   file.path("R", "random_forest", "full_routine.R"),
-  file.path("R", "plotting", "plot_EM_diagnostics.R"),
-  file.path("R", "prepare_datasets", "average_up.R"))
+  file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
+  file.path("R", "prepare_datasets", "average_up.R"),
+  file.path("R", "prepare_datasets", "calculate_wgt_corr.R"),
+  file.path("R", "plotting", "plot_EM_diagnostics.R"))
 
-my_pkgs <- c("ranger", "dplyr", "ggplot2")
+my_pkgs <- c("ranger", "dplyr", "weights", "ggplot2")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -26,7 +28,7 @@ ctx <- context::context_save(path = "context",
 
 extra_prms <- list(grp_flds = c("ID_0", "ID_1", "data_id"),
                    id_fld = "data_id",
-                   ranger_threads = 1)
+                   ranger_threads = NULL)
 
 predictor_numbers <- c(9, 26)
 
@@ -38,7 +40,8 @@ response_vars <- "FOI"
 
 if (CLUSTER) {
   
-  obj <- didehpc::queue_didehpc(ctx)
+  config <- didehpc::didehpc_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
   
@@ -107,7 +110,8 @@ test_ls <- df_to_list(test_2, TRUE)
 #                               parms = parameters,
 #                               foi_data = foi_data,
 #                               adm_covariates = admin_covariates,
-#                               all_squares = all_sqr_covariates))
+#                               all_squares = all_sqr_covariates,
+#                               predictor_rank = predictor_rank))
 
 
 # run -------------------------------------------------------------------------
@@ -122,7 +126,8 @@ if (CLUSTER) {
     parms = parameters,
     foi_data = foi_data,
     adm_covariates = admin_covariates,
-    all_squares = all_sqr_covariates)
+    all_squares = all_sqr_covariates,
+    predictor_rank = predictor_rank)
 
 } else {
 
@@ -130,6 +135,7 @@ if (CLUSTER) {
                parms = parameters,
                foi_data = foi_data,
                adm_covariates = admin_covariates,
-               all_squares = all_sqr_covariates)
+               all_squares = all_sqr_covariates,
+               predictor_rank = predictor_rank)
 
 }
