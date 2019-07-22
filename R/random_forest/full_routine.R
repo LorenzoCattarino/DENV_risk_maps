@@ -1,43 +1,72 @@
-function(pxl_data_covariates, all_squares){
+full_routine <- function(x, 
+                         parms,
+                         foi_data,
+                         adm_covariates,
+                         all_squares){
   
   
- # output dir -----------------------------------------------------------------
-    
+  j <- x$exp_id 
+  i <- x$rep_id
+  var_to_fit <- x$var
+  number_of_predictors <- x$no_pred
   
-  figure_out_path <- file.path("figures", 
+  parms$no_predictors <- number_of_predictors
+  parms$dependent_variable <- var_to_fit
+  
+  cat("exp id =", j, "\n")
+  cat("response variable =", var_to_fit, "\n")
+  cat("number of predictors =", number_of_predictors, "\n")
+  
+  model_type <- paste0("model_", j)  
+  grp_flds <- parms$grp_flds
+  base_info <- parms$base_info
+  
+  
+  # output dir -----------------------------------------------------------------
+  
+  
+  RF_out_path <- file.path("output", 
+                           "EM_algorithm", 
+                           "best_fit_models", 
+                           model_type, 
+                           "optimized_model_objects")
+  
+  diagno_out_path <- file.path("figures", 
                                "EM_algorithm", 
                                "best_fit_models",
                                model_type, 
                                "diagnostics")
   
-  preds_out_path <- file.path("output", 
+  train_dts_path <- file.path("output", 
                               "EM_algorithm", 
                               "best_fit_models", 
-                              model_type)
+                              model_type, 
+                              "training_datasets")
   
   all_pred_out_path <- file.path("output",
                                  "EM_algorithm",
                                  "best_fit_models",
                                  model_type,
-                                 "predictions_data")
+                                 "data_admin_predictions")
   
   global_predictions_out_path <- file.path("output", 
                                            "predictions_world", 
                                            "best_fit_models", 
                                            model_type)
   
+  
   # ---------------------------------------------------------------------------
     
-    
-  foi_data_2 <- preprocess_adm_dta(parameters, foi_data)
+
+  foi_data_2 <- preprocess_adm_dta(parms, foi_data)
   
-  pxl_data_2 <- preprocess_pxl_data(parms, foi_data_2, pxl_data)
+  pxl_data_2 <- preprocess_pxl_data(parms, foi_data_2, all_squares)
   
   my_predictors <- predictor_rank$name[1:number_of_predictors]
   
-  training_dataset <- foi_data[, c(var_to_fit, my_predictors, "new_weight")]
+  training_dataset <- foi_data_2[, c(var_to_fit, my_predictors, "new_weight")]
   
-  RF_obj <- fit_ranger_RF(parms = parameters, 
+  RF_obj <- fit_ranger_RF(parms = parms, 
                           dependent_variable = var_to_fit,
                           predictors = my_predictors, 
                           training_dataset = training_dataset, 
@@ -61,36 +90,33 @@ function(pxl_data_covariates, all_squares){
   
   pxl_data_4$pop_weight <- pxl_data_4$population / pxl_data_4$pop_sqr_sum
   
-  RF_obj_optim <- exp_max_algorithm(parms = parameters,
+  RF_obj_optim <- exp_max_algorithm(parms = parms,
                                     orig_dataset = foi_data_2,
                                     pxl_dataset = pxl_data_4, 
                                     my_predictors = my_predictors, 
-                                    grp_flds = grp_flds,
-                                    RF_obj_path = RF_out_pth,
-                                    RF_obj_name = out_md_nm,
-                                    diagn_tab_path = diag_t_pth, 
-                                    diagn_tab_name = diag_t_nm,
-                                    map_path = map_pth, 
-                                    sct_plt_path = sct_plt_pth,
-                                    train_dts_path = train_dts_pth, 
-                                    train_dts_name = tra_dts_nm,
+                                    RF_obj_path = RF_out_path,
+                                    RF_obj_name = "RF_obj.rds",
+                                    diagn_tab_path = diagno_out_path, 
+                                    diagn_tab_name = "diagno_table.rds",
+                                    train_dts_path = train_dts_path, 
+                                    train_dts_name = "train_dts.rds",
                                     adm_dataset = adm_covariates)
   
   data_to_plot <- readRDS(file.path(diag_t_pth, "diagno_table.rds"))
 
-  plot_EM_diagnostics(data_to_plot, figure_out_path, "diagnostics.png")
+  plot_EM_diagnostics(data_to_plot, diagno_out_path, "diagnostics.png")
   
-  prediction_set <- make_ranger_predictions(RF_obj_optim, pxl_data_covariates, my_predictors)
+  prediction_set <- make_ranger_predictions(RF_obj_optim, 
+                                            pxl_data_2, 
+                                            my_predictors)
 
-  write_out_rds(prediction_set, preds_out_path, "square_predictions_all_data.rds")
-  
   join_all <- join_predictions(parms = parameters, 
                                foi_dataset = foi_data_2, 
                                RF_obj = RF_obj_optim, 
                                adm_dataset = adm_covariates,
                                my_predictors = my_predictors, 
                                all_sqr_predictions = prediction_set, 
-                               sqr_dataset = pxl_data_covariates)
+                               sqr_dataset = pxl_data_2)
   
   write_out_rds(join_all, all_pred_out_path, "all_scale_predictions.rds")
   
