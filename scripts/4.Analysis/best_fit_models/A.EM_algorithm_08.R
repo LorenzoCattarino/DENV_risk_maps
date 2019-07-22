@@ -19,7 +19,7 @@ source(file.path("R", "create_parameter_list.R"))
 # define parameters -----------------------------------------------------------  
 
 
-extra_prms <- list(id = 15,
+extra_prms <- list(id = 2,
                    dependent_variable = "FOI")
 
 mes_vars <- c("admin", "mean_p_i")
@@ -47,7 +47,7 @@ in_path <- file.path("output",
                      "EM_algorithm",
                      "best_fit_models",
                      model_type,
-                     "predictions_data") 
+                     "data_admin_predictions") 
 
 out_fig_path_av <- file.path("figures",
                              "EM_algorithm",
