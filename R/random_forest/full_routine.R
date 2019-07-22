@@ -7,7 +7,6 @@ full_routine <- function(x,
   
   
   j <- x$exp_id 
-  i <- x$rep_id
   var_to_fit <- x$var
   number_of_predictors <- x$no_pred
   
