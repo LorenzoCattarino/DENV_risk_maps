@@ -2,9 +2,9 @@
 
 library(ranger)
 
-source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
 source(file.path("R", "utility_functions.R"))  
 source(file.path("R", "create_parameter_list.R"))
+source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
 
 
 # define parameters ----------------------------------------------------------- 
