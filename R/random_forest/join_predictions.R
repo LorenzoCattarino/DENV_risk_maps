@@ -34,14 +34,13 @@ join_predictions <- function(parms,
   
   sqr_preds <- all_sqr_predictions
   
-  sqr_dataset_2 <- cbind(sqr_dataset,
-                         p_i = sqr_preds)
+  sqr_dataset$p_i <- sqr_preds
   
   adm_dataset$admin <- adm_pred
   
   fltr_adm <- inner_join(adm_dataset, foi_dataset[, grp_fields])
   
-  average_sqr <- average_up(pxl_df = sqr_dataset_2,
+  average_sqr <- average_up(pxl_df = sqr_dataset,
                             grp_flds = grp_fields,
                             var_names = "p_i")
   
@@ -54,7 +53,7 @@ join_predictions <- function(parms,
   join_all <- Reduce(function(...) left_join(...), df_lst)
   
   join_all_2 <- fitted_sero_cell_to_adm(join_all, 
-                                        sqr_dataset_2, 
+                                        sqr_dataset, 
                                         c(id_field, "p_i"), 
                                         c(grp_fields, "type", "new_weight", "o_j", "admin", "mean_p_i"))
   join_all_2
