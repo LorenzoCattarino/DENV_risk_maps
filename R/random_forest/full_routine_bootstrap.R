@@ -1,12 +1,12 @@
-EM_full_routine <- function(x, 
-                            parms, 
-                            data_squares,
-                            all_squares, 
-                            predictors, 
-                            grp_flds_1, 
-                            grp_flds_2,
-                            adm_dataset, 
-                            foi_data){
+full_routine_bootstrap <- function(x, 
+                                   parms, 
+                                   data_squares,
+                                   all_squares, 
+                                   predictors, 
+                                   grp_flds_1, 
+                                   grp_flds_2,
+                                   adm_dataset, 
+                                   foi_data){
   
   
   j <- x$exp_id 
