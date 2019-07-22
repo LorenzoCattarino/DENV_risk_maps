@@ -9,7 +9,6 @@ library(ranger)
 library(dplyr)
 
 source(file.path("R", "prepare_datasets", "average_up.R"))
-source(file.path("R", "prepare_datasets", "remove_NA_rows.R"))
 source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
 source(file.path("R", "utility_functions.R"))
 source(file.path("R", "create_parameter_list.R"))
