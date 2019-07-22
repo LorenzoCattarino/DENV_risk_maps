@@ -127,15 +127,15 @@ exp_max_algorithm <- function(parms,
     
     } 
     
-    my_col <- colorRamps::matlab.like(100)
-    
-    if(!is.null(map_col)){
-      
-      my_col <- map_col  
-      
-    } 
-    
     if(!is.null(map_path)){
+      
+      my_col <- colorRamps::matlab.like(100)
+      
+      if(!is.null(map_col)){
+        
+        my_col <- map_col  
+        
+      } 
       
       mp_nm <- sprintf("iter_%s%s", i, ".png")
       
