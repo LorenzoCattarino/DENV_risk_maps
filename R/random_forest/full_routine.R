@@ -2,7 +2,8 @@ full_routine <- function(x,
                          parms,
                          foi_data,
                          adm_covariates,
-                         all_squares){
+                         all_squares,
+                         predictor_rank){
   
   
   j <- x$exp_id 
@@ -20,6 +21,7 @@ full_routine <- function(x,
   model_type <- paste0("model_", j)  
   grp_flds <- parms$grp_flds
   base_info <- parms$base_info
+  foi_offset <- parms$foi_offset
   
   
   # output dir -----------------------------------------------------------------
@@ -31,7 +33,13 @@ full_routine <- function(x,
                            model_type, 
                            "optimized_model_objects")
   
-  diagno_out_path <- file.path("figures", 
+  diagno_out_path <- file.path("output", 
+                               "EM_algorithm", 
+                               "best_fit_models",
+                               model_type, 
+                               "diagnostics")
+  
+  diagno_fig_path <- file.path("figures", 
                                "EM_algorithm", 
                                "best_fit_models",
                                model_type, 
@@ -102,15 +110,15 @@ full_routine <- function(x,
                                     train_dts_name = "train_dts.rds",
                                     adm_dataset = adm_covariates)
   
-  data_to_plot <- readRDS(file.path(diag_t_pth, "diagno_table.rds"))
+  data_to_plot <- readRDS(file.path(diagno_out_path, "diagno_table.rds"))
 
-  plot_EM_diagnostics(data_to_plot, diagno_out_path, "diagnostics.png")
+  plot_EM_diagnostics(data_to_plot, diagno_fig_path, "diagnostics.png")
   
   prediction_set <- make_ranger_predictions(RF_obj_optim, 
                                             pxl_data_2, 
                                             my_predictors)
 
-  join_all <- join_predictions(parms = parameters, 
+  join_all <- join_predictions(parms = parms, 
                                foi_dataset = foi_data_2, 
                                RF_obj = RF_obj_optim, 
                                adm_dataset = adm_covariates,
