@@ -13,9 +13,8 @@ source(file.path("R", "random_forest", "preprocess.R"))
 
 extra_prms <- list(id = 15,
                    dependent_variable = "FOI",
-                   id_fld = "data_id") 
-
-join_fields <- c("data_id", "ID_0", "ID_1")
+                   id_fld = "data_id",
+                   grp_flds = c("data_id", "ID_0", "ID_1"))
 
 
 # define variable -------------------------------------------------------------
