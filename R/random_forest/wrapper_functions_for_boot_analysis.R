@@ -21,7 +21,7 @@ get_bsample_and_preprocess <- function(i,
   # load
   foi_data <- boot_samples[[i]]
   
-  foi_data_2 <- preprocess_adm_dta(parms, foi_data)
+  foi_data_2 <- preprocess_adm_data(parms, foi_data)
     
   all_squares_2 <- preprocess_pxl_data(parms, foi_data_2, all_squares)
   
