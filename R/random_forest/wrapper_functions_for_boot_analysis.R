@@ -16,6 +16,8 @@ get_bsample_and_preprocess <- function(i,
                                        out_file_path_1, 
                                        out_file_path_2){
   
+  parms$grp_flds <- c(parms$grp_flds, "data_id")
+    
   # load
   foi_data <- boot_samples[[i]]
   
@@ -48,14 +50,6 @@ get_bsample_and_fit_RF <- function(i,
   aa <- paste0("sample_", i, ".rds")
   
   adm_dts_boot <- readRDS(file.path(foi_data_path, aa))
-  
-  # adm_dts_boot[adm_dts_boot$type == "pseudoAbsence", y_var] <- psAb_val
-  # 
-  # if(y_var == "FOI"){
-  #   
-  #   adm_dts_boot[, y_var] <- adm_dts_boot[, y_var] + foi_offset
-  #   
-  # }
   
   training_dataset <- adm_dts_boot[, c(y_var, my_preds, "new_weight")]
   
