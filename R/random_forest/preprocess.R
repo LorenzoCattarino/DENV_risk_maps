@@ -1,4 +1,4 @@
-preprocess_adm_dta <- function(parms, foi_data) {
+preprocess_adm_data <- function(parms, foi_data) {
   
   var_to_fit <- parms$dependent_variable
   
