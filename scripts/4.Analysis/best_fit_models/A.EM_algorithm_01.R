@@ -63,7 +63,7 @@ pxl_data <- readRDS(file.path("output",
 # pre processing --------------------------------------------------------------
 
 
-foi_data_2 <- preprocess_adm_dta(parameters, foi_data)
+foi_data_2 <- preprocess_adm_data(parameters, foi_data)
 
 pxl_data_2 <- preprocess_pxl_data(parms, foi_data_2, pxl_data)
 
