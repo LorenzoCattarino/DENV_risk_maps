@@ -2,7 +2,9 @@ grid_and_boot <- function(i, a, b){
   
   xx <- grid_up(a, b, rnd_dist = FALSE)
   
-  do_boostrap(xx)
+  yy <- do_boostrap(xx)
+  
+  cbind(unique_id = seq_len(nrow(yy)), yy)
 
 }
 
@@ -11,11 +13,4 @@ do_boostrap <- function(dataset){
   idx <- unname(split(seq_len(nrow(dataset)), dataset$cell))
   pick <- sample(idx, size = length(idx), replace = TRUE)
   dataset[unlist(pick), ]
-}
-
-attach_unique_id <- function(i, b_sam) {
- 
-  x <- b_sam[[i]]
-  cbind(unique_id = seq_len(nrow(x)), x)
-
 }
