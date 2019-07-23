@@ -20,10 +20,7 @@ source(file.path("R", "randm_forest", "join_predictions.R"))
 
 extra_prms <- list(id = 15,
                    dependent_variable = "FOI",
-                   no_predictors = 26,
-                   id_fld = "data_id")   
-
-grp_flds <- c("ID_0", "ID_1", "data_id")
+                   no_predictors = 26)
 
 out_name <- "all_scale_predictions.rds"
 
@@ -56,8 +53,6 @@ out_pt <- file.path("output",
                     "predictions_data")
 
 covariates_dir <- parameters$covariates_dir
-
-id_field <- parameters$id_fld
 
 
 # load data ------------------------------------------------------------------- 
