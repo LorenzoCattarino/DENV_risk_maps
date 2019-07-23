@@ -91,7 +91,7 @@ foi_dataset <- read.csv(file.path("output",
 # preprocess full original foi data set and save it ---------------------------
 
 
-foi_dataset_2 <- preprocess_adm_dta(parameters, foi_dataset)
+foi_dataset_2 <- preprocess_adm_data(parameters, foi_dataset)
 
 write_out_rds(foi_dataset_2, 
               file.path("output", 
