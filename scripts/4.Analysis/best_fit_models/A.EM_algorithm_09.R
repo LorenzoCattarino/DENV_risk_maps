@@ -5,9 +5,9 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "random_forest", "partial_dependence_plots_pdp.R"),
   file.path("R", "utility_functions.R"),
-  file.path("R", "create_parameter_list.R"))
+  file.path("R", "create_parameter_list.R"),
+  file.path("R", "random_forest", "partial_dependence_plots_pdp.R"))
 
 my_pkgs <- c("ranger", "pdp", "foreach")
 
@@ -20,7 +20,7 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 13,
+extra_prms <- list(id = 2,
                    no_predictors = 26,
                    RF_obj_name = "RF_obj.rds",
                    tr_dts_name = "train_dts.rds",
@@ -34,7 +34,7 @@ extra_prms <- list(id = 13,
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "16Core")
+  config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -50,6 +50,8 @@ if (CLUSTER) {
 parameters <- create_parameter_list(extra_params = extra_prms)
 
 model_type <- paste0("model_", parameters$id)
+
+number_of_predictors <- parameters$no_predictors
 
 model_in_pt <- file.path("output",
                          "EM_algorithm",
@@ -91,7 +93,7 @@ predictor_rank <- read.csv(file.path("output",
 # pre processing --------------------------------------------------------------
 
 
-my_predictors <- predictor_rank$name[1:parameters$no_predictors]
+my_predictors <- predictor_rank$name[1:number_of_predictors]
 
 
 # submit one job --------------------------------------------------------------  
@@ -99,7 +101,7 @@ my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 
 if(CLUSTER){
   
-  pd <- obj$enqueue(
+  pd_2 <- obj$enqueue(
     calculate_par_dep(parms = parameters,
                       RF_obj_path = model_in_pt,
                       tr_dts_path = train_dts_in_pt,
