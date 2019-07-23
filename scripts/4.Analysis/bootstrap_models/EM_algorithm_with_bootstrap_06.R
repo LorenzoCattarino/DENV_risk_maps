@@ -31,9 +31,7 @@ ctx <- context::context_save(path = "context",
 
 extra_prms <- list(id = 29,
                    dependent_variable = "FOI",
-                   no_predictors = 26,
-                   id_fld = "data_id",
-                   grp_flds = c("data_id", "ID_0", "ID_1"))
+                   no_predictors = 26)
 
 
 # are you using the cluster? --------------------------------------------------  
