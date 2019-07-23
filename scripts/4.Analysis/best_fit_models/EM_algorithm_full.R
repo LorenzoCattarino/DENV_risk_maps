@@ -26,7 +26,7 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(grp_flds = c("ID_0", "ID_1", "data_id"),
+extra_prms <- list(grp_flds = c("data_id", "ID_0", "ID_1"),
                    id_fld = "data_id",
                    ranger_threads = NULL)
 
@@ -111,7 +111,7 @@ test_ls <- df_to_list(test_2, TRUE)
 #                               foi_data = foi_data,
 #                               adm_covariates = admin_covariates,
 #                               all_squares = all_sqr_covariates,
-#                               predictor_rank = predictor_rank))
+#                               all_predictors = all_predictors))
 
 
 # run -------------------------------------------------------------------------
@@ -127,7 +127,7 @@ if (CLUSTER) {
     foi_data = foi_data,
     adm_covariates = admin_covariates,
     all_squares = all_sqr_covariates,
-    predictor_rank = predictor_rank)
+    all_predictors = all_predictors)
 
 } else {
 
@@ -136,6 +136,6 @@ if (CLUSTER) {
                foi_data = foi_data,
                adm_covariates = admin_covariates,
                all_squares = all_sqr_covariates,
-               predictor_rank = predictor_rank)
+               all_predictors = all_predictors)
 
 }
