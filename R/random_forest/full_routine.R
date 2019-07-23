@@ -3,7 +3,7 @@ full_routine <- function(x,
                          foi_data,
                          adm_covariates,
                          all_squares,
-                         predictor_rank){
+                         all_predictors){
   
   
   j <- x$exp_id 
@@ -65,11 +65,11 @@ full_routine <- function(x,
   # ---------------------------------------------------------------------------
     
 
+  my_predictors <- all_predictors[1:number_of_predictors]
+  
   foi_data_2 <- preprocess_adm_dta(parms, foi_data)
   
   pxl_data_2 <- preprocess_pxl_data(parms, foi_data_2, all_squares)
-  
-  my_predictors <- predictor_rank$name[1:number_of_predictors]
   
   training_dataset <- foi_data_2[, c(var_to_fit, my_predictors, "new_weight")]
   
