@@ -6,11 +6,10 @@ join_predictions <- function(parms,
                              all_sqr_predictions, 
                              sqr_dataset){
   
+  grp_fields <- c("data_id", "ID_0", "ID_1")
+  id_field <- "data_id"
   var_to_fit <- parms$dependent_variable
   foi_offset <- parms$foi_offset
-  grp_fields <- parms$grp_flds
-  id_field <- parms$id_fld
-  all_wgt <- parms$all_wgt
   
   names(foi_dataset)[names(foi_dataset) == var_to_fit] <- "o_j"
 
