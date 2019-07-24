@@ -190,8 +190,6 @@ for (j in seq_along(tags)) {
   
   fl_nm_av <- paste0("pred_vs_obs_plot_averages_", tag, ".png")
   
-  # ret <- dplyr::left_join(all_av_preds_mlt, foi_dataset[, c("data_id", "new_weight")])
-  
   RF_preds_vs_obs_plot_stratif(df = ret,
                                x = "o_j",
                                y = "value",
