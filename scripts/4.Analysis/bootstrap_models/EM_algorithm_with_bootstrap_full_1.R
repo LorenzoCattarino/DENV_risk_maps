@@ -128,6 +128,18 @@ write_out_csv(test_all_3,
 test_ls <- df_to_list(test_all_3, TRUE)
 
 
+# save a table of unique combinations of factors ------------------------------
+
+
+bootstrap_experiments_by <- dplyr::group_by(test_all_3, exp_id, var, gs, no_pred)
+
+bootstrap_experiments_uni <- dplyr::summarise_at(bootstrap_experiments_by, "rep_id", min)
+
+write_out_csv(bootstrap_experiments_uni, 
+              file.path("output", "EM_algorithm", "bootstrap_models"), 
+              "boostrap_fit_experiments_uni.csv")
+
+
 # run one job -----------------------------------------------------------------
 
 
