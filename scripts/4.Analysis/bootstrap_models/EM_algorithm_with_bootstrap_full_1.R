@@ -1,7 +1,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.R"),
@@ -44,6 +44,7 @@ grid_sizes <- c(1/120, 0.5, 1, 2, 5, 10)
 
 if (CLUSTER) {
   
+  #config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx)
   
 } else {
@@ -143,7 +144,7 @@ test_ls <- df_to_list(test_all_3, TRUE)
 
 
 if (CLUSTER) {
-  
+
   multi_full_EM_experiments_2 <- queuer::qlapply(
     test_ls[1:200],
     full_routine_bootstrap,
@@ -154,9 +155,9 @@ if (CLUSTER) {
     data_squares = data_sqr_covariates,
     all_squares = all_sqr_covariates,
     all_predictors = all_predictors)
-  
+
 } else {
-  
+
   full_routine_bootstrap(test_ls[[1]],
                          parms = parameters,
                          original_foi_data = foi_data,
@@ -164,5 +165,5 @@ if (CLUSTER) {
                          data_squares = data_sqr_covariates,
                          all_squares = all_sqr_covariates,
                          all_predictors = all_predictors)
-  
+
 }
