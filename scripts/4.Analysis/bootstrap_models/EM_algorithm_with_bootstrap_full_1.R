@@ -158,7 +158,7 @@ write_out_csv(bootstrap_experiments_uni,
 if (CLUSTER) {
 
   multi_full_EM_experiments_2 <- queuer::qlapply(
-    test_ls[1:200],
+    test_ls[201:1600],
     full_routine_bootstrap,
     obj,
     parms = parameters,
