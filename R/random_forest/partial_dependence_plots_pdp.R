@@ -54,6 +54,8 @@ wrapper_over_bsamples <- function(i,
   
   nm <- paste0("sample_", i, ".rds")
 
+  cat("sample =", i, "\n")
+  
   parms$RF_obj_name <- nm
   parms$tr_dts_name <- nm
   parms$par_dep_name <- nm
@@ -94,7 +96,8 @@ calculate_par_dep <- function(parms,
   dat <- readRDS(tr_dts_f_path)
   
   helper <- function(i, ...){
-    partial(pred.var = i, ...) 
+    cat("predictor =", i, "\n")
+    partial(pred.var = i, ...)
   }
   
   pdps <- lapply(variables, helper, object = RF_obj, train = dat, parallel = parallel_2)
