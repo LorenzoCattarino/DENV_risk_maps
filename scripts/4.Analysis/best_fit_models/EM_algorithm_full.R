@@ -97,8 +97,8 @@ test_2 <- cbind(exp_id = seq_len(nrow(test)), test)
 test_2 <- test_2[order(test_2$exp_id, decreasing = FALSE), ]
 
 write_out_csv(test_2, 
-              file.path("output", "EM_algorithm", "best_fit_models"), 
-              "best_fit_models.csv")
+              file.path("output", "EM_algorithm", "best_fit_odels"), 
+              "best_fit_experiments.csv")
 
 test_ls <- df_to_list(test_2, TRUE)
 
