@@ -11,7 +11,7 @@ source(file.path("R", "create_parameter_list.R"))
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 13,
+extra_prms <- list(id = 2,
                    no_predictors = 26,
                    year.i = 2007,
                    year.f = 2014,
