@@ -4,20 +4,21 @@ library(ggplot2)
 library(colorRamps)
 library(fields)
 
-source(file.path("R", "plotting", "functions_for_plotting_raster_maps.R"))
 source(file.path("R", "utility_functions.R"))
+source(file.path("R", "plotting", "functions_for_plotting_raster_maps.R"))
 
 
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(id = 15,
-                   FOI_z_range = c(0, 0.06),
-                   R0_1_z_range = c(0, 8),
-                   R0_2_z_range = c(0, 4),
-                   R0_3_z_range = c(0, 5))   
+parameters <- list(id = 2,
+                   dependent_variable = "FOI",
+                   z_range = list(FOI = c(0, 0.06),
+                                  R0_1 = c(0, 8),
+                                  R0_2 = c(0, 4),
+                                  R0_3 = c(0, 5)))   
 
-vars_to_average <- "transformed_3_r_wolbachia_4"
+vars_to_average <- "response"
 
 statistic <- "best"
 
@@ -25,7 +26,9 @@ statistic <- "best"
 # define variables ------------------------------------------------------------
 
 
-z_range <- parameters$R0_3_z_range
+var_to_fit <- parameters$dependent_variable
+
+z_range <- parameters$z_range[[var_to_fit]]
 
 model_type <- paste0("model_", parameters$id)
 
