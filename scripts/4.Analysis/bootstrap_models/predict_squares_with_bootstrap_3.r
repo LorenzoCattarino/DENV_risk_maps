@@ -6,8 +6,9 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
-  file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"),
-  file.path("R", "utility_functions.R"))
+  file.path("R", "utility_functions.R"),
+  file.path("R", "create_parameter_list.R"),
+  file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -17,28 +18,30 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  id = 1,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1e6,
-  all_wgt = 1,
-  dependent_variable = "FOI",
-  pseudoAbs_value = -0.02,
-  grid_size = 1 / 120,
-  no_predictors = 9,
-  resample_grid_size = 20,
-  foi_offset = 0.03,
-  no_trees = 500,
-  min_node_size = 20,
-  no_samples = 200,
-  EM_iter = 10) 
+extra_prms <- list(id = 4) 
 
 vars_to_average <- "response"
 
 
+# are you using the cluster? -------------------------------------------------- 
+
+
+if (CLUSTER) {
+  
+  # config <- didehpc::didehpc_config(template = "24Core")
+  obj <- didehpc::queue_didehpc(ctx)
+  
+} else{
+  
+  context::context_load(ctx)
+  
+}
+
+
 # define variables ------------------------------------------------------------
 
+
+parameters <- create_parameter_list(extra_params = extra_prms)
 
 model_type <- paste0("model_", parameters$id)
 
@@ -50,61 +53,45 @@ in_path <- file.path("output",
                      model_type)
 
 
-# are you using the cluster? -------------------------------------------------- 
-
-
-if (CLUSTER) {
-  
-  config <- didehpc::didehpc_config(template = "24Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
-  
-} else{
-  
-  context::context_load(ctx)
-  context::parallel_cluster_start(7, ctx)
-  
-}
-
-
 # run one job -----------------------------------------------------------------
 
 
-# t <- obj$enqueue(
-#   wrapper_to_average_bsamples(
-#     seq_along(vars_to_average)[1],
-#     vars = vars_to_average,
-#     in_path = in_path,
-#     out_path = in_path,
-#     col_names = col_names))
+t <- obj$enqueue(
+  wrapper_to_average_bsamples(
+    seq_along(vars_to_average)[1],
+    vars = vars_to_average,
+    in_path = in_path,
+    out_path = in_path,
+    col_names = col_names))
   
   
 # run -------------------------------------------------------------------------
 
 
-if (CLUSTER) {
-
-  means_all_scenarios <- queuer::qlapply(
-    seq_along(vars_to_average),
-    wrapper_to_average_bsamples,
-    obj,
-    vars = vars_to_average,
-    in_path = in_path,
-    out_path = in_path,
-    col_names = col_names)
-
-} else {
-
-  means_all_scenarios <- loop(
-    seq_along(vars_to_average),
-    wrapper_to_average_bsamples,
-    vars = vars_to_average,
-    in_path = in_path,
-    out_path = in_path,
-    col_names = col_names,
-    parallel = FALSE)
-
-}
-
-if(!CLUSTER){
-  context::parallel_cluster_stop()
-}
+# if (CLUSTER) {
+# 
+#   means_all_scenarios <- queuer::qlapply(
+#     seq_along(vars_to_average),
+#     wrapper_to_average_bsamples,
+#     obj,
+#     vars = vars_to_average,
+#     in_path = in_path,
+#     out_path = in_path,
+#     col_names = col_names)
+# 
+# } else {
+# 
+#   means_all_scenarios <- loop(
+#     seq_along(vars_to_average),
+#     wrapper_to_average_bsamples,
+#     vars = vars_to_average,
+#     in_path = in_path,
+#     out_path = in_path,
+#     col_names = col_names,
+#     parallel = FALSE)
+# 
+# }
+# 
+# if(!CLUSTER){
+#   context::parallel_cluster_stop()
+# }
