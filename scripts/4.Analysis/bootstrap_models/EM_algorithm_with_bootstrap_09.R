@@ -1,50 +1,33 @@
 # Extract partial dependence information and 
 # make partial dependence plots
 
-options(didehpc.cluster = "fi--didemrchnb")
+source(file.path("R", "utility_functions.R"))
+source(file.path("R", "create_parameter_list.R"))
+source(file.path("R", "random_forest", "partial_dependence_plots_pdp.R"))
 
-my_resources <- c(
-  file.path("R", "random_forest", "partial_dependence_plots_pdp.R"),
-  file.path("R", "utility_functions.R"))
-
-my_pkgs <- c("ggplot2")
-
-context::context_log_start()
-ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
-
-context::context_load(ctx)
-#context::parallel_cluster_start(8, ctx)
+library(ggplot2)
 
 
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  id = 24,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1e6,
-  all_wgt = 1,
-  dependent_variable = "R0_3",
-  pseudoAbs_value = 0.5,
-  grid_size = 5,
-  no_predictors = 26,
-  resample_grid_size = 20,
-  foi_offset = 0.03,
-  no_trees = 500,
-  min_node_size = 20,
-  no_samples = 200,
-  EM_iter = 10) 
-
-year.i <- 2007
-year.f <- 2014
-ppyear <- 64
+extra_prms <- list(id = 4,
+                   no_predictors = 26,
+                   year.i = 2007,
+                   year.f = 2014,
+                   ppyear = 64)
 
 
 # define variables ------------------------------------------------------------
 
+
+parameters <- create_parameter_list(extra_params = extra_prms)
+
+year.i <- parameters$year.i
+
+year.f <- parameters$year.f
+
+ppyear <- parameters$ppyear
 
 model_type <- paste0("model_", parameters$id)
 
@@ -65,13 +48,15 @@ out_pt <- file.path("figures",
                     "bootstrap_models",
                     model_type)
   
-  
+covariates_dir <- parameters$covariates_dir
+
+
 # load data -------------------------------------------------------------------
 
 
 predictor_rank <- read.csv(file.path("output", 
                                      "variable_selection",
-                                     "stepwise",
+                                     covariates_dir,
                                      "predictor_rank.csv"),
                            stringsAsFactors = FALSE)
 
