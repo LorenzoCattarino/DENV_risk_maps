@@ -10,9 +10,9 @@ library(ggplot2)
 
 
 foi_data1 <- read.csv(file.path("output", 
-                               "foi", 
-                               "All_FOI_estimates_and_predictors.csv"),
-                     stringsAsFactors = FALSE) 
+                                "foi", 
+                                "All_FOI_estimates_and_predictors.csv"),
+                      stringsAsFactors = FALSE) 
 
 all_sqr_covariates <- readRDS(file.path("output", 
                                         "env_variables", 
