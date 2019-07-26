@@ -2,16 +2,16 @@
 
 library(ranger)
 
-source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
-source(file.path("R", "plotting", "functions_for_plotting_raster_maps.R"))
 source(file.path("R", "utility_functions.R"))
 source(file.path("R", "create_parameter_list.R"))
+source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
+source(file.path("R", "plotting", "functions_for_plotting_raster_maps.R"))
 
 
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 15,
+extra_prms <- list(id = 2,
                    dependent_variable = "FOI",
                    no_predictors = 26,
                    base_info = c("cell", 
@@ -21,8 +21,6 @@ extra_prms <- list(id = 15,
                                  "ID_0", 
                                  "ID_1", 
                                  "ID_2"))   
-
-RF_mod_name <- "RF_obj.rds"
 
 out_fl_nm <- "response.rds"
 
@@ -74,7 +72,7 @@ my_predictors <- predictor_rank$name[1:parameters$no_predictors]
 # submit one job -------------------------------------------------------------- 
 
 
-RF_obj <- readRDS(file.path(RF_obj_path, RF_mod_name))
+RF_obj <- readRDS(file.path(RF_obj_path, "RF_obj.rds"))
 
 p_i <- make_ranger_predictions(RF_obj, all_sqr_covariates, my_predictors)
 
