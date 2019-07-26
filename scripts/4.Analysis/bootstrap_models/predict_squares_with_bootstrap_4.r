@@ -1,56 +1,33 @@
 # Makes a map of the square predictions and save the raster
 
-options(didehpc.cluster = "fi--didemrchnb")
+source(file.path("R", "plotting", "functions_for_plotting_raster_maps.r"))
+source(file.path("R", "utility_functions.r"))
 
-CLUSTER <- FALSE
-
-my_resources <- c(
-  file.path("R", "plotting", "functions_for_plotting_raster_maps.r"),
-  file.path("R", "utility_functions.r"))
-
-my_pkgs <- c("data.table", "ggplot2", "fields", "rgdal", "scales", "RColorBrewer", "colorRamps")
-
-context::context_log_start()
-ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
+library(fields)
+library(colorRamps)
 
 
 # define parameters -----------------------------------------------------------  
 
 
-parameters <- list(
-  id = 21,
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1e6,
-  all_wgt = 1,
-  dependent_variable = "FOI",
-  grid_size = 1 / 120,
-  no_predictors = 26,
-  resample_grid_size = 20,
-  foi_offset = 0.03,
-  no_trees = 500,
-  min_node_size = 20,
-  no_samples = 200,
-  EM_iter = 10) 
+parameters <- list(id = 4,
+                   dependent_variable = "FOI",
+                   z_range = list(FOI = c(0, 0.06),
+                                  R0_1 = c(0, 8),
+                                  R0_2 = c(0, 4),
+                                  R0_3 = c(0, 5))) 
 
 vars_to_average <- "response"
 
 statistic <- "mean"
 
-n_col <- 100
-
-FOI_z_range <- c(0, 0.06)
-R0_1_z_range <- c(0, 8)
-R0_2_z_range <- c(0, 4)
-R0_3_z_range <- c(0, 5)
-
-z_range <- FOI_z_range
-
 
 # define variables ------------------------------------------------------------
 
+
+var_to_fit <- parameters$dependent_variable
+
+z_range <- parameters$z_range[[var_to_fit]]
 
 model_type <- paste0("model_", parameters$id)
 
@@ -65,24 +42,10 @@ out_path <- file.path("figures",
                       model_type)
 
 
-# are you using the cluster? -------------------------------------------------- 
-
-
-if (CLUSTER) {
-  
-  obj <- didehpc::queue_didehpc(ctx)
-  
-} else {
-  
-  context::context_load(ctx)
-  
-}
-
-
 # pre processing -------------------------------------------------------------- 
 
 
-my_col <- matlab.like(n_col)
+my_col <- matlab.like(100)
 
 mean_pred_fl_nm <- paste0(vars_to_average, "_mean", ".rds")
 
