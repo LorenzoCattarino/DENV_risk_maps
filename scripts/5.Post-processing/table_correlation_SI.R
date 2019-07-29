@@ -45,7 +45,7 @@ boot_fit_exp <- read.csv(file.path("output",
 # pre processing --------------------------------------------------------------
 
 # will only report fit accuracy for random and 5km sampling
-boot_fit_exp_sub <- subset(boot_fit_exp, gs == 0.008333333 | gs == 5)
+boot_fit_exp_sub <- subset(boot_fit_exp, !(gs %in% c(0.5, 1, 2, 10)))
 
 
 # start -----------------------------------------------------------------------
