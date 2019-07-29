@@ -1,5 +1,5 @@
 
-options(didehpc.cluster = "fi--dideclusthn")
+options(didehpc.cluster = "fi--didemrchnb")
 
 CLUSTER <- TRUE
 
@@ -18,22 +18,24 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  resample_grid_size = 20,
-  plot_wdt = 17,
-  plot_hgt = 11, 
-  barwdt = 1.5,
-  barhgt = 6,
-  pol_brd_sz = 0.1,
-  leg_pos_x = 0.05,
-  leg_pos_y = 0.4,
-  leg_txt_sz = 10,
-  leg_ttl_sz = 12,
-  map_proj = "+proj=moll")
+parameters <- list(id = 4,
+                   resample_grid_size = 20,
+                   plot_wdt = 17,
+                   plot_hgt = 11, 
+                   barwdt = 1.5,
+                   barhgt = 5,
+                   pol_brd_sz = 0.1,
+                   leg_pos_x = 0.07,
+                   leg_pos_y = 0.35,
+                   leg_txt_sz = 10,
+                   leg_ttl_sz = 12,
+                   map_proj = "+proj=moll")
 
 
 # define variables ------------------------------------------------------------  
 
+
+model_type <- paste0("model_", parameters$id)
 
 gr_size <- parameters$resample_grid_size
 
@@ -64,7 +66,7 @@ if (CLUSTER) {
 pred <- readRDS(file.path("output",
                           "predictions_world",
                           "bootstrap_models",
-                          "model_16",
+                          model_type,
                           "response_mean.rds"))
 
 sd <- readRDS(file.path("output",
@@ -139,7 +141,7 @@ pred_r_spdf <- as(pred_r_mat, "SpatialPixelsDataFrame")
 
 pred_r_df <- as.data.frame(pred_r_spdf)
 
-pred_r_df <- subset(pred_r_df, layer >= 1)
+# pred_r_df <- subset(pred_r_df, layer >= 1)
 
 
 # -----------------------------------------------------------------------------
@@ -149,7 +151,7 @@ pred_r_df <- subset(pred_r_df, layer >= 1)
 # -----------------------------------------------------------------------------
 
 
-sd$sd <- ifelse(sd$sd > 1, 1, sd$sd)
+# sd$sd <- ifelse(sd$sd > 1, 1, sd$sd)
 
 
 # -----------------------------------------------------------------------------
