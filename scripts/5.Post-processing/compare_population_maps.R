@@ -10,6 +10,10 @@ source(file.path("R", "utility_functions.R"))
 
 out_pt <- file.path("figures", "env_variables", "1_km")
 
+
+# load original 1 km resolution maps ------------------------------------------
+
+
 landscan_pop <- raster(file.path("data", 
                                  "Landscan_2015", 
                                  "lspop2015.flt")) 
@@ -19,9 +23,13 @@ worldpop_pop <- raster(file.path("data",
                                  "AFR_PPP_2015_adj_v2.tif")) 
 
 adm_shp <- readOGR(dsn = file.path("output", "shapefiles"), 
-                   layer = paste0("gadm28_adm1_eras"))
+                   layer = paste0("gadm28_adm0_eras"))
 
-adm_shp@data$continent <- countrycode(sourcevar = adm_shp@data$NAME_0, 
+
+# run -------------------------------------------------------------------------
+
+
+adm_shp@data$continent <- countrycode(sourcevar = adm_shp@data$NAME_ENGLI, 
                                       origin = "country.name", 
                                       destination = "continent")
 
@@ -37,8 +45,8 @@ ext_worldp[4] <- 23
 landscan_pop_cr <- crop(landscan_pop, ext_worldp)
 worldpop_pop_cr <- crop(worldpop_pop, ext_worldp)
 
-values(worldpop_pop_cr) <- log(values(worldpop_pop_cr))
-values(landscan_pop_cr) <- log(values(landscan_pop_cr))
+values(worldpop_pop_cr) <- log(1 + values(worldpop_pop_cr))
+values(landscan_pop_cr) <- log(1 + values(landscan_pop_cr))
 
 my_cols <- rev(viridis(50))
 
@@ -54,7 +62,7 @@ p1 <- spplot(worldpop_pop_cr,
              col.regions = my_cols,
              sp.layout = list(country_border_shp_list))
 
-save_plot(p1, out_pt, "africa_worldpop", 17, 10)
+# save_plot(p1, out_pt, "africa_worldpop", 17, 10)
 
 p2 <- spplot(landscan_pop_cr, 
              main = list(label = "LandScan", cex = 1),
@@ -62,7 +70,7 @@ p2 <- spplot(landscan_pop_cr,
              col.regions = my_cols,
              sp.layout = list(country_border_shp_list))
 
-save_plot(p2, out_pt, "africa_landscan", 17, 10)
+# save_plot(p2, out_pt, "africa_landscan", 17, 10)
 
 p3 <- arrangeGrob(p1, p2, nrow = 2)
 
