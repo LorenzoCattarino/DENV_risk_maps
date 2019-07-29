@@ -32,7 +32,7 @@ fourier_transform_elem <- "const_term"
 
 FTs_dt <- c("DayTemp", "EVI", "MIR", "NightTemp", "RFE")
 
-extra_preds <- c("log_pop_den", "birth_rate")
+extra_preds <- c("population", "log_pop_den", "birth_rate")
 
 key_ttls <- c("Altitude", 
               "Diurnal temperature", 
@@ -40,6 +40,7 @@ key_ttls <- c("Altitude",
               "MIR",
               "Nocturnal temperature",
               "Precipitation",
+              "Population",
               "Population density",
               "Birth rate")
 
@@ -89,6 +90,7 @@ nighttemp_p <- rev(colorRampPalette(brewer.pal(n_pal_col, "RdYlBu"))(req_n_col))
 RFE_p <- topo.colors(req_n_col)
 pop_den_p <- viridis(req_n_col)
 b_rates <- magma(req_n_col)
+pop_p <- matlab.like(req_n_col)
 
 palettes <- list(alt_p,
                  daytemp_p,
@@ -96,6 +98,7 @@ palettes <- list(alt_p,
                  MIR_p,
                  nighttemp_p,
                  RFE_p,
+                 pop_p,
                  pop_den_p,
                  b_rates)
 
@@ -117,6 +120,12 @@ for (i in seq_along(my_predictors)){
   
   }
   
+  if (my_pred == "population") { 
+    
+    all_sqr_covariates[, my_pred] <- log(1 + all_sqr_covariates[, my_pred])  
+    
+  }
+
   all_sqr_covariates[, my_pred] <- all_sqr_covariates[, my_pred] / scale
   
   out_fl_nm <- paste0(my_pred, ".png")
