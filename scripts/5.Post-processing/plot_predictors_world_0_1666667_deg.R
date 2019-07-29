@@ -32,14 +32,16 @@ fourier_transform_elem <- "const_term"
 
 FTs_dt <- c("DayTemp", "EVI", "MIR", "NightTemp", "RFE")
 
+extra_preds <- c("log_pop_den", "birth_rate")
+
 key_ttls <- c("Altitude", 
               "Diurnal temperature", 
               "EVI",
               "MIR",
               "Nocturnal temperature",
               "Precipitation",
-              "Travel time",
-              "Population density")
+              "Population density",
+              "Birth rate")
 
 
 # define variables ------------------------------------------------------------
@@ -73,7 +75,7 @@ all_combs_names <- apply(all_combs_df, 1, function(x) paste(x[1], x[2], sep = "_
 
 my_predictors <- c(altitude_var, all_combs_names)
 
-my_predictors <- c(my_predictors, "travel_time", "log_pop_den")
+my_predictors <- c(my_predictors, extra_preds)
 
 countries <- countries[!countries@data$NAME_ENGLI == "Antarctica", ]
 
@@ -85,8 +87,8 @@ EVI_p <- colorRampPalette(brewer.pal(n_pal_col, "Greens"))(req_n_col)
 MIR_p <- colorRampPalette(brewer.pal(n_pal_col, "Spectral"))(req_n_col) 
 nighttemp_p <- rev(colorRampPalette(brewer.pal(n_pal_col, "RdYlBu"))(req_n_col))
 RFE_p <- topo.colors(req_n_col)
-ttime_p <- magma(req_n_col)
 pop_den_p <- viridis(req_n_col)
+b_rates <- magma(req_n_col)
 
 palettes <- list(alt_p,
                  daytemp_p,
@@ -94,8 +96,8 @@ palettes <- list(alt_p,
                  MIR_p,
                  nighttemp_p,
                  RFE_p,
-                 ttime_p,
-                 pop_den_p)
+                 pop_den_p,
+                 b_rates)
 
 
 # loop through the predictors to plot -----------------------------------------
