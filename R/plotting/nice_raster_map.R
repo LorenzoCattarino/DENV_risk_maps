@@ -22,7 +22,8 @@ make_nice_map <- function(parms,
   # plot predictions ----------------------------------------------------------
   
   
-  pred_leg_val <- pretty(pred$layer, 5)
+  # pred_leg_val <- pretty(pred$layer, 5)
+  pred_leg_val <- c(0, 0.02, 0.04, 0.06)
   
   pred_map <- ggplot() +
     geom_polygon(data = bbox_df, aes(long, lat, group = group), fill = "aliceblue") +
@@ -30,9 +31,9 @@ make_nice_map <- function(parms,
     geom_tile(data = pred, aes(x = x, y = y, fill = layer)) +
     scale_fill_gradientn(breaks = pred_leg_val,
                          labels = pred_leg_val,
-                         limits = c(min(pred_leg_val), max(pred$layer)),
+                         limits = c(min(pred_leg_val), max(pred_leg_val)),
                          colours = my_col, 
-                         guide = guide_colourbar(title = expression("R"[0]), 
+                         guide = guide_colourbar(title = "FOI", 
                                                  barwidth = barwdt, 
                                                  barheight = barhgt)) +
     geom_path(data = countries_df,
@@ -61,7 +62,8 @@ make_nice_map <- function(parms,
   # plot sd -------------------------------------------------------------------
   
   
-  sd_leg_val <- pretty(sd$layer, 5)
+  #sd_leg_val <- pretty(sd$layer, 5)
+  sd_leg_val <- seq(0, 0.02, 0.01)
   
   sd_map <- ggplot() +
     geom_polygon(data = bbox_df, aes(long, lat, group = group), fill = "aliceblue") +
@@ -69,7 +71,7 @@ make_nice_map <- function(parms,
     geom_tile(data = sd, aes(x = x, y = y, fill = layer)) +
     scale_fill_gradientn(breaks = sd_leg_val,
                          labels = sd_leg_val,
-                         limits = c(min(sd_leg_val), max(sd$layer)),
+                         limits = c(min(sd_leg_val), max(sd_leg_val)),
                          colours = my_col, 
                          guide = guide_colourbar(title = "SD", 
                                                  barwidth = barwdt, 
