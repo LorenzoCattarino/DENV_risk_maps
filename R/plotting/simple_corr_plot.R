@@ -21,7 +21,7 @@ simple_corr_plot <- function(i, df){
           axis.title.y = element_blank(),
           axis.text.x = element_text(size = 11),
           axis.text.y = element_text(size = 11),
-          plot.margin = unit(c(0, 0, 0, 0), "cm"),
+          plot.margin = unit(c(0, 0.1, 0, 0), "cm"),
           strip.text.x = element_text(size = 12),
           strip.text.y = element_text(size = 12)) +
     labs(tag = LETTERS[i])
@@ -34,10 +34,4 @@ wrapper_simple_corr_plot <- function(i, df_list) {
   
   simple_corr_plot(i, df)
   
-}
-
-reset_pse_abs <- function(x, parameters){
-  psAbs_val <- parameters$pseudoAbs_value
-  x[, c("o_j", "admin", "cell")][x[, c("o_j", "admin", "cell")] < 1] <- psAbs_val
-  x
 }
