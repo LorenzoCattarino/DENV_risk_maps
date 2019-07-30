@@ -4,83 +4,68 @@ library(plyr)
 library(grid)
 library(gridExtra)
 
+source(file.path("R", "create_parameter_list.R"))
+source(file.path("R", "random_forest", "reset_no_transmission.R"))
 source(file.path("R", "plotting", "simple_corr_plot.R"))
 
 
 # define parameters -----------------------------------------------------------  
 
 
-parameters <- list(
-  dependent_variable = "R0_3",
-  shape_1 = 0,
-  shape_2 = 5,
-  shape_3 = 1.6e6,
-  pseudoAbs_value = 0.5,
-  all_wgt = 1,
-  no_predictors = 26)   
-
-mes_vars <- c("admin", "square")
-
-tags <- c("all_data", "no_psAb")
-
-data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
-                       c("serology", "caseReport"))
+extra_prms <- list(dependent_variable = "FOI")   
 
 
 # define variables ------------------------------------------------------------
 
 
-var_to_fit <- parameters$dependent_variable
+parameters <- create_parameter_list(extra_params = extra_prms)
 
-
-
-out_fig_path <- file.path("figures",
-                             "EM_algorithm")
+out_fig_path <- file.path("figures", "EM_algorithm")
 
 
 # load data ------------------------------------------------------------------- 
 
 
-# R0_3 best fit (26 predictors)
+# FOI best fit (26 predictors)
 fit_1 <- readRDS(file.path(file.path("output",
                                      "EM_algorithm",
                                      "best_fit_models",
-                                     "model_12",
-                                     "predictions_data"), 
+                                     "model_2",
+                                     "data_admin_predictions"), 
                            "all_scale_predictions.rds"))
 
-# R0_3 bootstrap fit (26 predictors, 5 degree and all data) 
+# FOI bootstrap fit (26 predictors, 5 degree and all data) 
 fit_2 <- read.csv(file.path(file.path("output",
                                       "EM_algorithm",
                                       "bootstrap_models",
-                                      "model_24",
+                                      "model_4",
                                       "scatter_plots"), 
                             "pred_vs_obs_plot_averages_all_data.csv"),
                   stringsAsFactors = FALSE)
 
-# R0_3 bootstrap fit (26 predictors, 1/120 degree and all data)
+# FOI bootstrap fit (26 predictors, 1/120 degree and all data)
 fit_3 <- read.csv(file.path(file.path("output",
                                       "EM_algorithm",
                                       "bootstrap_models",
-                                      "model_20",
+                                      "model_3",
                                       "scatter_plots"), 
                             "pred_vs_obs_plot_averages_all_data.csv"),
                   stringsAsFactors = FALSE)
 
-# R0_3 bootstrap fit (26 predictors, 5 degree and no pseudo absence data) 
+# FOI bootstrap fit (26 predictors, 5 degree and no pseudo absence data) 
 fit_4 <- read.csv(file.path(file.path("output",
                                       "EM_algorithm",
                                       "bootstrap_models",
-                                      "model_24",
+                                      "model_4",
                                       "scatter_plots"), 
                             "pred_vs_obs_plot_averages_no_psAb.csv"),
                   stringsAsFactors = FALSE)
 
-# R0_3 bootstrap fit (26 predictors, 1/120 degree and no pseudo absence data)
+# FOI bootstrap fit (26 predictors, 1/120 degree and no pseudo absence data)
 fit_5 <- read.csv(file.path(file.path("output",
                                       "EM_algorithm",
                                       "bootstrap_models",
-                                      "model_20",
+                                      "model_3",
                                       "scatter_plots"), 
                             "pred_vs_obs_plot_averages_no_psAb.csv"),
                   stringsAsFactors = FALSE)
@@ -89,7 +74,8 @@ fit_5 <- read.csv(file.path(file.path("output",
 # with pseudo absences --------------------------------------------------------
 
 # best fit
-dts_1 <- dplyr::rename(fit_1, cell = square)
+# dts_1 <- dplyr::rename(fit_1, cell = mean_p_i)
+dts_1 <- fit_1
 
 # 5 degrees, in-sample
 dts_2 <- subset(fit_2, dataset == "train")
@@ -105,7 +91,7 @@ dts_5 <- subset(fit_3, dataset == "test")
 
 all_dts <- list(dts_1, dts_2, dts_3, dts_4, dts_5)
 
-all_dts <- lapply(all_dts, reset_pse_abs, parameters)
+all_dts <- lapply(all_dts, reset_no_transmission, parameters)
 
 all_plots <- lapply(seq_along(all_dts), wrapper_simple_corr_plot, all_dts)
   
@@ -139,7 +125,7 @@ dts_5 <- subset(fit_5, dataset == "test")
 
 all_dts <- list(dts_1, dts_2, dts_3, dts_4, dts_5)
 
-all_dts <- lapply(all_dts, reset_pse_abs, parameters)
+all_dts <- lapply(all_dts, reset_no_transmission, parameters)
 
 all_plots <- lapply(seq_along(all_dts), wrapper_simple_corr_plot, all_dts)
 
