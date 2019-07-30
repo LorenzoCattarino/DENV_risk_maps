@@ -42,7 +42,7 @@ model_type <- paste0("model_", parameters$id)
 
 var_to_fit <- parameters$dependent_variable
 
-psAbs_val <- parameters$pseudoAbs_value
+psAbs_val <- parameters$pseudoAbs_value[var_to_fit]
 
 in_path <- file.path("output",
                      "EM_algorithm",
