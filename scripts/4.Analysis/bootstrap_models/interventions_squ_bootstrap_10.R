@@ -1,198 +1,199 @@
-# For a general type of intervention, calculate
+# Plot 
 
-# how many countries are dengue free (R0 < 1), for each level of R0 reduction
+# 1) proportional reduction in cases  
+# 2) total numbers of cases, and 
+# 3) number of dengue free countries 
+
+# for an intervention with varying blocking effect on R0 
+
 
 library(dplyr)
-library(data.table)
-library(countrycode)
+library(ggplot2)
+library(RColorBrewer)
+library(grid)
+library(gridExtra)
+library(gtable)
 
-source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
-source(file.path("R", "utility_functions.R"))
-source(file.path("R", "prepare_datasets", "average_up.R"))
-
-
-# define parameters ----------------------------------------------------------- 
+source(file.path("R", "plotting", "extract_gplot_legend.R"))
 
 
-parameters <- list(
-  id = c(22, 23, 24),
-  no_samples = 200,
-  baseline_scenario_ids = c(1, 2, 3))   
+# define parameters -----------------------------------------------------------
 
-intervention_name <- "wolbachia"
 
-treatment_name <- "scaling_factor"
+sf_vals <- seq(0.9, 0.1, -0.1)
 
-phi_factor_levels <- c("2S", "4S", "4S(sym = 2x asym)")
+leg_titles <- c(expression('R'['0']*' reduction'), "Screening age")
+
+burden_measures <- "cases"
+
+out_fig_path <- file.path("figures", 
+                          "predictions_world", 
+                          "bootstrap_models",
+                          "general_intervention")
+
+interventions <- "wolbachia"
 
 
 # define variables ------------------------------------------------------------
 
 
-baseline_scenario_ids <- parameters$baseline_scenario_ids 
+sf_vals_perc <- (1 - sf_vals) * 100
 
-model_type <- paste0("model_", parameters$id)
+leg_labels <- list(paste0(sf_vals_perc, "%"), c("9", "16"))
 
-in_path <- file.path("output", 
-                     "predictions_world", 
-                     "bootstrap_models", 
-                     model_type)
-
-var_to_sum <- as.character(seq_len(parameters$no_samples))
-
-out_table_path <- file.path("output",
-                            "predictions_world",
-                            "bootstrap_models",
-                            model_type,
-                            "country_level_R0")
-
-fct_comb_fl_nm <- paste0("scenario_table_", intervention_name, ".csv")
+my_col <- brewer.pal(9, "YlGnBu")
 
 
-# load data ------------------------------------------------------------------- 
+# plotting --------------------------------------------------------------------
 
 
-fct_comb_ls <- lapply(file.path(in_path, fct_comb_fl_nm), read.csv, header = TRUE)
-
-age_struct_orig <- read.csv(file.path("output", 
-                                      "datasets",
-                                      "country_age_structure.csv"), 
-                            stringsAsFactors = FALSE) 
-
-endemic_c <- read.csv(file.path("output", 
-                                "datasets", 
-                                "dengue_endemic_countries.csv"),
-                      stringsAsFactors = FALSE)
-
-
-# pre processing -------------------------------------------------------------- 
-
-
-age_struct_orig$continent <- as.factor(countrycode(sourcevar = age_struct_orig[, "country"], 
-                                                   origin = "country.name", 
-                                                   destination = "continent"))
-
-age_struct_orig$region <- as.factor(countrycode(sourcevar = age_struct_orig[, "country"], 
-                                                origin = "country.name", 
-                                                destination = "region"))
-
-# remove text in brackets 
-nice_strings <- gsub("\\s*\\([^\\)]+\\)", "", age_struct_orig$country)
-
-# remove text after comma
-nice_strings_2 <- gsub("(.*),.*", "\\1", nice_strings)
-
-# remove "*"
-nice_strings_3 <- gsub("\\*", "", nice_strings_2)
-
-age_struct_orig$country <- nice_strings_3
-
-# keep only dengue endemic countries 
-age_struct <- inner_join(age_struct_orig, endemic_c[, "ID_0", drop = FALSE], by = "ID_0")  
-
-
-# aggreggating ---------------------------------------------------------------- 
-
-
-out_ls <- vector("list", length(model_type))
-
-root_name <- paste0("response_r_", intervention_name, "_")
-
-for (k in seq_along(model_type)){                         # loop over R0 assumptions
+for (j in seq_along(burden_measures)) {
   
-  cat("R0 assumption =", k, "\n")
+  my_var_name <- burden_measures[j]
   
-  # index <- k + (length(in_path)*(j-1))
+  intervention_name <- interventions
   
-  my_in_path <- in_path[k]
-  my_out_path <- out_table_path[k]
+  summary_table_orig <- read.csv(file.path("output", 
+                                           "predictions_world", 
+                                           "bootstrap_models",
+                                           paste0("prop_change_", my_var_name, "_", intervention_name, ".csv")),
+                                 header = TRUE)
   
-  my_fct_comb <- fct_comb_ls[[k]]
+  summary_table <- subset(summary_table_orig, treatment != 1 & phi_set_id != "FOI")
+  summary_table$treatment <- 1 - summary_table$treatment
   
-  fi <- list.files(my_in_path, 
-                   pattern = paste0("^", root_name),
-                   full.names = TRUE)
+  y_values <- seq(0, 1, 0.2)
   
-  num.sort <- as.numeric(gsub(".*_|\\.rds$", "\\1", fi, perl = TRUE))
+  p1 <- ggplot(summary_table) +
+    geom_ribbon(aes(x = treatment, 
+                    ymin = lCI, 
+                    ymax = uCI, 
+                    fill = phi_set_id), 
+                alpha = 0.3) +
+    geom_line(aes(x = treatment, y = mean, colour = phi_set_id)) +
+    geom_vline(xintercept = c(0.3, 0.7), linetype = c("dotted", "dashed"), size = 1) +
+    scale_fill_manual(values = c("red", "blue", "green"),
+                      aesthetics = c("fill", "colour"),
+                      guide = guide_legend(title = "Infectiousness",
+                                           keywidth = 1,
+                                           keyheight = 1)) +
+    scale_x_continuous(NULL,
+                       breaks = 1 - sf_vals,
+                       labels = paste0(sf_vals_perc, "%")) +
+    scale_y_continuous("Reduction in cases",
+                       breaks = y_values,
+                       labels = paste0(y_values * 100, "%"),
+                       limits = c(min(y_values), max(y_values)),
+                       expand = expand_scale(mult = c(0, .05))) +
+    theme_bw() +
+    theme(axis.text.x = element_text(size = 12),
+          axis.text.y = element_text(size = 12),
+          #plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
+          strip.text.x = element_text(size = 8),
+          axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0))) +
+    labs(tag = LETTERS[1])
   
-  fi_sort <- fi[order(num.sort)]
+  tot_num_table_orig <- read.csv(file.path("output", 
+                                           "predictions_world", 
+                                           "bootstrap_models",
+                                           paste0("total_", my_var_name, "_", intervention_name, ".csv")),
+                                 header = TRUE)
   
-  message(fi_sort)
+  tot_num_table <- subset(tot_num_table_orig, treatment != 1 & phi_set_id != "FOI")
+  tot_num_table$treatment <- 1 - tot_num_table$treatment
   
-  dat <- lapply(fi_sort, readRDS)
+  y_values <- pretty(tot_num_table$uCI)
   
-  small_out_ls <- vector("list", length(dat))
-  small_out_ls_2 <- vector("list", length(dat))
-  
-  # baseline_id <- baseline_scenario_ids[k]
-  # baseline <- readRDS(file.path(my_in_path, paste0(root_name, "_", baseline_id, ".rds"))) 
-  
-  for (i in seq_along(dat)){                              # loop over treatments
-    
-    scenario_id <- my_fct_comb[i, "id"]
-    cat("scenario table id =", scenario_id, "\n")
-    
-    one_dat <- as.data.frame(dat[[i]])
-    # one_dat <- inner_join(one_dat, age_struct[, c("continent", "region", "country", "ID_0")])
-    
-    col_names <- as.character(seq_len(parameters$no_samples))
-      
-    average_sqr <- lapply(as.list(col_names), multi_col_average_up, one_dat, "ID_0")
-    
-    average_sqr_clean <- lapply(average_sqr, remove_pop_col)
-    
-    to_print_1 <- do.call("cbind", average_sqr_clean)
-    to_print_2 <- average_boot_samples_dim2(to_print_1)
-    to_print_3 <- cbind(ID_0 = average_sqr[[1]]$ID_0, to_print_2)
-    to_print_4 <- inner_join(to_print_3, age_struct[, c("country", "ID_0")])
-    write_out_csv(to_print_4,
-                  my_out_path,
-                  paste0("scenario_", scenario_id, ".csv"))
-    
-    dengue_free_c <- lapply(average_sqr_clean, how_many_below_1)
-    
-    dengue_free_c_mat <- unlist(dengue_free_c)
-    
-    ret <- average_boot_samples_dim1(dengue_free_c_mat)
-    # ret <- round(ret, -2)
-    # ret2 <- cbind(ID_0 = country_sums$ID_0, ret)
-    # ret3 <- merge(age_struct[, c("country", "ID_0")], ret2, by = "ID_0", all.x = FALSE)
-    # write_out_csv(ret, 
-    #               my_out_path, 
-    #               paste0(my_var_name, "_by_country_", scenario_id, ".csv"))
-    
-    small_out_ls[[i]] <- ret
-    
-  }
-  
-  out_ls[[k]] <- cbind(my_fct_comb, do.call("rbind", small_out_ls))
+  p2 <- ggplot(tot_num_table) +
+    geom_ribbon(aes(x = treatment, 
+                    ymin = lCI, 
+                    ymax = uCI, 
+                    fill = phi_set_id), 
+                alpha = 0.3) +
+    geom_line(aes(x = treatment, y = mean, colour = phi_set_id)) +
+    geom_vline(xintercept = c(0.3, 0.7), linetype = c("dotted", "dashed"), size = 1) +
+    scale_fill_manual(values = c("red", "blue", "green"),
+                      aesthetics = c("fill", "colour"),
+                      guide = guide_legend(title = "Infectiousness assumption",
+                                           keywidth = 1,
+                                           keyheight = 1)) +
+    scale_x_continuous(NULL,
+                       breaks = 1 - sf_vals,
+                       labels = paste0(sf_vals_perc, "%")) +
+    scale_y_continuous(paste0("Number of ", my_var_name, " (Million)"),
+                       breaks = y_values,
+                       labels = format(y_values / 1000000, scientific = F),
+                       limits = c(min(y_values), max(y_values)),
+                       expand = expand_scale(mult = c(0, .05))) +
+    theme_bw() +
+    theme(axis.text.x = element_text(size = 12),
+          axis.text.y = element_text(size = 12),
+          #plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
+          strip.text.x = element_text(size = 8),
+          axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0))) +
+    labs(tag = LETTERS[2])
   
 }
 
-summary_table <- do.call("rbind", out_ls)  
+dengue_free_table_orig <- read.csv(file.path("output", 
+                                             "predictions_world", 
+                                             "bootstrap_models",
+                                             "dengue_free_countries_wolbachia.csv"),
+                                   header = TRUE)
 
-names(summary_table)[names(summary_table) == treatment_name] <- "treatment"
+dengue_free_table <- subset(dengue_free_table_orig, treatment != 1 & phi_set_id != "FOI")
+dengue_free_table$treatment <- 1 - dengue_free_table$treatment
 
-treatment_levels <- unique(summary_table$treatment)
+y_values <- pretty(dengue_free_table$mean)
 
-summary_table[, "treatment"] <- factor(summary_table[, "treatment"],
-                                       levels = treatment_levels,
-                                       labels = treatment_levels)
+p3 <- ggplot(dengue_free_table) +
+  geom_ribbon(aes(x = treatment, 
+                  ymin = lCI, 
+                  ymax = uCI, 
+                  fill = phi_set_id), 
+              alpha = 0.3) +
+  geom_line(aes(x = treatment, y = mean, colour = phi_set_id)) +
+  geom_vline(xintercept = c(0.3, 0.7), linetype = c("dotted", "dashed"), size = 1) +
+  scale_fill_manual(values = c("red", "blue", "green"),
+                    aesthetics = c("fill", "colour"),
+                    guide = guide_legend(title = "Infectiousness assumption",
+                                         keywidth = 1,
+                                         keyheight = 1)) +
+  scale_x_continuous(leg_titles[[1]],
+                     breaks = 1 - sf_vals,
+                     labels = paste0(sf_vals_perc, "%")) +
+  scale_y_continuous(paste0("Dengue-free countries"),
+                     breaks = y_values,
+                     labels = y_values,
+                     limits = c(min(y_values), max(y_values)),
+                     expand = expand_scale(mult = c(0, .05))) +
+  theme_bw() +
+  theme(axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        #plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
+        strip.text.x = element_text(size = 8),
+        axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0))) +
+  labs(tag = LETTERS[3])
 
-summary_table$phi_set_id <- factor(summary_table$phi_set_id, 
-                                   levels = seq_len(length(phi_factor_levels)), 
-                                   labels = phi_factor_levels)
+mylegend <- g_legend(p1)
 
-summary_tab_fl_nm <- paste0("dengue_free_countries_",
-                            intervention_name, 
-                            ".csv")
+dir.create(out_fig_path, FALSE, TRUE)
 
+barplot_fl_nm <- paste0("multi_output_", my_var_name, "_", intervention_name, ".png")
 
-# save table of baseline burden ---------------------------------------------
+png(file.path(out_fig_path, barplot_fl_nm),
+    width = 17,
+    height = 16,
+    units = "cm",
+    pointsize = 12,
+    res = 300)
 
+g1 <- ggplotGrob(p1 + theme(legend.position = "none"))
+g2 <- ggplotGrob(p2 + theme(legend.position = "none"))
+g3 <- ggplotGrob(p3 + theme(legend.position = "none"))
+g <- rbind(g1, g2, g3, size = "first")
+g$widths <- unit.pmax(g1$widths, g2$widths, g3$widths)
 
-write_out_csv(summary_table, file.path("output", 
-                                       "predictions_world", 
-                                       "bootstrap_models"), 
-              summary_tab_fl_nm)
+grid.arrange(g, mylegend, ncol = 2, widths = c(8, 3))
 
+dev.off()
