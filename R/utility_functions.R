@@ -23,7 +23,8 @@ write_out_csv <- function(dat, my_path, file_name, ...) {
   dir.create(my_path, FALSE, TRUE)
   
   write.csv(dat, 
-            file.path(my_path, file_name))
+            file.path(my_path, file_name),
+            ...)
   
 }
 
