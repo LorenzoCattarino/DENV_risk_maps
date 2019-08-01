@@ -18,15 +18,12 @@ write_out_rds <- function(dat, my_path, file_name) {
   
 }
 
-write_out_csv <- function(dat, my_path, file_name) {
+write_out_csv <- function(dat, my_path, file_name, ...) {
   
   dir.create(my_path, FALSE, TRUE)
   
-  write.table(
-    dat, 
-    file.path(my_path, file_name), 
-    row.names = FALSE, 
-    sep = ",")
+  write.csv(dat, 
+            file.path(my_path, file_name))
   
 }
 
