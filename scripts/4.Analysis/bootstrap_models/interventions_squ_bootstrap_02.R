@@ -63,16 +63,6 @@ if (CLUSTER) {
 }
 
 
-# load experimental design ----------------------------------------------------
-
-
-bootstrap_experiments <- read.csv(file.path("output", 
-                                            "EM_algorithm", 
-                                            "bootstrap_models", 
-                                            "boostrap_fit_experiments_uni.csv"),
-                                  stringsAsFactors = FALSE)
-
-
 # define variables ------------------------------------------------------------
 
 
@@ -98,8 +88,6 @@ out_path <- file.path("output",
                       "predictions_world", 
                       "bootstrap_models",
                       model_type)
-
-fit_var <- bootstrap_experiments[bootstrap_experiments$exp_id == parameters$id, "var"]
 
 phi_set_id_tag <- parameters$phi_set_id_tag
 
@@ -134,13 +122,13 @@ if(var_to_fit == "FOI"){
   
 } else {
   
-  assumption <- as.numeric(unlist(strsplit(fit_var, "_"))[2])
+  assumption <- as.numeric(unlist(strsplit(var_to_fit, "_"))[2])
   
 }
 
 fct_c_2 <- subset(fct_c, phi_set_id == assumption)  
 
-write_out_csv(fct_c_2, out_path, "scenario_table_vaccine.csv")
+write_out_csv(fct_c_2, out_path, "scenario_table_vaccine.csv", row.names = FALSE)
 
 fctr_combs <- df_to_list(fct_c_2, use_names = TRUE)
 
