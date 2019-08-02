@@ -7,20 +7,22 @@
 
 library(xlsx)
 
+source(file.path("R", "create_parameter_list.R"))
+
 
 # define parameters -----------------------------------------------------------
 
 
-parameters <- list(
-  id = c(21, 22, 23, 24),
-  model_responses = c("FOI", "R0_1", "R0_2", "R0_3"),
-  no_samples = 200,
-  burden_measures = c("infections", "cases", "hosp"),
-  baseline_scenario_ids = c(4, 1, 2, 3))   
+extra_prms <- list(id = 4,
+                   model_responses = "FOI",
+                   burden_measures = c("infections", "cases", "hosp"),
+                   baseline_scenario_ids = 4)   
 
   
 # define variables ------------------------------------------------------------
 
+
+parameters <- create_parameter_list(extra_params = extra_prms)
 
 model_type <- paste0("model_", parameters$id)
 
@@ -54,59 +56,45 @@ all_names <- c("country", all_names)
 
 # start -----------------------------------------------------------------------
 
-  
-for (i in seq_along(model_type)){                       
-  
-  cat("R0 assumption =", i, "\n")
-  
-  my_model_type <- model_type[i]
-  
-  baseline_scenario_id <- baseline_scenario_ids[i]
-  
-  out_ls <- vector("list", length(burden_measures)) 
-    
-  for (j in seq_along(burden_measures)){
-    
-    bur_meas <- burden_measures[j]
-    
-    cat("burden measure =", bur_meas, "\n")
-    
-    dat <- read.csv(file.path("output", 
-                              "predictions_world", 
-                              "bootstrap_models",
-                              my_model_type,
-                              "wolbachia",
-                              paste0(bur_meas, "_by_country_", baseline_scenario_id, ".csv")),
-                    stringsAsFactors = FALSE)
-    
-    dat_2 <- dat[, setdiff(names(dat), "country")]
-    
-    out_ls[[j]] <- dat_2[, c("mean", "lCI", "uCI")]
-    
-  }
-  
-  ret <- do.call("cbind", out_ls)
-  ret2 <- cbind(dat$country, ret)
-  colnames(ret2) <- all_names
-  
-  sheet_name <- paste0(model_responses[i], "_model")
-    
-  if (i == 1) {
-    
-    write.xlsx(ret2, 
-               file = file.path(out_path, out_nm),
-               sheetName = sheet_name, 
-               row.names = FALSE,
-               append = FALSE)
-    
-  } else {
-    
-    write.xlsx(ret2, 
-               file = file.path(out_path, out_nm),
-               sheetName = sheet_name,
-               row.names = FALSE,
-               append = TRUE)
-    
-  }
 
+#for (i in seq_along(model_type)){                       
+
+# cat("R0 assumption =", i, "\n")
+
+my_model_type <- model_type
+
+baseline_scenario_id <- baseline_scenario_ids
+
+out_ls <- vector("list", length(burden_measures)) 
+
+for (j in seq_along(burden_measures)){
+  
+  bur_meas <- burden_measures[j]
+  
+  cat("burden measure =", bur_meas, "\n")
+  
+  dat <- read.csv(file.path("output", 
+                            "predictions_world", 
+                            "bootstrap_models",
+                            my_model_type,
+                            "wolbachia",
+                            paste0(bur_meas, "_by_country_", baseline_scenario_id, ".csv")),
+                  stringsAsFactors = FALSE)
+  
+  dat_2 <- dat[, setdiff(names(dat), "country")]
+  
+  out_ls[[j]] <- dat_2[, c("mean", "lCI", "uCI")]
+  
 }
+
+ret <- do.call("cbind", out_ls)
+ret2 <- cbind(dat$country, ret)
+colnames(ret2) <- all_names
+
+sheet_name <- paste0(model_responses, "_model")
+
+write.xlsx(ret2, 
+           file = file.path(out_path, out_nm),
+           sheetName = sheet_name, 
+           row.names = FALSE,
+           append = FALSE)
