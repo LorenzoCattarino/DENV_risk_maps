@@ -1,5 +1,4 @@
 quick_polygon_map <- function(adm_shp_fl, 
-                              country, 
                               my_col,
                               var, 
                               out_pt, 
@@ -71,8 +70,6 @@ quick_polygon_map <- function(adm_shp_fl,
   print(p)
   
   grid.draw(key)
-  
-  #grid.text("title", y = 0.40, x = 0.18, gp = gpar(fontsize = 8))
   
   dev.off()
   
