@@ -22,7 +22,6 @@ out_fig_path <- file.path("figures",
 
 interventions <- c("wolbachia", "vaccine")
 
-  
 
 # define variables ------------------------------------------------------------
 
@@ -96,19 +95,20 @@ for (i in seq_along(interventions)) {
     } 
     
     p <- ggplot(summary_table, aes(x = treatment, y = mean, fill = treatment, ymin = lCI, ymax = uCI)) +
-      geom_bar(stat = "identity", position = "dodge", width = 1) +
+      geom_bar(stat = "identity", position = position_dodge(width = 0.5), width = 0.9) +
       geom_errorbar(width = .25, position = position_dodge(.9)) +
       facet_grid(. ~ phi_set_id) +
       scale_fill_manual(values = c("lightskyblue1", "lightskyblue4"),
                         labels = leg_labels[[i]],
                         guide = guide_legend(title = leg_titles[i],
-                                             keywidth = 1,
-                                             keyheight = 1)) +
+                                             keywidth = 1.3,
+                                             keyheight = 1.3,
+                                             label.theme = element_text(size = 12))) +
       xlab(NULL) +
       scale_y_continuous(y_axis_title,
                          breaks = y_values,
                          labels = paste0(y_values * 100, "%"),
-                         limits = c(min(y_values), max(y_values)),
+                         limits = c(min(y_values), max(y_values) + .05),
                          expand = expand_scale(mult = c(0, .05))) +
       theme_bw() +
       theme(axis.title.x = element_blank(),
@@ -116,7 +116,7 @@ for (i in seq_along(interventions)) {
             axis.ticks.x = element_blank(),
             axis.text.y = element_text(size = 12),
             plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
-            strip.text.x = element_text(size = 8))
+            strip.text.x = element_text(size = 10))
     
     dir.create(out_fig_path, FALSE, TRUE)
     
