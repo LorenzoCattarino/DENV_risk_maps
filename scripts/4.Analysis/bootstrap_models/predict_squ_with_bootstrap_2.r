@@ -24,7 +24,8 @@ model_type <- paste0("model_", parameters$id)
 out_pt <- file.path("output", 
                     "predictions_world",
                     "bootstrap_models",
-                    model_type)
+                    model_type,
+                    "adm_1")
 
 col_ids <- as.character(seq_len(parameters$no_samples))
 
@@ -40,6 +41,7 @@ sqr_preds <- readRDS(file.path("output",
                                "predictions_world",
                                "bootstrap_models",
                                model_type,
+                               "adm_1",
                                prediction_fl_nm))
 
 
