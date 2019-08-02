@@ -96,7 +96,7 @@ for (i in seq_along(interventions)) {
     
     p <- ggplot(summary_table, aes(x = treatment, y = mean, fill = treatment, ymin = lCI, ymax = uCI)) +
       geom_bar(stat = "identity", position = position_dodge(width = 0.5), width = 0.9) +
-      geom_errorbar(width = .25, position = position_dodge(.9)) +
+      geom_errorbar(width = .15, position = position_dodge(.9)) +
       facet_grid(. ~ phi_set_id) +
       scale_fill_manual(values = c("lightskyblue1", "lightskyblue4"),
                         labels = leg_labels[[i]],
