@@ -13,15 +13,14 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- FALSE
 
 my_resources <- c(
-  file.path("R", "burden_and_interventions", "wrapper_to_multi_factor_R0_and_burden.R"),
-  file.path("R", "burden_and_interventions", "wrapper_to_replicate_R0_and_burden.R"),  
-  file.path("R", "burden_and_interventions", "wrapper_to_R0_and_burden.R"),
-  file.path("R", "burden_and_interventions", "functions_for_calculating_burden.R"),
-  file.path("R", "prepare_datasets", "functions_for_calculating_R0.R"),
   file.path("R", "utility_functions.R"),
-  file.path("R", "create_parameter_list.R"))
+  file.path("R", "create_parameter_list.R"),
+  file.path("R", "prepare_datasets", "functions_for_calculating_R0.R"),
+  file.path("R", "burden_and_interventions", "functions_for_calculating_burden.R"),
+  file.path("R", "burden_and_interventions", "wrapper_to_multi_factor_R0_and_burden.R"),
+  file.path("R", "burden_and_interventions", "wrapper_to_replicate_R0_and_burden.R"))
 
-my_pkgs <- c("data.table", "dplyr")
+my_pkgs <- "dplyr"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -32,7 +31,9 @@ ctx <- context::context_save(path = "context",
 # define extra parameters -----------------------------------------------------
 
 
-extra_prms <- list(id = 24,
+extra_prms <- list(id = 4,
+                   dependent_variable = "FOI",
+                   no_R0_assumptions = 4,
                    fit_type = "boot",
                    parallel_2 = TRUE,
                    phi_set_id_tag = "phi_set_id",
@@ -46,13 +47,13 @@ extra_prms <- list(id = 24,
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "16Core")
+  config <- didehpc::didehpc_config(template = "20Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
   
   context::context_load(ctx)
-  context::parallel_cluster_start(7, ctx)
+  context::parallel_cluster_start(8, ctx)
   
 }
 
@@ -62,11 +63,11 @@ if (CLUSTER) {
 
 parameters <- create_parameter_list(extra_params = extra_prms)
 
+var_to_fit <- parameters$dependent_variable
+
 model_type <- paste0("model_", parameters$id)
 
-lookup_path <- file.path("output", 
-                         "predictions_world", 
-                         "bootstrap_models")
+lookup_path <- file.path("output", "predictions_world")
 
 out_path <- file.path("output", 
                       "predictions_world", 
@@ -74,7 +75,7 @@ out_path <- file.path("output",
                       model_type,
                       "adm_1")
 
-no_R0_assumptions <- 3
+no_R0_assumptions <- parameters$no_R0_assumptions
 
 sf_vals <- parameters$sf_vals
 
@@ -100,12 +101,6 @@ FOI_to_C_list_fixed <- readRDS(file.path(lookup_path, "FOI_to_C_lookup_tables_fi
 
 FOI_to_HC_list_fixed <- readRDS(file.path(lookup_path, "FOI_to_HC_lookup_tables_fixed_params.rds"))
 
-bootstrap_experiments <- read.csv(file.path("output", 
-                                            "EM_algorithm", 
-                                            "bootstrap_models", 
-                                            "boostrap_fit_experiments_uni.csv"),
-                                  stringsAsFactors = FALSE)
-
 sqr_preds <- readRDS(file.path("output", 
                                "predictions_world",
                                "bootstrap_models",
@@ -122,7 +117,7 @@ age_struct <- read.csv(file.path("output",
 # pre processing --------------------------------------------------------------
 
 
-fit_var <- bootstrap_experiments[bootstrap_experiments$exp_id == parameters$id, "var"]
+task_b_name <- paste0("burden_adm_", var_to_fit)
 
 age_band_tgs <- grep("band", names(age_struct), value = TRUE)
 age_band_bnds <- get_age_band_bounds(age_band_tgs)
@@ -151,11 +146,19 @@ fct_c <- setNames(expand.grid(phi_set_id, sf_vals),
 
 fct_c <- cbind(id = seq_len(nrow(fct_c)), fct_c)
 
-assumption <- as.numeric(unlist(strsplit(fit_var, "_"))[2])
+if(var_to_fit == "FOI"){
+  
+  assumption <- 4 
+  
+} else {
+  
+  assumption <- as.numeric(unlist(strsplit(var_to_fit, "_"))[2])
+  
+}
 
 fct_c <- subset(fct_c, phi_set_id == assumption)  
 
-write_out_csv(fct_c, out_path, "scenario_table_wolbachia.csv")
+write_out_csv(fct_c, out_path, "scenario_table_wolbachia.csv", row.names = FALSE)
 
 fctr_combs <- df_to_list(fct_c, use_names = TRUE)
 
@@ -179,8 +182,7 @@ fctr_combs <- df_to_list(fct_c, use_names = TRUE)
 #                                         FOI_to_R0_2_list = FOI_to_R0_2_list,
 #                                         FOI_to_R0_3_list = FOI_to_R0_3_list,
 #                                         parms = parameters,
-#                                         out_path = out_path,
-#                                         var_to_fit = fit_var))
+#                                         out_path = out_path))
 
 
 # submit a bundle -------------------------------------------------------------
@@ -206,11 +208,11 @@ if (CLUSTER) {
                             FOI_to_R0_3_list = FOI_to_R0_3_list,
                             parms = parameters,
                             out_path = out_path,
-                            var_to_fit = fit_var)
+                            name = task_b_name)
   
 } else {
   
-  burden <- loop(fctr_combs, 
+  burden <- loop(fctr_combs,
                  wrapper_to_multi_factor_R0_and_burden,
                  foi_data = sqr_preds,
                  age_data = age_struct,
@@ -227,7 +229,6 @@ if (CLUSTER) {
                  FOI_to_R0_3_list = FOI_to_R0_3_list,
                  parms = parameters,
                  out_path = out_path,
-                 var_to_fit = fit_var,
                  parallel = FALSE)
   
 }
