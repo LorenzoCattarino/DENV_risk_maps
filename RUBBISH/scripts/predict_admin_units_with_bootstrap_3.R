@@ -1,31 +1,23 @@
-# Take mean, median, sd and 95% CI of foi, R0 and burden measures, for each 20 km square
+# Take mean, median, sd and 95% CI of predictions, for each admin unit
 # THIS IS FOR THE MAP!
 
-options(didehpc.cluster = "fi--didemrchnb")
-
-CLUSTER <- FALSE
-
-my_resources <- c(
-  file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"),
-  file.path("R", "utility_functions.R"))
-
-context::context_log_start()
-ctx <- context::context_save(path = "context",
-                             sources = my_resources)
+source(file.path("R", "utility_functions.R"))
+source(file.path("R", "create_parameter_list.R"))
+source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 
 
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  id = 24,
-  no_samples = 200) 
+extra_prms <- list(id = 4) 
 
-vars_to_average <- "response"
+vars_to_average <- "p16"
 
 
 # define variables ------------------------------------------------------------
 
+
+parameters <- create_parameter_list(extra_params = extra_prms)
 
 model_type <- paste0("model_", parameters$id)
 
@@ -38,56 +30,17 @@ in_path <- file.path("output",
                      "adm_1")
 
 
-# are you using the cluster? -------------------------------------------------- 
+# -----------------------------------------------------------------------------
 
 
-if (CLUSTER) {
-  
-  config <- didehpc::didehpc_config(template = "20Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
-  
-} else{
-  
-  context::context_load(ctx)
-  
-}
+dat <- readRDS(file.path(in_path, paste0(vars_to_average, ".rds")))
 
+ret <- average_boot_samples_dim2(dat[, col_names])
 
-# run one job -----------------------------------------------------------------
+base_info <- dat[, setdiff(names(dat), col_names)]
 
+ret2 <- cbind(base_info, ret)
 
-# t <- obj$enqueue(
-#   wrapper_to_average_bsamples(
-#     seq_along(vars_to_average)[1],
-#     vars = vars_to_average,
-#     in_path = in_path,
-#     out_path = in_path,
-#     col_names = col_names))
+out_name <- paste0(vars_to_average, "_mean.rds")
 
-
-# run -------------------------------------------------------------------------
-
-
-if (CLUSTER) {
-
-  means_all_scenarios <- queuer::qlapply(
-    seq_along(vars_to_average),
-    wrapper_to_average_bsamples,
-    obj,
-    vars = vars_to_average,
-    in_path = in_path,
-    out_path = in_path,
-    col_names = col_names)
-
-} else {
-
-  means_all_scenarios <- loop(
-    seq_along(vars_to_average),
-    wrapper_to_average_bsamples,
-    vars = vars_to_average,
-    in_path = in_path,
-    out_path = in_path,
-    col_names = col_names,
-    parallel = FALSE)
-
-}
+write_out_rds(ret2, in_path, out_name)
