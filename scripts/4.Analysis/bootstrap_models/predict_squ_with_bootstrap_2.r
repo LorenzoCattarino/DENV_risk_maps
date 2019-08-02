@@ -1,4 +1,4 @@
-# Calculates seroprevalence at age 9 (`p9` variable).
+# Calculates seroprevalence at some age
 
 
 source(file.path("R", "utility_functions.r"))
