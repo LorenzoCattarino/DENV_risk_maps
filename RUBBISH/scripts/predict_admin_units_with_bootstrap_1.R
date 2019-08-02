@@ -1,14 +1,13 @@
-# Load back square predictions for the world, for each model fit 
-# Save a n squares x n fits matrix. 
+# Average sqr predictions to admin unit level  
 
 options(didehpc.cluster = "fi--didemrchnb")
 
 my_resources <- c(
-  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
-  file.path("R", "prepare_datasets", "average_up.R"),
-  file.path("R", "utility_functions.R"))
+  file.path("R", "utility_functions.R"),
+  file.path("R", "create_parameter_list.R"),
+  file.path("R", "prepare_datasets", "average_up.R"))
 
-my_pkgs <- c("ranger", "dplyr")
+my_pkgs <- "dplyr"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -21,30 +20,36 @@ context::context_load(ctx)
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  id = 24,
-  foi_offset = 0.03,
-  no_samples = 200) 
+extra_prms <- list(id = 4,
+                   R0_scenario = 2,
+                   baseline_scenario_ids = 4,
+                   dependent_variable = "FOI",
+                   base_info = c("cell", 
+                                 "latitude", 
+                                 "longitude", 
+                                 "population", 
+                                 "ID_0", 
+                                 "ID_1", 
+                                 "ID_2"),
+                   grp_fields = c("ID_0", "ID_1")) 
 
-out_fl_nm <- "response.rds"
-
-base_info <- c("cell", "latitude", "longitude", "population", "ID_0", "ID_1", "ID_2")
-
-grp_fields <- c("ID_0", "ID_1")
+input_fl_name <- "transformed"
 
 
 # define variables ------------------------------------------------------------
 
 
+parameters <- create_parameter_list(extra_params = extra_prms)
+
+var_to_fit <- parameters$dependent_variable
+
 model_type <- paste0("model_", parameters$id)
 
-foi_offset <- parameters$foi_offset
+R0_scenario <- parameters$R0_scenario
 
-global_predictions_in_path <- file.path("output", 
-                                        "predictions_world",
-                                        "bootstrap_models",
-                                        model_type,
-                                        "boot_samples")
+baseline_scenario_ids <- parameters$baseline_scenario_ids
+  
+grp_fields <- parameters$grp_fields
 
 out_pt <- file.path("output", 
                     "predictions_world", 
@@ -56,43 +61,25 @@ out_pt <- file.path("output",
 # load data -------------------------------------------------------------------
 
 
-all_sqr_covariates <- readRDS(file.path("output", 
-                                        "env_variables", 
-                                        "all_squares_env_var_0_1667_deg.rds"))
-
-fct_comb <- read.csv(file.path("output", 
-                               "EM_algorithm", 
-                               "bootstrap_models", 
-                               "boostrap_fit_experiments_uni.csv"))
-
-
-# pre processing -------------------------------------------------------------- 
-
-
-var_to_fit <- fct_comb[fct_comb$exp_id == parameters$id, "var"]
-
-fi <- list.files(global_predictions_in_path, 
-                 pattern = "^sample",
-                 full.names = TRUE)
-
-all_samples <- loop(fi, readRDS, parallel = FALSE)
-
-
-# combine all results together ------------------------------------------------ 
-
-
-sqr_preds <- do.call("cbind", all_samples)
-
-if(var_to_fit =="FOI"){
+fl_nm <- sprintf("%s_%s_%s_%s%s", 
+                 input_fl_name, 
+                 R0_scenario, 
+                 "wolbachia", 
+                 baseline_scenario_ids, 
+                 ".rds")
   
-  sqr_preds <- sqr_preds - foi_offset
+sqr_preds <- readRDS(file.path("output", 
+                               "predictions_world",
+                               "bootstrap_models",
+                               model_type,
+                               fl_nm))
+
+
+# average up the sqr predictions ----------------------------------------------
+
+
+sqr_preds <- as.data.frame(sqr_preds)
   
-}
-
-sqr_preds[sqr_preds < 0] <- 0
-
-sqr_preds <- cbind(all_sqr_covariates[, base_info], sqr_preds)
-
 col_ids <- as.character(seq_len(parameters$no_samples))
   
 test <- lapply(col_ids, multi_col_average_up, sqr_preds, grp_fields)
@@ -103,4 +90,4 @@ all_adm_pred <- do.call("cbind", test2)
 
 all_adm_pred <- cbind(test[[1]][, c(grp_fields, "population")], all_adm_pred)
 
-write_out_rds(all_adm_pred, out_pt, out_fl_nm)  
+write_out_rds(all_adm_pred, out_pt, fl_nm)  
