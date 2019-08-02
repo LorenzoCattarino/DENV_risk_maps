@@ -4,6 +4,8 @@
 library(dplyr)
 library(ggplot2)
 
+source(file.path("R", "utility_functions.R"))
+
 
 # define parameters -----------------------------------------------------------
 
@@ -84,6 +86,14 @@ for (i in seq_along(interventions)) {
       summary_table <- summary_table_orig
       summary_table$treatment <- as.factor(summary_table$treatment)
       
+      out_fl_nm <- sprintf("prop_change_%s_%s%s", my_var_name, intervention_name, ".csv")
+      
+      write_out_csv(summary_table, file.path("output", 
+                                             "predictions_world", 
+                                             "bootstrap_models"),
+                    out_fl_nm,
+                    row.names = FALSE)
+      
     }
     
     y_values <- seq(0, 1, 0.2)
@@ -123,7 +133,7 @@ for (i in seq_along(interventions)) {
     barplot_fl_nm <- paste0("proportional_reduction_in_", my_var_name, "_", intervention_name, ".png")
     
     png(file.path(out_fig_path, barplot_fl_nm),
-        width = 17,
+        width = 15,
         height = 9,
         units = "cm",
         pointsize = 12,
