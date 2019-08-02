@@ -4,6 +4,8 @@
 library(dplyr)
 library(ggplot2)
 
+source(file.path("R", "utility_functions.R"))
+
 out_fig_path <- file.path("figures", 
                           "predictions_world", 
                           "bootstrap_models",
@@ -54,11 +56,20 @@ for (j in seq_along(burden_measures)) {
   
   summary_table <- summary_table_orig
   
+  out_fl_nm <- sprintf("prop_change_%s_%s%s", my_var_name, intervention_name, ".csv")
+  
+  write_out_csv(summary_table, file.path("output", 
+                                         "predictions_world", 
+                                         "bootstrap_models",
+                                         "adm_1"),
+                out_fl_nm,
+                row.names = FALSE)
+  
   y_values <- seq(0, 0.5, 0.1)
 
   p <- ggplot(summary_table, aes(x = burden_measure, y = mean, ymin = lCI, ymax = uCI)) +
     geom_bar(stat = "identity", position = "dodge", width = 0.5, fill = "lightskyblue3") +
-    geom_errorbar(width = .1, position = position_dodge(.9)) +
+    geom_errorbar(width = .05, position = position_dodge(.9)) +
     facet_grid(. ~ phi_set_id) +
     xlab(NULL) +
     scale_y_continuous(y_axis_title,
@@ -72,14 +83,14 @@ for (j in seq_along(burden_measures)) {
           axis.ticks.x = element_blank(),
           axis.text.y = element_text(size = 12),
           plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
-          strip.text.x = element_text(size = 8))
+          strip.text.x = element_text(size = 10))
   
   dir.create(out_fig_path, FALSE, TRUE)
   
   barplot_fl_nm <- paste0("proportional_reduction_in_", my_var_name, "_", intervention_name, ".png")
   
   png(file.path(out_fig_path, barplot_fl_nm),
-      width = 17,
+      width = 12,
       height = 9,
       units = "cm",
       pointsize = 12,
