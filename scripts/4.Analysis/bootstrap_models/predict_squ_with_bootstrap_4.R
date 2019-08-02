@@ -1,88 +1,85 @@
-# Calculates the sd of each pixel prediction by interpolating the sd values, 
-# calculated using bootstrap samples created with different grid sizes (or distances),
-# based on the distance of the pixel to the closest data point
+# Makes a map of the square predictions and save the raster
+
+source(file.path("R", "plotting", "functions_for_plotting_raster_maps.r"))
+source(file.path("R", "utility_functions.r"))
+
+library(fields)
+library(colorRamps)
 
 
-source(file.path("R", "utility_functions.R"))
-source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
+# define parameters -----------------------------------------------------------  
 
 
-# define parameters -----------------------------------------------------------
+parameters <- list(id = 4,
+                   dependent_variable = "FOI",
+                   z_range = list(FOI = c(0, 0.06),
+                                  R0_1 = c(0, 8),
+                                  R0_2 = c(0, 4),
+                                  R0_3 = c(0, 5))) 
 
+vars_to_average <- "response"
 
-parameters <- list(id = c(5, 6, 7, 4, 8),
-                   grid_size = c(0.5, 1, 2, 5, 10),
-                   base_info = c("cell", 
-                                 "latitude", 
-                                 "longitude", 
-                                 "population", 
-                                 "ID_0", 
-                                 "ID_1", 
-                                 "ID_2", 
-                                 "sd"))   
-
-out_name <- "response_mean.rds"
+statistic <- "mean"
 
 
 # define variables ------------------------------------------------------------
 
 
+var_to_fit <- parameters$dependent_variable
+
+z_range <- parameters$z_range[[var_to_fit]]
+
 model_type <- paste0("model_", parameters$id)
 
-grid_sizes <- parameters$grid_size
-  
-base_info <- parameters$base_info
-  
-in_path <- file.path("output",
+in_path <- file.path("output", 
                      "predictions_world",
                      "bootstrap_models",
-                     model_type,
-                     "response_mean.rds")
-
-out_path <- file.path("output",
+                     model_type)
+  
+out_path <- file.path("figures", 
                       "predictions_world",
                       "bootstrap_models",
-                      "grid_size_interpolated")
+                      model_type)
 
 
-# load data ------------------------------------------------------------------- 
+# pre processing -------------------------------------------------------------- 
 
 
-all_sqr_covariates <- readRDS(file.path("output", 
-                                        "env_variables", 
-                                        "all_squares_env_var_0_1667_deg.rds"))
+my_col <- matlab.like(100)
 
-mean_predictions_all_gr_szs <- lapply(in_path, readRDS)
+mean_pred_fl_nm <- paste0(vars_to_average, "_mean", ".rds")
+
+df_long <- readRDS(file.path(in_path, mean_pred_fl_nm))
+
+out_fl_nm <- paste0(vars_to_average, "_", statistic, ".png")
 
 
-# start -----------------------------------------------------------------------
+# plot ------------------------------------------------------------------------ 
 
 
-n <- nrow(mean_predictions_all_gr_szs[[1]])
+quick_raster_map(pred_df = df_long, 
+                 variable = vars_to_average, 
+                 statistic = statistic, 
+                 my_col = my_col, 
+                 out_pt = out_path, 
+                 out_name = out_fl_nm,
+                 z_range = z_range)
 
-all_sd <- vapply(seq_along(grid_sizes), 
-                 get_grid_size_sd, 
-                 numeric(n), 
-                 pred_ls = mean_predictions_all_gr_szs)
 
-new_col_names <- paste0("sd_", grid_sizes)
+# save the raster -------------------------------------------------------------
 
-colnames(all_sd) <- new_col_names
 
-all_sqr_covariates <- cbind(all_sqr_covariates, all_sd)
+my_ras <- raster::rasterFromXYZ(df_long[, c("longitude","latitude", statistic)])
 
-all_sqr_covariates$distance_log <- log(all_sqr_covariates$distance)
+# check 
+# raster::plot(my_ras, zlim=c(0,0.06), col = my_col)
 
-all_sqr_covariates$sd <- 0
+# save 
+raster::writeRaster(my_ras, filename = file.path(in_path, "foi_map.tif"), format = "GTiff", overwrite = TRUE)
 
-# all_sqr_covariates <- all_sqr_covariates[302510:302520,]
-
-N <- nrow(all_sqr_covariates)
-
-for (i in seq_len(N)){
-
-  all_sqr_covariates[i, "sd"] <- approx(grid_sizes, all_sqr_covariates[i, new_col_names], xout = all_sqr_covariates[i, "distance_log"])$y
-
-}
-
-write_out_rds(all_sqr_covariates[, base_info], out_path, out_name)
+# test
+# my_ras <- raster::raster(file.path("output", 
+#                                    "predictions_world",
+#                                    "bootstrap_models",
+#                                    "model_21", 
+#                                    "foi_map.tif"))

@@ -1,45 +1,58 @@
-# Take mean, median, sd and 95% CI of foi, R0 and burden measures, for each 20 km square
-# THIS IS FOR THE MAP!
-
-source(file.path("R", "utility_functions.R"))
-source(file.path("R", "create_parameter_list.R"))
-source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
+# Calculates seroprevalence at age 9 (`p9` variable).
 
 
-# define parameters ----------------------------------------------------------- 
+source(file.path("R", "utility_functions.r"))
 
 
-extra_prms <- list(id = 8) 
-
-vars_to_average <- "response"
+# define parameters -----------------------------------------------------------
 
 
+parameters <- list(
+  dependent_variable = "FOI",
+  grid_size = 1,
+  no_samples = 200)   
+
+age <- 9
+
+out_fl_nm <- "p9.rds"
+
+prediction_fl_nm <- "response.rds"
+  
+  
 # define variables ------------------------------------------------------------
 
 
-parameters <- create_parameter_list(extra_params = extra_prms)
+model_type <- paste0(parameters$dependent_variable, "_boot_model")
 
-model_type <- paste0("model_", parameters$id)
+my_dir <- paste0("grid_size_", parameters$grid_size)
 
-col_names <- as.character(seq_len(parameters$no_samples))
+out_pt <- file.path("output", 
+                    "predictions_world",
+                    "bootstrap_models",
+                    my_dir,
+                    model_type)
 
-in_path <- file.path("output", 
-                     "predictions_world",
-                     "bootstrap_models",
-                     model_type)
-
-
-# -----------------------------------------------------------------------------
+col_ids <- as.character(seq_len(parameters$no_samples))
 
 
-dat <- readRDS(file.path(in_path, paste0(vars_to_average, ".rds")))
+# load data ------------------------------------------------------------------- 
 
-ret <- average_boot_samples_dim2(dat[, col_names])
+  
+sqr_preds <- readRDS(file.path("output", 
+                               "predictions_world",
+                               "bootstrap_models",
+                               my_dir,
+                               model_type,
+                               prediction_fl_nm))
 
-base_info <- dat[, setdiff(names(dat), col_names)]
 
-ret2 <- cbind(base_info, ret)
+# calculate p9 ----------------------------------------------------------------
 
-out_name <- paste0(vars_to_average, "_mean.rds")
 
-write_out_rds(ret2, in_path, out_name)
+p9 <- 100 * (1 - exp(-4 * age * sqr_preds[, col_ids]))
+
+base_info <- sqr_preds[, setdiff(names(sqr_preds), col_ids)]
+  
+final_dts <- cbind(base_info, p9)
+
+write_out_rds(final_dts, out_pt, out_fl_nm)  
