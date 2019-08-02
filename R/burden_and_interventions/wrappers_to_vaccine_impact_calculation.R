@@ -1,8 +1,6 @@
 wrapper_to_multi_factor_vaccine_impact <- function(x, 
                                                    preds, 
-                                                   parallel_2, 
                                                    parms, 
-                                                   base_info, 
                                                    out_path){
   
   run_ID <- x$id
@@ -17,18 +15,21 @@ wrapper_to_multi_factor_vaccine_impact <- function(x,
   cat("burden measure =", burden_measure, "\n")
   cat("vaccine estimate =", estimate, "\n")
   
+  base_info <- parms$base_info
   no_fits <- parms$no_samples
   w_scenario_id <- parms$wolbachia_scenario_id
+  R0_scenario <- parms$R0_scenario
+  parallel_2 <- parms$parallel_2
   
   out_file_tag <- toupper(substr(burden_measure, 1, 1))
   
   burden_file_name <- paste0(out_file_tag, "_num_wolbachia_", w_scenario_id, "_fixed.rds")
   
   lookup_table_nm <- sprintf("R0_to_prop_%s_averted_lookup_%s_%s%s", 
-                            burden_measure, 
-                            phi_set_id, 
-                            estimate,
-                            ".csv")
+                             burden_measure, 
+                             R0_scenario, 
+                             estimate,
+                             ".csv")
   
   model_type <- paste0("model_", parms$id)
   
@@ -52,7 +53,7 @@ wrapper_to_multi_factor_vaccine_impact <- function(x,
   
   # load data -----------------------------------------------------------------  
   
-  
+
   look_up_table <- read.csv(file.path("data",
                                       "vaccine",
                                       "vaccine_lookup_table",
@@ -78,7 +79,7 @@ wrapper_to_multi_factor_vaccine_impact <- function(x,
   
   look_up_table_2 <- as.matrix(look_up_table_2)
   
-  out_fl_nm <- paste0(out_file_tag, "_num_vaccine_", run_ID, ".rds")
+  out_fl_nm <- paste0(out_file_tag, "_num_", R0_scenario, "_vaccine_", run_ID, ".rds")
   
   prop_averted <- loop(
     seq_len(nrow(preds)),
