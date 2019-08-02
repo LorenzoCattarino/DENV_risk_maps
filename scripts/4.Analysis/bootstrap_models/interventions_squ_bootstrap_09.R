@@ -3,33 +3,36 @@
 # how many countries are dengue free (R0 < 1), for each level of R0 reduction
 
 library(dplyr)
-library(data.table)
 library(countrycode)
 
-source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 source(file.path("R", "utility_functions.R"))
+source(file.path("R", "create_parameter_list.R"))
 source(file.path("R", "prepare_datasets", "average_up.R"))
+source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 
 
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  id = c(22, 23, 24),
-  no_samples = 200,
-  baseline_scenario_ids = c(1, 2, 3))   
-
-intervention_name <- "wolbachia"
-
-treatment_name <- "scaling_factor"
-
-phi_factor_levels <- c("2S", "4S", "4S(sym = 2x asym)")
+extra_prms <- list(id = 4,
+                   R0_scenario = c(1, 2),
+                   intervention_name = "wolbachia",
+                   treatment_name = "scaling_factor",
+                   phi_factor_levels = c("2S", "4S"))
 
 
 # define variables ------------------------------------------------------------
 
 
-baseline_scenario_ids <- parameters$baseline_scenario_ids 
+parameters <- create_parameter_list(extra_params = extra_prms)
+
+R0_scenario <- parameters$R0_scenario
+
+intervention_name <- parameters$intervention_name
+
+treatment_name <- parameters$treatment_name
+
+phi_factor_levels <- parameters$phi_factor_levels
 
 model_type <- paste0("model_", parameters$id)
 
@@ -52,7 +55,8 @@ fct_comb_fl_nm <- paste0("scenario_table_", intervention_name, ".csv")
 # load data ------------------------------------------------------------------- 
 
 
-fct_comb_ls <- lapply(file.path(in_path, fct_comb_fl_nm), read.csv, header = TRUE)
+fct_comb_ls <- read.csv(file.path(in_path, fct_comb_fl_nm),
+                        stringsAsFactors = FALSE)
 
 age_struct_orig <- read.csv(file.path("output", 
                                       "datasets",
@@ -90,25 +94,27 @@ age_struct_orig$country <- nice_strings_3
 # keep only dengue endemic countries 
 age_struct <- inner_join(age_struct_orig, endemic_c[, "ID_0", drop = FALSE], by = "ID_0")  
 
+col_names <- as.character(seq_len(parameters$no_samples))
+
 
 # aggreggating ---------------------------------------------------------------- 
 
 
-out_ls <- vector("list", length(model_type))
+out_ls <- vector("list", length(R0_scenario))
 
-root_name <- paste0("response_r_", intervention_name, "_")
-
-for (k in seq_along(model_type)){                         # loop over R0 assumptions
+for (k in seq_along(R0_scenario)){                         # loop over R0 assumptions
   
   cat("R0 assumption =", k, "\n")
   
-  # index <- k + (length(in_path)*(j-1))
+  root_name <- sprintf("transformed_r_%s_%s_", k, intervention_name)
   
-  my_in_path <- in_path[k]
-  my_out_path <- out_table_path[k]
+  my_in_path <- in_path
+  my_out_path <- out_table_path
   
-  my_fct_comb <- fct_comb_ls[[k]]
+  my_fct_comb <- fct_comb_ls[-1,]
   
+  my_fct_comb$phi_set_id <- k
+    
   fi <- list.files(my_in_path, 
                    pattern = paste0("^", root_name),
                    full.names = TRUE)
@@ -117,15 +123,12 @@ for (k in seq_along(model_type)){                         # loop over R0 assumpt
   
   fi_sort <- fi[order(num.sort)]
   
-  message(fi_sort)
+  # message(fi_sort)
   
   dat <- lapply(fi_sort, readRDS)
   
   small_out_ls <- vector("list", length(dat))
   small_out_ls_2 <- vector("list", length(dat))
-  
-  # baseline_id <- baseline_scenario_ids[k]
-  # baseline <- readRDS(file.path(my_in_path, paste0(root_name, "_", baseline_id, ".rds"))) 
   
   for (i in seq_along(dat)){                              # loop over treatments
     
@@ -133,10 +136,7 @@ for (k in seq_along(model_type)){                         # loop over R0 assumpt
     cat("scenario table id =", scenario_id, "\n")
     
     one_dat <- as.data.frame(dat[[i]])
-    # one_dat <- inner_join(one_dat, age_struct[, c("continent", "region", "country", "ID_0")])
-    
-    col_names <- as.character(seq_len(parameters$no_samples))
-      
+   
     average_sqr <- lapply(as.list(col_names), multi_col_average_up, one_dat, "ID_0")
     
     average_sqr_clean <- lapply(average_sqr, remove_pop_col)
@@ -144,7 +144,7 @@ for (k in seq_along(model_type)){                         # loop over R0 assumpt
     to_print_1 <- do.call("cbind", average_sqr_clean)
     to_print_2 <- average_boot_samples_dim2(to_print_1)
     to_print_3 <- cbind(ID_0 = average_sqr[[1]]$ID_0, to_print_2)
-    to_print_4 <- inner_join(to_print_3, age_struct[, c("country", "ID_0")])
+    to_print_4 <- inner_join(to_print_3, age_struct[, c("country", "ID_0")], by = "ID_0")
     write_out_csv(to_print_4,
                   my_out_path,
                   paste0("scenario_", scenario_id, ".csv"))
@@ -154,13 +154,7 @@ for (k in seq_along(model_type)){                         # loop over R0 assumpt
     dengue_free_c_mat <- unlist(dengue_free_c)
     
     ret <- average_boot_samples_dim1(dengue_free_c_mat)
-    # ret <- round(ret, -2)
-    # ret2 <- cbind(ID_0 = country_sums$ID_0, ret)
-    # ret3 <- merge(age_struct[, c("country", "ID_0")], ret2, by = "ID_0", all.x = FALSE)
-    # write_out_csv(ret, 
-    #               my_out_path, 
-    #               paste0(my_var_name, "_by_country_", scenario_id, ".csv"))
-    
+
     small_out_ls[[i]] <- ret
     
   }
@@ -195,4 +189,3 @@ write_out_csv(summary_table, file.path("output",
                                        "predictions_world", 
                                        "bootstrap_models"), 
               summary_tab_fl_nm)
-
