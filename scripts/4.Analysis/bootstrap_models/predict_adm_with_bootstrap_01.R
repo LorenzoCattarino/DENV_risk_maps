@@ -1,20 +1,10 @@
-# Average sqr predictions to admin unit level  
+# Average sqr predictions to admin unit level
 
-options(didehpc.cluster = "fi--didemrchnb")
+source(file.path("R", "utility_functions.R"))
+source(file.path("R", "create_parameter_list.R"))
+source(file.path("R", "prepare_datasets", "average_up.R"))
 
-my_resources <- c(
-  file.path("R", "utility_functions.R"),
-  file.path("R", "create_parameter_list.R"),
-  file.path("R", "prepare_datasets", "average_up.R"))
-
-my_pkgs <- "dplyr"
-
-context::context_log_start()
-ctx <- context::context_save(path = "context",
-                             packages = my_pkgs,
-                             sources = my_resources)
-
-context::context_load(ctx)
+library(dplyr)
 
 
 # define parameters ----------------------------------------------------------- 
@@ -31,7 +21,7 @@ extra_prms <- list(id = 4,
                                  "ID_2"),
                    grp_fields = c("ID_0", "ID_1")) 
 
-input_fl_name <- "p16.rds"
+input_fl_name <- "response.rds"
 
 
 # define variables ------------------------------------------------------------
