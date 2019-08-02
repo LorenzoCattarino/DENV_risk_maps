@@ -6,35 +6,41 @@
 
 
 library(dplyr)
-library(data.table)
 library(countrycode)
 
-source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 source(file.path("R", "utility_functions.R"))
+source(file.path("R", "create_parameter_list.R"))
+source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 
 
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(
-  id = c(22, 23, 24, 21),
-  no_samples = 200,
-  burden_measures = c("infections", "cases", "hosp"),
-  baseline_scenario_ids = c(1, 2, 3, 4))   
-
-intervention_name <- "wolbachia"
-
-treatment_name <- "scaling_factor"
-
-phi_factor_levels <- c("2S", "4S", "4S(sym = 2x asym)", "FOI")
+extra_prms <- list(id = 4,
+                   R0_scenario = c(1, 2),
+                   burden_measures = c("infections", "cases", "hosp"),
+                   baseline_scenario_ids = 4,
+                   intervention_name = "wolbachia",
+                   treatment_name = "scaling_factor",
+                   phi_factor_levels = c("2S", "4S"))
 
 
 # define variables ------------------------------------------------------------
 
 
+parameters <- create_parameter_list(extra_params = extra_prms)
+
+R0_scenario <- parameters$R0_scenario
+
 baseline_scenario_ids <- parameters$baseline_scenario_ids 
 
 burden_measures <- parameters$burden_measures
+
+intervention_name <- parameters$intervention_name
+
+treatment_name <- parameters$treatment_name
+
+phi_factor_levels <- parameters$phi_factor_levels
 
 vars <- toupper(substr(burden_measures, 1, 1))
 
@@ -59,7 +65,8 @@ fct_comb_fl_nm <- paste0("scenario_table_", intervention_name, ".csv")
 # load data ------------------------------------------------------------------- 
 
 
-fct_comb_ls <- lapply(file.path(in_path, fct_comb_fl_nm), read.csv, header = TRUE)
+fct_combs <- read.csv(file.path(in_path, fct_comb_fl_nm), 
+                        stringsAsFactors = FALSE)
 
 age_struct_orig <- read.csv(file.path("output", 
                                       "datasets",
@@ -76,12 +83,12 @@ endemic_c <- read.csv(file.path("output",
 
 
 age_struct_orig$continent <- as.factor(countrycode(sourcevar = age_struct_orig[, "country"], 
-                                              origin = "country.name", 
-                                              destination = "continent"))
+                                                   origin = "country.name", 
+                                                   destination = "continent"))
 
 age_struct_orig$region <- as.factor(countrycode(sourcevar = age_struct_orig[, "country"], 
-                                           origin = "country.name", 
-                                           destination = "region"))
+                                                origin = "country.name", 
+                                                destination = "region"))
 
 # remove text in brackets 
 nice_strings <- gsub("\\s*\\([^\\)]+\\)", "", age_struct_orig$country)
@@ -97,45 +104,52 @@ age_struct_orig$country <- nice_strings_3
 # keep only dengue endemic countries 
 age_struct <- inner_join(age_struct_orig, endemic_c[, "ID_0", drop = FALSE], by = "ID_0")  
 
-
+bs_line_out <- vector("list", length(vars))
+  
+  
 # aggreggating ---------------------------------------------------------------- 
 
 
 for (j in seq_along(vars)){                                 # loop over burden measures 
   
-  out_ls <- vector("list", length(model_type))
-  out_ls_2 <- vector("list", length(model_type))
+  out_ls <- vector("list", length(R0_scenario))
+  out_ls_2 <- vector("list", length(R0_scenario))
   
   my_var_name <- burden_measures[j]
   cat("burden measure =", my_var_name, "\n")
   
   my_var <- vars[j]
   
-  root_name <- paste0(my_var, "_num_", intervention_name)
+  my_in_path <- in_path
   
-  for (k in seq_along(model_type)){                         # loop over R0 assumptions
+  baseline_id <- baseline_scenario_ids
+  
+  baseline_fl_nm <- sprintf("%s_num_%s_%s%s", my_var, intervention_name, baseline_id, ".rds")
+  
+  baseline <- as.data.frame(readRDS(file.path(my_in_path, baseline_fl_nm))) 
+  
+  for (k in seq_along(R0_scenario)){                         # loop over R0 assumptions
     
     cat("R0 assumption =", k, "\n")
     
     # index <- k + (length(in_path)*(j-1))
     
-    my_in_path <- in_path[k]
-    my_out_path <- out_table_path[k]
+    root_name <- sprintf("%s_num_%s_%s", my_var, k, intervention_name)
     
-    my_fct_comb <- fct_comb_ls[[k]]
+    my_out_path <- file.path(out_table_path, paste0("R0_assumption_", k))
+    
+    my_fct_comb <- fct_combs[-1,]
+    
+    my_fct_comb$phi_set_id <- k
     
     fi <- file.path(my_in_path, paste0(root_name, "_", my_fct_comb$id, ".rds"))
-
-    message(fi)
+    
+    # message(fi)
     
     dat <- lapply(fi, readRDS)
     
     small_out_ls <- vector("list", length(dat))
     small_out_ls_2 <- vector("list", length(dat))
-    
-    baseline_id <- baseline_scenario_ids[k]
-    
-    baseline <- readRDS(file.path(my_in_path, paste0(root_name, "_", baseline_id, ".rds"))) 
     
     for (i in seq_along(dat)){                              # loop over treatments
       
@@ -153,7 +167,8 @@ for (j in seq_along(vars)){                                 # loop over burden m
       ret3 <- merge(age_struct[, c("country", "ID_0")], ret2, by = "ID_0", all.x = FALSE)
       write_out_csv(ret3, 
                     my_out_path, 
-                    paste0(my_var_name, "_by_country_", scenario_id, ".csv"))
+                    paste0(my_var_name, "_by_country_", scenario_id, ".csv"),
+                    row.names = FALSE)
       
       by_continent <- one_dat %>% group_by(continent)
       continent_sums <- by_continent %>% summarise_at(var_to_sum, "sum")       
@@ -162,16 +177,17 @@ for (j in seq_along(vars)){                                 # loop over burden m
       ret2 <- cbind(continent = continent_sums$continent, ret)  
       write_out_csv(ret2, 
                     my_out_path, 
-                    paste0(my_var_name, "_by_continent_", scenario_id, ".csv"))
+                    paste0(my_var_name, "_by_continent_", scenario_id, ".csv"),
+                    row.names = FALSE)
       
-      by_region <- one_dat %>% group_by(region)
-      region_sums <- by_region %>% summarise_at(var_to_sum, "sum")
-      ret <- average_boot_samples_dim2(region_sums[, var_to_sum])
-      ret <- round(ret, -2)
-      ret2 <- cbind(region = region_sums$region, ret)  
-      write_out_csv(ret2, 
-                    my_out_path, 
-                    paste0(my_var_name, "_by_region_", scenario_id, ".csv"))
+      # by_region <- one_dat %>% group_by(region)
+      # region_sums <- by_region %>% summarise_at(var_to_sum, "sum")
+      # ret <- average_boot_samples_dim2(region_sums[, var_to_sum])
+      # ret <- round(ret, -2)
+      # ret2 <- cbind(region = region_sums$region, ret)  
+      # write_out_csv(ret2, 
+      #               my_out_path, 
+      #               paste0(my_var_name, "_by_region_", scenario_id, ".csv"))
       
       ret4 <- colSums(one_dat[, var_to_sum])
       ret5 <- average_boot_samples_dim1(ret4)
@@ -219,7 +235,8 @@ for (j in seq_along(vars)){                                 # loop over burden m
   write_out_csv(summary_table, file.path("output", 
                                          "predictions_world", 
                                          "bootstrap_models"), 
-                summary_tab_fl_nm)
+                summary_tab_fl_nm,
+                row.names = FALSE)
   
   summary_table_2 <- do.call("rbind", out_ls_2)  
   
@@ -244,23 +261,45 @@ for (j in seq_along(vars)){                                 # loop over burden m
   write_out_csv(summary_table_2, file.path("output", 
                                            "predictions_world", 
                                            "bootstrap_models"), 
-                summary_tab_fl_nm_2)
+                summary_tab_fl_nm_2,
+                row.names = FALSE)
   
   
-  # save table of baseline burden ---------------------------------------------
+  # summarise the baseline dataset --------------------------------------------
   
   
-  if(intervention_name == "wolbachia"){
-    
-    total_burden_baseline <- subset(summary_table, treatment == 1)
-    
-    basel_burden_fl_nm <- paste0("baseline_total_", my_var_name, "_", intervention_name, ".csv")
-    
-    write_out_csv(total_burden_baseline, file.path("output", 
-                                                   "predictions_world", 
-                                                   "bootstrap_models"), 
-                  basel_burden_fl_nm)
-    
-  }
+  # by country
+  one_dat <- inner_join(baseline, age_struct[, c("continent", "region", "country", "ID_0")])
+  by_country <- one_dat %>% group_by(ID_0)
+  country_sums <- by_country %>% summarise_at(var_to_sum, "sum")
+  ret <- average_boot_samples_dim2(country_sums[, var_to_sum])
+  ret <- round(ret, -2)
+  ret2 <- cbind(ID_0 = country_sums$ID_0, ret)
+  ret3 <- merge(age_struct[, c("country", "ID_0")], ret2, by = "ID_0", all.x = FALSE)
+  write_out_csv(ret3, 
+                out_table_path, 
+                paste0(my_var_name, "_by_country_", baseline_id, ".csv"),
+                row.names = FALSE)
+  # overall
+  total_burden_baseline <- average_boot_samples_dim1(bl_colsum)
+  total_burden_baseline <- round(total_burden_baseline, -2)
+  total_burden_baseline <- t(data.frame(total_burden_baseline))
+  rownames(total_burden_baseline) <- burden_measures[j]
   
-}
+  bs_line_out[[j]] <- total_burden_baseline
+  
+}  
+
+
+# save table of baseline burden -----------------------------------------------
+
+
+baseline_summary_table <- do.call("rbind", bs_line_out) 
+
+basel_burden_fl_nm <- paste0("baseline_total_", intervention_name, ".csv")
+
+write_out_csv(baseline_summary_table, file.path("output", 
+                                                "predictions_world", 
+                                                "bootstrap_models"), 
+              basel_burden_fl_nm, 
+              row.names = TRUE)
