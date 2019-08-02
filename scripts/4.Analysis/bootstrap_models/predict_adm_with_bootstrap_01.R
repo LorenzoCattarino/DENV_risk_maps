@@ -31,7 +31,7 @@ extra_prms <- list(id = 4,
                                  "ID_2"),
                    grp_fields = c("ID_0", "ID_1")) 
 
-input_fl_name <- "response.rds"
+input_fl_name <- "p16.rds"
 
 
 # define variables ------------------------------------------------------------
