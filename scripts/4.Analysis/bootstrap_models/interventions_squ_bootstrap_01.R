@@ -13,14 +13,14 @@ options(didehpc.cluster = "fi--didemrchnb")
 CLUSTER <- TRUE
 
 my_resources <- c(
+  file.path("R", "utility_functions.R"),
+  file.path("R", "create_parameter_list.R"),
+  file.path("R", "prepare_datasets", "functions_for_calculating_R0.R"),
   file.path("R", "burden_and_interventions", "functions_for_calculating_burden.R"),
   file.path("R", "burden_and_interventions", "wrapper_to_multi_factor_R0_and_burden.R"),
-  file.path("R", "burden_and_interventions", "wrapper_to_replicate_R0_and_burden.R"),
-  file.path("R", "prepare_datasets", "functions_for_calculating_R0.R"),
-  file.path("R", "utility_functions.R"),
-  file.path("R", "create_parameter_list.R"))
+  file.path("R", "burden_and_interventions", "wrapper_to_replicate_R0_and_burden.R"))
 
-my_pkgs <- c("data.table", "dplyr")
+my_pkgs <- "dplyr"
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -31,7 +31,9 @@ ctx <- context::context_save(path = "context",
 # define extra parameters -----------------------------------------------------
 
 
-extra_prms <- list(id = 21,
+extra_prms <- list(id = 4,
+                   dependent_variable = "FOI",
+                   no_R0_assumptions = 4,
                    fit_type = "boot",
                    parallel_2 = TRUE,
                    phi_set_id_tag = "phi_set_id",
@@ -55,7 +57,7 @@ if (CLUSTER) {
 } else {
   
   context::context_load(ctx)
-  context::parallel_cluster_start(7, ctx)
+  context::parallel_cluster_start(8, ctx)
   
 }
 
@@ -64,6 +66,8 @@ if (CLUSTER) {
 
 
 parameters <- create_parameter_list(extra_params = extra_prms)
+
+var_to_fit <- parameters$dependent_variable
 
 model_type <- paste0("model_", parameters$id)
 
@@ -75,11 +79,11 @@ out_path <- file.path("output",
                       "bootstrap_models", 
                       model_type)
 
-no_R0_assumptions <- 4
-  
 sf_vals <- parameters$sf_vals
 
 phi_set_id_tag <- parameters$phi_set_id_tag
+
+no_R0_assumptions <- parameters$no_R0_assumptions
 
 
 # load data ------------------------------------------------------------------- 
@@ -101,12 +105,6 @@ FOI_to_C_list_fixed <- readRDS(file.path(lookup_path, "FOI_to_C_lookup_tables_fi
 
 FOI_to_HC_list_fixed <- readRDS(file.path(lookup_path, "FOI_to_HC_lookup_tables_fixed_params.rds"))
 
-bootstrap_experiments <- read.csv(file.path("output", 
-                                            "EM_algorithm", 
-                                            "bootstrap_models", 
-                                            "boostrap_fit_experiments_uni.csv"),
-                                  stringsAsFactors = FALSE)
-
 sqr_preds <- readRDS(file.path("output", 
                                "predictions_world",
                                "bootstrap_models",
@@ -122,9 +120,7 @@ age_struct <- read.csv(file.path("output",
 # pre processing --------------------------------------------------------------
 
 
-fit_var <- bootstrap_experiments[bootstrap_experiments$exp_id == parameters$id, "var"]
-
-task_b_name <- paste0("burden_", fit_var)
+task_b_name <- paste0("burden_", var_to_fit)
   
 age_band_tgs <- grep("band", names(age_struct), value = TRUE)
 age_band_bnds <- get_age_band_bounds(age_band_tgs)
@@ -153,13 +149,13 @@ fct_c <- setNames(expand.grid(phi_set_id, sf_vals),
 
 fct_c <- cbind(id = seq_len(nrow(fct_c)), fct_c)
 
-if(fit_var == "FOI"){
+if(var_to_fit == "FOI"){
   
   assumption <- 4 
 
 } else {
   
-  assumption <- as.numeric(unlist(strsplit(fit_var, "_"))[2])
+  assumption <- as.numeric(unlist(strsplit(var_to_fit, "_"))[2])
 
 }
 
@@ -173,78 +169,75 @@ fctr_combs <- df_to_list(fct_c, use_names = TRUE)
 # submit one job --------------------------------------------------------------
 
 
-burden <- obj$enqueue(
-  wrapper_to_multi_factor_R0_and_burden(fctr_combs[[1]],
-                                        foi_data = sqr_preds,
-                                        age_data = age_struct,
-                                        age_band_tags = age_band_tgs,
-                                        age_band_lower_bounds = age_band_L_bounds,
-                                        age_band_upper_bounds = age_band_U_bounds,
-                                        FOI_to_Inf_list = FOI_to_Inf_list,
-                                        FOI_to_C_list = FOI_to_C_list,
-                                        FOI_to_C_list_fixed = FOI_to_C_list_fixed,
-                                        FOI_to_HC_list = FOI_to_HC_list,
-                                        FOI_to_HC_list_fixed = FOI_to_HC_list_fixed,
-                                        FOI_to_R0_1_list = FOI_to_R0_1_list,
-                                        FOI_to_R0_2_list = FOI_to_R0_2_list,
-                                        FOI_to_R0_3_list = FOI_to_R0_3_list,
-                                        parms = parameters,
-                                        out_path = out_path,
-                                        var_to_fit = fit_var))
+# burden <- obj$enqueue(
+#   wrapper_to_multi_factor_R0_and_burden(fctr_combs[[1]],
+#                                         foi_data = sqr_preds,
+#                                         age_data = age_struct,
+#                                         age_band_tags = age_band_tgs,
+#                                         age_band_lower_bounds = age_band_L_bounds,
+#                                         age_band_upper_bounds = age_band_U_bounds,
+#                                         FOI_to_Inf_list = FOI_to_Inf_list,
+#                                         FOI_to_C_list = FOI_to_C_list,
+#                                         FOI_to_C_list_fixed = FOI_to_C_list_fixed,
+#                                         FOI_to_HC_list = FOI_to_HC_list,
+#                                         FOI_to_HC_list_fixed = FOI_to_HC_list_fixed,
+#                                         FOI_to_R0_1_list = FOI_to_R0_1_list,
+#                                         FOI_to_R0_2_list = FOI_to_R0_2_list,
+#                                         FOI_to_R0_3_list = FOI_to_R0_3_list,
+#                                         parms = parameters,
+#                                         out_path = out_path))
 
 
 # submit a bundle -------------------------------------------------------------
 
 
-# if (CLUSTER) {
-# 
-#   burden <- queuer::qlapply(fctr_combs,
-#                             wrapper_to_multi_factor_R0_and_burden,
-#                             obj,
-#                             foi_data = sqr_preds,
-#                             age_data = age_struct,
-#                             age_band_tags = age_band_tgs,
-#                             age_band_lower_bounds = age_band_L_bounds,
-#                             age_band_upper_bounds = age_band_U_bounds,
-#                             FOI_to_Inf_list = FOI_to_Inf_list,
-#                             FOI_to_C_list = FOI_to_C_list,
-#                             FOI_to_C_list_fixed = FOI_to_C_list_fixed,
-#                             FOI_to_HC_list = FOI_to_HC_list,
-#                             FOI_to_HC_list_fixed = FOI_to_HC_list_fixed,
-#                             FOI_to_R0_1_list = FOI_to_R0_1_list,
-#                             FOI_to_R0_2_list = FOI_to_R0_2_list,
-#                             FOI_to_R0_3_list = FOI_to_R0_3_list,
-#                             parms = parameters,
-#                             out_path = out_path,
-#                             var_to_fit = fit_var,
-#                             name = task_b_name)
-# 
-# } else {
-# 
-#   burden <- loop(fctr_combs[1],
-#                  wrapper_to_multi_factor_R0_and_burden,
-#                  foi_data = sqr_preds,
-#                  age_data = age_struct,
-#                  age_band_tags = age_band_tgs,
-#                  age_band_lower_bounds = age_band_L_bounds,
-#                  age_band_upper_bounds = age_band_U_bounds,
-#                  FOI_to_Inf_list = FOI_to_Inf_list,
-#                  FOI_to_C_list = FOI_to_C_list,
-#                  FOI_to_C_list_fixed = FOI_to_C_list_fixed,
-#                  FOI_to_HC_list = FOI_to_HC_list,
-#                  FOI_to_HC_list_fixed = FOI_to_HC_list_fixed,
-#                  FOI_to_R0_1_list = FOI_to_R0_1_list,
-#                  FOI_to_R0_2_list = FOI_to_R0_2_list,
-#                  FOI_to_R0_3_list = FOI_to_R0_3_list,
-#                  parms = parameters,
-#                  out_path = out_path,
-#                  var_to_fit = fit_var,
-#                  parallel = FALSE)
-# 
-# }
-# 
-# if (!CLUSTER){
-# 
-#   context::parallel_cluster_stop()
-# 
-# }
+if (CLUSTER) {
+
+  burden <- queuer::qlapply(fctr_combs,
+                            wrapper_to_multi_factor_R0_and_burden,
+                            obj,
+                            foi_data = sqr_preds,
+                            age_data = age_struct,
+                            age_band_tags = age_band_tgs,
+                            age_band_lower_bounds = age_band_L_bounds,
+                            age_band_upper_bounds = age_band_U_bounds,
+                            FOI_to_Inf_list = FOI_to_Inf_list,
+                            FOI_to_C_list = FOI_to_C_list,
+                            FOI_to_C_list_fixed = FOI_to_C_list_fixed,
+                            FOI_to_HC_list = FOI_to_HC_list,
+                            FOI_to_HC_list_fixed = FOI_to_HC_list_fixed,
+                            FOI_to_R0_1_list = FOI_to_R0_1_list,
+                            FOI_to_R0_2_list = FOI_to_R0_2_list,
+                            FOI_to_R0_3_list = FOI_to_R0_3_list,
+                            parms = parameters,
+                            out_path = out_path,
+                            name = task_b_name)
+
+} else {
+
+  burden <- loop(fctr_combs,
+                 wrapper_to_multi_factor_R0_and_burden,
+                 foi_data = sqr_preds,
+                 age_data = age_struct,
+                 age_band_tags = age_band_tgs,
+                 age_band_lower_bounds = age_band_L_bounds,
+                 age_band_upper_bounds = age_band_U_bounds,
+                 FOI_to_Inf_list = FOI_to_Inf_list,
+                 FOI_to_C_list = FOI_to_C_list,
+                 FOI_to_C_list_fixed = FOI_to_C_list_fixed,
+                 FOI_to_HC_list = FOI_to_HC_list,
+                 FOI_to_HC_list_fixed = FOI_to_HC_list_fixed,
+                 FOI_to_R0_1_list = FOI_to_R0_1_list,
+                 FOI_to_R0_2_list = FOI_to_R0_2_list,
+                 FOI_to_R0_3_list = FOI_to_R0_3_list,
+                 parms = parameters,
+                 out_path = out_path,
+                 parallel = FALSE)
+
+}
+
+if (!CLUSTER){
+
+  context::parallel_cluster_stop()
+
+}
