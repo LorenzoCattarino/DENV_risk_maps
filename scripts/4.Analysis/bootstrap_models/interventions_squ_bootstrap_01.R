@@ -161,7 +161,7 @@ if(var_to_fit == "FOI"){
 
 fct_c <- subset(fct_c, phi_set_id == assumption)
 
-write_out_csv(fct_c, out_path, "scenario_table_wolbachia.csv")
+write_out_csv(fct_c, out_path, "scenario_table_wolbachia.csv", row.names = FALSE)
 
 fctr_combs <- df_to_list(fct_c, use_names = TRUE)
 
