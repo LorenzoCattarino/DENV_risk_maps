@@ -59,7 +59,7 @@ sqr_preds <- readRDS(file.path("output",
                                "predictions_world",
                                "bootstrap_models",
                                model_type,
-                               "response.rds"))
+                               input_fl_name))
 
 
 # average up the sqr predictions ----------------------------------------------
