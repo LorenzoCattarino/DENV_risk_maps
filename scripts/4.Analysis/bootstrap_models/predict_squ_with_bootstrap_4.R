@@ -1,7 +1,6 @@
 # Makes a map of the square predictions and save the raster
 
 source(file.path("R", "plotting", "functions_for_plotting_raster_maps.r"))
-source(file.path("R", "utility_functions.r"))
 
 library(fields)
 library(colorRamps)
