@@ -4,9 +4,7 @@ source(file.path("R", "create_parameter_list.R"))
 source(file.path("R", "plotting", "quick_polygon_map.R"))
 
 library(rgdal)
-library(colorRamps)
 library(lattice)
-library(grid)
 
 
 # define parameters -----------------------------------------------------------  
@@ -56,9 +54,12 @@ adm_shp <- readOGR(dsn = file.path("output", "shapefiles"),
 # pre processing -------------------------------------------------------------- 
 
 
-vars_to_average <- paste0("p", age)
+adm_shp_2 <- adm_shp[!duplicated(data.frame(adm_shp)[,c("ID_0", "ID_1")]),]
 
-my_col <- matlab.like(100)
+vars_to_average <- paste0("p", age)
+# vars_to_average <- "response_endemic"
+
+my_col <- colorRamps::matlab.like(100)
 
 mean_pred_fl_nm <- paste0(vars_to_average, "_mean", ".rds")
 
@@ -66,10 +67,13 @@ df_long <- readRDS(file.path(in_path, mean_pred_fl_nm))
 
 out_fl_nm <- paste0(vars_to_average, "_", statistic, ".png")
 
-adm_shp_pred <- merge(adm_shp, 
+adm_shp_pred <- merge(adm_shp_2, 
                       df_long[, c("ID_0", "ID_1", statistic)], 
                       by = c("ID_0", "ID_1"), 
                       all.x = TRUE)
+
+# fill NA 
+# adm_shp_pred@data[is.na(adm_shp_pred@data[, statistic]), statistic] <- 0
 
 
 # plot ------------------------------------------------------------------------
