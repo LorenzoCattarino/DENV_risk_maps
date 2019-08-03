@@ -1,5 +1,6 @@
-# Makes a map of the administrative unit predictions
+# Makes a map of the admin unit level predictions
 
+source(file.path("R", "create_parameter_list.R"))
 source(file.path("R", "plotting", "quick_polygon_map.R"))
 
 library(rgdal)
@@ -11,17 +12,21 @@ library(grid)
 # define parameters -----------------------------------------------------------  
 
 
-parameters <- list(id = 4) 
-
-vars_to_average <- "p16"
-
-statistic <- "mean"
+extra_prms <- list(id = 4,
+                   age = 16,
+                   statistic = "mean")
 
 
 # define variables ------------------------------------------------------------
 
 
+parameters <- create_parameter_list(extra_params = extra_prms)
+
 model_type <- paste0("model_", parameters$id)
+
+age <- parameters$age
+
+statistic <- parameters$statistic
 
 in_path <- file.path("output", 
                      "predictions_world",
@@ -50,6 +55,8 @@ adm_shp <- readOGR(dsn = file.path("output", "shapefiles"),
 
 # pre processing -------------------------------------------------------------- 
 
+
+vars_to_average <- paste0("p", age)
 
 my_col <- matlab.like(100)
 
