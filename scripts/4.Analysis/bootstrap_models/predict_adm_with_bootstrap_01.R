@@ -1,4 +1,4 @@
-# Average sqr predictions to admin unit level
+# Aggregates sqr predictions to admin unit level
 
 source(file.path("R", "utility_functions.R"))
 source(file.path("R", "create_parameter_list.R"))
