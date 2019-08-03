@@ -1,20 +1,16 @@
-# Makes a map of the admin unit level predictions
+# Takes mean, median, sd and 95% CI of predictions, for each admin unit
+# THIS IS FOR THE MAP!
 
+source(file.path("R", "utility_functions.R"))
 source(file.path("R", "create_parameter_list.R"))
-source(file.path("R", "plotting", "quick_polygon_map.R"))
-
-library(rgdal)
-library(colorRamps)
-library(lattice)
-library(grid)
+source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 
 
-# define parameters -----------------------------------------------------------  
+# define parameters ----------------------------------------------------------- 
 
 
 extra_prms <- list(id = 4,
-                   age = 16,
-                   statistic = "mean")
+                   age = 16) 
 
 
 # define variables ------------------------------------------------------------
@@ -26,7 +22,7 @@ model_type <- paste0("model_", parameters$id)
 
 age <- parameters$age
 
-statistic <- parameters$statistic
+col_names <- as.character(seq_len(parameters$no_samples))
 
 in_path <- file.path("output", 
                      "predictions_world",
@@ -34,45 +30,20 @@ in_path <- file.path("output",
                      model_type,
                      "adm_1")
 
-out_pth <- file.path("figures", 
-                     "predictions_world",
-                     "bootstrap_models",
-                     model_type,
-                     "adm_1")
 
-
-# load data ------------------------------------------------------------------- 
-
-
-# country_shp <- readOGR(dsn = file.path("output", "shapefiles"), 
-#                        layer = "gadm28_adm0_eras",
-#                        stringsAsFactors = FALSE)
-
-adm_shp <- readOGR(dsn = file.path("output", "shapefiles"), 
-                   layer = paste0("gadm28_adm1_eras"),
-                   stringsAsFactors = FALSE)
-
-
-# pre processing -------------------------------------------------------------- 
+# -----------------------------------------------------------------------------
 
 
 vars_to_average <- paste0("p", age)
 
-my_col <- matlab.like(100)
+dat <- readRDS(file.path(in_path, paste0(vars_to_average, ".rds")))
 
-mean_pred_fl_nm <- paste0(vars_to_average, "_mean", ".rds")
+ret <- average_boot_samples_dim2(dat[, col_names])
 
-df_long <- readRDS(file.path(in_path, mean_pred_fl_nm))
+base_info <- dat[, setdiff(names(dat), col_names)]
 
-out_fl_nm <- paste0(vars_to_average, "_", statistic, ".png")
+ret2 <- cbind(base_info, ret)
 
-adm_shp_pred <- merge(adm_shp, 
-                      df_long[, c("ID_0", "ID_1", statistic)], 
-                      by = c("ID_0", "ID_1"), 
-                      all.x = TRUE)
+out_name <- paste0(vars_to_average, "_mean.rds")
 
-
-# plot ------------------------------------------------------------------------
-
-
-quick_polygon_map(adm_shp_pred, my_col, statistic, out_pth, out_fl_nm)
+write_out_rds(ret2, in_path, out_name)
