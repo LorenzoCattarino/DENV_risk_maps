@@ -1,57 +1,59 @@
-# Calculates seroprevalence at some age
 
+library(rgdal)
+library(dplyr)
 
-source(file.path("R", "utility_functions.r"))
+source(file.path("R", "utility_functions.R"))
 source(file.path("R", "create_parameter_list.R"))
 
 
-# define parameters -----------------------------------------------------------
+# define extra parameters -----------------------------------------------------
 
 
-extra_prms  <- list(id = 4,
-                    age = 16)
-
-prediction_fl_nm <- "response.rds"
-
-
+extra_prms <- list(id = 4,
+                   dependent_variable = "FOI")
+                   
+                   
 # define variables ------------------------------------------------------------
 
 
 parameters <- create_parameter_list(extra_params = extra_prms)
 
+var_to_fit <- parameters$dependent_variable
+
 model_type <- paste0("model_", parameters$id)
 
-out_pt <- file.path("output", 
-                    "predictions_world",
-                    "bootstrap_models",
-                    model_type,
-                    "adm_1")
+out_fl_nm <- "response_endemic.rds"
 
-col_ids <- as.character(seq_len(parameters$no_samples))
-
-age <- parameters$age
-
-out_fl_nm <- sprintf("p%s%s", age, ".rds")
+out_path <- file.path("output", 
+                      "predictions_world",
+                      "bootstrap_models",
+                      model_type,
+                      "adm_1")
 
 
-# load data ------------------------------------------------------------------- 
+# load data -------------------------------------------------------------------
 
-  
+
+adm_shp <- readOGR(dsn = file.path("output", "shapefiles"), 
+                   layer = paste0("gadm28_adm1_dengue"),
+                   stringsAsFactors = FALSE,
+                   integer64 = "allow.loss")
+
 sqr_preds <- readRDS(file.path("output", 
                                "predictions_world",
                                "bootstrap_models",
                                model_type,
                                "adm_1",
-                               prediction_fl_nm))
+                               "response.rds"))
 
 
-# calculate seroprevalence at age X -------------------------------------------
+# -----------------------------------------------------------------------------
 
 
-serop_var <- 100 * (1 - exp(-4 * age * sqr_preds[, col_ids])) # percentage
+endemic_countries <- subset(adm_shp@data, dengue == 1)
 
-base_info <- sqr_preds[, setdiff(names(sqr_preds), col_ids)]
-  
-final_dts <- cbind(base_info, serop_var)
+ret <- inner_join(sqr_preds, 
+                  endemic_countries[, c("ID_0", "ID_1", "dengue")], 
+                  by = c("ID_0", "ID_1"))
 
-write_out_rds(final_dts, out_pt, out_fl_nm)  
+write_out_rds(ret, out_path, out_fl_nm)
