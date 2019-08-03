@@ -4,32 +4,30 @@ quick_polygon_map <- function(adm_shp_fl,
                               out_pt, 
                               out_name){
   
-  # country_list <- list("sp.polygons",
-  #                      country,
-  #                      col = NA,
-  #                      fill = my_col[1],
-  #                      first = TRUE)
+  # data_na_filled <- list("sp.polygons",
+  #                        adm_shp_fl,
+  #                        col = NA,
+  #                        first = TRUE,
+  #                        fill = "black")
   
-  # browser()
+  theme.novpadding <- list(layout.heights =
+                             list(top.padding = 0,
+                                  main.key.padding = 0,
+                                  key.axis.padding = 0,
+                                  axis.xlab.padding = 0,
+                                  xlab.key.padding = 0,
+                                  key.sub.padding = 0,
+                                  bottom.padding = 0),
+                           layout.widths =
+                             list(left.padding = 0,
+                                  key.ylab.padding = 0,
+                                  ylab.axis.padding = 0,
+                                  axis.key.padding = 0,
+                                  right.padding = 0),
+                           axis.line = 
+                             list(col = "transparent"))
   
-  theme.novpadding <-list(layout.heights =
-                            list(top.padding = 0,
-                                 main.key.padding = 0,
-                                 key.axis.padding = 0,
-                                 axis.xlab.padding = 0,
-                                 xlab.key.padding = 0,
-                                 key.sub.padding = 0,
-                                 bottom.padding = 0),
-                          layout.widths =
-                            list(left.padding = 0,
-                                 key.ylab.padding = 0,
-                                 ylab.axis.padding = 0,
-                                 axis.key.padding = 0,
-                                 right.padding = 0),
-                          axis.line = 
-                            list(col = "transparent"))
-  
-  adm_shp_fl@data[is.na(adm_shp_fl@data[, var]), var] <- 0
+  # adm_shp_fl@data[is.na(adm_shp_fl@data[, var]), var] <- 0
   
   pretty_var_range <- pretty(adm_shp_fl@data[, var], n = 5)
   max_var <- max(pretty_var_range)
@@ -49,14 +47,14 @@ quick_polygon_map <- function(adm_shp_fl,
               col.regions = my_col,
               colorkey = list(space = "right", height = 0.4),
               par.settings = theme.novpadding)#,
-              #sp.layout = list(country_list))
+  #           sp.layout = list(data_na_filled))
   
   key <- draw.colorkey(p$legend[[1]]$args$key)
   
   p$legend <- NULL
   
-  key$framevp$x <- unit(0.10, "npc")
-  key$framevp$y <- unit(0.23, "npc")
+  key$framevp$x <- grid::unit(0.10, "npc")
+  key$framevp$y <- grid::unit(0.23, "npc")
   
   dir.create(out_pt, FALSE, TRUE)
   
@@ -69,7 +67,7 @@ quick_polygon_map <- function(adm_shp_fl,
   
   print(p)
   
-  grid.draw(key)
+  grid::grid.draw(key)
   
   dev.off()
   
