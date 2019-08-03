@@ -11,7 +11,7 @@ source(file.path("R", "create_parameter_list.R"))
 extra_prms  <- list(id = 4,
                     age = 16)
 
-prediction_fl_nm <- "response.rds"
+prediction_fl_nm <- "response_endemic.rds"
 
 
 # define variables ------------------------------------------------------------
