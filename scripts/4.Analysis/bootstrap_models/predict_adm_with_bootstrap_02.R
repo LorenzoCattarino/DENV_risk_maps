@@ -1,24 +1,22 @@
-
-library(rgdal)
-library(dplyr)
+# Gets only endemic countries 
 
 source(file.path("R", "utility_functions.R"))
 source(file.path("R", "create_parameter_list.R"))
+
+library(rgdal)
+library(dplyr)
 
 
 # define extra parameters -----------------------------------------------------
 
 
-extra_prms <- list(id = 4,
-                   dependent_variable = "FOI")
+extra_prms <- list(id = 4)
                    
                    
 # define variables ------------------------------------------------------------
 
 
 parameters <- create_parameter_list(extra_params = extra_prms)
-
-var_to_fit <- parameters$dependent_variable
 
 model_type <- paste0("model_", parameters$id)
 
@@ -50,7 +48,9 @@ sqr_preds <- readRDS(file.path("output",
 # -----------------------------------------------------------------------------
 
 
-endemic_countries <- subset(adm_shp@data, dengue == 1)
+adm_shp_2 <- adm_shp[!duplicated(data.frame(adm_shp)[,c("ID_0", "ID_1")]),]
+
+endemic_countries <- subset(adm_shp_2@data, dengue == 1)
 
 ret <- inner_join(sqr_preds, 
                   endemic_countries[, c("ID_0", "ID_1", "dengue")], 
