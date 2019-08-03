@@ -1,4 +1,4 @@
-# Take mean, median, sd and 95% CI of predictions, for each admin unit
+# Takes mean, median, sd and 95% CI of predictions, for each admin unit
 # THIS IS FOR THE MAP!
 
 source(file.path("R", "utility_functions.R"))
@@ -9,9 +9,8 @@ source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 4) 
-
-vars_to_average <- "p16"
+extra_prms <- list(id = 4,
+                   age = 16) 
 
 
 # define variables ------------------------------------------------------------
@@ -20,6 +19,8 @@ vars_to_average <- "p16"
 parameters <- create_parameter_list(extra_params = extra_prms)
 
 model_type <- paste0("model_", parameters$id)
+
+age <- parameters$age
 
 col_names <- as.character(seq_len(parameters$no_samples))
 
@@ -32,6 +33,8 @@ in_path <- file.path("output",
 
 # -----------------------------------------------------------------------------
 
+
+vars_to_average <- paste0("p", age)
 
 dat <- readRDS(file.path(in_path, paste0(vars_to_average, ".rds")))
 
