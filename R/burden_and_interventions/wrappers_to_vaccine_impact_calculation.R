@@ -90,14 +90,31 @@ wrapper_to_multi_factor_vaccine_impact <- function(x,
     screen_age = screen_age,
     parallel = parallel_2)
   
-  prop_averted <- do.call("rbind", prop_averted)
+  output1 <- lapply(prop_averted, "[[", 1)
+  
+  output2 <- lapply(prop_averted, "[[", 2)
+  
+  prop_averted <- do.call("rbind", output1)
   
   burden_net_vaccine <- (1 - prop_averted) * burden[, col_ids]
 
   out <- cbind(burden[, base_info], burden_net_vaccine)
   
   write_out_rds(as.data.frame(out), out_path, out_fl_nm)
-
+  
+  if(is.null(screen_age)){
+    
+    ages_max_impact <- do.call("rbind", output2)    
+    
+    colnames(ages_max_impact) <- col_ids
+    
+    out_fl_nm <- paste0(out_file_tag, "_num_", R0_scenario, "_max_age_vaccine_", run_ID, ".rds")
+    
+    out <- cbind(burden[, base_info], ages_max_impact)
+    
+    write_out_rds(as.data.frame(out), out_path, out_fl_nm)
+    
+  }
 }
 
 wrapper_to_replicate_vaccine_impact <- function(i,
@@ -120,6 +137,8 @@ wrapper_to_replicate_vaccine_impact <- function(i,
     
     out <- approx(vaccine_lookup[, "R0"], vaccine_lookup[, screen_age], xout = preds_i)$y
     
+    out_2 <- NULL
+    
   } else {
     
     all_ages <- seq_len(18)
@@ -130,8 +149,11 @@ wrapper_to_replicate_vaccine_impact <- function(i,
     # find max reduction across ages (columns)
     out <- rowMaxs(ret_all_ages) 
     
+    # find age of max vaccine impact
+    out_2 <- max.col(ret_all_ages)
+    
   }
   
-  out
+  list(out, out_2)
 
 }
