@@ -106,7 +106,7 @@ sqr_preds <- readRDS(file.path("output",
                                "bootstrap_models",
                                model_type,
                                "adm_1",
-                               "response.rds"))
+                               "response_endemic.rds"))
 
 age_struct <- read.csv(file.path("output", 
                                  "datasets",
