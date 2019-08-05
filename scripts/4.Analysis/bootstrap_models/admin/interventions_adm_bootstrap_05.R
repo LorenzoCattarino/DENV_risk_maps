@@ -1,20 +1,18 @@
-# Takes mean, median, sd and 95% CI of 
+# Calculates seroprevalence at max vaccine impact age
 
-# 1) optimal vaccine impact age, for each admin unit, across bootstrap samples
-# 2) seroprevalence at optimal vaccine impact age
 
-source(file.path("R", "utility_functions.R"))
+source(file.path("R", "utility_functions.r"))
 source(file.path("R", "create_parameter_list.R"))
-source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 
 
-# define parameters ----------------------------------------------------------- 
+# define parameters -----------------------------------------------------------
 
 
-extra_prms <- list(id = 4,
-                   vaccine_id = 12,
-                   R0_scenario = 2,
-                   age = FALSE) 
+extra_prms  <- list(id = 4,
+                    vaccine_id = 12,
+                    R0_scenario = 2)
+
+prediction_fl_nm <- "response_endemic.rds"
 
 
 # define variables ------------------------------------------------------------
@@ -24,11 +22,11 @@ parameters <- create_parameter_list(extra_params = extra_prms)
 
 model_type <- paste0("model_", parameters$id)
 
-in_path <- file.path("output", 
-                     "predictions_world",
-                     "bootstrap_models",
-                     model_type,
-                     "adm_1")
+out_pt <- file.path("output", 
+                    "predictions_world",
+                    "bootstrap_models",
+                    model_type,
+                    "adm_1")
 
 col_ids <- as.character(seq_len(parameters$no_samples))
 
@@ -36,10 +34,8 @@ R0_scenario <- parameters$R0_scenario
 
 vaccine_id <- parameters$vaccine_id
 
-age <- parameters$age
-
-
-# load data # -----------------------------------------------------------------
+  
+# load data ------------------------------------------------------------------- 
 
 
 fct_c <- read.csv(file.path("output", 
@@ -49,28 +45,31 @@ fct_c <- read.csv(file.path("output",
                             "adm_1",
                             "scenario_table_vaccine.csv"))
 
+sqr_preds <- readRDS(file.path("output", 
+                               "predictions_world",
+                               "bootstrap_models",
+                               model_type,
+                               "adm_1",
+                               prediction_fl_nm))
 
-# -----------------------------------------------------------------------------
+  
+# calculate seroprevalence at age X -------------------------------------------
 
 
 burden_measure <- toupper(substr(fct_c[fct_c$id == vaccine_id, "burden_measure"], 1, 1))
 
+optimal_age_fl_nm <- sprintf("%s_num_%s_max_age_vaccine_%s%s", burden_measure, R0_scenario, vaccine_id, ".rds")
+
+optimal_age <- readRDS(file.path(out_pt, optimal_age_fl_nm))
+
 vars_to_average <- sprintf("%s_num_%s_max_age_vaccine_%s", burden_measure, R0_scenario, vaccine_id)
 
-if(!age){
-  
-  vars_to_average <- sprintf("%s_%s", "p", vars_to_average)
-  
-}
+out_fl_nm <- sprintf("p_%s%s", vars_to_average, ".rds")
 
-dat <- readRDS(file.path(in_path, paste0(vars_to_average, ".rds")))
+serop_var <- 100 * (1 - exp(-4 * optimal_age[, col_ids] * sqr_preds[, col_ids])) # percentage
 
-ret <- average_boot_samples_dim2(dat[, col_ids])
+base_info <- sqr_preds[, setdiff(names(sqr_preds), col_ids)]
 
-base_info <- dat[, setdiff(names(dat), col_ids)]
+final_dts <- cbind(base_info, serop_var)
 
-ret2 <- cbind(base_info, ret)
-
-out_name <- paste0(vars_to_average, "_mean.rds")
-
-write_out_rds(ret2, in_path, out_name)
+write_out_rds(final_dts, out_pt, out_fl_nm)  
