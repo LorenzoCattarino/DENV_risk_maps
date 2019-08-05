@@ -3,7 +3,7 @@
 source(file.path("R", "utility_functions.R"))
 source(file.path("R", "create_parameter_list.R"))
 
-library(rgdal)
+library(sf)
 library(dplyr)
 
 
@@ -32,10 +32,9 @@ out_path <- file.path("output",
 # load data -------------------------------------------------------------------
 
 
-adm_shp <- readOGR(dsn = file.path("output", "shapefiles"), 
-                   layer = paste0("gadm28_adm1_dengue"),
-                   stringsAsFactors = FALSE,
-                   integer64 = "allow.loss")
+adm_shp <- st_read(dsn = file.path("output", "shapefiles"), 
+                   layer = "gadm28_adm1_dengue",
+                   stringsAsFactors = FALSE)
 
 sqr_preds <- readRDS(file.path("output", 
                                "predictions_world",
@@ -48,9 +47,9 @@ sqr_preds <- readRDS(file.path("output",
 # -----------------------------------------------------------------------------
 
 
-adm_shp_2 <- adm_shp[!duplicated(data.frame(adm_shp)[,c("ID_0", "ID_1")]),]
+adm_shp_2 <- as.data.frame(adm_shp)
 
-endemic_countries <- subset(adm_shp_2@data, dengue == 1)
+endemic_countries <- subset(adm_shp_2, dengue == 1)
 
 ret <- inner_join(sqr_preds, 
                   endemic_countries[, c("ID_0", "ID_1", "dengue")], 
