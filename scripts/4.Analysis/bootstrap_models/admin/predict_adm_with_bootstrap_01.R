@@ -55,8 +55,6 @@ sqr_preds <- readRDS(file.path("output",
 # average up the sqr predictions ----------------------------------------------
 
 
-sqr_preds <- as.data.frame(sqr_preds)
-  
 col_ids <- as.character(seq_len(parameters$no_samples))
   
 test <- lapply(col_ids, multi_col_average_up, sqr_preds, grp_fields)
