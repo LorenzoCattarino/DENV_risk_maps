@@ -9,8 +9,8 @@ source(file.path("R", "create_parameter_list.R"))
 
 
 extra_prms  <- list(id = 4,
-                    vaccine_id = 4,
-                    R0_scenario = 1)
+                    vaccine_id = 12,
+                    R0_scenario = 2)
 
 prediction_fl_nm <- "response_endemic.rds"
 
@@ -34,7 +34,7 @@ R0_scenario <- parameters$R0_scenario
 
 vaccine_id <- parameters$vaccine_id
 
-
+  
 # load data ------------------------------------------------------------------- 
 
 
@@ -52,19 +52,21 @@ sqr_preds <- readRDS(file.path("output",
                                "adm_1",
                                prediction_fl_nm))
 
-max_age <- readRDS(file.path(out_pt, "I_num_1_max_age_vaccine_4.rds"))
-  
   
 # calculate seroprevalence at age X -------------------------------------------
 
 
-burden_measure <- toupper(substr(fct_c[vaccine_id, "burden_measure"], 1, 1))
+burden_measure <- toupper(substr(fct_c[fct_c$id == vaccine_id, "burden_measure"], 1, 1))
+
+optimal_age_fl_nm <- sprintf("%s_num_%s_max_age_vaccine_%s%s", burden_measure, R0_scenario, vaccine_id, ".rds")
+
+optimal_age <- readRDS(file.path(out_pt, optimal_age_fl_nm))
 
 vars_to_average <- sprintf("%s_num_%s_max_age_vaccine_%s", burden_measure, R0_scenario, vaccine_id)
 
-out_fl_nm <- sprintf("pvacc_optimal_age_%s_R0%s_%s%s", burden_measure, R0_scenario, vaccine_id, ".rds")
+out_fl_nm <- sprintf("p_%s%s", vars_to_average, ".rds")
 
-serop_var <- 100 * (1 - exp(-4 * max_age[, col_ids] * sqr_preds[, col_ids])) # percentage
+serop_var <- 100 * (1 - exp(-4 * optimal_age[, col_ids] * sqr_preds[, col_ids])) # percentage
 
 base_info <- sqr_preds[, setdiff(names(sqr_preds), col_ids)]
 
