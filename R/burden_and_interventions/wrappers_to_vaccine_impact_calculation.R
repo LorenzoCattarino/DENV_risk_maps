@@ -80,7 +80,7 @@ wrapper_to_multi_factor_vaccine_impact <- function(x,
   look_up_table_2 <- as.matrix(look_up_table_2)
   
   out_fl_nm <- paste0(out_file_tag, "_num_", R0_scenario, "_vaccine_", run_ID, ".rds")
-  
+
   prop_averted <- loop(
     seq_len(nrow(preds)),
     wrapper_to_replicate_vaccine_impact, 
@@ -105,6 +105,8 @@ wrapper_to_multi_factor_vaccine_impact <- function(x,
   if(is.null(screen_age)){
     
     ages_max_impact <- do.call("rbind", output2)    
+    
+    ages_max_impact <- ages_max_impact + 1
     
     colnames(ages_max_impact) <- col_ids
     
