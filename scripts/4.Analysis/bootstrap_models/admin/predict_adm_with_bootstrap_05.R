@@ -23,8 +23,8 @@ parameters <- create_parameter_list(extra_params = extra_prms)
 age <- parameters$age
 
 # vars_to_average <- paste0("p", age)
-# vars_to_average <- "response_endemic"
-vars_to_average <- "transformed_2_wolbachia_4"
+vars_to_average <- "response_endemic"
+# vars_to_average <- "transformed_2_wolbachia_4"
 
 statistic <- parameters$statistic
 
@@ -46,8 +46,12 @@ out_pth <- file.path("figures",
 # load data ------------------------------------------------------------------- 
 
 
+national_borders <- st_read(dsn = file.path("output", "shapefiles"),
+                            layer = "gadm28_adm0_eras",
+                            stringsAsFactors = FALSE)
+  
 adm_shp <- st_read(dsn = file.path("output", "shapefiles"), 
-                   layer = paste0("gadm28_adm1_eras"),
+                   layer = "gadm28_adm1_eras",
                    stringsAsFactors = FALSE)
 
 
@@ -56,7 +60,7 @@ adm_shp <- st_read(dsn = file.path("output", "shapefiles"),
 
 my_col <- colorRamps::matlab.like(100)
 
-mean_pred_fl_nm <- paste0(vars_to_average, "_mean", ".rds")
+mean_pred_fl_nm <- paste0(vars_to_average, "_", statistic, ".rds")
 
 df_long <- readRDS(file.path(in_path, mean_pred_fl_nm))
 
@@ -71,4 +75,5 @@ adm_shp_pred <- merge(adm_shp,
 # plot ------------------------------------------------------------------------
 
 
-quick_polygon_map(adm_shp_pred, my_col, statistic, out_pth, out_fl_nm)
+quick_polygon_map(adm_shp_pred, my_col, statistic, out_pth, out_fl_nm, 
+                  country_borders = national_borders)
