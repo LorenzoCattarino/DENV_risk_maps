@@ -10,7 +10,7 @@ source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 
 
 extra_prms <- list(id = 4,
-                   age = 16) 
+                   age = 9) 
 
 
 # define variables ------------------------------------------------------------
@@ -34,10 +34,13 @@ in_path <- file.path("output",
 # -----------------------------------------------------------------------------
 
 
-vars_to_average <- paste0("p", age)
+# vars_to_average <- paste0("p", age)
 # vars_to_average <- "response_endemic"
+vars_to_average <- "transformed_2_wolbachia_4"
 
 dat <- readRDS(file.path(in_path, paste0(vars_to_average, ".rds")))
+
+dat <- as.data.frame(dat)
 
 ret <- average_boot_samples_dim2(dat[, col_names])
 
