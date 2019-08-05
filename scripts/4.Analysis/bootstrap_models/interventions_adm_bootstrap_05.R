@@ -11,7 +11,7 @@ source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 
 extra_prms <- list(id = 4,
                    vaccine_id = 4,
-                   R0_scenario = 1) 
+                   R0_scenario = 2) 
 
 
 # define variables ------------------------------------------------------------
@@ -48,7 +48,9 @@ fct_c <- read.csv(file.path("output",
 # -----------------------------------------------------------------------------
 
 
-burden_measure <- toupper(substr(fct_c[vaccine_id, "burden_measure"], 1, 1))
+burden_measure_s <- fct_c[fct_c$id == vaccine_id, "burden_measure"]
+
+burden_measure <- toupper(substr(burden_measure_s, 1, 1))
 
 vars_to_average <- sprintf("%s_num_%s_max_age_vaccine_%s", burden_measure, R0_scenario, vaccine_id)
 
