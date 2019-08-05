@@ -4,20 +4,32 @@ quick_polygon_map <- function(adm_shp_fl,
                               out_pt, 
                               out_name,
                               leg_ttl = NULL,
-                              z_vals = NULL){
+                              z_vals = NULL,
+                              country_borders = NULL){
 
   if(is.null(z_vals)){
     z_vals <- pretty(adm_shp_fl[[var]], n = 5)
   }
   
   p <- ggplot(data = adm_shp_fl) +
-    geom_sf(mapping = aes_string(fill = var), color = NA) +
-    scale_fill_gradientn(breaks = z_vals,
-                         labels = z_vals,
-                         limits = c(min(z_vals), max(z_vals)),
-                         colours = my_col, 
-                         na.value = "grey70",
-                         guide = guide_colourbar(title = leg_ttl)) +
+    geom_sf(mapping = aes_string(fill = var), color = NA) 
+  
+  
+  if(!is.null(country_borders)){
+    
+    p <- p + geom_sf(data = country_borders, 
+                     fill = NA, 
+                     color = gray(.5), 
+                     size = 0.1)
+    
+  }
+  
+  p2 <- p + scale_fill_gradientn(breaks = z_vals,
+                                labels = z_vals,
+                                limits = c(min(z_vals), max(z_vals)),
+                                colours = my_col, 
+                                na.value = "grey70",
+                                guide = guide_colourbar(title = leg_ttl)) +
     coord_sf(xlim = c(-180, 180), ylim = c(-60, 60), expand = FALSE) +
     theme(legend.justification = c(0, 0),
           legend.position = c(0.01, 0.05),
@@ -31,6 +43,7 @@ quick_polygon_map <- function(adm_shp_fl,
           panel.background = element_blank(),
           panel.border = element_blank())
   
+  
   dir.create(out_pt, FALSE, TRUE)
   
   png(file.path(out_pt, out_name),
@@ -40,7 +53,7 @@ quick_polygon_map <- function(adm_shp_fl,
       pointsize = 12,
       res = 300)
   
-  print(p)
+  print(p2)
   
   on.exit(dev.off())
   
