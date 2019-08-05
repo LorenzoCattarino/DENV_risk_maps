@@ -36,7 +36,7 @@ in_path <- file.path("output",
 
 # vars_to_average <- paste0("p", age)
 # vars_to_average <- "response_endemic"
-vars_to_average <- "transformed_2_wolbachia_4"
+# vars_to_average <- "transformed_2_wolbachia_4"
 
 dat <- readRDS(file.path(in_path, paste0(vars_to_average, ".rds")))
 
