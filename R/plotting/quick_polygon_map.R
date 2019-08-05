@@ -3,15 +3,18 @@ quick_polygon_map <- function(adm_shp_fl,
                               var, 
                               out_pt, 
                               out_name,
-                              leg_ttl = NULL){
+                              leg_ttl = NULL,
+                              z_vals = NULL){
 
-  pred_leg_val <- pretty(adm_shp_fl[[var]], n = 5)
+  if(is.null(z_vals)){
+    z_vals <- pretty(adm_shp_fl[[var]], n = 5)
+  }
   
   p <- ggplot(data = adm_shp_fl) +
     geom_sf(mapping = aes_string(fill = var), color = NA) +
-    scale_fill_gradientn(breaks = pred_leg_val,
-                         labels = pred_leg_val,
-                         limits = c(min(pred_leg_val), max(pred_leg_val)),
+    scale_fill_gradientn(breaks = z_vals,
+                         labels = z_vals,
+                         limits = c(min(z_vals), max(z_vals)),
                          colours = my_col, 
                          na.value = "grey70",
                          guide = guide_colourbar(title = leg_ttl)) +
