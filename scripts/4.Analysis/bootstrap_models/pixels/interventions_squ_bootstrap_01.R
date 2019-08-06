@@ -51,7 +51,7 @@ extra_prms <- list(id = 4,
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "20Core")
+  config <- didehpc::didehpc_config(template = "GeneralNodes", wholenode = TRUE)
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -116,12 +116,15 @@ age_struct <- read.csv(file.path("output",
                                  "country_age_structure.csv"), 
                        header = TRUE) 
 
+endemic_c <- read.csv(file.path("output", 
+                                "datasets", 
+                                "dengue_endemic_countries.csv"),
+                      stringsAsFactors = FALSE)
+
 
 # pre processing --------------------------------------------------------------
 
 
-task_b_name <- paste0("burden_", var_to_fit)
-  
 age_band_tgs <- grep("band", names(age_struct), value = TRUE)
 age_band_bnds <- get_age_band_bounds(age_band_tgs)
 age_band_L_bounds <- age_band_bnds[, 1]
@@ -130,13 +133,16 @@ age_band_U_bounds <- age_band_bnds[, 2] + 1
 age_struct$age_id <- seq_len(nrow(age_struct))
 
 # keep only the predictions for which there is age data available
-sqr_preds <- inner_join(age_struct[, c("age_id", "ID_0")],
-                        sqr_preds, 
-                        by = "ID_0")
+sqr_preds_2 <- inner_join(age_struct[, c("age_id", "ID_0")],
+                          sqr_preds, 
+                          by = "ID_0")
 
-sqr_preds <- as.matrix(sqr_preds)
+# keep only endemic countries
+sqr_preds_3 <- inner_join(sqr_preds_2, endemic_c[, "ID_0", drop = FALSE], by = "ID_0")
 
-# sqr_preds <- sqr_preds[52697:52707,]
+sqr_preds_3 <- as.matrix(sqr_preds_3)
+
+# sqr_preds_3 <- sqr_preds_3[52697:52707,]
 
 
 # create table of scenarios --------------------------------------------------- 
@@ -169,9 +175,9 @@ fctr_combs <- df_to_list(fct_c, use_names = TRUE)
 # submit one job --------------------------------------------------------------
 
 
-# burden <- obj$enqueue(
+# t <- obj$enqueue(
 #   wrapper_to_multi_factor_R0_and_burden(fctr_combs[[1]],
-#                                         foi_data = sqr_preds,
+#                                         foi_data = sqr_preds_3,
 #                                         age_data = age_struct,
 #                                         age_band_tags = age_band_tgs,
 #                                         age_band_lower_bounds = age_band_L_bounds,
@@ -196,7 +202,7 @@ if (CLUSTER) {
   burden <- queuer::qlapply(fctr_combs,
                             wrapper_to_multi_factor_R0_and_burden,
                             obj,
-                            foi_data = sqr_preds,
+                            foi_data = sqr_preds_3,
                             age_data = age_struct,
                             age_band_tags = age_band_tgs,
                             age_band_lower_bounds = age_band_L_bounds,
@@ -210,14 +216,13 @@ if (CLUSTER) {
                             FOI_to_R0_2_list = FOI_to_R0_2_list,
                             FOI_to_R0_3_list = FOI_to_R0_3_list,
                             parms = parameters,
-                            out_path = out_path,
-                            name = task_b_name)
+                            out_path = out_path)
 
 } else {
 
   burden <- loop(fctr_combs,
                  wrapper_to_multi_factor_R0_and_burden,
-                 foi_data = sqr_preds,
+                 foi_data = sqr_preds_3,
                  age_data = age_struct,
                  age_band_tags = age_band_tgs,
                  age_band_lower_bounds = age_band_L_bounds,
