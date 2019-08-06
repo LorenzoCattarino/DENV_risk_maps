@@ -14,9 +14,6 @@ library(ggplot2)
 
 
 extra_prms <- list(id = 4,
-                   vaccine_id = 12,
-                   R0_scenario = 2,
-                   age = FALSE,
                    statistic = "mean")
 
 
@@ -39,24 +36,25 @@ out_pth <- file.path("figures",
                      model_type,
                      "adm_1")
 
-R0_scenario <- parameters$R0_scenario
-
-vaccine_id <- parameters$vaccine_id
-
-age <- parameters$age
-
 statistic <- parameters$statistic
 
-
+vars_to_average <- c("I_num_1_max_age_vaccine_4",
+                     "C_num_1_max_age_vaccine_8",
+                     "H_num_1_max_age_vaccine_12",
+                     "I_num_2_max_age_vaccine_4",
+                     "C_num_2_max_age_vaccine_8",
+                     "H_num_2_max_age_vaccine_12",
+                     "p_I_num_1_max_age_vaccine_4",
+                     "p_C_num_1_max_age_vaccine_8",
+                     "p_H_num_1_max_age_vaccine_12",
+                     "p_I_num_2_max_age_vaccine_4",
+                     "p_C_num_2_max_age_vaccine_8",
+                     "p_H_num_2_max_age_vaccine_12")
+   
+              
 # load data ------------------------------------------------------------------- 
 
 
-fct_c <- read.csv(file.path("output", 
-                            "predictions_world", 
-                            "bootstrap_models",
-                            model_type,
-                            "adm_1",
-                            "scenario_table_vaccine.csv"))
 
 national_borders <- st_read(dsn = file.path("output", "shapefiles"),
                             layer = "gadm28_adm0_eras",
@@ -72,36 +70,39 @@ adm_shp <- st_read(dsn = file.path("output", "shapefiles"),
 
 my_col <- colorRamps::matlab.like(100)
 
-z_values <- seq(2, 18, 2)
-
-burden_measure <- toupper(substr(fct_c[fct_c$id == vaccine_id, "burden_measure"], 1, 1))
-
-vars_to_average <- sprintf("%s_num_%s_max_age_vaccine_%s", burden_measure, R0_scenario, vaccine_id)
-
-if(!age){
-  
-  # plot seroprevalence 
-  vars_to_average <- sprintf("%s_%s", "p", vars_to_average)
-  
-  z_values <- seq(0, 100, 20)
-  
-}
-
-mean_pred_fl_nm <- paste0(vars_to_average, "_mean", ".rds")
-
-df_long <- readRDS(file.path(in_path, mean_pred_fl_nm))
-
-out_fl_nm <- paste0(vars_to_average, "_", statistic, ".png")
-
-adm_shp_pred <- merge(adm_shp, 
-                      df_long[, c("ID_0", "ID_1", statistic)], 
-                      by = c("ID_0", "ID_1"), 
-                      all.x = TRUE)
-
 
 # plot ------------------------------------------------------------------------
 
 
-quick_polygon_map(adm_shp_pred, my_col, statistic, out_pth, out_fl_nm,
-                  z_vals = z_values,
-                  country_borders = national_borders)
+for (i in seq_along(vars_to_average)){
+  
+  var_to_average <- vars_to_average[i]
+  
+  message(var_to_average)  
+  
+  if (substr(var_to_average, 1, 1) == "p"){
+    
+    z_values <- seq(0, 100, 20)
+    
+  } else {
+    
+    z_values <- seq(2, 18, 2)  
+    
+  }
+  
+  mean_pred_fl_nm <- paste0(var_to_average, "_mean", ".rds")
+  
+  df_long <- readRDS(file.path(in_path, mean_pred_fl_nm))
+  
+  out_fl_nm <- paste0(var_to_average, "_", statistic, ".png")
+  
+  adm_shp_pred <- merge(adm_shp, 
+                        df_long[, c("ID_0", "ID_1", statistic)], 
+                        by = c("ID_0", "ID_1"), 
+                        all.x = TRUE)
+  
+  quick_polygon_map(adm_shp_pred, my_col, statistic, out_pth, out_fl_nm,
+                    z_vals = z_values,
+                    country_borders = national_borders)
+  
+}
