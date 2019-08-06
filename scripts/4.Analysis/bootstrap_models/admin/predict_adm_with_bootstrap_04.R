@@ -10,7 +10,7 @@ source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 
 
 extra_prms <- list(id = 4,
-                   age = 9) 
+                   age = 16) 
 
 
 # define variables ------------------------------------------------------------
@@ -36,7 +36,8 @@ in_path <- file.path("output",
 
 # vars_to_average <- paste0("p", age)
 # vars_to_average <- "response_endemic"
-# vars_to_average <- "transformed_2_wolbachia_4"
+vars_to_average <- "transformed_1_wolbachia_4"
+#vars_to_average <- sprintf("p%s_FP_specifB", age)
 
 dat <- readRDS(file.path(in_path, paste0(vars_to_average, ".rds")))
 
@@ -51,3 +52,4 @@ ret2 <- cbind(base_info, ret)
 out_name <- paste0(vars_to_average, "_mean.rds")
 
 write_out_rds(ret2, in_path, out_name)
+
