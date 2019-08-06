@@ -23,8 +23,10 @@ parameters <- create_parameter_list(extra_params = extra_prms)
 age <- parameters$age
 
 # vars_to_average <- paste0("p", age)
-vars_to_average <- "response_endemic"
-# vars_to_average <- "transformed_2_wolbachia_4"
+# vars_to_average <- "response_endemic"
+vars_to_average <- "transformed_2_wolbachia_4"
+# vars_to_average <- sprintf("p%s_FP_specifB", age)
+# z_values <- seq(0, 10, 2)
 
 statistic <- parameters$statistic
 
@@ -75,5 +77,5 @@ adm_shp_pred <- merge(adm_shp,
 # plot ------------------------------------------------------------------------
 
 
-quick_polygon_map(adm_shp_pred, my_col, statistic, out_pth, out_fl_nm, 
+quick_polygon_map(adm_shp_pred, my_col, statistic, out_pth, out_fl_nm,
                   country_borders = national_borders)
