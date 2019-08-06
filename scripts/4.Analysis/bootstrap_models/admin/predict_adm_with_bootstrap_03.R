@@ -55,3 +55,12 @@ base_info <- sqr_preds[, setdiff(names(sqr_preds), col_ids)]
 final_dts <- cbind(base_info, serop_var)
 
 write_out_rds(final_dts, out_pt, out_fl_nm)  
+
+false_positive_specifA <- 0.1 * (serop_var/100)
+false_positive_specifB <- 0.01 * (serop_var/100)
+  
+final_dtsA <- cbind(base_info, false_positive_specifA * 100)
+final_dtsB <- cbind(base_info, false_positive_specifB * 100)
+
+write_out_rds(final_dtsA, out_pt, sprintf("p%s_FP_specifA%s", age, ".rds"))
+write_out_rds(final_dtsB, out_pt, sprintf("p%s_FP_specifB%s", age, ".rds"))
