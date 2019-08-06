@@ -1,4 +1,4 @@
-# Calculates
+# Calculates (for endemic countries only)
 # for each model fit, 
 # R0-vaccine screening age combinations and 
 # 20 km square:
@@ -30,7 +30,7 @@ ctx <- context::context_save(path = "context",
 
 extra_prms <- list(id = 4,
                    dependent_variable = "FOI",
-                   R0_scenario = 2,
+                   R0_scenario = 1,
                    wolbachia_scenario_id = 4,
                    no_R0_assumptions = 4,
                    screening_ages = c(9, 16),
@@ -52,7 +52,7 @@ extra_prms <- list(id = 4,
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "20Core")
+  config <- didehpc::didehpc_config(template = "GeneralNodes", wholenode = TRUE)
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -136,7 +136,7 @@ fctr_combs <- df_to_list(fct_c_2, use_names = TRUE)
 # pre processing -------------------------------------------------------------- 
 
 
-sqr_preds <- as.matrix(sqr_preds)
+sqr_preds_2 <- as.matrix(sqr_preds)
 
 
 # submit one job --------------------------------------------------------------  
@@ -145,7 +145,7 @@ sqr_preds <- as.matrix(sqr_preds)
 # t <- obj$enqueue(
 #   wrapper_to_multi_factor_vaccine_impact(
 #     fctr_combs[[1]],
-#     preds = sqr_preds,
+#     preds = sqr_preds_2,
 #     parms = parameters,
 #     out_path = out_path))
 
@@ -158,15 +158,15 @@ if (CLUSTER) {
   vaccine_impact <- queuer::qlapply(fctr_combs,
                                     wrapper_to_multi_factor_vaccine_impact,
                                     obj,
-                                    preds = sqr_preds,
+                                    preds = sqr_preds_2,
                                     parms = parameters,
                                     out_path = out_path)
 
 } else {
 
-  vaccine_impact <- loop(fctr_combs[2:18],
+  vaccine_impact <- loop(fctr_combs,
                          wrapper_to_multi_factor_vaccine_impact,
-                         preds = sqr_preds,
+                         preds = sqr_preds_2,
                          parms = parameters,
                          out_path = out_path,
                          parallel = FALSE)
