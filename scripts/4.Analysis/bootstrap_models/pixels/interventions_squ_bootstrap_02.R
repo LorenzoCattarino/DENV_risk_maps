@@ -1,4 +1,4 @@
-# Calculates (for endemic countries only)
+# Calculates
 # for each model fit, 
 # R0-vaccine screening age combinations and 
 # 20 km square:
@@ -30,7 +30,7 @@ ctx <- context::context_save(path = "context",
 
 extra_prms <- list(id = 4,
                    dependent_variable = "FOI",
-                   R0_scenario = 1,
+                   R0_scenario = 2,
                    wolbachia_scenario_id = 4,
                    no_R0_assumptions = 4,
                    screening_ages = c(9, 16),
