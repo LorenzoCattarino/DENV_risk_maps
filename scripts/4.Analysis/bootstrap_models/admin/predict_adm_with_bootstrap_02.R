@@ -3,7 +3,6 @@
 source(file.path("R", "utility_functions.R"))
 source(file.path("R", "create_parameter_list.R"))
 
-library(sf)
 library(dplyr)
 
 
@@ -32,10 +31,6 @@ out_path <- file.path("output",
 # load data -------------------------------------------------------------------
 
 
-adm_shp <- st_read(dsn = file.path("output", "shapefiles"), 
-                   layer = "gadm28_adm1_dengue",
-                   stringsAsFactors = FALSE)
-
 sqr_preds <- readRDS(file.path("output", 
                                "predictions_world",
                                "bootstrap_models",
@@ -43,16 +38,15 @@ sqr_preds <- readRDS(file.path("output",
                                "adm_1",
                                "response.rds"))
 
+endemic_c <- read.csv(file.path("output", 
+                                "datasets", 
+                                "dengue_endemic_countries.csv"),
+                      stringsAsFactors = FALSE)
+
 
 # -----------------------------------------------------------------------------
 
 
-adm_shp_2 <- as.data.frame(adm_shp)
-
-endemic_countries <- subset(adm_shp_2, dengue == 1)
-
-ret <- inner_join(sqr_preds, 
-                  endemic_countries[, c("ID_0", "ID_1", "dengue")], 
-                  by = c("ID_0", "ID_1"))
+ret <- inner_join(sqr_preds, endemic_c[, "ID_0", drop = FALSE], by = "ID_0")
 
 write_out_rds(ret, out_path, out_fl_nm)
