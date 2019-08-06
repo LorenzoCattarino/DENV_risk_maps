@@ -1,148 +1,191 @@
-# Plot proportional reduction in infections, cases and hospitalized cases 
-# for wolbachia and vaccination 
+# For a general type of intervention, calculate
+
+# how many countries are dengue free (R0 < 1), for each level of R0 reduction
 
 library(dplyr)
-library(ggplot2)
+library(countrycode)
 
 source(file.path("R", "utility_functions.R"))
+source(file.path("R", "create_parameter_list.R"))
+source(file.path("R", "prepare_datasets", "average_up.R"))
+source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 
 
-# define parameters -----------------------------------------------------------
+# define parameters ----------------------------------------------------------- 
 
 
-sf_vals <- c(0.7, 0.3)
-
-leg_titles <- c(expression('R'['0']*' reduction'), "Screening age")
-
-burden_measures <- c("infections", "cases", "hosp") 
-
-y_axis_titles <- c("Reduction in infections", "Reduction in cases", "Reduction in hopsitalized cases")
-
-out_fig_path <- file.path("figures", 
-                          "predictions_world", 
-                          "bootstrap_models")
-
-interventions <- c("wolbachia", "vaccine")
+extra_prms <- list(id = 4,
+                   R0_scenario = c(1, 2),
+                   intervention_name = "wolbachia",
+                   treatment_name = "scaling_factor",
+                   phi_factor_levels = c("2S", "4S"))
 
 
 # define variables ------------------------------------------------------------
 
 
-sf_vals_perc <- (1 - sf_vals) * 100
+parameters <- create_parameter_list(extra_params = extra_prms)
 
-leg_labels <- list(paste0(sf_vals_perc, "%"), c("9", "16"))
+R0_scenario <- parameters$R0_scenario
+
+intervention_name <- parameters$intervention_name
+
+treatment_name <- parameters$treatment_name
+
+phi_factor_levels <- parameters$phi_factor_levels
+
+model_type <- paste0("model_", parameters$id)
+
+in_path <- file.path("output", 
+                     "predictions_world", 
+                     "bootstrap_models", 
+                     model_type)
+
+var_to_sum <- as.character(seq_len(parameters$no_samples))
+
+out_table_path <- file.path("output",
+                            "predictions_world",
+                            "bootstrap_models",
+                            model_type,
+                            "country_level_R0")
+
+fct_comb_fl_nm <- paste0("scenario_table_", intervention_name, ".csv")
 
 
-# plotting ------------------------------------------------------------------
+# load data ------------------------------------------------------------------- 
 
 
-for (i in seq_along(interventions)) {
+fct_comb_ls <- read.csv(file.path(in_path, fct_comb_fl_nm),
+                        stringsAsFactors = FALSE)
+
+age_struct_orig <- read.csv(file.path("output", 
+                                      "datasets",
+                                      "country_age_structure.csv"), 
+                            stringsAsFactors = FALSE) 
+
+endemic_c <- read.csv(file.path("output", 
+                                "datasets", 
+                                "dengue_endemic_countries.csv"),
+                      stringsAsFactors = FALSE)
+
+
+# pre processing -------------------------------------------------------------- 
+
+
+age_struct_orig$continent <- as.factor(countrycode(sourcevar = age_struct_orig[, "country"], 
+                                                   origin = "country.name", 
+                                                   destination = "continent"))
+
+age_struct_orig$region <- as.factor(countrycode(sourcevar = age_struct_orig[, "country"], 
+                                                origin = "country.name", 
+                                                destination = "region"))
+
+# remove text in brackets 
+nice_strings <- gsub("\\s*\\([^\\)]+\\)", "", age_struct_orig$country)
+
+# remove text after comma
+nice_strings_2 <- gsub("(.*),.*", "\\1", nice_strings)
+
+# remove "*"
+nice_strings_3 <- gsub("\\*", "", nice_strings_2)
+
+age_struct_orig$country <- nice_strings_3
+
+# keep only dengue endemic countries 
+age_struct <- inner_join(age_struct_orig, endemic_c[, "ID_0", drop = FALSE], by = "ID_0")  
+
+col_names <- as.character(seq_len(parameters$no_samples))
+
+
+# aggreggating ---------------------------------------------------------------- 
+
+
+out_ls <- vector("list", length(R0_scenario))
+
+for (k in seq_along(R0_scenario)){                         # loop over R0 assumptions
   
-  for (j in seq_along(burden_measures)) {
+  cat("R0 assumption =", k, "\n")
+  
+  root_name <- sprintf("transformed_r_%s_%s_", k, intervention_name)
+  
+  my_in_path <- in_path
+  my_out_path <- out_table_path
+  
+  my_fct_comb <- fct_comb_ls[-1,]
+  
+  my_fct_comb$phi_set_id <- k
     
-    my_var_name <- burden_measures[j]
+  fi <- list.files(my_in_path, 
+                   pattern = paste0("^", root_name),
+                   full.names = TRUE)
+  
+  num.sort <- as.numeric(gsub(".*_|\\.rds$", "\\1", fi, perl = TRUE))
+  
+  fi_sort <- fi[order(num.sort)]
+  
+  # message(fi_sort)
+  
+  dat <- lapply(fi_sort, readRDS)
+  
+  small_out_ls <- vector("list", length(dat))
+  small_out_ls_2 <- vector("list", length(dat))
+  
+  for (i in seq_along(dat)){                              # loop over treatments
     
-    intervention_name <- interventions[i]
+    scenario_id <- my_fct_comb[i, "id"]
+    cat("scenario table id =", scenario_id, "\n")
     
-    y_axis_title <- y_axis_titles[j]
+    one_dat <- as.data.frame(dat[[i]])
+   
+    average_sqr <- lapply(as.list(col_names), multi_col_average_up, one_dat, "ID_0")
     
-    if(intervention_name == "wolbachia"){
-      
-      summary_table_orig <- read.csv(file.path("output", 
-                                               "predictions_world", 
-                                               "bootstrap_models",
-                                               paste0("prop_change_", my_var_name, "_", intervention_name, ".csv")),
-                                     header = TRUE)
-      
-      summary_table <- subset(summary_table_orig, treatment %in% sf_vals & phi_set_id != "FOI")
-      summary_table$treatment <- factor(summary_table$treatment, levels = sf_vals)
-      
-    } else {
-      
-      summary_table_orig_mean <- read.csv(file.path("output", 
-                                                    "predictions_world", 
-                                                    "bootstrap_models",
-                                                    paste0("prop_change_", my_var_name, "_mean_", intervention_name, ".csv")),
-                                          header = TRUE)
-      
-      summary_table_orig_L95 <- read.csv(file.path("output", 
-                                                   "predictions_world", 
-                                                   "bootstrap_models",
-                                                   paste0("prop_change_", my_var_name, "_L95_", intervention_name, ".csv")),
-                                         header = TRUE)
-      
-      summary_table_orig_U95 <- read.csv(file.path("output", 
-                                                   "predictions_world", 
-                                                   "bootstrap_models",
-                                                   paste0("prop_change_", my_var_name, "_U95_", intervention_name, ".csv")),
-                                         header = TRUE)
-      
-      summary_table_orig <- summary_table_orig_mean
-      
-      summary_table_orig$lCI <- summary_table_orig_L95$mean - (1.92 * summary_table_orig$sd)
-      
-      summary_table_orig$uCI <- summary_table_orig_U95$mean + (1.92 * summary_table_orig$sd)
-      
-      summary_table <- summary_table_orig
-      summary_table$treatment <- as.factor(summary_table$treatment)
-      
-      out_fl_nm <- sprintf("prop_change_%s_%s%s", my_var_name, intervention_name, ".csv")
-      
-      write_out_csv(summary_table, file.path("output", 
-                                             "predictions_world", 
-                                             "bootstrap_models"),
-                    out_fl_nm,
-                    row.names = FALSE)
-      
-    }
+    average_sqr_clean <- lapply(average_sqr, remove_pop_col)
     
-    y_values <- seq(0, 1, 0.2)
+    to_print_1 <- do.call("cbind", average_sqr_clean)
+    to_print_2 <- average_boot_samples_dim2(to_print_1)
+    to_print_3 <- cbind(ID_0 = average_sqr[[1]]$ID_0, to_print_2)
+    to_print_4 <- inner_join(to_print_3, age_struct[, c("country", "ID_0")], by = "ID_0")
+    write_out_csv(to_print_4,
+                  my_out_path,
+                  paste0("scenario_", scenario_id, ".csv"))
     
-    if(intervention_name == "vaccine"){
-      
-      y_values <- seq(0, 0.4, 0.1)
+    dengue_free_c <- lapply(average_sqr_clean, how_many_below_1)
     
-    } 
+    dengue_free_c_mat <- unlist(dengue_free_c)
     
-    p <- ggplot(summary_table, aes(x = treatment, y = mean, fill = treatment, ymin = lCI, ymax = uCI)) +
-      geom_bar(stat = "identity", position = position_dodge(width = 0.5), width = 0.9) +
-      geom_errorbar(width = .15, position = position_dodge(.9)) +
-      facet_grid(. ~ phi_set_id) +
-      scale_fill_manual(values = c("lightskyblue1", "lightskyblue4"),
-                        labels = leg_labels[[i]],
-                        guide = guide_legend(title = leg_titles[i],
-                                             keywidth = 1.3,
-                                             keyheight = 1.3,
-                                             label.theme = element_text(size = 12))) +
-      xlab(NULL) +
-      scale_y_continuous(y_axis_title,
-                         breaks = y_values,
-                         labels = paste0(y_values * 100, "%"),
-                         limits = c(min(y_values), max(y_values) + .05),
-                         expand = expand_scale(mult = c(0, .05))) +
-      theme_bw() +
-      theme(axis.title.x = element_blank(),
-            axis.text.x = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.text.y = element_text(size = 12),
-            plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
-            strip.text.x = element_text(size = 10))
-    
-    dir.create(out_fig_path, FALSE, TRUE)
-    
-    barplot_fl_nm <- paste0("proportional_reduction_in_", my_var_name, "_", intervention_name, ".png")
-    
-    png(file.path(out_fig_path, barplot_fl_nm),
-        width = 15,
-        height = 9,
-        units = "cm",
-        pointsize = 12,
-        res = 300)
-    
-    print(p)
-    
-    dev.off()
+    ret <- average_boot_samples_dim1(dengue_free_c_mat)
+
+    small_out_ls[[i]] <- ret
     
   }
   
+  out_ls[[k]] <- cbind(my_fct_comb, do.call("rbind", small_out_ls))
+  
 }
+
+summary_table <- do.call("rbind", out_ls)  
+
+names(summary_table)[names(summary_table) == treatment_name] <- "treatment"
+
+treatment_levels <- unique(summary_table$treatment)
+
+summary_table[, "treatment"] <- factor(summary_table[, "treatment"],
+                                       levels = treatment_levels,
+                                       labels = treatment_levels)
+
+summary_table$phi_set_id <- factor(summary_table$phi_set_id, 
+                                   levels = seq_len(length(phi_factor_levels)), 
+                                   labels = phi_factor_levels)
+
+summary_tab_fl_nm <- paste0("dengue_free_countries_",
+                            intervention_name, 
+                            ".csv")
+
+
+# save table of baseline burden ---------------------------------------------
+
+
+write_out_csv(summary_table, file.path("output", 
+                                       "predictions_world", 
+                                       "bootstrap_models"), 
+              summary_tab_fl_nm)
