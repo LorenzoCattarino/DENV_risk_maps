@@ -1,4 +1,4 @@
-# Calculates
+# Calculates (for endemic countries only)
 # for each model fit, 
 # R0-Wolbachia effect assumption combinations and 
 # 20 km square:
