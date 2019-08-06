@@ -1,4 +1,4 @@
-# Calculates (for endemic countries only)
+# Calculates (FOR DENGUE ENDEMIC COUNTRIES ONLY)
 # for each model fit, 
 # R0-Wolbachia effect assumption combinations and 
 # 20 km square:
