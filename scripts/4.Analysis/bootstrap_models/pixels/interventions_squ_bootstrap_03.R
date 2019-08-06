@@ -22,7 +22,14 @@ extra_prms <- list(id = 4,
                    baseline_scenario_ids = 4,
                    intervention_name = "wolbachia",
                    treatment_name = "scaling_factor",
-                   phi_factor_levels = c("2S", "4S"))
+                   phi_factor_levels = c("2S", "4S"),
+                   base_info = c("cell", 
+                                 "latitude", 
+                                 "longitude", 
+                                 "population", 
+                                 "ID_0", 
+                                 "ID_1", 
+                                 "ID_2"))
 
 
 # define variables ------------------------------------------------------------
@@ -61,6 +68,8 @@ out_table_path <- file.path("output",
 
 fct_comb_fl_nm <- paste0("scenario_table_", intervention_name, ".csv")
 
+base_info <- parameters$base_info
+
 
 # load data ------------------------------------------------------------------- 
 
@@ -68,30 +77,25 @@ fct_comb_fl_nm <- paste0("scenario_table_", intervention_name, ".csv")
 fct_combs <- read.csv(file.path(in_path, fct_comb_fl_nm), 
                         stringsAsFactors = FALSE)
 
-age_struct_orig <- read.csv(file.path("output", 
+age_struct <- read.csv(file.path("output", 
                                       "datasets",
                                       "country_age_structure.csv"), 
                             stringsAsFactors = FALSE) 
-
-endemic_c <- read.csv(file.path("output", 
-                                "datasets", 
-                                "dengue_endemic_countries.csv"),
-                      stringsAsFactors = FALSE)
 
 
 # pre processing -------------------------------------------------------------- 
 
 
-age_struct_orig$continent <- as.factor(countrycode(sourcevar = age_struct_orig[, "country"], 
+age_struct$continent <- as.factor(countrycode(sourcevar = age_struct[, "country"], 
                                                    origin = "country.name", 
                                                    destination = "continent"))
 
-age_struct_orig$region <- as.factor(countrycode(sourcevar = age_struct_orig[, "country"], 
+age_struct$region <- as.factor(countrycode(sourcevar = age_struct[, "country"], 
                                                 origin = "country.name", 
                                                 destination = "region"))
 
 # remove text in brackets 
-nice_strings <- gsub("\\s*\\([^\\)]+\\)", "", age_struct_orig$country)
+nice_strings <- gsub("\\s*\\([^\\)]+\\)", "", age_struct$country)
 
 # remove text after comma
 nice_strings_2 <- gsub("(.*),.*", "\\1", nice_strings)
@@ -99,10 +103,7 @@ nice_strings_2 <- gsub("(.*),.*", "\\1", nice_strings)
 # remove "*"
 nice_strings_3 <- gsub("\\*", "", nice_strings_2)
 
-age_struct_orig$country <- nice_strings_3
-
-# keep only dengue endemic countries 
-age_struct <- inner_join(age_struct_orig, endemic_c[, "ID_0", drop = FALSE], by = "ID_0")  
+age_struct$country <- nice_strings_3
 
 bs_line_out <- vector("list", length(vars))
   
@@ -155,8 +156,9 @@ for (j in seq_along(vars)){                                 # loop over burden m
       
       scenario_id <- my_fct_comb[i, "id"]
       cat("scenario table id =", scenario_id, "\n")
-      
+    
       one_dat <- as.data.frame(dat[[i]])
+      
       one_dat <- inner_join(one_dat, age_struct[, c("continent", "region", "country", "ID_0")])
       
       by_country <- one_dat %>% group_by(ID_0)
@@ -180,15 +182,6 @@ for (j in seq_along(vars)){                                 # loop over burden m
                     paste0(my_var_name, "_by_continent_", scenario_id, ".csv"),
                     row.names = FALSE)
       
-      # by_region <- one_dat %>% group_by(region)
-      # region_sums <- by_region %>% summarise_at(var_to_sum, "sum")
-      # ret <- average_boot_samples_dim2(region_sums[, var_to_sum])
-      # ret <- round(ret, -2)
-      # ret2 <- cbind(region = region_sums$region, ret)  
-      # write_out_csv(ret2, 
-      #               my_out_path, 
-      #               paste0(my_var_name, "_by_region_", scenario_id, ".csv"))
-      
       ret4 <- colSums(one_dat[, var_to_sum])
       ret5 <- average_boot_samples_dim1(ret4)
       ret5 <- round(ret5, -2)
@@ -197,6 +190,13 @@ for (j in seq_along(vars)){                                 # loop over burden m
       
       bl <- baseline[, var_to_sum]
       od <- one_dat[, var_to_sum]
+      
+      prop_red_pxl <- (bl - od) / bl
+      prop_red_pxl[is.na(prop_red_pxl)] <- 0
+      prop_red_pxl_2 <- cbind(one_dat[, base_info], prop_red_pxl)
+      write_out_rds(prop_red_pxl_2, 
+                    in_path,
+                    sprintf("%s_pr_%s_%s_%s%s", my_var, k, intervention_name, scenario_id, ".rds"))
       
       bl_colsum <- colSums(bl)
       od_colsum <- colSums(od)
