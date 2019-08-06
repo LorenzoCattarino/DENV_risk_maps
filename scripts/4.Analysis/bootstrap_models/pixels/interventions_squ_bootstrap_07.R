@@ -63,10 +63,10 @@ age_struct_orig <- read.csv(file.path("output",
                                       "country_age_structure.csv"), 
                             stringsAsFactors = FALSE) 
 
-endemic_c <- read.csv(file.path("output", 
-                                "datasets", 
-                                "dengue_endemic_countries.csv"),
-                      stringsAsFactors = FALSE)
+# endemic_c <- read.csv(file.path("output", 
+#                                 "datasets", 
+#                                 "dengue_endemic_countries.csv"),
+#                       stringsAsFactors = FALSE)
 
 
 # pre processing -------------------------------------------------------------- 
@@ -92,7 +92,8 @@ nice_strings_3 <- gsub("\\*", "", nice_strings_2)
 age_struct_orig$country <- nice_strings_3
 
 # keep only dengue endemic countries 
-age_struct <- inner_join(age_struct_orig, endemic_c[, "ID_0", drop = FALSE], by = "ID_0")  
+# age_struct <- inner_join(age_struct_orig, endemic_c[, "ID_0", drop = FALSE], by = "ID_0")  
+age_struct <- age_struct_orig
 
 col_names <- as.character(seq_len(parameters$no_samples))
 
