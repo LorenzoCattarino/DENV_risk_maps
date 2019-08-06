@@ -11,7 +11,6 @@ library(ggplot2)
 
 
 extra_prms <- list(id = 4,
-                   age = 16,
                    statistic = "mean")
 
 
@@ -20,13 +19,15 @@ extra_prms <- list(id = 4,
 
 parameters <- create_parameter_list(extra_params = extra_prms)
 
-age <- parameters$age
-
-# vars_to_average <- paste0("p", age)
-# vars_to_average <- "response_endemic"
-vars_to_average <- "transformed_2_wolbachia_4"
-# vars_to_average <- sprintf("p%s_FP_specifB", age)
-# z_values <- seq(0, 10, 2)
+vars_to_average <- c("response_endemic", 
+                     "p9", 
+                     "p16",
+                     "p9_FP_specifA",
+                     "p16_FP_specifA",
+                     "p9_FP_specifB",
+                     "p16_FP_specifB")
+                     #"transformed_1_wolbachia_4",
+                     #"transformed_2_wolbachia_4")
 
 statistic <- parameters$statistic
 
@@ -62,20 +63,28 @@ adm_shp <- st_read(dsn = file.path("output", "shapefiles"),
 
 my_col <- colorRamps::matlab.like(100)
 
-mean_pred_fl_nm <- paste0(vars_to_average, "_", statistic, ".rds")
-
-df_long <- readRDS(file.path(in_path, mean_pred_fl_nm))
-
-out_fl_nm <- paste0(vars_to_average, "_", statistic, ".png")
-
-adm_shp_pred <- merge(adm_shp, 
-                      df_long[, c("ID_0", "ID_1", statistic)], 
-                      by = c("ID_0", "ID_1"), 
-                      all.x = TRUE)
-
 
 # plot ------------------------------------------------------------------------
 
 
-quick_polygon_map(adm_shp_pred, my_col, statistic, out_pth, out_fl_nm,
-                  country_borders = national_borders)
+for (i in seq_along(vars_to_average)){
+  
+  # z_values <- seq(0, 10, 2)
+  
+  var_to_average <- vars_to_average[i]
+  
+  mean_pred_fl_nm <- paste0(var_to_average, "_", statistic, ".rds")
+  
+  df_long <- readRDS(file.path(in_path, mean_pred_fl_nm))
+  
+  out_fl_nm <- paste0(var_to_average, "_", statistic, ".png")
+  
+  adm_shp_pred <- merge(adm_shp, 
+                        df_long[, c("ID_0", "ID_1", statistic)], 
+                        by = c("ID_0", "ID_1"), 
+                        all.x = TRUE)
+  
+  quick_polygon_map(adm_shp_pred, my_col, statistic, out_pth, out_fl_nm,
+                    country_borders = national_borders)
+
+}
