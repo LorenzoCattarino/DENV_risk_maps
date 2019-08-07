@@ -179,22 +179,22 @@ sd_r_df <- as.data.frame(sd_r_spdf)
 
 if (CLUSTER){
   
-  t <- obj$enqueue(make_nice_map(parameters,
-                                 countries_df,
-                                 bbox_df,
-                                 pred_r_df,
-                                 sd_r_df,
-                                 out_path,
-                                 out_file_name))
+  t <- obj$enqueue(make_nice_2_stacked_maps_figure(parameters,
+                                                   countries_df,
+                                                   bbox_df,
+                                                   pred_r_df,
+                                                   sd_r_df,
+                                                   out_path,
+                                                   out_file_name))
   
 } else {
   
-  make_nice_map(parameters,
-                countries_df,
-                bbox_df,
-                pred_r_df,
-                sd_r_df,
-                out_path,
-                out_file_name)
+  make_nice_2_stacked_maps_figure(parameters,
+                                  countries_df,
+                                  bbox_df,
+                                  pred_r_df,
+                                  sd_r_df,
+                                  out_path,
+                                  out_file_name)
   
 }
