@@ -25,9 +25,9 @@ vars_to_average <- c("response_endemic",
                      "p9_FP_specifA",
                      "p16_FP_specifA",
                      "p9_FP_specifB",
-                     "p16_FP_specifB",
-                     "transformed_1_wolbachia_4",
-                     "transformed_2_wolbachia_4")
+                     "p16_FP_specifB")#,
+                     # "transformed_1_wolbachia_4",
+                     # "transformed_2_wolbachia_4")
 
 statistic <- parameters$statistic
 
@@ -67,9 +67,7 @@ my_col <- colorRamps::matlab.like(100)
 # plot ------------------------------------------------------------------------
 
 
-for (i in seq_along(vars_to_average)[8:9]){
-  
-  # z_values <- seq(0, 10, 2)
+for (i in seq_along(vars_to_average)){
   
   var_to_average <- vars_to_average[i]
   
