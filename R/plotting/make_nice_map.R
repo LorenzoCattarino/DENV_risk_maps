@@ -1,7 +1,12 @@
-make_nice_map <- function(bbox, countries, preds, pred_leg_val, parms, my_col, country_fill_col, ttl) {
+make_nice_map <- function(bbox_df, 
+                          countries_df, 
+                          pred, 
+                          z_vals = NULL,
+                          parms, 
+                          my_col, 
+                          country_fill_col, 
+                          ttl) {
   
-  plot_wdt <- parms$plot_wdt
-  plot_hgt <- parms$plot_hgt
   barwdt <- parms$barwdt
   barhgt <- parms$barhgt
   pol_brd_sz <- parms$pol_brd_sz
@@ -10,25 +15,29 @@ make_nice_map <- function(bbox, countries, preds, pred_leg_val, parms, my_col, c
   leg_txt_sz <- parms$leg_txt_sz 
   leg_ttl_sz <- parms$leg_ttl_sz
 
+  if(is.null(z_vals)){
+    z_vals <- pretty(pred[, "layer"], n = 5)
+  }
+
   ggplot() +
     geom_polygon(data = bbox_df, aes(long, lat, group = group), fill = "aliceblue") +
     geom_polygon(data = countries_df, aes(long, lat, group = group), fill = country_fill_col) +
     geom_tile(data = pred, aes(x = x, y = y, fill = layer)) +
-    scale_fill_gradientn(breaks = pred_leg_val,
-                         labels = pred_leg_val,
-                         limits = c(min(pred_leg_val), max(pred_leg_val)),
+    scale_fill_gradientn(breaks = z_vals,
+                         labels = z_vals,
+                         limits = c(min(z_vals), max(z_vals)),
                          colours = my_col, 
                          guide = guide_colourbar(title = ttl, 
                                                  barwidth = barwdt, 
                                                  barheight = barhgt)) +
-    geom_path(data = countries_df,
-              aes(x = long, y = lat, group = group),
-              colour = "gray40",
-              size = pol_brd_sz) +
-    geom_path(data = bbox_df,
-              aes(long, lat, group = group),
-              colour = "black",
-              size = 0.3) +
+    # geom_path(data = countries_df,
+    #           aes(x = long, y = lat, group = group),
+    #           colour = "gray40",
+    #           size = pol_brd_sz) +
+    # geom_path(data = bbox_df,
+    #           aes(long, lat, group = group),
+    #           colour = "black",
+    #           size = 0.3) +
     coord_equal() +
     scale_x_continuous(labels = NULL, expand = c(0, 0)) +
     scale_y_continuous(labels = NULL, expand = c(0, 0)) +
