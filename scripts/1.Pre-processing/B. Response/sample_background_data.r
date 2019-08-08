@@ -83,6 +83,16 @@ no_data_points <- nrow(All_FOI_estimates)
 no_pseudo_absence_points <- floor(no_data_points * pseudo_absence_proportion)  
 
 
+# save endemic ID_0 and ID_1 --------------------------------------------------
+
+# NOTE: ideally this should be done when creating the shp file with the `dengue` 
+# attribute. However that script does not work anymore.
+
+
+dengue_endemic_ID_0_ID_1 <- adm_shp@data[adm_shp@data$dengue == 1, c("ID_0", "ID_1", "dengue")]
+write.csv(dengue_endemic_ID_0_ID_1, file.path(out_pt, "dengue_endemic_ID_0_ID_1.csv"), row.names = FALSE)
+
+
 # subset to -60 +60 latitude AND dengue --------------------------------------- 
 
 
