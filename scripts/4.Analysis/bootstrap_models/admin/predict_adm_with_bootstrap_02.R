@@ -9,7 +9,8 @@ library(dplyr)
 # define extra parameters -----------------------------------------------------
 
 
-extra_prms <- list(id = 4)
+extra_prms <- list(id = 4,
+                   ID_0_to_remove = c(1, 69, 171, 122, 200, 224, 226, 235, 236, 244, 246))
                    
                    
 # define variables ------------------------------------------------------------
@@ -27,6 +28,8 @@ out_path <- file.path("output",
                       model_type,
                       "adm_1")
 
+ID_0_to_remove <- parameters$ID_0_to_remove
+
 
 # load data -------------------------------------------------------------------
 
@@ -38,15 +41,17 @@ sqr_preds <- readRDS(file.path("output",
                                "adm_1",
                                "response.rds"))
 
-endemic_c <- read.csv(file.path("output", 
-                                "datasets", 
-                                "dengue_endemic_countries.csv"),
-                      stringsAsFactors = FALSE)
+endemic_ID_0_ID_1 <- read.csv(file.path("output", 
+                                        "datasets", 
+                                        "dengue_endemic_ID_0_ID_1.csv"),
+                              stringsAsFactors = FALSE)
 
 
 # -----------------------------------------------------------------------------
 
 
-ret <- inner_join(sqr_preds, endemic_c[, "ID_0", drop = FALSE], by = "ID_0")
+endemic_ID_0_ID_1 <- endemic_ID_0_ID_1[!endemic_ID_0_ID_1$ID_0 %in% ID_0_to_remove,]
+
+ret <- inner_join(sqr_preds, endemic_ID_0_ID_1[, c("ID_0", "ID_1")], by = c("ID_0", "ID_1"))
 
 write_out_rds(ret, out_path, out_fl_nm)
