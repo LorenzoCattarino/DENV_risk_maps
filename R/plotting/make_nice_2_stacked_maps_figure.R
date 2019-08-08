@@ -47,6 +47,6 @@ make_nice_2_stacked_maps_figure <- function(parms,
   
   grid.arrange(pred_map, sd_map, nrow = 2)
   
-  dev.off()
+  on.exit(dev.off())
   
 }
