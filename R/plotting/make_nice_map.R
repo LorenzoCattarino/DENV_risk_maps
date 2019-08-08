@@ -14,15 +14,21 @@ make_nice_map <- function(bbox_df,
   leg_pos_y <- parms$leg_pos_y
   leg_txt_sz <- parms$leg_txt_sz 
   leg_ttl_sz <- parms$leg_ttl_sz
-
+  bbox <- parms$coord_limits
+  
+  x1 <- bbox[1]
+  x2 <- bbox[2]
+  y1 <- bbox[3]
+  y2 <- bbox[4]
+  
   if(is.null(z_vals)){
     z_vals <- pretty(pred[, "layer"], n = 5)
   }
-
+  
   ggplot() +
-    geom_polygon(data = bbox_df, aes(long, lat, group = group), fill = "aliceblue") +
-    geom_polygon(data = countries_df, aes(long, lat, group = group), fill = country_fill_col) +
+    geom_sf(data = countries_df, fill = country_fill_col, color = NA) +
     geom_tile(data = pred, aes(x = x, y = y, fill = layer)) +
+    geom_sf(data = countries_df, fill = NA, colour = "gray40", size = pol_brd_sz) +
     scale_fill_gradientn(breaks = z_vals,
                          labels = z_vals,
                          limits = c(min(z_vals), max(z_vals)),
@@ -30,23 +36,17 @@ make_nice_map <- function(bbox_df,
                          guide = guide_colourbar(title = ttl, 
                                                  barwidth = barwdt, 
                                                  barheight = barhgt)) +
-    # geom_path(data = countries_df,
-    #           aes(x = long, y = lat, group = group),
-    #           colour = "gray40",
-    #           size = pol_brd_sz) +
-    # geom_path(data = bbox_df,
-    #           aes(long, lat, group = group),
-    #           colour = "black",
-    #           size = 0.3) +
-    coord_equal() +
-    scale_x_continuous(labels = NULL, expand = c(0, 0)) +
-    scale_y_continuous(labels = NULL, expand = c(0, 0)) +
-    theme_void() +
-    theme(axis.text.x = element_blank(),
-          axis.text.y = element_blank(),
+    coord_sf(datum = NA, xlim = c(x1, x2), ylim = c(y1, y2), expand = FALSE) +
+    theme(panel.background = element_rect(fill = "aliceblue"),
+          panel.border = element_rect(fill = NA, colour = "black"),
+          axis.line = element_blank(),
+          axis.text = element_blank(),
           axis.ticks = element_blank(),
-          plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm"),
+          axis.title = element_blank(),
+          legend.justification = c(0, 0),
           legend.position = c(leg_pos_x, leg_pos_y),
+          plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm"),
+          panel.grid.major = element_blank(),
           legend.text = element_text(size = leg_txt_sz),
           legend.title = element_text(face = "bold", size = leg_ttl_sz),
           legend.box.background = element_rect(fill = "white", colour = "black"),
