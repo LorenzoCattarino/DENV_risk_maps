@@ -1,13 +1,15 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- TRUE
+CLUSTER <- FALSE
 
 my_resources <- c(
-  file.path("R", "plotting", "functions_for_plotting_raster_maps.R"),
-  file.path("R", "plotting", "nice_raster_map.R"))
+  file.path("R", "create_parameter_list.R"),
+  file.path("R", "plotting", "make_nice_map.R"),
+  file.path("R", "plotting", "make_nice_2_stacked_maps_figure.R"),
+  file.path("R", "plotting", "functions_for_plotting_raster_maps.R"))
 
-my_pkgs <- c("colorRamps", "rgdal", "ggplot2", "raster", "grid", "gridExtra")
+my_pkgs <- c("colorRamps", "sf", "raster", "ggplot2", "grid", "gridExtra", "dplyr")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
@@ -18,32 +20,19 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-parameters <- list(id = 4,
-                   resample_grid_size = 20,
+extra_prms <- list(id = 4,
                    plot_wdt = 17,
                    plot_hgt = 11, 
                    barwdt = 1.5,
-                   barhgt = 5,
+                   barhgt = 4.5,
                    pol_brd_sz = 0.1,
-                   leg_pos_x = 0.07,
-                   leg_pos_y = 0.35,
+                   leg_pos_x = 0,
+                   leg_pos_y = 0,
                    leg_txt_sz = 10,
                    leg_ttl_sz = 12,
-                   map_proj = "+proj=moll")
-
-
-# define variables ------------------------------------------------------------  
-
-
-model_type <- paste0("model_", parameters$id)
-
-gr_size <- parameters$resample_grid_size
-
-map_proj <- parameters$map_proj
-
-out_file_name <- "pred_and_sd_map.png"
-  
-out_path <- file.path("figures", "predictions_world")
+                   map_proj = "+proj=moll",
+                   coord_limits = c(-130, 180, -60, 38),
+                   ID_0_to_remove = c(1, 69, 171, 122, 200, 224, 226, 235, 236, 244, 246))
 
 
 # are you using the cluster? --------------------------------------------------
@@ -58,6 +47,24 @@ if (CLUSTER) {
   context::context_load(ctx)
   
 }
+
+
+# define variables ------------------------------------------------------------  
+
+
+parameters <- create_parameter_list(extra_params = extra_prms)
+
+model_type <- paste0("model_", parameters$id)
+
+gr_size <- parameters$resample_grid_size
+
+out_file_name <- "pred_and_sd_map.png"
+  
+out_path <- file.path("figures", "predictions_world")
+
+coord_limits <- parameters$coord_limits
+
+ID_0_to_remove <- parameters$ID_0_to_remove
 
 
 # load data ------------------------------------------------------------------- 
@@ -75,57 +82,31 @@ sd <- readRDS(file.path("output",
                         "grid_size_interpolated",
                         "response_mean.rds"))
 
-countries <- readOGR(dsn = file.path("output", "shapefiles"), 
+countries <- st_read(dsn = file.path("output", "shapefiles"), 
                      layer = "gadm28_adm0_eras")
 
-bbox <- readOGR(dsn = file.path("data", "shapefiles", "ne_50m_graticules_all"), 
-                layer = "ne_50m_wgs84_bounding_box") 
+endemic_ID_0_ID_1 <- read.csv(file.path("output", 
+                                "datasets", 
+                                "dengue_endemic_ID_0_ID_1.csv"),
+                      stringsAsFactors = FALSE)
 
 
 # pre processing -------------------------------------------------------------- 
 
-
-my_ext <- extent(-130, 180, -60, 38)
 
 res <- (1 / 120) * gr_size
 
 lats <- seq(-90, 90, by = res)
 lons <- seq(-180, 180, by = res)
 
-countries <- countries[!countries@data$NAME_ENGLI == "Caspian Sea", ]
-
-fl_ex <- file.exists(file.path("output", "shapefiles", "gadm28_adm0_eras_cropped.shp"))
-
-if(fl_ex){
+endemic_ID_0_ID_1 <- endemic_ID_0_ID_1[!endemic_ID_0_ID_1$ID_0 %in% ID_0_to_remove,]
   
-  countries_cropped <- readOGR(dsn = file.path("output", "shapefiles"),
-                               layer = "gadm28_adm0_eras_cropped",
-                               stringsAsFactors = FALSE,
-                               integer64 = "allow.loss")
-  
-} else {
-  
-  countries_cropped <- crop(countries, my_ext)
-  
-  writeOGR(countries_cropped, 
-           dsn = file.path("output", "shapefiles"), 
-           layer = "gadm28_adm0_eras_cropped", 
-           driver = "ESRI Shapefile")
-  
-}
+countries <- countries[!countries$NAME_ENGLI == "Caspian Sea", ]
 
+# remove pixels outside of endemic ID_0 and ID_1 
+pred2 <- dplyr::inner_join(pred, endemic_ID_0_ID_1)
 
-# countries <- spTransform(countries_cropped, CRS(map_proj))
-
-countries_df <- fortify(countries_cropped)
-
-bbox <- crop(bbox, my_ext)
-
-# bbox <- spTransform(bbox, CRS(map_proj))
-  
-bbox_df <- fortify(bbox)
-
-pred_mat <- prediction_df_to_matrix(lats, lons, pred, "mean")
+pred_mat <- prediction_df_to_matrix(lats, lons, pred2, "mean")
 
 pred_mat_ls <- list(x = lons,
                     y = lats,
@@ -133,41 +114,20 @@ pred_mat_ls <- list(x = lons,
 
 pred_r_mat <- raster(pred_mat_ls)
 
-pred_r_mat <- crop(pred_r_mat, my_ext)
-
-# pred_r_mat <- projectRaster(pred_r_mat, crs = map_proj)
-
 pred_r_spdf <- as(pred_r_mat, "SpatialPixelsDataFrame")
 
 pred_r_df <- as.data.frame(pred_r_spdf)
 
-# pred_r_df <- subset(pred_r_df, layer >= 1)
+# remove pixels outside of endemic ID_0 and ID_1 
+sd2 <- dplyr::inner_join(sd, endemic_ID_0_ID_1)
 
-
-# -----------------------------------------------------------------------------
-# 
-# cap the sd 
-# 
-# -----------------------------------------------------------------------------
-
-
-# sd$sd <- ifelse(sd$sd > 1, 1, sd$sd)
-
-
-# -----------------------------------------------------------------------------
-
-
-sd_mat <- prediction_df_to_matrix(lats, lons, sd, "sd")
+sd_mat <- prediction_df_to_matrix(lats, lons, sd2, "sd")
 
 sd_mat_ls <- list(x = lons,
                   y = lats,
                   z = sd_mat)
 
 sd_r_mat <- raster(sd_mat_ls)
-
-sd_r_mat <- crop(sd_r_mat, my_ext)
-
-# sd_r_mat <- projectRaster(sd_r_mat, crs = map_proj)
 
 sd_r_spdf <- as(sd_r_mat, "SpatialPixelsDataFrame")
 
@@ -180,8 +140,8 @@ sd_r_df <- as.data.frame(sd_r_spdf)
 if (CLUSTER){
   
   t <- obj$enqueue(make_nice_2_stacked_maps_figure(parameters,
-                                                   countries_df,
-                                                   bbox_df,
+                                                   countries,
+                                                   bbox,
                                                    pred_r_df,
                                                    sd_r_df,
                                                    out_path,
@@ -190,8 +150,8 @@ if (CLUSTER){
 } else {
   
   make_nice_2_stacked_maps_figure(parameters,
-                                  countries_df,
-                                  bbox_df,
+                                  countries,
+                                  bbox,
                                   pred_r_df,
                                   sd_r_df,
                                   out_path,
