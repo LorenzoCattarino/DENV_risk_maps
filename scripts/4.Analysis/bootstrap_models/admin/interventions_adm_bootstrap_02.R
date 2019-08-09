@@ -30,9 +30,10 @@ ctx <- context::context_save(path = "context",
 
 extra_prms <- list(id = 4,
                    dependent_variable = "FOI",
-                   R0_scenario = 2,
+                   R0_scenario = 1,
                    wolbachia_scenario_id = 4,
                    no_R0_assumptions = 4,
+                   screening_ages = c(9, 16, 0),
                    parallel_2 = TRUE,
                    burden_measure = c("infections", "cases", "hosp"),
                    vacc_estimates = c("mean", "L95", "U95"),
@@ -69,6 +70,8 @@ vacc_estimates <- parameters$vacc_estimates
 
 burden_measures <- parameters$burden_measure
 
+screening_ages <- parameters$screening_ages
+
 w_scenario_id <- parameters$wolbachia_scenario_id
 
 model_type <- paste0("model_", parameters$id)
@@ -103,9 +106,10 @@ phi_set_id <- seq_len(parameters$no_R0_assumptions)
 
 fct_c <- setNames(expand.grid(phi_set_id, 
                               burden_measures, 
+                              screening_ages,
                               vacc_estimates,
                               stringsAsFactors = FALSE),
-                  nm = c(phi_set_id_tag, "burden_measure", "estimate"))
+                  nm = c(phi_set_id_tag, "burden_measure", "screening_age", "estimate"))
 
 fct_c <- cbind(id = seq_len(nrow(fct_c)), fct_c)
 
