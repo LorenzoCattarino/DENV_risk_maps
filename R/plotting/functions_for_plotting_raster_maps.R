@@ -125,3 +125,20 @@ prediction_df_to_matrix <- function(lats, lons, df_long, statsc){
   
   mat
 }
+
+assign_grid_coordinates_to_prediction_df <- function (lats, lons, data_df){
+  
+  pred_mat <- prediction_df_to_matrix(lats, lons, data_df, "mean")
+  
+  pred_mat_ls <- list(x = lons,
+                      y = lats,
+                      z = pred_mat)
+  
+  pred_r_mat <- raster(pred_mat_ls)
+  
+  pred_r_spdf <- as(pred_r_mat, "SpatialPixelsDataFrame")
+  
+  as.data.frame(pred_r_spdf)
+  
+}
+
