@@ -12,9 +12,9 @@ source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 
 
 extra_prms <- list(id = 4,
-                   vaccine_id = 12,
-                   R0_scenario = 2,
-                   age = FALSE) 
+                   vaccine_id = c(28, 32, 36),
+                   R0_scenario = c(1, 2),
+                   age = c(TRUE, FALSE)) 
 
 
 # define variables ------------------------------------------------------------
@@ -32,11 +32,11 @@ in_path <- file.path("output",
 
 col_ids <- as.character(seq_len(parameters$no_samples))
 
-R0_scenario <- parameters$R0_scenario
+vaccine_ids <- parameters$vaccine_id
 
-vaccine_id <- parameters$vaccine_id
+R0_scenarios <- parameters$R0_scenario
 
-age <- parameters$age
+ages <- parameters$age
 
 
 # load data # -----------------------------------------------------------------
@@ -53,24 +53,40 @@ fct_c <- read.csv(file.path("output",
 # -----------------------------------------------------------------------------
 
 
-burden_measure <- toupper(substr(fct_c[fct_c$id == vaccine_id, "burden_measure"], 1, 1))
-
-vars_to_average <- sprintf("%s_num_%s_max_age_vaccine_%s", burden_measure, R0_scenario, vaccine_id)
-
-if(!age){
+for (i in seq_along(vaccine_ids)) {
   
-  vars_to_average <- sprintf("%s_%s", "p", vars_to_average)
+  for(j in seq_along(R0_scenarios)) {
+    
+    for (k in seq_along(ages)) {
+      
+      vaccine_id <- vaccine_ids[i]
+      R0_scenario <- R0_scenarios[j]
+      age <- ages[k]
+      
+      burden_measure <- toupper(substr(fct_c[fct_c$id == vaccine_id, "burden_measure"], 1, 1))
+      
+      var_to_average <- sprintf("%s_num_%s_max_age_vaccine_%s", burden_measure, R0_scenario, vaccine_id)
+      
+      if(!age){
+        
+        var_to_average <- sprintf("%s_%s", "p", var_to_average)
+        
+      }
+      
+      dat <- readRDS(file.path(in_path, paste0(var_to_average, ".rds")))
+      
+      ret <- average_boot_samples_dim2(dat[, col_ids])
+      
+      base_info <- dat[, setdiff(names(dat), col_ids)]
+      
+      ret2 <- cbind(base_info, ret)
+      
+      out_name <- paste0(var_to_average, "_mean.rds")
+      
+      write_out_rds(ret2, in_path, out_name)
+      
+    }
+    
+  }
   
 }
-
-dat <- readRDS(file.path(in_path, paste0(vars_to_average, ".rds")))
-
-ret <- average_boot_samples_dim2(dat[, col_ids])
-
-base_info <- dat[, setdiff(names(dat), col_ids)]
-
-ret2 <- cbind(base_info, ret)
-
-out_name <- paste0(vars_to_average, "_mean.rds")
-
-write_out_rds(ret2, in_path, out_name)
