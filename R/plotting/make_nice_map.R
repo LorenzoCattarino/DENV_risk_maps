@@ -50,6 +50,6 @@ make_nice_map <- function(bbox_df,
           legend.text = element_text(size = leg_txt_sz),
           legend.title = element_text(face = "bold", size = leg_ttl_sz),
           legend.box.background = element_rect(fill = "white", colour = "black"),
-          legend.box.margin = margin(0.1, 0.1, 0.1, 0.1, unit = "cm"))
+          legend.box.margin = margin(0.025, 0.025, 0.025, 0.025, unit = "cm"))
   
 }
