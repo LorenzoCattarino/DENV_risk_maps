@@ -102,7 +102,7 @@ wrapper_to_multi_factor_vaccine_impact <- function(x,
   
   write_out_rds(as.data.frame(out), out_path, out_fl_nm)
   
-  if(is.null(screen_age)){
+  if (screen_age == 0) {
     
     ages_max_impact <- do.call("rbind", output2)    
     
@@ -123,7 +123,7 @@ wrapper_to_replicate_vaccine_impact <- function(i,
                                                 parms,
                                                 preds, 
                                                 vaccine_lookup,
-                                                screen_age = NULL){
+                                                screen_age){
   
   approx_all_ages <- function(j, vaccine_lookup, preds){
     approx(vaccine_lookup[, "R0"], vaccine_lookup[, j], xout = preds)$y
@@ -135,7 +135,7 @@ wrapper_to_replicate_vaccine_impact <- function(i,
   
   preds_i <- preds[i, col_ids]
   
-  if(!is.null(screen_age)){
+  if (screen_age != 0) {
     
     out <- approx(vaccine_lookup[, "R0"], vaccine_lookup[, screen_age], xout = preds_i)$y
     
