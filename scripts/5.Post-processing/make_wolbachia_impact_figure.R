@@ -29,6 +29,7 @@ burden_measures <- "cases"
 out_fig_path <- file.path("figures", 
                           "predictions_world", 
                           "bootstrap_models",
+                          "adm_1",
                           "general_intervention")
 
 interventions <- "wolbachia"
@@ -56,6 +57,7 @@ for (j in seq_along(burden_measures)) {
   summary_table_orig <- read.csv(file.path("output", 
                                            "predictions_world", 
                                            "bootstrap_models",
+                                           "adm_1",
                                            paste0("prop_change_", my_var_name, "_", intervention_name, ".csv")),
                                  header = TRUE)
   
@@ -77,25 +79,26 @@ for (j in seq_along(burden_measures)) {
                       guide = guide_legend(title = "Infectiousness",
                                            keywidth = 1,
                                            keyheight = 1)) +
-    scale_x_continuous(NULL,
-                       breaks = 1 - sf_vals,
-                       labels = paste0(sf_vals_perc, "%")) +
+    scale_x_continuous(breaks = 1 - sf_vals) +
     scale_y_continuous("Reduction in cases",
                        breaks = y_values,
                        labels = paste0(y_values * 100, "%"),
                        limits = c(min(y_values), max(y_values)),
                        expand = expand_scale(mult = c(0, .05))) +
     theme_bw() +
-    theme(axis.text.x = element_text(size = 12),
+    theme(axis.title.x = element_blank(),
+          axis.text.x = element_blank(),
+          axis.ticks.x = element_blank(),
           axis.text.y = element_text(size = 12),
-          #plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
+          plot.margin = unit(c(0.02, 0.1, 0.02, 0.1), "cm"),
           strip.text.x = element_text(size = 8),
-          axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0))) +
+          legend.position = "bottom") +
     labs(tag = LETTERS[1])
   
   tot_num_table_orig <- read.csv(file.path("output", 
                                            "predictions_world", 
                                            "bootstrap_models",
+                                           "adm_1",
                                            paste0("total_", my_var_name, "_", intervention_name, ".csv")),
                                  header = TRUE)
   
@@ -117,20 +120,19 @@ for (j in seq_along(burden_measures)) {
                       guide = guide_legend(title = "Infectiousness assumption",
                                            keywidth = 1,
                                            keyheight = 1)) +
-    scale_x_continuous(NULL,
-                       breaks = 1 - sf_vals,
-                       labels = paste0(sf_vals_perc, "%")) +
-    scale_y_continuous(paste0("Number of ", my_var_name, " (Million)"),
+    scale_x_continuous(breaks = 1 - sf_vals) +
+    scale_y_continuous(paste0("Number of ", my_var_name, " (M)"),
                        breaks = y_values,
                        labels = format(y_values / 1000000, scientific = F),
                        limits = c(min(y_values), max(y_values)),
                        expand = expand_scale(mult = c(0, .05))) +
     theme_bw() +
-    theme(axis.text.x = element_text(size = 12),
+    theme(axis.title.x = element_blank(),
+          axis.text.x = element_blank(),
+          axis.ticks.x = element_blank(),
           axis.text.y = element_text(size = 12),
-          #plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
-          strip.text.x = element_text(size = 8),
-          axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0))) +
+          plot.margin = unit(c(0.02, 0.1, 0.02, 0.1), "cm"),
+          strip.text.x = element_text(size = 8)) +
     labs(tag = LETTERS[2])
   
 }
@@ -138,6 +140,7 @@ for (j in seq_along(burden_measures)) {
 dengue_free_table_orig <- read.csv(file.path("output", 
                                              "predictions_world", 
                                              "bootstrap_models",
+                                             "adm_1",
                                              "dengue_free_countries_wolbachia.csv"),
                                    header = TRUE)
 
@@ -170,7 +173,7 @@ p3 <- ggplot(dengue_free_table) +
   theme_bw() +
   theme(axis.text.x = element_text(size = 12),
         axis.text.y = element_text(size = 12),
-        #plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
+        plot.margin = unit(c(0.02, 0.1, 0.02, 0.1), "cm"),
         strip.text.x = element_text(size = 8),
         axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0))) +
   labs(tag = LETTERS[3])
@@ -182,7 +185,7 @@ dir.create(out_fig_path, FALSE, TRUE)
 barplot_fl_nm <- paste0("multi_output_", my_var_name, "_", intervention_name, ".png")
 
 png(file.path(out_fig_path, barplot_fl_nm),
-    width = 17,
+    width = 12,
     height = 16,
     units = "cm",
     pointsize = 12,
@@ -194,6 +197,6 @@ g3 <- ggplotGrob(p3 + theme(legend.position = "none"))
 g <- rbind(g1, g2, g3, size = "first")
 g$widths <- unit.pmax(g1$widths, g2$widths, g3$widths)
 
-grid.arrange(g, mylegend, ncol = 2, widths = c(8, 3))
+grid.arrange(g, mylegend, nrow = 2, widths = 6, heights = c(15, 1))
 
 dev.off()
