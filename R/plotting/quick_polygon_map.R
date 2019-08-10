@@ -25,11 +25,11 @@ quick_polygon_map <- function(adm_shp_fl,
   }
   
   p2 <- p + scale_fill_gradientn(breaks = z_vals,
-                                labels = z_vals,
-                                limits = c(min(z_vals), max(z_vals)),
-                                colours = my_col, 
-                                na.value = "grey70",
-                                guide = guide_colourbar(title = leg_ttl)) +
+                                 labels = z_vals,
+                                 limits = c(min(z_vals), max(z_vals)),
+                                 colours = my_col, 
+                                 na.value = "grey70",
+                                 guide = guide_colourbar(title = leg_ttl)) +
     coord_sf(xlim = c(-180, 180), ylim = c(-60, 60), expand = FALSE) +
     theme(legend.justification = c(0, 0),
           legend.position = c(0.01, 0.05),
