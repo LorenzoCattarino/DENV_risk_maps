@@ -21,7 +21,10 @@ extra_prms <- list(id = 4,
                    baseline_scenario_ids = 4,
                    intervention_name = "vaccine",
                    treatment_name = "screening_age",
-                   phi_factor_levels = c("2S", "4S"))
+                   phi_factor_levels = c("2S", "4S"),
+                   base_info = c("population", 
+                                 "ID_0", 
+                                 "ID_1"))
 
 
 # define variables ------------------------------------------------------------
@@ -62,6 +65,8 @@ out_fig_path <- file.path("figures",
                           "adm_1")
 
 fct_comb_fl_nm <- paste0("scenario_table_", intervention_name, ".csv")
+
+base_info <- parameters$base_info
 
 out_ls <- vector("list", length(model_type))
 out_ls_2 <- vector("list", length(model_type))
@@ -167,6 +172,13 @@ for (k in seq_along(R0_scenario)){                                  # loop over 
     
     bl <- baseline[, var_to_sum]
     od <- one_dat[, var_to_sum]
+    
+    prop_red_pxl <- (bl - od) / bl
+    prop_red_pxl[is.na(prop_red_pxl)] <- 1
+    prop_red_pxl_2 <- cbind(one_dat[, base_info], prop_red_pxl)
+    write_out_rds(prop_red_pxl_2, 
+                  in_path,
+                  sprintf("%s_pr_%s_%s_%s%s", out_file_tag, k, intervention_name, scenario_id, ".rds"))
     
     bl_colsum <- colSums(bl)
     od_colsum <- colSums(od)
