@@ -23,7 +23,11 @@ vars_to_average <- c("response_endemic",
                      "p9_FP_specifA",
                      "p16_FP_specifA",
                      "p9_FP_specifB",
-                     "p16_FP_specifB")#,
+                     "p16_FP_specifB",
+                     "C_pr_1_wolbachia_32",
+                     "C_pr_1_wolbachia_16",
+                     "C_pr_2_wolbachia_32",
+                     "C_pr_2_wolbachia_16")#,
                      #"transformed_1_wolbachia_4",
                      #"transformed_2_wolbachia_4")
 
@@ -41,7 +45,7 @@ in_path <- file.path("output",
 # -----------------------------------------------------------------------------
 
 
-for (i in seq_along(vars_to_average)){
+for (i in seq_along(vars_to_average)[8:11]){
   
   # z_values <- seq(0, 10, 2)
   
