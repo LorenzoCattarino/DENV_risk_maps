@@ -190,7 +190,7 @@ for (j in seq_along(vars)){                                 # loop over burden m
       od <- one_dat[, var_to_sum]
       
       prop_red_pxl <- (bl - od) / bl
-      prop_red_pxl[is.na(prop_red_pxl)] <- 1
+      prop_red_pxl[is.na(prop_red_pxl)] <- NA
       prop_red_pxl_2 <- cbind(one_dat[, base_info], prop_red_pxl)
       write_out_rds(prop_red_pxl_2, 
                     in_path,
