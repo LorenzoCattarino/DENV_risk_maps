@@ -27,7 +27,13 @@ vars_to_average <- c("response_endemic",
                      "C_pr_1_wolbachia_32",
                      "C_pr_1_wolbachia_16",
                      "C_pr_2_wolbachia_32",
-                     "C_pr_2_wolbachia_16")#,
+                     "C_pr_2_wolbachia_16",
+                     "C_pr_1_vaccine_8",
+                     "C_pr_1_vaccine_20",
+                     "C_pr_1_vaccine_32",
+                     "C_pr_2_vaccine_8",
+                     "C_pr_2_vaccine_20",
+                     "C_pr_2_vaccine_32")#,
                      #"transformed_1_wolbachia_4",
                      #"transformed_2_wolbachia_4")
 
@@ -45,7 +51,7 @@ in_path <- file.path("output",
 # -----------------------------------------------------------------------------
 
 
-for (i in seq_along(vars_to_average)[8:11]){
+for (i in seq_along(vars_to_average)[8:17]){
   
   # z_values <- seq(0, 10, 2)
   
@@ -57,7 +63,11 @@ for (i in seq_along(vars_to_average)[8:11]){
   
   dat <- as.data.frame(dat)
   
-  ret <- average_boot_samples_dim2(dat[, col_names])
+  ret <- average_boot_samples_dim2(dat[, col_names], na.rm = TRUE)
+  
+  anyNA_i <- apply(dat, 1, test_NA)
+        
+  ret[anyNA_i, ] <- NA
   
   base_info <- dat[, setdiff(names(dat), col_names)]
   
