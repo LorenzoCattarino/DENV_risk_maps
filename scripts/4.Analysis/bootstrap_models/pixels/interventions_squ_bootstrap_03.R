@@ -133,8 +133,6 @@ for (j in seq_along(vars)){                                 # loop over burden m
     
     cat("R0 assumption =", k, "\n")
     
-    # index <- k + (length(in_path)*(j-1))
-    
     root_name <- sprintf("%s_num_%s_%s", my_var, k, intervention_name)
     
     my_out_path <- file.path(out_table_path, paste0("R0_assumption_", k))
@@ -190,13 +188,6 @@ for (j in seq_along(vars)){                                 # loop over burden m
       
       bl <- baseline[, var_to_sum]
       od <- one_dat[, var_to_sum]
-      
-      prop_red_pxl <- (bl - od) / bl
-      prop_red_pxl[is.na(prop_red_pxl)] <- 0
-      prop_red_pxl_2 <- cbind(one_dat[, base_info], prop_red_pxl)
-      write_out_rds(prop_red_pxl_2, 
-                    in_path,
-                    sprintf("%s_pr_%s_%s_%s%s", my_var, k, intervention_name, scenario_id, ".rds"))
       
       bl_colsum <- colSums(bl)
       od_colsum <- colSums(od)
@@ -268,8 +259,9 @@ for (j in seq_along(vars)){                                 # loop over burden m
   # summarise the baseline dataset --------------------------------------------
   
   
-  # by country
   one_dat <- inner_join(baseline, age_struct[, c("continent", "region", "country", "ID_0")])
+  
+  # by country
   by_country <- one_dat %>% group_by(ID_0)
   country_sums <- by_country %>% summarise_at(var_to_sum, "sum")
   ret <- average_boot_samples_dim2(country_sums[, var_to_sum])
@@ -280,6 +272,18 @@ for (j in seq_along(vars)){                                 # loop over burden m
                 out_table_path, 
                 paste0(my_var_name, "_by_country_", baseline_id, ".csv"),
                 row.names = FALSE)
+  
+  # by continent
+  by_continent <- one_dat %>% group_by(continent)
+  continent_sums <- by_continent %>% summarise_at(var_to_sum, "sum")       
+  ret <- average_boot_samples_dim2(continent_sums[, var_to_sum])
+  ret <- round(ret, -2)
+  ret2 <- cbind(continent = continent_sums$continent, ret)  
+  write_out_csv(ret2, 
+                out_table_path, 
+                paste0(my_var_name, "_by_continent_", baseline_id, ".csv"),
+                row.names = FALSE)
+  
   # overall
   total_burden_baseline <- average_boot_samples_dim1(bl_colsum)
   total_burden_baseline <- round(total_burden_baseline, -2)
