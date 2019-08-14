@@ -28,7 +28,7 @@ quick_polygon_map <- function(adm_shp_fl,
                                  labels = z_vals,
                                  limits = c(min(z_vals), max(z_vals)),
                                  colours = my_col, 
-                                 na.value = "grey70",
+                                 na.value = "grey80",
                                  guide = guide_colourbar(title = leg_ttl)) +
     coord_sf(xlim = c(-180, 180), ylim = c(-60, 60), expand = FALSE) +
     theme(legend.justification = c(0, 0),
