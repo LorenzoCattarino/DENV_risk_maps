@@ -7,12 +7,14 @@ library(ggplot2)
 # define parameters -----------------------------------------------------------
 
 
-parameters <- list(coord_limits = c(-130, 180, -60, 38),
+parameters <- list(barwdt = 1.4,
+                   barhgt = 4.5,
+                   coord_limits = c(-130, 180, -60, 38),
                    adm1_i_want = c("BRA", "COL", "VEN", "MEX", "IND", "AUS"),
                    poly_fill = "grey80",
                    poly_bd_sz = 0.1,
                    poly_bd_col = "grey40")
-  
+
 
 # define variables ------------------------------------------------------------
 
@@ -29,6 +31,12 @@ poly_fill <- parameters$poly_fill
 poly_bd_sz <- parameters$poly_bd_sz
 
 poly_bd_col <- parameters$poly_bd_col
+
+barwdt <- parameters$barwdt
+
+barhgt <- parameters$barhgt
+
+my_col <- colorRamps::matlab.like(100)
 
 
 # load data ------------------------------------------------------------------- 
@@ -64,6 +72,8 @@ png(file.path("figures", "data", "dengue_points.png"),
     pointsize = 12,
     res = 300)
 
+z_vals <- seq(0, 0.06, 0.02)
+  
 p <- ggplot() +
   geom_sf(data = countries, 
           fill = poly_fill, 
@@ -74,11 +84,18 @@ p <- ggplot() +
           colour = poly_bd_col, 
           size = poly_bd_sz) +
   geom_point(data = All_FOI_estimates_sub, 
-             aes(x = longitude, y = latitude), 
-             size = 0.5,
-             colour = "blue") +
+             aes(x = longitude, y = latitude, colour = FOI), 
+             size = 0.3) +
+  scale_colour_gradientn(breaks = z_vals,
+                         labels = z_vals,
+                         limits = c(min(z_vals), max(All_FOI_estimates_sub$FOI)),
+                         colours = my_col, 
+                         guide = guide_colourbar(title = "FOI", 
+                                                 barwidth = barwdt, 
+                                                 barheight = barhgt)) +
   coord_sf(xlim = c(x1, x2), ylim = c(y1, y2), expand = FALSE) +
-  theme(legend.position = "none",
+  theme(legend.justification = c(0, 0),
+        legend.position = c(0, 0),
         plot.margin = unit(c(0, 0, 0, 0), "cm"),
         axis.line = element_blank(),
         axis.text.x = element_blank(),
