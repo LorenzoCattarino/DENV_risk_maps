@@ -10,13 +10,15 @@ library(colorRamps)
 
 
 parameters <- list(id = 4,
-                   dependent_variable = "FOI",
+                   var_to_plot = "R0_1",
                    z_range = list(FOI = c(0, 0.06),
-                                  R0_1 = c(0, 8),
+                                  R0_1 = c(1, 8),
                                   R0_2 = c(0, 4),
-                                  R0_3 = c(0, 5))) 
+                                  R0_3 = c(0, 5)),
+                   save_raster = FALSE) 
 
-vars_to_average <- "response"
+# vars_to_average <- "response"
+vars_to_average <- "transformed_1_wolbachia_4"
 
 statistic <- "mean"
 
@@ -24,9 +26,11 @@ statistic <- "mean"
 # define variables ------------------------------------------------------------
 
 
-var_to_fit <- parameters$dependent_variable
+var_to_plot <- parameters$var_to_plot
 
-z_range <- parameters$z_range[[var_to_fit]]
+save_raster <- parameters$save_raster 
+
+z_range <- parameters$z_range[[var_to_plot]]
 
 model_type <- paste0("model_", parameters$id)
 
@@ -68,17 +72,21 @@ quick_raster_map(pred_df = df_long,
 # save the raster -------------------------------------------------------------
 
 
-my_ras <- raster::rasterFromXYZ(df_long[, c("longitude","latitude", statistic)])
-
-# check 
-# raster::plot(my_ras, zlim=c(0,0.06), col = my_col)
-
-# save 
-raster::writeRaster(my_ras, filename = file.path(in_path, "foi_map.tif"), format = "GTiff", overwrite = TRUE)
-
-# test
-# my_ras <- raster::raster(file.path("output", 
-#                                    "predictions_world",
-#                                    "bootstrap_models",
-#                                    "model_21", 
-#                                    "foi_map.tif"))
+if (save_raster) {
+  
+  my_ras <- raster::rasterFromXYZ(df_long[, c("longitude","latitude", statistic)])
+  
+  # check 
+  # raster::plot(my_ras, zlim=c(0,0.06), col = my_col)
+  
+  # save 
+  raster::writeRaster(my_ras, filename = file.path(in_path, "foi_map.tif"), format = "GTiff", overwrite = TRUE)
+  
+  # test
+  # my_ras <- raster::raster(file.path("output", 
+  #                                    "predictions_world",
+  #                                    "bootstrap_models",
+  #                                    "model_21", 
+  #                                    "foi_map.tif"))
+  
+}
