@@ -11,9 +11,10 @@ source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 
 extra_prms <- list(id = 4) 
 
-#vars_to_average <- "response"
+# vars_to_average <- "response"
+vars_to_average <- "transformed_2_wolbachia_4"
 # vars_to_average <- "C_pr_2_wolbachia_16"
-vars_to_average <- "C_pr_2_wolbachia_32"
+# vars_to_average <- "C_pr_2_wolbachia_32"
 
 
 # define variables ------------------------------------------------------------
@@ -35,6 +36,8 @@ in_path <- file.path("output",
 
 
 dat <- readRDS(file.path(in_path, paste0(vars_to_average, ".rds")))
+
+dat <- as.data.frame(dat)
 
 ret <- average_boot_samples_dim2(dat[, col_names])
 
