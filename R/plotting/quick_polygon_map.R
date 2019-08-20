@@ -29,10 +29,12 @@ quick_polygon_map <- function(adm_shp_fl,
                                  limits = c(min(z_vals), max(z_vals)),
                                  colours = my_col, 
                                  na.value = "grey80",
-                                 guide = guide_colourbar(title = leg_ttl)) +
-    coord_sf(xlim = c(-180, 180), ylim = c(-60, 60), expand = FALSE) +
+                                 guide = guide_colourbar(title = leg_ttl,
+                                                         barwidth = 1.5, 
+                                                         barheight = 4.5)) +
+    coord_sf(xlim = c(-130, 180), ylim = c(-60, 38), expand = FALSE) +
     theme(legend.justification = c(0, 0),
-          legend.position = c(0.01, 0.05),
+          legend.position = c(0, 0),
           plot.margin = unit(c(0, 0, 0, 0), "cm"),
           axis.line = element_blank(),
           axis.text.x = element_blank(),
@@ -42,7 +44,6 @@ quick_polygon_map <- function(adm_shp_fl,
           axis.title.y = element_blank(),
           panel.background = element_blank(),
           panel.border = element_blank())
-  
   
   dir.create(out_pt, FALSE, TRUE)
   
