@@ -106,7 +106,7 @@ wrapper_to_multi_factor_vaccine_impact <- function(x,
     
     ages_max_impact <- do.call("rbind", output2)    
     
-    ages_max_impact <- ages_max_impact + 1
+    ages_max_impact <- ages_max_impact + 8
     
     colnames(ages_max_impact) <- col_ids
     
@@ -148,11 +148,14 @@ wrapper_to_replicate_vaccine_impact <- function(i,
     # look up reduction for each age
     ret_all_ages <- vapply(all_ages[2:length(all_ages)], approx_all_ages, numeric(no_fits), vaccine_lookup, preds_i)
     
+    # min vacc age is 9
+    ret_all_ages_2 <- ret_all_ages[, 8:ncol(ret_all_ages)]
+    
     # find max reduction across ages (columns)
-    out <- rowMaxs(ret_all_ages) 
+    out <- rowMaxs(ret_all_ages_2) 
     
     # find age of max vaccine impact
-    out_2 <- max.col(ret_all_ages)
+    out_2 <- max.col(ret_all_ages_2)
     
   }
   
