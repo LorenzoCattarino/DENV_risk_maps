@@ -26,6 +26,12 @@ full_routine <- function(x,
   # output dir -----------------------------------------------------------------
   
   
+  foi_dts_out_path <- file.path("output", 
+                                "EM_algorithm", 
+                                "best_fit_models", 
+                                model_type,
+                                "adm_foi_data")
+
   pxl_dts_out_path <- file.path("output", 
                                 "EM_algorithm", 
                                 "best_fit_models", 
@@ -77,6 +83,7 @@ full_routine <- function(x,
   
   pxl_data_2 <- preprocess_pxl_data(parms, foi_data_2, all_squares)
   
+  write_out_rds(foi_data_2, foi_dts_out_path, "adm_foi_data.rds")
   write_out_rds(pxl_data_2, pxl_dts_out_path, "env_vars_20km.rds")
   
   training_dataset <- foi_data_2[, c(var_to_fit, my_predictors, "new_weight")]
