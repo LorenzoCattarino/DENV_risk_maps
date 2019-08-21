@@ -1,21 +1,9 @@
 
-options(didehpc.cluster = "fi--didemrchnb")
+source(file.path("R", "utility_functions.R"))
+source(file.path("R", "create_parameter_list.R"))
+source(file.path("R", "random_forest", "variable_selection_stepwise.R"))
 
-CLUSTER <- TRUE
-
-my_resources <- c(
-  file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"),
-  file.path("R", "random_forest", "variable_selection_stepwise.R"),
-  file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"),
-  file.path("R", "utility_functions.R"),
-  file.path("R", "create_parameter_list.R"))
-
-my_pkgs <- c("ranger", "ggplot2")
-
-context::context_log_start()
-ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
+library(ggplot2)
 
 
 # define parameters ----------------------------------------------------------- 
@@ -29,22 +17,6 @@ extra_prms <- list(var_to_fit = "FOI",
 out_fig_name <- "Frequency_of_the_numbers_of_selected_preds"
 
 out_tab_name <- "predictor_rank.csv"
-
-
-# rebuild the queue object? --------------------------------------------------- 
-
-
-if (CLUSTER) {
-  
-  config <- didehpc::didehpc_config(template = "24Core")
-  obj <- didehpc::queue_didehpc(ctx, config = config)
-  
-} else {
-  
-  context::context_load(ctx)
-  context::parallel_cluster_start(8, ctx)
-  
-}
 
 
 # define variables ------------------------------------------------------------
@@ -64,6 +36,8 @@ out_tab_path <- file.path("output",
                           "variable_selection", 
                           stepwise_exp_dir)
 
+no_samples <- seq_len(parameters$no_samples)
+
 
 # load data -------------------------------------------------------------------
 
@@ -78,13 +52,12 @@ boot_samples <- readRDS(file.path("output",
 # get results ----------------------------------------------------------------- 
 
 
-bundles <- obj$task_bundle_info()
+all_dir_paths <- file.path(out_tab_path, 
+                           paste0("sample_", no_samples), 
+                           "removal", 
+                           "output_from_removal.rds")
 
-my_task_id <- bundles[nrow(bundles), "name"] 
-
-bsample_step_removal_t <- obj$task_bundle_get(my_task_id)
-
-bsample_step_removal <- bsample_step_removal_t$results()
+bsample_step_removal <- lapply(all_dir_paths, readRDS)
 
 
 # save all outputs ------------------------------------------------------------
@@ -129,7 +102,7 @@ out <- data.frame(predictor = all_preds_indices,
                   sel_freq = as.numeric(all_preds_sel_freq_rank),
                   stringsAsFactors = FALSE)
 
-write_out_csv(out, out_tab_path, out_tab_name)
+write_out_csv(out, out_tab_path, out_tab_name, row.names = FALSE)
 
 
 # get optimal number of predictors --------------------------------------------
