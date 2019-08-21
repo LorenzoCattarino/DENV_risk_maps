@@ -19,13 +19,12 @@ source(file.path("R", "prepare_datasets", "average_up.R"))
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 15,
+extra_prms <- list(id = 3,
                    dependent_variable = "FOI",  
-                   no_predictors = 26,
+                   no_predictors = 17,
                    ranger_threads = NULL,
-                   id_fld = "data_id") 
-
-grp_flds <- c("ID_0", "ID_1", "data_id")
+                   id_fld = "data_id",
+                   grp_flds = c("data_id", "ID_0", "ID_1"))
 
 out_md_nm <- "RF_obj.rds"
 
@@ -48,6 +47,8 @@ var_to_fit <- parameters$dependent_variable
 number_of_predictors <- parameters$no_predictors
 
 model_type <- paste0("model_", model_id)
+
+grp_flds <- parameters$grp_flds
 
 RF_out_pth <- file.path("output", 
                         "EM_algorithm", 
