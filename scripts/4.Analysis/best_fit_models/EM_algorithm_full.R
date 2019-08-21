@@ -30,7 +30,7 @@ extra_prms <- list(grp_flds = c("data_id", "ID_0", "ID_1"),
                    id_fld = "data_id",
                    ranger_threads = NULL)
 
-predictor_numbers <- c(9, 26)
+predictor_numbers <- c(16, 25)
 
 response_vars <- "FOI"
 
@@ -40,7 +40,7 @@ response_vars <- "FOI"
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "24Core")
+  config <- didehpc::didehpc_config(template = "20Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
@@ -97,7 +97,7 @@ test_2 <- cbind(exp_id = seq_len(nrow(test)), test)
 test_2 <- test_2[order(test_2$exp_id, decreasing = FALSE), ]
 
 write_out_csv(test_2, 
-              file.path("output", "EM_algorithm", "best_fit_odels"), 
+              file.path("output", "EM_algorithm", "best_fit_models"), 
               "best_fit_experiments.csv")
 
 test_ls <- df_to_list(test_2, TRUE)
