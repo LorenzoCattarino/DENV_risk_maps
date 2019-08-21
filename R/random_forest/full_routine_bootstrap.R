@@ -60,7 +60,7 @@ full_routine_bootstrap <- function(x,
                                  "EM_algorithm",
                                  "bootstrap_models", 
                                  model_type, 
-                                 "data_admin_predictions")
+                                 "adm_foi_predictions")
   
   data_sqr_predictions_out_path <- file.path("output", 
                                              "EM_algorithm",
