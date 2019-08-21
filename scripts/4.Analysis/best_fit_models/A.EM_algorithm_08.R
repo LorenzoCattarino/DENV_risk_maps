@@ -8,18 +8,18 @@
 library(reshape2)
 library(ggplot2)
 library(plyr)
-library(weights) # for wtd.cor()
+# library(weights) # for wtd.cor()
 
 source(file.path("R", "plotting", "plot_RF_preds_vs_obs_by_cv_dataset.R"))
-source(file.path("R", "prepare_datasets", "calculate_wgt_corr.R"))
 source(file.path("R", "utility_functions.R"))
 source(file.path("R", "create_parameter_list.R"))
+source(file.path("R", "prepare_datasets", "calculate_wgt_corr.R"))
 
 
 # define parameters -----------------------------------------------------------  
 
 
-extra_prms <- list(id = 2,
+extra_prms <- list(id = 3,
                    dependent_variable = "FOI")
 
 mes_vars <- c("admin", "mean_p_i")
@@ -47,7 +47,7 @@ in_path <- file.path("output",
                      "EM_algorithm",
                      "best_fit_models",
                      model_type,
-                     "data_admin_predictions") 
+                     "adm_foi_predictions") 
 
 out_fig_path_av <- file.path("figures",
                              "EM_algorithm",
@@ -88,9 +88,9 @@ for (j in seq_along(tags)) {
   dts <- dts_1[dts_1$type %in% dt_typ, ]
   
   df <- melt(dts,
-              id.vars = c("data_id", "ID_0", "ID_1", "o_j", "new_weight"),
-              measure.vars = mes_vars,
-              variable.name = "scale")
+             id.vars = c("data_id", "ID_0", "ID_1", "o_j", "new_weight"),
+             measure.vars = mes_vars,
+             variable.name = "scale")
   
   fl_nm_av <- paste0("pred_vs_obs_plot_averages_", tag, ".png")
   
@@ -106,8 +106,9 @@ for (j in seq_along(tags)) {
   min_y_value <- min(y_values)
   max_y_value <- max(y_values)
   
-  corr_coeff <- ddply(df, "scale", calculate_wgt_cor, "o_j", "value")
-  
+  R_squared <- ddply(df, "scale", calculate_R_squared, "o_j", "value")
+  R_squared$eq <- sprintf("R2 = %s", R_squared$V1)
+
   facet_plot_names_x <- as_labeller(c(admin = "Level 1 administrative unit",
                                       mean_p_i = "20 km pixel"))
   
@@ -133,9 +134,10 @@ for (j in seq_along(tags)) {
           strip.text.y = element_text(size = 12))
   
   p2 <- p +
-    geom_text(data = corr_coeff, 
-              aes(x = x_values[length(x_values)-1], y = min_y_value, hjust = 1, label = paste0("italic(r) == ", V1)),
-              parse = TRUE,
+    geom_text(data = R_squared, 
+              aes(x = x_values[length(x_values)-1], 
+                  y = min_y_value, hjust = 1, 
+                  label = eq),
               inherit.aes = FALSE,
               size = 4) +
     facet_grid(. ~ scale,
