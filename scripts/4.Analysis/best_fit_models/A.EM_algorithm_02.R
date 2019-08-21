@@ -10,9 +10,9 @@ source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 15,
+extra_prms <- list(id = 3,
                    dependent_variable = "FOI",
-                   no_predictors = 26,
+                   no_predictors = 17,
                    ranger_threads = NULL)
 
 out_name <- "all_data.rds"  
