@@ -26,7 +26,7 @@ extra_prms <- list(var_to_fit = "FOI",
                    parallel_2 = TRUE,
                    stepwise_exp_id = 5)
 
-out_fig_name <- "Frequency_of_the_numbers_of_selected_preds.png"
+out_fig_name <- "Frequency_of_the_numbers_of_selected_preds"
 
 out_tab_name <- "predictor_rank.csv"
 
