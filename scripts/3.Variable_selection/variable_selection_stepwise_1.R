@@ -22,10 +22,10 @@ ctx <- context::context_save(path = "context",
 
 
 extra_prms <- list(var_to_fit = "FOI",
-                   no_reps = 10, 
+                   no_reps = 1, 
                    addition = TRUE,
                    parallel_2 = TRUE,
-                   stepwise_exp_id = 5,
+                   stepwise_exp_id = 6,
                    extra_predictors = c("log_pop_den", 
                                         "birth_rate"))
 
@@ -41,7 +41,7 @@ FTs_data_names <- c("DayTemp", "EVI", "MIR", "NightTemp", "RFE")
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "24Core")
+  config <- didehpc::didehpc_config(template = "20Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
