@@ -11,7 +11,7 @@ source(file.path("R", "random_forest", "preprocess.R"))
 # define parameters -----------------------------------------------------------
 
 
-extra_prms <- list(id = 15,
+extra_prms <- list(id = 3,
                    dependent_variable = "FOI",
                    id_fld = "data_id",
                    grp_flds = c("data_id", "ID_0", "ID_1"))
@@ -65,11 +65,11 @@ pxl_data <- readRDS(file.path("output",
 
 foi_data_2 <- preprocess_adm_data(parameters, foi_data)
 
-pxl_data_2 <- preprocess_pxl_data(parms, foi_data_2, pxl_data)
+pxl_data_2 <- preprocess_pxl_data(parameters, foi_data_2, pxl_data)
 
 
 # save outputs ----------------------------------------------------------------
 
 
-write_out_rds(foi_data, out_pth_1, "adm_foi_data.rds")
+write_out_rds(foi_data_2, out_pth_1, "adm_foi_data.rds")
 write_out_rds(pxl_data_2, out_pth_2, "env_vars_20km.rds")
