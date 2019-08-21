@@ -66,7 +66,7 @@ full_routine <- function(x,
                                  "EM_algorithm",
                                  "best_fit_models",
                                  model_type,
-                                 "data_admin_predictions")
+                                 "adm_foi_predictions")
   
   global_predictions_out_path <- file.path("output", 
                                            "predictions_world", 
