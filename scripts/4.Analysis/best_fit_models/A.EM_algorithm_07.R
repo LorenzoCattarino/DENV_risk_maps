@@ -12,15 +12,15 @@ source(file.path("R", "utility_functions.R"))
 source(file.path("R", "create_parameter_list.R"))
 source(file.path("R", "prepare_datasets", "average_up.R"))
 source(file.path("R", "random_forest", "fit_ranger_RF_and_make_predictions.R"))
-source(file.path("R", "randm_forest", "join_predictions.R"))
+source(file.path("R", "random_forest", "join_predictions.R"))
 
 
 # define parameters -----------------------------------------------------------
 
 
-extra_prms <- list(id = 15,
+extra_prms <- list(id = 3,
                    dependent_variable = "FOI",
-                   no_predictors = 26)
+                   no_predictors = 17)
 
 out_name <- "all_scale_predictions.rds"
 
@@ -50,7 +50,7 @@ out_pt <- file.path("output",
                     "EM_algorithm",
                     "best_fit_models",
                     model_type,
-                    "predictions_data")
+                    "adm_foi_predictions")
 
 covariates_dir <- parameters$covariates_dir
 
@@ -58,12 +58,12 @@ covariates_dir <- parameters$covariates_dir
 # load data ------------------------------------------------------------------- 
 
 
-foi_dataset <- readRDS(file.path("output", 
-                                 "EM_algorithm", 
-                                 "best_fit_models", 
+foi_dataset <- readRDS(file.path("output",
+                                 "EM_algorithm",
+                                 "best_fit_models",
                                  model_type,
                                  "adm_foi_data",
-                                 "adm_foi_data.rds"))  
+                                 "adm_foi_data.rds")) 
 
 sqr_dataset <- readRDS(file.path("output",
                                  "EM_algorithm",
