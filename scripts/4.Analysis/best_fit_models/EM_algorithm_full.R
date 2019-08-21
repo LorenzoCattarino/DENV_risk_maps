@@ -98,7 +98,8 @@ test_2 <- test_2[order(test_2$exp_id, decreasing = FALSE), ]
 
 write_out_csv(test_2, 
               file.path("output", "EM_algorithm", "best_fit_models"), 
-              "best_fit_experiments.csv")
+              "best_fit_experiments.csv",
+              row.names = FALSE)
 
 test_ls <- df_to_list(test_2, TRUE)
 
