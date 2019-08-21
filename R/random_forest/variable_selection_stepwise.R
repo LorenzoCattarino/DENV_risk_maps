@@ -39,7 +39,17 @@ stepwise_addition_boot <- function(i,
   
   adm_dts_boot[adm_dts_boot$type == "pseudoAbsence", y_var] <- psAb_val
   
-  lapply(seq_len(no_reps), stepwise_addition)
+  #lapply(seq_len(no_reps), stepwise_addition)
+  final_out <- stepwise_addition(no_reps)
+  
+  stepwise_dir <- "addition"
+  out_path_2 <- file.path(out_path, 
+                          paste("sample", ID_sample, sep = "_"), 
+                          stepwise_dir)
+  out_fl_nm <- "output_from_addition.rds"
+  write_out_rds(final_out, out_path_2, out_fl_nm)
+  
+  final_out
 
 }
 
@@ -177,7 +187,7 @@ multi_steps_wrapper <- function(dataset,
              name = names(dataset)[changed_predictor], 
              rmse_valid = changed_predictor_rmse,
              stringsAsFactors = FALSE)
-
+  
 }
 
 get_changed_predictors <- function(x, no_steps){
@@ -312,40 +322,35 @@ combs_predictor_wrapper <- function(i,
 
 plot_RMSE_addition <- function(i, res, out_path){
   
-  rep_dts <- res[[i]]
+  dts <- res[[i]]
   
-  for (j in seq_along(rep_dts)){
-    
-    my_out_path <- file.path(out_path, 
-                             paste("sample", i, sep="_"))
-    # browser()
-    
-    dts <- rep_dts[[j]]
-    
-    p <- ggplot(dts) +
-      geom_point(aes(x = Step, y = rmse_valid)) +
-      scale_x_continuous("Step", breaks = dts$Step, labels = dts$name) + 
-      scale_y_continuous("RMSE") + 
-      theme(axis.text.x = element_text(angle = 45, hjust = 1))
-    
-    dir.create(my_out_path, FALSE, TRUE)
-    
-    fl_nm <- paste0("addition_replicate_", j, ".png")
-    
-    png(file.path(my_out_path, fl_nm), 
-        width = 17, 
-        height = 10, 
-        units = "cm",
-        pointsize = 12,
-        res = 200)
-    
-    print(p)
-    
-    dev.off()
-    
-  }
+  my_out_path <- file.path(out_path, 
+                           paste("sample", i, sep="_"))
+  # browser()
+  
+  p <- ggplot(dts) +
+    geom_point(aes(x = Step, y = rmse_valid)) +
+    scale_x_continuous("Step", breaks = dts$Step, labels = dts$name) + 
+    scale_y_continuous("RMSE") + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  dir.create(my_out_path, FALSE, TRUE)
+  
+  fl_nm <- "addition.png"
+  
+  png(file.path(my_out_path, fl_nm), 
+      width = 17, 
+      height = 10, 
+      units = "cm",
+      pointsize = 12,
+      res = 200)
+  
+  print(p)
+  
+  dev.off()
+  
 }
-  
+
 plot_RMSE_removal <- function(i, res, out_path){
   
   #browser()
