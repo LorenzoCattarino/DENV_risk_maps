@@ -19,7 +19,7 @@ source(file.path("R", "prepare_datasets", "calculate_wgt_corr.R"))
 # define parameters -----------------------------------------------------------  
 
 
-extra_prms <- list(id = 3,
+extra_prms <- list(id = 2,
                    dependent_variable = "FOI")
 
 mes_vars <- c("admin", "mean_p_i")
