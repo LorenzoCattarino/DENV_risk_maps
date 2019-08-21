@@ -32,7 +32,7 @@ extra_prms <- list(grp_flds = c("unique_id", "ID_0", "ID_1"),
                    id_fld = "unique_id",
                    ranger_threads = 1) 
 
-predictor_numbers <- c(9, 26)
+predictor_numbers <- c(16, 25)
 
 response_vars <- "FOI"
   
@@ -158,7 +158,7 @@ write_out_csv(bootstrap_experiments_uni,
 if (CLUSTER) {
 
   multi_full_EM_experiments_2 <- queuer::qlapply(
-    test_ls[201:1600],
+    test_ls[1:200],
     full_routine_bootstrap,
     obj,
     parms = parameters,
