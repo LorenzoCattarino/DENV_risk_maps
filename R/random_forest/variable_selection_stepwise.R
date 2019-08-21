@@ -298,7 +298,7 @@ get_removal_results <- function(x){
   
   end <- nrow(x[[2]])
   
-  c(x[[2]]$name[minimum:end], x[[1]])
+  c(x[[2]]$name[(minimum+1):end], x[[1]])
   
 }  
 
