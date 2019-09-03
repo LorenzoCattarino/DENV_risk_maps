@@ -9,9 +9,10 @@ RF_preds_vs_obs_plot_stratif <- function(df, x, y, facet_var, file_name, file_pa
   min_y_value <- min(y_values)
   max_y_value <- max(y_values)
   
-  corr_coeff <- ddply(df, 
+  R_squared <- ddply(df, 
                       as.formula(paste0("dataset ~", facet_var)), 
-                      calculate_wgt_cor, x, y)
+                      calculate_R_squared, x, y)
+  R_squared$eq <- sprintf("R2 = %s", R_squared$V1)
   
   facet_plot_names_x <- as_labeller(c(admin = "Level 1 administrative unit",
                                       mean_p_i = "20 km pixel"))
@@ -43,12 +44,11 @@ RF_preds_vs_obs_plot_stratif <- function(df, x, y, facet_var, file_name, file_pa
           plot.title = element_text(vjust = 0.5))
 
   p2 <- p +
-    geom_text(data = corr_coeff, 
+    geom_text(data = R_squared, 
               aes(x = x_values[length(x_values)-1], 
                   y = min_y_value, 
                   hjust = 1, 
-                  label = paste0("italic(r) == ", V1)),
-              parse = TRUE,
+                  label = eq),
               inherit.aes = FALSE,
               size = 4) +
     facet_grid(as.formula(paste0("dataset ~", facet_var)),
