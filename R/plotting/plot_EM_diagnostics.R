@@ -5,10 +5,10 @@ plot_EM_diagnostics <- function(my_data,
   diagnostic_vars <- c("RF_ms_i", "ss_i", "ss_j", "r_av_sqr", "r_adm")
   
   strip_labs <- c("mean square error", 
-                  "pixel level sum of square", 
-                  "admin unit level sum of square",
-                  "pixel level correlation",
-                  "admin unit level correlation") 
+                  "1/6 degree sum of square", 
+                  "admin unit sum of square",
+                  "1/6 degree correlation",
+                  "admin unit correlation") 
   
   names(strip_labs) <- diagnostic_vars
   
