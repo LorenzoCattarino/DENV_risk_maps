@@ -292,6 +292,23 @@ stepwise_removal_boot <- function(i,
 
 }
 
+set_tol <- function(x, tol){
+  
+  x$rmse_valid <- round(x$rmse_valid, tol) 
+  x
+
+}
+
+get_addition_results <- function(x){
+  
+  # browser()
+  
+  minimum <- which(x$rmse_valid == min(x$rmse_valid))[1]   
+  
+  x$name[1:minimum]
+  
+}  
+
 get_removal_results <- function(x){
   
   minimum <- which(x[[2]]$rmse_valid == min(x[[2]]$rmse_valid))   
@@ -301,7 +318,7 @@ get_removal_results <- function(x){
   c(x[[2]]$name[(minimum+1):end], x[[1]])
   
 }  
-
+  
 combs_predictor_wrapper <- function(i, 
                                     parms,
                                     dataset,
@@ -330,7 +347,9 @@ plot_RMSE_addition <- function(i, res, out_path){
   
   p <- ggplot(dts) +
     geom_point(aes(x = Step, y = rmse_valid)) +
-    scale_x_continuous("Step", breaks = dts$Step, labels = dts$name) + 
+    scale_x_continuous("Explanatory variable added", 
+                       breaks = dts$Step, 
+                       labels = dts$name) + 
     scale_y_continuous("RMSE") + 
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
   
