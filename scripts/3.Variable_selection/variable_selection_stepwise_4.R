@@ -81,7 +81,6 @@ lapply(seq_along(bsample_step_removal)[1:10],
 #  get predictor names --------------------------------------------------------
 
 
-
 # predictors are ranked according to the selection frequency 
 # across bootstrap samples 
 
