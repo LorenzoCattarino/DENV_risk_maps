@@ -12,7 +12,7 @@ source(file.path("R", "create_parameter_list.R"))
 
 
 extra_prms <- list(id = 2,
-                   no_predictors = 26,
+                   no_predictors = 25,
                    year.i = 2007,
                    year.f = 2014,
                    ppyear = 64)   
