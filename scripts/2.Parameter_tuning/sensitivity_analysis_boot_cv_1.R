@@ -7,15 +7,13 @@ original_data <- FALSE
 my_resources <- c(
   file.path("R", "write_out_csv.R"),
   file.path("R", "utility_functions.R"),
-  file.path("R", "random_forest", "wrapper_to_multi_factor_RF_fit_boot_cv.R"), 
+  file.path("R", "random_forest", "sensitivity_analysis_boot_cv.R"), 
   file.path("R", "random_forest", "grid_up_foi_dataset.R"),
   file.path("R", "random_forest", "bootstrap_foi_dataset.R"),
   file.path("R", "random_forest", "fit_random_forest_model.R"),
   file.path("R", "random_forest", "make_RF_predictions.R"),
   file.path("R", "random_forest", "get_1_0_point_position.R"),
-  file.path("R", "random_forest", "calculate_sum_squared_errors.R"),
-  file.path("R", "random_forest", "spatial_sampK_cv_rng3.R"),
-  file.path("R", "random_forest", "wrapper_to_spatial_sampK_cv_rng3.R"))
+  file.path("R", "random_forest", "calculate_sum_squared_errors.R"))
 
 my_pkgs <- c("ranger", "weights")
 
