@@ -4,11 +4,11 @@ calculate_wgt_cor <- function(d.sub, x, y){
 
 }
 
-calculate_R_squared <- function(df, y_i, f_i) {
+calculate_R_squared <- function(df, x, y) {
   
-  y_i <- df[,y_i]
+  y_i <- df[, x]
   
-  f_i <- df[,f_i]
+  f_i <- df[, y]
     
   y_hat <- mean(y_i)
   
@@ -20,4 +20,11 @@ calculate_R_squared <- function(df, y_i, f_i) {
   
   round(1 - (SS_res / SS_t), 3)
   
+}
+
+calculate_R_squared_2 <- function(df, obs, mod) {
+  
+  frml <- as.formula(paste0(obs, "~", mod))
+  summary(lm(frml, data = df))$r.squared 
+
 }
