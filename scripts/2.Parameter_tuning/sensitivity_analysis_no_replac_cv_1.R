@@ -6,9 +6,8 @@ rm(list = ls())
 #    "dide-tools/didewin"), force = TRUE, upgrade = FALSE))
 
 my_resources <- c(
-  file.path("R", "random_forest", "spatial_sampK_cv_rng2_stratif_pred.R"),
-  file.path("R", "random_forest", "wrapper_for_running_multi_factor_RF.R"), 
-  file.path("R", "convert_df_to_list.R"),
+  file.path("R", "random_forest", "sensitivity_analysis_no_replac_cv.R"), 
+  file.path("R", "utility_functions.R"),
   file.path("R", "random_forest", "map_admin_foi.R"),
   file.path("R", "random_forest", "RF_preds_vs_obs_stratified_plot.R")
 )
