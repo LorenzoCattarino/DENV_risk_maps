@@ -1,30 +1,22 @@
 
-options(didehpc.cluster = "fi--didemrchnb")
+source(file.path("R", "create_parameter_list.R"))
+source(file.path("R", "plotting", "functions_for_plotting_raster_maps.R"))
 
-CLUSTER <- FALSE
-
-my_resources <- c(
-  file.path("R", "create_parameter_list.R"),
-  file.path("R", "plotting", "make_nice_map.R"),
-  file.path("R", "plotting", "make_nice_2_stacked_maps_figure.R"),
-  file.path("R", "plotting", "functions_for_plotting_raster_maps.R"))
-
-my_pkgs <- c("colorRamps", "sf", "raster", "ggplot2", "grid", "gridExtra", "dplyr")
-
-context::context_log_start()
-ctx <- context::context_save(path = "context",
-                             sources = my_resources,
-                             packages = my_pkgs)
+library(colorRamps)
+library(sf)
+library(raster)
+library(ggplot2)
+library(dplyr)
 
 
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 2,
-                   var_to_plot = "FOI",
-                   z_range = list(FOI = c(0, 0.06),
-                                  R0_1 = c(1, 7),
-                                  R0_2 = c(1, 4)),
+extra_prms <- list(id = 4,
+                   var_to_plot = "sd",
+                   ttl = "SD",  # expression("R"[0])
+                   z_vals = list(mean = seq(0, 0.06, 0.02),
+                                 sd = seq(0, 0.02, 0.01)),
                    plot_wdt = 16,
                    plot_hgt = 5.5, 
                    barwdt = 1.5,
@@ -40,23 +32,6 @@ extra_prms <- list(id = 2,
 fl_nm <- "response_mean"
 # fl_nm <- "transformed_2_wolbachia_4_mean"
 
-ttl <- "FOI" 
-# ttl <- expression("R"[0])
-
-
-# are you using the cluster? --------------------------------------------------
-
-
-if (CLUSTER) {
-  
-  obj <- didehpc::queue_didehpc(ctx)
-  
-} else {
-  
-  context::context_load(ctx)
-  
-}
-
 
 # define variables ------------------------------------------------------------  
 
@@ -66,8 +41,6 @@ parameters <- create_parameter_list(extra_params = extra_prms)
 model_type <- paste0("model_", parameters$id)
 
 gr_size <- parameters$resample_grid_size
-
-out_file_name <- paste0(fl_nm, ".png")
   
 out_path <- file.path("figures", 
                       "predictions_world",
@@ -80,9 +53,11 @@ ID_0_to_remove <- parameters$ID_0_to_remove
 
 var_to_plot <- parameters$var_to_plot
 
-z_range <- parameters$z_range[[var_to_plot]]
+out_file_name <- paste0(var_to_plot, ".png")
 
-z_vals <- seq(min(z_range), max(z_range), by = 0.02)
+z_vals <- parameters$z_vals[[var_to_plot]]
+
+ttl <- parameters$ttl
 
 
 # load data ------------------------------------------------------------------- 
@@ -118,7 +93,7 @@ countries <- countries[!countries$NAME_ENGLI == "Caspian Sea", ]
 # remove pixels outside of endemic ID_0 and ID_1 
 pred2 <- dplyr::inner_join(pred, endemic_ID_0_ID_1)
 
-pred_mat <- prediction_df_to_matrix(lats, lons, pred2, "mean")
+pred_mat <- prediction_df_to_matrix(lats, lons, pred2, var_to_plot)
 
 pred_mat_ls <- list(x = lons,
                     y = lats,
@@ -149,7 +124,7 @@ x2 <- bbox[2]
 y1 <- bbox[3]
 y2 <- bbox[4]
 
-my_col <- colorRamps::matlab.like(100)
+my_col <- matlab.like(100)
   
 p <- ggplot() +
   geom_sf(data = countries, fill = "grey80", color = NA) +
