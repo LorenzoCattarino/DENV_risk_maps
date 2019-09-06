@@ -16,8 +16,8 @@ data_types_vec <- list(c("serology", "caseReport", "pseudoAbsence"),
 source_dts_names <- c("pred_vs_obs_plot_averages_all_data.csv", 
                       "pred_vs_obs_plot_averages_no_psAb.csv")
 
-out_names <- c("correlation_coefficients_table_SI_all_data.csv",
-               "correlation_coefficients_table_SI_no_psAb.csv")
+out_names <- c("R2_table_SI_all_data.csv",
+               "R2_table_SI_no_psAb.csv")
 
 
 # define variables ------------------------------------------------------------
@@ -77,7 +77,7 @@ for (j in seq_along(data_types_vec)){
                          "EM_algorithm",
                          "best_fit_models",
                          paste0("model_", id),
-                         "data_admin_predictions")
+                         "adm_foi_predictions")
     
     dts <- readRDS(file.path(in_path, "all_scale_predictions.rds"))  
     
@@ -99,7 +99,9 @@ for (j in seq_along(data_types_vec)){
     
     dts_1 <- dts_1[, setdiff(names(dts_1), "mean_p_i")]
     
-    best_fit_exp[i, "best_fit"] <- calculate_wgt_cor(dts_1, "o_j", "admin")
+    corr_coeff <- calculate_R_squared(dts_1, "o_j", "admin")
+    
+    best_fit_exp[i, "best_fit"] <- round(corr_coeff, 2)
     
   }
   
@@ -140,10 +142,10 @@ for (j in seq_along(data_types_vec)){
     
     dts_1 <- dts[, setdiff(names(dts), "mean_p_i")]
     
-    corr_coeff <- plyr::ddply(dts_1, "dataset", calculate_wgt_cor, "o_j", "admin")
+    corr_coeff <- plyr::ddply(dts_1, "dataset", calculate_R_squared, "o_j", "admin")
     
-    boot_fit_exp_sub[i, "test"] <- corr_coeff[corr_coeff$dataset == "test", "V1"]
-    boot_fit_exp_sub[i, "train"] <- corr_coeff[corr_coeff$dataset == "train", "V1"]
+    boot_fit_exp_sub[i, "test"] <- round(corr_coeff[corr_coeff$dataset == "test", "V1"], 2)
+    boot_fit_exp_sub[i, "train"] <- round(corr_coeff[corr_coeff$dataset == "train", "V1"], 2)
     
   }
   
@@ -156,6 +158,6 @@ for (j in seq_along(data_types_vec)){
   final_out$id <- seq_len(nrow(final_out))
   
   # save
-  write_out_csv(final_out, file.path("output", "EM_algorithm"), out_name)
+  write_out_csv(final_out, file.path("output", "EM_algorithm"), out_name, row.names = FALSE)
   
 }
