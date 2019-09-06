@@ -26,46 +26,46 @@ out_fig_path <- file.path("figures", "EM_algorithm")
 # load data ------------------------------------------------------------------- 
 
 
-# FOI best fit (26 predictors)
+# FOI best fit (16 predictors)
 fit_1 <- readRDS(file.path(file.path("output",
                                      "EM_algorithm",
                                      "best_fit_models",
-                                     "model_2",
-                                     "data_admin_predictions"), 
+                                     "model_1",
+                                     "adm_foi_predictions"), 
                            "all_scale_predictions.rds"))
 
-# FOI bootstrap fit (26 predictors, 5 degree and all data) 
+# FOI bootstrap fit (16 predictors, 5 degree and all data) 
 fit_2 <- read.csv(file.path(file.path("output",
                                       "EM_algorithm",
                                       "bootstrap_models",
-                                      "model_4",
+                                      "model_2",
                                       "scatter_plots"), 
                             "pred_vs_obs_plot_averages_all_data.csv"),
                   stringsAsFactors = FALSE)
 
-# FOI bootstrap fit (26 predictors, 1/120 degree and all data)
+# FOI bootstrap fit (16 predictors, 1/120 degree and all data)
 fit_3 <- read.csv(file.path(file.path("output",
                                       "EM_algorithm",
                                       "bootstrap_models",
-                                      "model_3",
+                                      "model_1",
                                       "scatter_plots"), 
                             "pred_vs_obs_plot_averages_all_data.csv"),
                   stringsAsFactors = FALSE)
 
-# FOI bootstrap fit (26 predictors, 5 degree and no pseudo absence data) 
+# FOI bootstrap fit (16 predictors, 5 degree and no pseudo absence data) 
 fit_4 <- read.csv(file.path(file.path("output",
                                       "EM_algorithm",
                                       "bootstrap_models",
-                                      "model_4",
+                                      "model_2",
                                       "scatter_plots"), 
                             "pred_vs_obs_plot_averages_no_psAb.csv"),
                   stringsAsFactors = FALSE)
 
-# FOI bootstrap fit (26 predictors, 1/120 degree and no pseudo absence data)
+# FOI bootstrap fit (16 predictors, 1/120 degree and no pseudo absence data)
 fit_5 <- read.csv(file.path(file.path("output",
                                       "EM_algorithm",
                                       "bootstrap_models",
-                                      "model_3",
+                                      "model_1",
                                       "scatter_plots"), 
                             "pred_vs_obs_plot_averages_no_psAb.csv"),
                   stringsAsFactors = FALSE)
