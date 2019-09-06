@@ -123,7 +123,8 @@ test_all_3 <- left_join(test_all_2, test_all)
 
 write_out_csv(test_all_3, 
               file.path("output", "EM_algorithm", "bootstrap_models"), 
-              "boostrap_fit_experiments.csv")
+              "boostrap_fit_experiments.csv",
+              row.names = FALSE)
 
 test_ls <- df_to_list(test_all_3, TRUE)
 
@@ -137,7 +138,8 @@ bootstrap_experiments_uni <- dplyr::summarise_at(bootstrap_experiments_by, "rep_
 
 write_out_csv(bootstrap_experiments_uni, 
               file.path("output", "EM_algorithm", "bootstrap_models"), 
-              "boostrap_fit_experiments_uni.csv")
+              "boostrap_fit_experiments_uni.csv",
+              row.names = FALSE)
 
 
 # run one job -----------------------------------------------------------------
@@ -157,8 +159,8 @@ write_out_csv(bootstrap_experiments_uni,
 
 if (CLUSTER) {
 
-  multi_full_EM_experiments_2 <- queuer::qlapply(
-    test_ls[1:200],
+  multi_full_EM_experiments <- queuer::qlapply(
+    test_ls,
     full_routine_bootstrap,
     obj,
     parms = parameters,
