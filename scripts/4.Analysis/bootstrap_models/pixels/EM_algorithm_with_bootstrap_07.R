@@ -48,7 +48,7 @@ in_path <- file.path("output",
                      "EM_algorithm",
                      "bootstrap_models",
                      model_type,
-                     "data_admin_predictions") 
+                     "adm_foi_predictions") 
 
 out_fig_path <- file.path("figures",
                           "EM_algorithm",
