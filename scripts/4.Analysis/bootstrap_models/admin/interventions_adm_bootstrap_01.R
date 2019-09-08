@@ -10,7 +10,7 @@
 
 options(didehpc.cluster = "fi--didemrchnb")
 
-CLUSTER <- FALSE
+CLUSTER <- TRUE
 
 my_resources <- c(
   file.path("R", "utility_functions.R"),
@@ -31,7 +31,7 @@ ctx <- context::context_save(path = "context",
 # define extra parameters -----------------------------------------------------
 
 
-extra_prms <- list(id = 4,
+extra_prms <- list(id = 2,
                    dependent_variable = "FOI",
                    no_R0_assumptions = 4,
                    fit_type = "boot",
