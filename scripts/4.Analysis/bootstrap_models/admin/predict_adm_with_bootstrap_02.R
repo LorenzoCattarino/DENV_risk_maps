@@ -9,7 +9,7 @@ library(dplyr)
 # define extra parameters -----------------------------------------------------
 
 
-extra_prms <- list(id = 4,
+extra_prms <- list(id = 2,
                    ID_0_to_remove = c(1, 69, 171, 122, 200, 224, 226, 235, 236, 244, 246))
                    
                    
