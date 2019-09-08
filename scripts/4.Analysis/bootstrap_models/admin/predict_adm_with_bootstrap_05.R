@@ -10,7 +10,7 @@ library(ggplot2)
 # define parameters -----------------------------------------------------------  
 
 
-extra_prms <- list(id = 4,
+extra_prms <- list(id = 2,
                    statistic = "mean")
 
 
@@ -21,13 +21,7 @@ parameters <- create_parameter_list(extra_params = extra_prms)
 
 vars_to_average <- c("response_endemic", 
                      "p9", 
-                     "p16",
-                     "p9_FP_specifA",
-                     "p16_FP_specifA",
-                     "p9_FP_specifB",
-                     "p16_FP_specifB")#,
-                     # "transformed_1_wolbachia_4",
-                     # "transformed_2_wolbachia_4")
+                     "p16")
 
 statistic <- parameters$statistic
 
