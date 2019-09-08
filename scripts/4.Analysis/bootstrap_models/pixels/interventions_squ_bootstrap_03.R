@@ -16,7 +16,7 @@ source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 4,
+extra_prms <- list(id = 2,
                    R0_scenario = c(1, 2),
                    burden_measures = c("infections", "cases", "hosp"),
                    baseline_scenario_ids = 4,
@@ -188,6 +188,13 @@ for (j in seq_along(vars)){                                 # loop over burden m
       
       bl <- baseline[, var_to_sum]
       od <- one_dat[, var_to_sum]
+      
+      prop_red_pxl <- (bl - od) / bl
+      prop_red_pxl[is.na(prop_red_pxl)] <- NA
+      prop_red_pxl_2 <- cbind(one_dat[, base_info], prop_red_pxl)
+      write_out_rds(prop_red_pxl_2, 
+                    my_in_path,
+                    sprintf("%s_pr_%s_%s_%s%s", my_var, k, intervention_name, scenario_id, ".rds"))
       
       bl_colsum <- colSums(bl)
       od_colsum <- colSums(od)
