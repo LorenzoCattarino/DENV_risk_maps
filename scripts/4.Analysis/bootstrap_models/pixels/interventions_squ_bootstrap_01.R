@@ -31,7 +31,7 @@ ctx <- context::context_save(path = "context",
 # define extra parameters -----------------------------------------------------
 
 
-extra_prms <- list(id = 4,
+extra_prms <- list(id = 2,
                    dependent_variable = "FOI",
                    no_R0_assumptions = 4,
                    fit_type = "boot",
@@ -51,7 +51,7 @@ extra_prms <- list(id = 4,
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "GeneralNodes", wholenode = TRUE)
+  config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
