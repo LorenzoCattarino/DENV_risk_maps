@@ -28,7 +28,7 @@ ctx <- context::context_save(path = "context",
 # define parameters -----------------------------------------------------------  
 
 
-extra_prms <- list(id = 4,
+extra_prms <- list(id = 2,
                    dependent_variable = "FOI",
                    R0_scenario = 2,
                    wolbachia_scenario_id = 4,
@@ -52,7 +52,7 @@ extra_prms <- list(id = 4,
 
 if (CLUSTER) {
   
-  config <- didehpc::didehpc_config(template = "GeneralNodes", wholenode = TRUE)
+  config <- didehpc::didehpc_config(template = "24Core")
   obj <- didehpc::queue_didehpc(ctx, config = config)
   
 } else {
