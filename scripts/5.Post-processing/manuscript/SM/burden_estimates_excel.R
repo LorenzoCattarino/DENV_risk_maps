@@ -13,7 +13,7 @@ source(file.path("R", "create_parameter_list.R"))
 # define parameters -----------------------------------------------------------
 
 
-extra_prms <- list(id = 4,
+extra_prms <- list(id = 2,
                    model_responses = "FOI",
                    burden_measures = c("infections", "cases", "hosp"),
                    baseline_scenario_ids = 4)   
