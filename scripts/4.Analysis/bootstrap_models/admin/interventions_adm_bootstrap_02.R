@@ -28,12 +28,12 @@ ctx <- context::context_save(path = "context",
 # define parameters -----------------------------------------------------------  
 
 
-extra_prms <- list(id = 4,
+extra_prms <- list(id = 2,
                    dependent_variable = "FOI",
-                   R0_scenario = 1,
+                   R0_scenario = 2,
                    wolbachia_scenario_id = 4,
                    no_R0_assumptions = 4,
-                   screening_ages = c(9, 16, 0),
+                   screening_ages = 0,
                    parallel_2 = TRUE,
                    burden_measure = c("infections", "cases", "hosp"),
                    vacc_estimates = c("mean", "L95", "U95"),
