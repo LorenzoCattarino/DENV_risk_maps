@@ -10,7 +10,7 @@ library(dplyr)
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 4,
+extra_prms <- list(id = 2,
                    dependent_variable = "FOI",
                    base_info = c("cell", 
                                  "latitude", 
