@@ -13,11 +13,10 @@ source(file.path("R", "create_parameter_list.R"))
 source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 
 
-
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 4,
+extra_prms <- list(id = 2,
                    R0_scenario = c(1, 2),
                    baseline_scenario_ids = 4,
                    intervention_name = "vaccine",
@@ -171,7 +170,7 @@ for (k in seq_along(R0_scenario)){                                  # loop over 
     od <- one_dat[, var_to_sum]
     
     prop_red_pxl <- (bl - od) / bl
-    prop_red_pxl[is.na(prop_red_pxl)] <- 0
+    prop_red_pxl[is.na(prop_red_pxl)] <- NA
     prop_red_pxl_2 <- cbind(one_dat[, base_info], prop_red_pxl)
     write_out_rds(prop_red_pxl_2, 
                   in_path,
