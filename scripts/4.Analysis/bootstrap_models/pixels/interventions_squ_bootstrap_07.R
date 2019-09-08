@@ -14,7 +14,7 @@ source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 4,
+extra_prms <- list(id = 2,
                    R0_scenario = c(1, 2),
                    intervention_name = "wolbachia",
                    treatment_name = "scaling_factor",
