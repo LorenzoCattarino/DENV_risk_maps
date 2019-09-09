@@ -19,7 +19,7 @@ source(file.path("R", "create_parameter_list.R"))
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 4,
+extra_prms <- list(id = 2,
                    coord_limits = c(-130, 180, -60, 38))
 
 
@@ -41,37 +41,22 @@ y2 <- parameters$coord_limits[4]
 
 my_col <- rev(colorRamps::matlab.like(100))
 
+in_path <- file.path("output",
+                     "predictions_world",
+                     "bootstrap_models",
+                     model_type)
+
 
 # load data -------------------------------------------------------------------
 
 
-pr_cases_R01_a <- readRDS(file.path("output",
-                                    "predictions_world",
-                                    "bootstrap_models",
-                                    model_type,
-                                    "adm_1",
-                                    "C_pr_1_wolbachia_16_mean.rds"))
+pr_cases_R01_a <- readRDS(file.path(in_path, "C_pr_1_wolbachia_16_adm_mean.rds"))
 
-pr_cases_R01_b <- readRDS(file.path("output",
-                                    "predictions_world",
-                                    "bootstrap_models",
-                                    model_type,
-                                    "adm_1",
-                                    "C_pr_1_wolbachia_32_mean.rds"))
+pr_cases_R01_b <- readRDS(file.path(in_path, "C_pr_1_wolbachia_32_adm_mean.rds"))
 
-pr_cases_R02_a <- readRDS(file.path("output",
-                                    "predictions_world",
-                                    "bootstrap_models",
-                                    model_type,
-                                    "adm_1",
-                                    "C_pr_2_wolbachia_16_mean.rds"))
+pr_cases_R02_a <- readRDS(file.path(in_path, "C_pr_2_wolbachia_16_adm_mean.rds"))
 
-pr_cases_R02_b <- readRDS(file.path("output",
-                                    "predictions_world",
-                                    "bootstrap_models",
-                                    model_type,
-                                    "adm_1",
-                                    "C_pr_2_wolbachia_32_mean.rds"))
+pr_cases_R02_b <- readRDS(file.path(in_path, "C_pr_2_wolbachia_32_adm_mean.rds"))
 
 countries <- st_read(dsn = file.path("output", "shapefiles"), 
                      layer = "gadm28_adm0_eras")
