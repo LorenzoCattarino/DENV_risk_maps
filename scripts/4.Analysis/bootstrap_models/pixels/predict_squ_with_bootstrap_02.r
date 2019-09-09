@@ -9,11 +9,11 @@ source(file.path("R", "prepare_datasets", "calculate_mean_across_fits.R"))
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 2) 
+extra_prms <- list(id = 8) 
 
-# vars_to_average <- "response"
+vars_to_average <- "response"
 # vars_to_average <- "transformed_1_wolbachia_4"
-vars_to_average <- "transformed_2_wolbachia_4"
+# vars_to_average <- "transformed_2_wolbachia_4"
 # vars_to_average <- "C_pr_2_wolbachia_16"
 # vars_to_average <- "C_pr_2_wolbachia_32"
 
