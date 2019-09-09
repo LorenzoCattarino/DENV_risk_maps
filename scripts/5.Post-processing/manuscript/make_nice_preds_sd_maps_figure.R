@@ -20,7 +20,7 @@ ctx <- context::context_save(path = "context",
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 4,
+extra_prms <- list(id = 2,
                    plot_wdt = 17,
                    plot_hgt = 11, 
                    barwdt = 1.5,
