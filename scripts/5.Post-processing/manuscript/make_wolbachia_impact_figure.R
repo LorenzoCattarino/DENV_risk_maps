@@ -29,7 +29,6 @@ burden_measures <- "cases"
 out_fig_path <- file.path("figures", 
                           "predictions_world", 
                           "bootstrap_models",
-                          "adm_1",
                           "general_intervention")
 
 interventions <- "wolbachia"
@@ -57,7 +56,6 @@ for (j in seq_along(burden_measures)) {
   summary_table_orig <- read.csv(file.path("output", 
                                            "predictions_world", 
                                            "bootstrap_models",
-                                           "adm_1",
                                            paste0("prop_change_", my_var_name, "_", intervention_name, ".csv")),
                                  header = TRUE)
   
@@ -98,7 +96,6 @@ for (j in seq_along(burden_measures)) {
   tot_num_table_orig <- read.csv(file.path("output", 
                                            "predictions_world", 
                                            "bootstrap_models",
-                                           "adm_1",
                                            paste0("total_", my_var_name, "_", intervention_name, ".csv")),
                                  header = TRUE)
   
@@ -140,7 +137,6 @@ for (j in seq_along(burden_measures)) {
 dengue_free_table_orig <- read.csv(file.path("output", 
                                              "predictions_world", 
                                              "bootstrap_models",
-                                             "adm_1",
                                              "dengue_free_countries_wolbachia.csv"),
                                    header = TRUE)
 
