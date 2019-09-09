@@ -12,10 +12,11 @@ library(ggplot2)
 
 
 extra_prms <- list(id = 4,
-                   no_predictors = 26,
+                   no_predictors = 25,
                    year.i = 2007,
                    year.f = 2014,
-                   ppyear = 64)
+                   ppyear = 64,
+                   plot_hgt = 22.5) # 18.5
 
 
 # define variables ------------------------------------------------------------
@@ -49,6 +50,8 @@ out_pt <- file.path("figures",
                     model_type)
   
 covariates_dir <- parameters$covariates_dir
+
+plot_hgt <- parameters$plot_hgt
 
 
 # load data -------------------------------------------------------------------
@@ -152,7 +155,7 @@ dir.create(out_pt, FALSE, TRUE)
 
 png(file.path(out_pt, "partial_dependence_plots.png"),
     width = 16.5,
-    height = 18.5,
+    height = plot_hgt,
     units = "cm",
     pointsize = 12,
     res = 300)
