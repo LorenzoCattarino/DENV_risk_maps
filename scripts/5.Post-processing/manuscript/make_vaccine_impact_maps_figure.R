@@ -19,7 +19,7 @@ source(file.path("R", "create_parameter_list.R"))
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 4,
+extra_prms <- list(id = 2,
                    coord_limits = c(-130, 180, -60, 38))
 
 
@@ -41,51 +41,32 @@ y2 <- parameters$coord_limits[4]
 
 my_col <- rev(colorRamps::matlab.like(100))
 
+in_path <- file.path("output",
+                     "predictions_world",
+                     "bootstrap_models",
+                     model_type)
+
+in_path_2 <- file.path("output",
+                       "predictions_world",
+                       "bootstrap_models",
+                       model_type,
+                       "adm_1")
+
 
 # load data -------------------------------------------------------------------
 
 
-pr_cases_R01_a <- readRDS(file.path("output",
-                                    "predictions_world",
-                                    "bootstrap_models",
-                                    model_type,
-                                    "adm_1",
-                                    "C_pr_1_vaccine_8_mean.rds"))
+pr_cases_R01_a <- readRDS(file.path(in_path, "C_pr_1_vaccine_8_adm_mean.rds"))
 
-pr_cases_R01_b <- readRDS(file.path("output",
-                                    "predictions_world",
-                                    "bootstrap_models",
-                                    model_type,
-                                    "adm_1",
-                                    "C_pr_1_vaccine_20_mean.rds"))
+pr_cases_R01_b <- readRDS(file.path(in_path, "C_pr_1_vaccine_20_adm_mean.rds"))
 
-pr_cases_R01_c <- readRDS(file.path("output",
-                                    "predictions_world",
-                                    "bootstrap_models",
-                                    model_type,
-                                    "adm_1",
-                                    "C_pr_1_vaccine_32_mean.rds"))
+pr_cases_R01_c <- readRDS(file.path(in_path_2, "C_pr_1_vaccine_8_adm_mean.rds"))
 
-pr_cases_R02_a <- readRDS(file.path("output",
-                                    "predictions_world",
-                                    "bootstrap_models",
-                                    model_type,
-                                    "adm_1",
-                                    "C_pr_2_vaccine_8_mean.rds"))
+pr_cases_R02_a <- readRDS(file.path(in_path, "C_pr_2_vaccine_8_adm_mean.rds"))
 
-pr_cases_R02_b <- readRDS(file.path("output",
-                                    "predictions_world",
-                                    "bootstrap_models",
-                                    model_type,
-                                    "adm_1",
-                                    "C_pr_2_vaccine_20_mean.rds"))
+pr_cases_R02_b <- readRDS(file.path(in_path, "C_pr_2_vaccine_20_adm_mean.rds"))
 
-pr_cases_R02_c <- readRDS(file.path("output",
-                                    "predictions_world",
-                                    "bootstrap_models",
-                                    model_type,
-                                    "adm_1",
-                                    "C_pr_2_vaccine_32_mean.rds"))
+pr_cases_R02_c <- readRDS(file.path(in_path_2, "C_pr_2_vaccine_8_adm_mean.rds"))
 
 countries <- st_read(dsn = file.path("output", "shapefiles"), 
                      layer = "gadm28_adm0_eras")
