@@ -22,7 +22,7 @@ ctx <- context::context_save(path = "context",
 
 
 extra_prms <- list(id = 4,
-                   no_predictors = 26,
+                   no_predictors = 25,
                    parallel_2 = FALSE) 
 
 
@@ -31,7 +31,7 @@ extra_prms <- list(id = 4,
 
 if (CLUSTER) {
   
-  #config <- didehpc::didehpc_config(template = "24Core")
+  config <- didehpc::didehpc_config(template = "16Core", wholenode = FALSE)
   obj <- didehpc::queue_didehpc(ctx)
   
 } else {
