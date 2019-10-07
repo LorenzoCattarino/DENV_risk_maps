@@ -16,7 +16,7 @@ extra_prms <- list(id = 4,
                    year.i = 2007,
                    year.f = 2014,
                    ppyear = 64,
-                   plot_hgt = 22.5) # 18.5
+                   plot_hgt = 25.5) # 18.5
 
 
 # define variables ------------------------------------------------------------
