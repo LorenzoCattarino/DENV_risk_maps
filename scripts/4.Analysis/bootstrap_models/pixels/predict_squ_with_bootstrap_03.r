@@ -9,16 +9,16 @@ library(colorRamps)
 # define parameters -----------------------------------------------------------  
 
 
-parameters <- list(id = 4,
-                   var_to_plot = "R0_1",
+parameters <- list(id = 2,
+                   var_to_plot = "R0_2",
                    z_range = list(FOI = c(0, 0.06),
-                                  R0_1 = c(1, 8),
+                                  R0_1 = c(1, 7),
                                   R0_2 = c(0, 4),
                                   R0_3 = c(0, 5)),
-                   save_raster = FALSE) 
+                   save_raster = TRUE) 
 
 # vars_to_average <- "response"
-vars_to_average <- "transformed_1_wolbachia_4"
+vars_to_average <- "transformed_2_wolbachia_4"
 
 statistic <- "mean"
 
@@ -80,13 +80,13 @@ if (save_raster) {
   # raster::plot(my_ras, zlim=c(0,0.06), col = my_col)
   
   # save 
-  raster::writeRaster(my_ras, filename = file.path(in_path, "foi_map.tif"), format = "GTiff", overwrite = TRUE)
+  raster::writeRaster(my_ras, filename = file.path(out_path, "R0_2_map.tif"), format = "GTiff", overwrite = TRUE)
   
   # test
-  # my_ras <- raster::raster(file.path("output", 
+  # my_ras <- raster::raster(file.path("figures",
   #                                    "predictions_world",
   #                                    "bootstrap_models",
-  #                                    "model_21", 
-  #                                    "foi_map.tif"))
+  #                                    "model_2",
+  #                                    "R0_2_map.tif"))
   
 }
