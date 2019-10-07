@@ -40,6 +40,14 @@ y1 <- parameters$coord_limits[3]
 y2 <- parameters$coord_limits[4]
 
 my_col <- rev(colorRamps::matlab.like(100))
+# my_col <- viridis::plasma(100)
+# my_col <- viridis::inferno(100)
+# my_col <- viridis::viridis(100)
+# my_col <- colorspace::diverge_hcl(11,
+#                                   h = c(250, 10), 
+#                                   c = 100, 
+#                                   l = c(20, 95), 
+#                                   power = c(0.7, 1.7))
 
 in_path <- file.path("output",
                      "predictions_world",
