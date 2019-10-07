@@ -1,4 +1,4 @@
-create_parameter_list <- function(grid_size = 5,
+create_parameter_list <- function(#grid_size = 5,
                                   resample_grid_size = 20,
                                   no_samples = 200,
                                   vec_phis_R0_1 = c(1, 1, 0),
@@ -21,13 +21,13 @@ create_parameter_list <- function(grid_size = 5,
                                                       R0_3 = 0.5,
                                                       Z = -0.02),
                                   foi_offset = 0.03,
-                                  covariates_dir = "stepwise_v5",
+                                  covariates_dir = "stepwise_v6",
                                   EM_iter = 10,
                                   extra_params = NULL) {
   
   pm_list <- list()
   
-  pm_list$grid_size <- grid_size
+  #pm_list$grid_size <- grid_size
   pm_list$resample_grid_size <- resample_grid_size
   pm_list$no_samples <- no_samples
   pm_list$vec_phis_R0_1 <- vec_phis_R0_1
