@@ -189,4 +189,5 @@ summary_tab_fl_nm <- paste0("dengue_free_countries_",
 write_out_csv(summary_table, file.path("output", 
                                        "predictions_world", 
                                        "bootstrap_models"), 
-              summary_tab_fl_nm)
+              summary_tab_fl_nm,
+              row.names = FALSE)
