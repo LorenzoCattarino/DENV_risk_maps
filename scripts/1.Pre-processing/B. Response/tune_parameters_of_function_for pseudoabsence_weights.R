@@ -1,4 +1,6 @@
+
 source(file.path("R", "prepare_datasets", "set_pseudo_abs_weights.R"))
+source(file.path("R", "utility_functions.R"))
 
 foi_data <- read.csv(file.path("output", 
                                "foi", 
@@ -17,30 +19,30 @@ y <- get_sat_area_wgts(foi_data, parameters)
 plot(x,y)
 
 parameters <- list(
-  b = 0,
-  c = 10,
-  d = 1e6)
+  shape_1 = 0,
+  shape_2 = 10,
+  shape_3 = 1e6)
 y_c10b0d1 <- get_sat_area_wgts(foi_data, parameters)
 points(x, y_c10b0d1, col = "steelblue3")
 
 parameters <- list(
-  b = 0,
-  c = 5,
-  d = 1e6)
+  shape_1 = 0,
+  shape_2 = 5,
+  shape_3 = 1e6)
 y_c5b0d1 <- get_sat_area_wgts(foi_data, parameters)
 points(x, y_c5b0d1, col = "yellow3")
 
 parameters <- list(
-  b = 0,
-  c = 5,
-  d = 3e6)
+  shape_1 = 0,
+  shape_2 = 5,
+  shape_3 = 3e6)
 y_c5b0d1 <- get_sat_area_wgts(foi_data, parameters)
 points(x, y_c5b0d1, col = "red")
 
 parameters <- list(
-  b = 0,
-  c = 5,
-  d = 1.6e6)
+  shape_1 = 0,
+  shape_2 = 5,
+  shape_3 = 1.6e6)
 y_c5b0d1 <- get_sat_area_wgts(foi_data, parameters)
 points(x, y_c5b0d1, col = "springgreen1")
 
@@ -70,3 +72,10 @@ axis(1, at = pretty(x))
 axis(2, at = pretty(y), las = 2)
 
 dev.off()
+
+data_df <- data.frame(x = x, y = y) 
+
+write_out_csv(data_df, file.path("output", 
+                                 "datasets"), 
+              "pseudo_absences_weights.csv",
+              row.names = FALSE)
