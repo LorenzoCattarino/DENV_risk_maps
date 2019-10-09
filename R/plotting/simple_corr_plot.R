@@ -1,14 +1,14 @@
 simple_corr_plot <- function(i, df){
   
   x_values <- pretty(df[, "o_j"], n = 5)
-  y_values <- pretty(df[, "admin"], n = 5)
+  y_values <- pretty(df[, "mean_p_i"], n = 5)
   min_x_value <- min(x_values)
   max_x_value <- max(x_values)
   min_y_value <- min(y_values)
   max_y_value <- max(y_values)
   
-  ggplot(df, aes(x = "o_j", y = "admin")) +
-    geom_point(aes_string(x = "o_j", y = "admin"), size = 1) +
+  ggplot(df, aes(x = "o_j", y = "mean_p_i")) +
+    geom_point(aes_string(x = "o_j", y = "mean_p_i"), size = 1) +
     geom_abline(slope = 1, intercept = 0, linetype = 2) +
     scale_x_continuous(limits = c(min_x_value, max_x_value), 
                        breaks = x_values,
