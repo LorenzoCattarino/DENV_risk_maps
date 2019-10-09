@@ -97,9 +97,9 @@ for (j in seq_along(data_types_vec)){
     
     dts_1 <- dts[dts$type %in% dt_typ, ]
     
-    dts_1 <- dts_1[, setdiff(names(dts_1), "mean_p_i")]
+    dts_1 <- dts_1[, setdiff(names(dts_1), "admin")]
     
-    corr_coeff <- calculate_R_squared(dts_1, "o_j", "admin")
+    corr_coeff <- calculate_R_squared(dts_1, "o_j", "mean_p_i")
     
     best_fit_exp[i, "best_fit"] <- round(corr_coeff, 2)
     
@@ -140,9 +140,9 @@ for (j in seq_along(data_types_vec)){
       
     }
     
-    dts_1 <- dts[, setdiff(names(dts), "mean_p_i")]
+    dts_1 <- dts[, setdiff(names(dts), "admin")]
     
-    corr_coeff <- plyr::ddply(dts_1, "dataset", calculate_R_squared, "o_j", "admin")
+    corr_coeff <- plyr::ddply(dts_1, "dataset", calculate_R_squared, "o_j", "mean_p_i")
     
     boot_fit_exp_sub[i, "test"] <- round(corr_coeff[corr_coeff$dataset == "test", "V1"], 2)
     boot_fit_exp_sub[i, "train"] <- round(corr_coeff[corr_coeff$dataset == "train", "V1"], 2)
