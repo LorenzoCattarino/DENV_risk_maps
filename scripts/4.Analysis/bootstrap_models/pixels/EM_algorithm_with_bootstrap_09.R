@@ -140,6 +140,8 @@ final_vi_df <- vi_df[order(vi_df$importance, decreasing = TRUE),]
 final_pd_df$var <- factor(final_pd_df$var, 
                           levels = as.character(final_vi_df$var))
   
+write_out_csv(final_pd_df, pdp_pt, "data_of_the_pd_plots.csv", row.names = FALSE)
+
 
 # plot ------------------------------------------------------------------------
 
