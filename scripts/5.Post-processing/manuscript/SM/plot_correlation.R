@@ -7,6 +7,7 @@ library(gridExtra)
 source(file.path("R", "create_parameter_list.R"))
 source(file.path("R", "random_forest", "reset_no_transmission.R"))
 source(file.path("R", "plotting", "simple_corr_plot.R"))
+source(file.path("R", "utility_functions.R"))
 
 
 # define parameters -----------------------------------------------------------  
@@ -21,6 +22,8 @@ extra_prms <- list(dependent_variable = "FOI")
 parameters <- create_parameter_list(extra_params = extra_prms)
 
 out_fig_path <- file.path("figures", "EM_algorithm")
+
+out_tab_path <- file.path("output", "datasets")
 
 
 # load data ------------------------------------------------------------------- 
@@ -93,6 +96,12 @@ all_dts <- list(dts_1, dts_2, dts_3, dts_4, dts_5)
 
 all_dts <- lapply(all_dts, reset_no_transmission, parameters)
 
+write_out_csv(all_dts[[1]], out_tab_path, "corr_plots_psAbs_A.csv", row.names = FALSE)
+write_out_csv(all_dts[[2]], out_tab_path, "corr_plots_psAbs_B.csv", row.names = FALSE)
+write_out_csv(all_dts[[3]], out_tab_path, "corr_plots_psAbs_C.csv", row.names = FALSE)
+write_out_csv(all_dts[[4]], out_tab_path, "corr_plots_psAbs_D.csv", row.names = FALSE)
+write_out_csv(all_dts[[5]], out_tab_path, "corr_plots_psAbs_E.csv", row.names = FALSE)
+
 all_plots <- lapply(seq_along(all_dts), wrapper_simple_corr_plot, all_dts)
   
 dir.create(out_fig_path, FALSE, TRUE)
@@ -126,6 +135,12 @@ dts_5 <- subset(fit_5, dataset == "test")
 all_dts <- list(dts_1, dts_2, dts_3, dts_4, dts_5)
 
 all_dts <- lapply(all_dts, reset_no_transmission, parameters)
+
+write_out_csv(all_dts[[1]], out_tab_path, "corr_plots_no_psAbs_A.csv", row.names = FALSE)
+write_out_csv(all_dts[[2]], out_tab_path, "corr_plots_no_psAbs_B.csv", row.names = FALSE)
+write_out_csv(all_dts[[3]], out_tab_path, "corr_plots_no_psAbs_C.csv", row.names = FALSE)
+write_out_csv(all_dts[[4]], out_tab_path, "corr_plots_no_psAbs_D.csv", row.names = FALSE)
+write_out_csv(all_dts[[5]], out_tab_path, "corr_plots_no_psAbs_E.csv", row.names = FALSE)
 
 all_plots <- lapply(seq_along(all_dts), wrapper_simple_corr_plot, all_dts)
 
