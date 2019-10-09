@@ -76,6 +76,11 @@ write_out_rds(bsample_step_addition,
               table_out_path, 
               "list_of_outputs_from_addition.rds")  
 
+write_out_csv(bsample_step_addition[[1]], 
+              file.path(table_out_path, "sample_1", "addition"),
+              "output_from_addition.csv",
+              row.names = FALSE)
+
 
 #  get predictor names --------------------------------------------------------
 
@@ -134,3 +139,5 @@ p <- ggplot(all_no_sel_vars, aes(no_sel_vars, fill = tolerance)) +
         legend.key.size = unit(0.3, "cm"))
 
 save_plot(p, plot_out_path, out_fig_name, wdt = 15, hgt = 8)
+
+write_out_csv(all_no_sel_vars, table_out_path, "freq_distr_no_top_predictors.csv", row.names = FALSE)
