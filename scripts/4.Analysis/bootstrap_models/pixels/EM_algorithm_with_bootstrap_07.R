@@ -22,7 +22,7 @@ source(file.path("R", "prepare_datasets", "calculate_wgt_corr.R"))
 # define parameters -----------------------------------------------------------  
 
 
-extra_prms <- list(id = 8,
+extra_prms <- list(id = 2,
                    dependent_variable = "FOI") 
 
 mes_vars <- c("admin", "mean_p_i")
@@ -180,7 +180,7 @@ for (j in seq_along(tags)) {
                               dataset = "test")
   
   all_av_preds <- rbind(av_train_preds, av_test_preds)
-  write_out_csv(all_av_preds, out_table_path, paste0("pred_vs_obs_plot_averages_", tag, ".csv"))
+  write_out_csv(all_av_preds, out_table_path, paste0("pred_vs_obs_plot_averages_", tag, ".csv"), row.names = FALSE)
   
   ret <- melt(
     all_av_preds,
