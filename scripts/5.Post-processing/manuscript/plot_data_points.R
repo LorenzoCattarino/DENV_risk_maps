@@ -65,13 +65,6 @@ adm1_sub <- subset(adm1, ISO %in% adm1_i_want)
 # plot ------------------------------------------------------------------------ 
 
 
-png(file.path("figures", "data", "dengue_points.png"), 
-    width = 17, 
-    height = 5.5, 
-    units = "cm", 
-    pointsize = 12,
-    res = 300)
-
 z_vals <- seq(0, 0.06, 0.02)
   
 p <- ggplot() +
@@ -85,7 +78,7 @@ p <- ggplot() +
           size = poly_bd_sz) +
   geom_point(data = All_FOI_estimates_sub, 
              aes(x = longitude, y = latitude, colour = FOI), 
-             size = 0.3) +
+             size = 0.7) +
   scale_colour_gradientn(breaks = z_vals,
                          labels = z_vals,
                          limits = c(min(z_vals), max(All_FOI_estimates_sub$FOI)),
@@ -104,6 +97,13 @@ p <- ggplot() +
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         panel.background = element_blank())
+
+png(file.path("figures", "data", "dengue_points.png"), 
+    width = 18.4, 
+    height = 6, 
+    units = "cm", 
+    pointsize = 12,
+    res = 300)
 
 print(p)
 
