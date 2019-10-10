@@ -26,7 +26,7 @@ make_nice_map <- function(bbox_df,
   }
   
   ggplot() +
-    geom_sf(data = countries_df, fill = country_fill_col, color = NA) +
+    geom_sf(data = countries_df, fill = country_fill_col, colour = NA) +
     geom_tile(data = pred, aes(x = x, y = y, fill = layer)) +
     geom_sf(data = countries_df, fill = NA, colour = "gray40", size = pol_brd_sz) +
     scale_fill_gradientn(breaks = z_vals,
@@ -45,7 +45,7 @@ make_nice_map <- function(bbox_df,
           axis.title = element_blank(),
           legend.justification = c(0, 0),
           legend.position = c(leg_pos_x, leg_pos_y),
-          plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm"),
+          plot.margin = unit(c(0, 0, 0, 0), "cm"),
           panel.grid.major = element_blank(),
           legend.text = element_text(size = leg_txt_sz),
           legend.title = element_text(face = "bold", size = leg_ttl_sz),
