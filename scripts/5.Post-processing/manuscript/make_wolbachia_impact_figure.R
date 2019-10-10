@@ -71,7 +71,7 @@ for (j in seq_along(burden_measures)) {
                     fill = phi_set_id), 
                 alpha = 0.3) +
     geom_line(aes(x = treatment, y = mean, colour = phi_set_id)) +
-    geom_vline(xintercept = c(0.3, 0.7), linetype = c("dotted", "dashed"), size = 1) +
+    geom_vline(xintercept = c(0.3, 0.7), linetype = c("dashed", "dashed"), size = 0.5) +
     scale_fill_manual(values = c("red", "blue", "green"),
                       aesthetics = c("fill", "colour"),
                       guide = guide_legend(title = "Infectiousness",
@@ -112,7 +112,7 @@ for (j in seq_along(burden_measures)) {
                     fill = phi_set_id), 
                 alpha = 0.3) +
     geom_line(aes(x = treatment, y = mean, colour = phi_set_id)) +
-    geom_vline(xintercept = c(0.3, 0.7), linetype = c("dotted", "dashed"), size = 1) +
+    geom_vline(xintercept = c(0.3, 0.7), linetype = c("dashed", "dashed"), size = 0.5) +
     scale_fill_manual(values = c("red", "blue", "green"),
                       aesthetics = c("fill", "colour"),
                       guide = guide_legend(title = "Infectiousness assumption",
@@ -153,7 +153,7 @@ p3 <- ggplot(dengue_free_table) +
                   fill = phi_set_id), 
               alpha = 0.3) +
   geom_line(aes(x = treatment, y = mean, colour = phi_set_id)) +
-  geom_vline(xintercept = c(0.3, 0.7), linetype = c("dotted", "dashed"), size = 1) +
+  geom_vline(xintercept = c(0.3, 0.7), linetype = c("dashed", "dashed"), size = 0.5) +
   scale_fill_manual(values = c("red", "blue", "green"),
                     aesthetics = c("fill", "colour"),
                     guide = guide_legend(title = "Infectiousness assumption",
