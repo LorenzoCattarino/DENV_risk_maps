@@ -21,8 +21,8 @@ ctx <- context::context_save(path = "context",
 
 
 extra_prms <- list(id = 2,
-                   plot_wdt = 17,
-                   plot_hgt = 11, 
+                   plot_wdt = 18.4,
+                   plot_hgt = 12.2, 
                    barwdt = 1.5,
                    barhgt = 4.5,
                    pol_brd_sz = 0.1,
