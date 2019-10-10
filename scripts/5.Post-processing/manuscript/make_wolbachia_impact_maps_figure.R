@@ -115,14 +115,14 @@ z_vals <- c(0, 0.5, 1)
 p <- ggplot(adm_shp_2_long) +
   geom_sf(mapping = aes(fill = pr), color = NA) +
   facet_wrap(~ scenario, dir = "v") +
-  geom_text(data = data_text, aes(x = -125, y = 32, label = label), size = 4) +
+  geom_text(data = data_text, aes(x = -125, y = 31, label = label), size = 5) +
   coord_sf(datum = NA, xlim = c(x1, x2), ylim = c(y1, y2), expand = FALSE) +
   scale_fill_gradientn(breaks = z_vals,
                        labels = paste0(z_vals * 100, "%"),
                        limits = c(min(z_vals), max(z_vals)),
                        colours = my_col, 
                        na.value = "grey80",
-                       guide = guide_colourbar(title = "Case reduction",
+                       guide = guide_colourbar(title = "Cases reduction",
                                                title.position = "left",
                                                title.theme = element_text(size = 8, angle = 90),
                                                barwidth = 0.5, 
