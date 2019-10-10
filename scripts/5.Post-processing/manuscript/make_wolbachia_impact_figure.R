@@ -76,9 +76,10 @@ for (j in seq_along(burden_measures)) {
                       aesthetics = c("fill", "colour"),
                       guide = guide_legend(title = "Infectiousness",
                                            keywidth = 1,
-                                           keyheight = 1)) +
+                                           keyheight = 1,
+                                           label.theme = element_text(size = 10))) +
     scale_x_continuous(breaks = 1 - sf_vals) +
-    scale_y_continuous("Reduction in cases",
+    scale_y_continuous("Cases reduction",
                        breaks = y_values,
                        labels = paste0(y_values * 100, "%"),
                        limits = c(min(y_values), max(y_values)),
@@ -87,7 +88,7 @@ for (j in seq_along(burden_measures)) {
     theme(axis.title.x = element_blank(),
           axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
-          axis.text.y = element_text(size = 12),
+          axis.text.y = element_text(size = 10),
           plot.margin = unit(c(0.02, 0.1, 0.02, 0.1), "cm"),
           strip.text.x = element_text(size = 8),
           legend.position = "bottom") +
@@ -127,7 +128,7 @@ for (j in seq_along(burden_measures)) {
     theme(axis.title.x = element_blank(),
           axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
-          axis.text.y = element_text(size = 12),
+          axis.text.y = element_text(size = 10),
           plot.margin = unit(c(0.02, 0.1, 0.02, 0.1), "cm"),
           strip.text.x = element_text(size = 8)) +
     labs(tag = LETTERS[2])
@@ -167,8 +168,8 @@ p3 <- ggplot(dengue_free_table) +
                      limits = c(min(dengue_free_table$lCI), max(y_values)),
                      expand = expand_scale(mult = c(0, .05))) +
   theme_bw() +
-  theme(axis.text.x = element_text(size = 12),
-        axis.text.y = element_text(size = 12),
+  theme(axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
         plot.margin = unit(c(0.02, 0.1, 0.02, 0.1), "cm"),
         strip.text.x = element_text(size = 8),
         axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0))) +
@@ -181,8 +182,8 @@ dir.create(out_fig_path, FALSE, TRUE)
 barplot_fl_nm <- paste0("multi_output_", my_var_name, "_", intervention_name, ".png")
 
 png(file.path(out_fig_path, barplot_fl_nm),
-    width = 12,
-    height = 16,
+    width = 9,
+    height = 14,
     units = "cm",
     pointsize = 12,
     res = 300)
