@@ -57,7 +57,7 @@ p <- ggplot(summary_table_all, aes(x = treatment, y = mean, fill = treatment, ym
 
 dir.create(out_fig_path, FALSE, TRUE)
 
-barplot_fl_nm <- paste0("proportional_reduction_in_", my_var_name, "_", intervention_name, ".png")
+barplot_fl_nm <- sprintf("proportional_reduction_in_%s_%s_paper%s", my_var_name, intervention_name, ".png")
 
 png(file.path(out_fig_path, barplot_fl_nm),
     width = 9,
