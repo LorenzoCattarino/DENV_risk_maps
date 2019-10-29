@@ -39,8 +39,6 @@ wrapper_to_replicate_R0_and_burden <- function(i,
   # get vector of foi values and number of people in each square  
   
   
-  m_j <- age_struct[age_struct$ADM_0 == foi_data[i, "ID_0"], age_band_tags]
-  
   if(fit_type == "boot") {
     
     col_ids <- as.character(seq_len(no_fits))
