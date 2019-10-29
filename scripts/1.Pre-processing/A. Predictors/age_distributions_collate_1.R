@@ -99,6 +99,7 @@ most_recent_years_df_2 <- left_join(most_recent_years_df, birth_rates[, c("Count
 
 
 final_age_struct_data <- most_recent_years_df_2[, c("country", 
+                                                    "ISO_alpha",
                                                     "ID_0", 
                                                     "Reference_date", 
                                                     numeric_columns,
