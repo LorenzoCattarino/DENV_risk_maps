@@ -65,15 +65,15 @@ baseline_total_wolbachia <- read.csv(file.path("output",
 
 infections_2 <- infections[, vars]
 infections_3 <- rbind(infections_2,
-                   cbind(continent = "Total", baseline_total_wolbachia[1, c("mean", "lCI", "uCI")]))
+                      cbind(continent = "Total", baseline_total_wolbachia[1, c("mean", "lCI", "uCI")]))
 
 cases_2 <- cases[, vars]
 cases_3 <- rbind(cases_2,
-                      cbind(continent = "Total", baseline_total_wolbachia[2, c("mean", "lCI", "uCI")]))
+                 cbind(continent = "Total", baseline_total_wolbachia[2, c("mean", "lCI", "uCI")]))
 
 hosp_2 <- hosp[, vars]
 hosp_3 <- rbind(hosp_2,
-                 cbind(continent = "Total", baseline_total_wolbachia[3, c("mean", "lCI", "uCI")]))
+                cbind(continent = "Total", baseline_total_wolbachia[3, c("mean", "lCI", "uCI")]))
 
 all <- rbind(infections_3,
              cases_3,
