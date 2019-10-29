@@ -50,4 +50,4 @@ age_struct_data$sd_age <- sd
 # save ------------------------------------------------------------------------
 
 
-write_out_csv(age_struct_data, dts_out_pt, dts_out_nm)
+write_out_csv(age_struct_data, dts_out_pt, dts_out_nm, row.names = FALSE)
