@@ -12,10 +12,10 @@ library(dplyr)
 # define parameters ----------------------------------------------------------- 
 
 
-extra_prms <- list(id = 4,
-                   fl_nms = c("response_mean"),# 
-                              #"transformed_1_wolbachia_4_mean",
-                              #"transformed_2_wolbachia_4_mean"),
+extra_prms <- list(id = 2,
+                   fl_nms = c("response_mean",
+                              "transformed_1_wolbachia_4_mean",
+                              "transformed_2_wolbachia_4_mean"),
                    vars_to_plot = c("mean", "sd"),
                    plot_wdt = 16,
                    plot_hgt = 5.5, 
