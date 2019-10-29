@@ -165,8 +165,8 @@ p3 <- ggplot(dengue_free_table) +
   scale_y_continuous(paste0("Dengue-free countries"),
                      breaks = y_values,
                      labels = y_values,
-                     limits = c(min(dengue_free_table$lCI), max(y_values)),
                      expand = expand_scale(mult = c(0, .05))) +
+  coord_cartesian(ylim = c(min(y_values), 130)) +
   theme_bw() +
   theme(axis.text.x = element_text(size = 10),
         axis.text.y = element_text(size = 10),
