@@ -122,8 +122,8 @@ for (j in seq_along(burden_measures)) {
     scale_y_continuous(paste0("Number of ", my_var_name, " (M)"),
                        breaks = y_values,
                        labels = format(y_values / 1000000, scientific = F),
-                       limits = c(min(y_values), max(y_values)),
                        expand = expand_scale(mult = c(0, .05))) +
+    coord_cartesian(ylim = c(min(y_values), 65000000)) +
     theme_bw() +
     theme(axis.title.x = element_blank(),
           axis.text.x = element_blank(),
