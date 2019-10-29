@@ -118,7 +118,7 @@ age_struct <- read.csv(file.path("output",
 
 endemic_c <- read.csv(file.path("output", 
                                 "datasets", 
-                                "dengue_endemic_countries.csv"),
+                                "dengue_endemic_ID_0_ID_1.csv"),
                       stringsAsFactors = FALSE)
 
 
@@ -138,7 +138,7 @@ sqr_preds_2 <- inner_join(age_struct[, c("age_id", "ID_0")],
                           by = "ID_0")
 
 # keep only endemic countries
-sqr_preds_3 <- inner_join(sqr_preds_2, endemic_c[, "ID_0", drop = FALSE], by = "ID_0")
+sqr_preds_3 <- inner_join(sqr_preds_2, endemic_c)
 
 sqr_preds_3 <- as.matrix(sqr_preds_3)
 
@@ -176,7 +176,7 @@ fctr_combs <- df_to_list(fct_c, use_names = TRUE)
 
 
 # t <- obj$enqueue(
-#   wrapper_to_multi_factor_R0_and_burden(fctr_combs[[1]],
+#   wrapper_to_multi_factor_R0_and_burden(fctr_combs[[2]],
 #                                         foi_data = sqr_preds_3,
 #                                         age_data = age_struct,
 #                                         age_band_tags = age_band_tgs,
