@@ -1,5 +1,5 @@
 # Plot proportional reduction in infections, cases and hospitalized cases 
-# for vaccination
+# for vaccination, including optimal age analysis
 
 
 library(dplyr)
