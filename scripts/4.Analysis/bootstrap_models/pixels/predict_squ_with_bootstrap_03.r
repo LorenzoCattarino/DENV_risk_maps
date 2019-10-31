@@ -80,13 +80,13 @@ if (save_raster) {
   # raster::plot(my_ras, zlim=c(0,0.06), col = my_col)
   
   # save 
-  raster::writeRaster(my_ras, filename = file.path(out_path, "R0_2_map.tif"), format = "GTiff", overwrite = TRUE)
+  raster::writeRaster(my_ras, filename = file.path(out_path, paste0(var_to_plot, "_map.tif")), format = "GTiff", overwrite = TRUE)
   
   # test
   # my_ras <- raster::raster(file.path("figures",
   #                                    "predictions_world",
   #                                    "bootstrap_models",
   #                                    "model_2",
-  #                                    "R0_2_map.tif"))
+  #                                    "R0_1_map.tif"))
   
 }
