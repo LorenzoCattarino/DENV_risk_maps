@@ -90,6 +90,7 @@ no_pseudo_absence_points <- floor(no_data_points * pseudo_absence_proportion)
 
 
 dengue_endemic_ID_0_ID_1 <- adm_shp@data[adm_shp@data$dengue == 1, c("ID_0", "ID_1", "dengue")]
+dengue_endemic_ID_0_ID_1 <- dengue_endemic_ID_0_ID_1[!duplicated(dengue_endemic_ID_0_ID_1),]
 write.csv(dengue_endemic_ID_0_ID_1, file.path(out_pt, "dengue_endemic_ID_0_ID_1.csv"), row.names = FALSE)
 
 
