@@ -39,7 +39,7 @@ model_responses <- parameters$model_responses
 
 out_path <- file.path("output", "predictions_world", "bootstrap_models")
   
-out_nm <- "burden_estimates.xlsx" 
+out_nm <- "Data_file_S2_burden_estimates.xlsx" 
   
   
 # pre processing --------------------------------------------------------------
