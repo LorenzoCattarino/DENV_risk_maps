@@ -9,12 +9,26 @@ my_resources <- c(
   file.path("R", "plotting", "make_nice_2_stacked_maps_figure.R"),
   file.path("R", "plotting", "functions_for_plotting_raster_maps.R"))
 
-my_pkgs <- c("colorRamps", "sf", "raster", "ggplot2", "grid", "gridExtra", "dplyr")
+my_pkgs <- c("colorRamps", "sf", "raster", "ggplot2", "grid", "gridExtra", "dplyr", "shades")
 
 context::context_log_start()
 ctx <- context::context_save(path = "context",
                              sources = my_resources,
                              packages = my_pkgs)
+
+
+# are you using the cluster? --------------------------------------------------
+
+
+if (CLUSTER) {
+  
+  obj <- didehpc::queue_didehpc(ctx)
+  
+} else {
+  
+  context::context_load(ctx)
+  
+}
 
 
 # define parameters ----------------------------------------------------------- 
@@ -34,19 +48,22 @@ extra_prms <- list(id = 2,
                    coord_limits = c(-130, 180, -60, 38),
                    ID_0_to_remove = c(1, 69, 171, 122, 200, 224, 226, 235, 236, 244, 246))
 
+# my_col <- colorRamps::matlab.like(100)
+# my_col <- colorspace::diverge_hcl(11,
+#                                   h = c(250, 10),
+#                                   c = 100,
+#                                   l = c(37, 88),
+#                                   power = c(0.7, 1.7))
+# my_col <- rev(brewer.pal(n = 11, name = "RdBu"))
+# my_col <- diverge_hcl(100, palette = "Blue-Red")
+# my_col <- diverge_hcl(100, palette = "Blue-Red 2")
+# my_col <- diverge_hcl(100, palette = "Blue-Red 3")
+# my_col <- divergingx_hcl(n = 100, palette = "RdYlBu")
 
-# are you using the cluster? --------------------------------------------------
-
-
-if (CLUSTER) {
-  
-  obj <- didehpc::queue_didehpc(ctx)
-  
-} else {
-  
-  context::context_load(ctx)
-  
-}
+RdYlBu_7 <- c("#4575b4", "#91bfdb", "#e0f3f8", "#ffffbf", "#fee090", "#fc8d59", "#d73027")
+RdYlBu_7_sat <- shades::saturation(RdYlBu_7, scalefac(2))
+pal_fun <- colorRampPalette(RdYlBu_7_sat)
+my_col <- pal_fun(100)
 
 
 # define variables ------------------------------------------------------------  
@@ -58,7 +75,7 @@ model_type <- paste0("model_", parameters$id)
 
 gr_size <- parameters$resample_grid_size
 
-out_file_name <- "pred_and_sd_map.png"
+out_file_name <- "pred_and_sd_map_hcl_col_brew_sat4.png"
   
 out_path <- file.path("figures", "predictions_world")
 
@@ -145,7 +162,8 @@ if (CLUSTER){
                                                    pred_r_df,
                                                    sd_r_df,
                                                    out_path,
-                                                   out_file_name))
+                                                   out_file_name,
+                                                   my_col))
   
 } else {
   
@@ -155,6 +173,7 @@ if (CLUSTER){
                                   pred_r_df,
                                   sd_r_df,
                                   out_path,
-                                  out_file_name)
+                                  out_file_name,
+                                  my_col)
   
 }
