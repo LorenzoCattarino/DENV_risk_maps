@@ -5,7 +5,8 @@ make_nice_map <- function(bbox_df,
                           parms, 
                           my_col, 
                           country_fill_col, 
-                          ttl) {
+                          ttl,
+                          label) {
   
   barwdt <- parms$barwdt
   barhgt <- parms$barhgt
@@ -25,6 +26,8 @@ make_nice_map <- function(bbox_df,
     z_vals <- pretty(pred[, "layer"], n = 5)
   }
   
+  data_text <- data.frame(label = label)
+    
   ggplot() +
     geom_sf(data = countries_df, fill = country_fill_col, colour = NA) +
     geom_tile(data = pred, aes(x = x, y = y, fill = layer)) +
@@ -36,6 +39,7 @@ make_nice_map <- function(bbox_df,
                          guide = guide_colourbar(title = ttl, 
                                                  barwidth = barwdt, 
                                                  barheight = barhgt)) +
+    geom_text(data = data_text, aes(x = -125, y = 31, label = label), size = 6) +
     coord_sf(datum = NA, xlim = c(x1, x2), ylim = c(y1, y2), expand = FALSE) +
     theme(panel.background = element_rect(fill = "aliceblue"),
           panel.border = element_rect(fill = NA, colour = "black"),
