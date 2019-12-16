@@ -12,8 +12,10 @@
 
 library(sf)
 library(tidyverse)
+library(colorspace)
 
 source(file.path("R", "create_parameter_list.R"))
+source(file.path("R", "plotting", "create_sequential_palette.R"))
 
 
 # define parameters ----------------------------------------------------------- 
@@ -39,7 +41,7 @@ x2 <- parameters$coord_limits[2]
 y1 <- parameters$coord_limits[3]
 y2 <- parameters$coord_limits[4]
 
-my_col <- rev(colorRamps::matlab.like(100))
+my_col <- create_sequential_palette(100)
 
 in_path <- file.path("output",
                      "predictions_world",
@@ -110,23 +112,33 @@ data_text <- data.frame(scenario = c("pr_R0_1_a",
                                      "pr_R0_2_b"),
                         label = c('A', 'B', 'C', 'D'))
 
+data_text_2 <- data.frame(label = "Reduction in \n number of cases",
+                          scenario = factor("pr_R0_1_b", levels = c("pr_R0_1_a",
+                                                                    "pr_R0_1_b",                                     
+                                                                    "pr_R0_2_a",
+                                                                    "pr_R0_2_b")))
+                          
 z_vals <- c(0, 0.5, 1)
 
 p <- ggplot(adm_shp_2_long) +
   geom_sf(mapping = aes(fill = pr), color = NA) +
   facet_wrap(~ scenario, dir = "v") +
   geom_text(data = data_text, aes(x = -125, y = 31, label = label), size = 5) +
+  # geom_text(data = data_text_2, aes(x = -130, 
+  #                                   y = -60, 
+  #                                   label = label, 
+  #                                   angle = 90, 
+  #                                   hjust = 0), 
+  #           size = 2) +
   coord_sf(datum = NA, xlim = c(x1, x2), ylim = c(y1, y2), expand = FALSE) +
   scale_fill_gradientn(breaks = z_vals,
                        labels = paste0(z_vals * 100, "%"),
                        limits = c(min(z_vals), max(z_vals)),
                        colours = my_col, 
                        na.value = "grey80",
-                       guide = guide_colourbar(title = "Cases reduction",
-                                               title.position = "left",
-                                               title.theme = element_text(size = 8, angle = 90),
-                                               barwidth = 0.5, 
-                                               barheight = 3.5)) +
+                       guide = guide_colourbar(title = "Reduction\nin cases",
+                                               barwidth = 0.7, 
+                                               barheight = 2.3)) +
   theme(panel.background = element_blank(),
         panel.grid.major = element_blank(),
         axis.line = element_blank(),
@@ -136,9 +148,10 @@ p <- ggplot(adm_shp_2_long) +
         strip.text.x = element_blank(),
         plot.margin = unit(c(0, 0, 0, 0), "cm"),
         legend.justification = c(0, 0), 
-        legend.position = c(0, 0),
-        legend.text = element_text(size = 7, margin = margin(l = -0.1, unit = "cm")),
-        legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "cm"))
+        legend.position = c(0.001, 0.03),
+        legend.text = element_text(size = 7, margin = margin(l = 0, unit = "cm")),
+        legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "cm"),
+        legend.title = element_text(size = 7))
 
 dir.create(out_pt, FALSE, TRUE)
 
