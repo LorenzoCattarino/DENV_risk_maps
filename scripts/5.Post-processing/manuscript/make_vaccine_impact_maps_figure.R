@@ -12,8 +12,10 @@
 
 library(sf)
 library(tidyverse)
+library(colorspace)
 
 source(file.path("R", "create_parameter_list.R"))
+source(file.path("R", "plotting", "create_sequential_palette.R"))
 
 
 # define parameters ----------------------------------------------------------- 
@@ -39,15 +41,7 @@ x2 <- parameters$coord_limits[2]
 y1 <- parameters$coord_limits[3]
 y2 <- parameters$coord_limits[4]
 
-my_col <- rev(colorRamps::matlab.like(100))
-# my_col <- viridis::plasma(100)
-# my_col <- viridis::inferno(100)
-# my_col <- viridis::viridis(100)
-# my_col <- colorspace::diverge_hcl(11,
-#                                   h = c(250, 10), 
-#                                   c = 100, 
-#                                   l = c(20, 95), 
-#                                   power = c(0.7, 1.7))
+my_col <- create_sequential_palette(100)
 
 in_path <- file.path("output",
                      "predictions_world",
@@ -152,11 +146,9 @@ p <- ggplot(adm_shp_2_long) +
                        limits = c(min(z_vals), max(z_vals)),
                        colours = my_col, 
                        na.value = "grey80",
-                       guide = guide_colourbar(title = "Cases reduction",
-                                               title.position = "left",
-                                               title.theme = element_text(size = 8, angle = 90),
-                                               barwidth = 0.5, 
-                                               barheight = 3.5)) +
+                       guide = guide_colourbar(title = "Reduction\nin cases",
+                                               barwidth = 0.7, 
+                                               barheight = 2.3)) +
   theme(panel.background = element_blank(),
         panel.grid.major = element_blank(),
         axis.line = element_blank(),
@@ -166,9 +158,10 @@ p <- ggplot(adm_shp_2_long) +
         strip.text.x = element_blank(),
         plot.margin = unit(c(0, 0, 0, 0), "cm"),
         legend.justification = c(0, 0), 
-        legend.position = c(0, 0),
-        legend.text = element_text(size = 7, margin = margin(l = -0.1, unit = "cm")),
-        legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "cm"))
+        legend.position = c(0.001, 0.03),
+        legend.text = element_text(size = 7, margin = margin(l = 0, unit = "cm")),
+        legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "cm"),
+        legend.title = element_text(size = 7))
 
 dir.create(out_pt, FALSE, TRUE)
 
