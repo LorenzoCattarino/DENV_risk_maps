@@ -142,3 +142,11 @@ assign_grid_coordinates_to_prediction_df <- function (lats, lons, data_df){
   
 }
 
+creating_color_palette <- function(n){
+  
+  RdYlBu_7 <- c("#4575b4", "#91bfdb", "#e0f3f8", "#ffffbf", "#fee090", "#fc8d59", "#d73027")
+  RdYlBu_7_sat <- shades::saturation(RdYlBu_7, scalefac(2))
+  pal_fun <- colorRampPalette(RdYlBu_7_sat)
+  pal_fun(n)
+  
+}
