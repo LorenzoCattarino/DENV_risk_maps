@@ -79,7 +79,7 @@ for (j in seq_along(burden_measures)) {
                                            keyheight = 1,
                                            label.theme = element_text(size = 10))) +
     scale_x_continuous(breaks = 1 - sf_vals) +
-    scale_y_continuous("Cases reduction",
+    scale_y_continuous("Reduction in \nnumber of cases",
                        breaks = y_values,
                        labels = paste0(y_values * 100, "%"),
                        limits = c(min(y_values), max(y_values)),
@@ -89,7 +89,8 @@ for (j in seq_along(burden_measures)) {
           axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
           axis.text.y = element_text(size = 10),
-          plot.margin = unit(c(0.02, 0.1, 0.02, 0.1), "cm"),
+          axis.title.y = element_text(margin = unit(c(0, 0, 0, 0), "cm")),
+          plot.margin = unit(c(0, 0.1, 0.02, 0.1), "cm"),
           strip.text.x = element_text(size = 8),
           legend.position = "bottom") +
     labs(tag = LETTERS[1])
@@ -119,7 +120,7 @@ for (j in seq_along(burden_measures)) {
                                            keywidth = 1,
                                            keyheight = 1)) +
     scale_x_continuous(breaks = 1 - sf_vals) +
-    scale_y_continuous(paste0("Number of ", my_var_name, " (M)"),
+    scale_y_continuous(paste0("Number of ", my_var_name, "\n(millions)"),
                        breaks = y_values,
                        labels = format(y_values / 1000000, scientific = F),
                        expand = expand_scale(mult = c(0, .05))) +
@@ -129,7 +130,8 @@ for (j in seq_along(burden_measures)) {
           axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
           axis.text.y = element_text(size = 10),
-          plot.margin = unit(c(0.02, 0.1, 0.02, 0.1), "cm"),
+          axis.title.y = element_text(margin = unit(c(0, 0, 0, 0), "cm")),
+          plot.margin = unit(c(0, 0.1, 0.02, 0.1), "cm"),
           strip.text.x = element_text(size = 8)) +
     labs(tag = LETTERS[2])
   
@@ -162,7 +164,7 @@ p3 <- ggplot(dengue_free_table) +
   scale_x_continuous(leg_titles[[1]],
                      breaks = 1 - sf_vals,
                      labels = paste0(sf_vals_perc, "%")) +
-  scale_y_continuous(paste0("Dengue-free countries"),
+  scale_y_continuous(paste0("Dengue-free\ncountries"),
                      breaks = y_values,
                      labels = y_values,
                      expand = expand_scale(mult = c(0, .05))) +
@@ -170,7 +172,8 @@ p3 <- ggplot(dengue_free_table) +
   theme_bw() +
   theme(axis.text.x = element_text(size = 10),
         axis.text.y = element_text(size = 10),
-        plot.margin = unit(c(0.02, 0.1, 0.02, 0.1), "cm"),
+        plot.margin = unit(c(0, 0.1, 0.02, 0.1), "cm"),
+        axis.title.y = element_text(margin = unit(c(0, 0, 0, 0), "cm")),
         strip.text.x = element_text(size = 8),
         axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0))) +
   labs(tag = LETTERS[3])
@@ -182,7 +185,7 @@ dir.create(out_fig_path, FALSE, TRUE)
 barplot_fl_nm <- paste0("multi_output_", my_var_name, "_", intervention_name, ".png")
 
 png(file.path(out_fig_path, barplot_fl_nm),
-    width = 9,
+    width = 10,
     height = 14,
     units = "cm",
     pointsize = 12,
