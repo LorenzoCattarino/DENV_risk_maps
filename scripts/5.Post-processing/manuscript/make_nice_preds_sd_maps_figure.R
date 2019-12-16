@@ -60,10 +60,7 @@ extra_prms <- list(id = 2,
 # my_col <- diverge_hcl(100, palette = "Blue-Red 3")
 # my_col <- divergingx_hcl(n = 100, palette = "RdYlBu")
 
-RdYlBu_7 <- c("#4575b4", "#91bfdb", "#e0f3f8", "#ffffbf", "#fee090", "#fc8d59", "#d73027")
-RdYlBu_7_sat <- shades::saturation(RdYlBu_7, scalefac(2))
-pal_fun <- colorRampPalette(RdYlBu_7_sat)
-my_col <- pal_fun(100)
+my_col <- creating_color_palette(100)
 
 
 # define variables ------------------------------------------------------------  
