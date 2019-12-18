@@ -2,9 +2,11 @@
 
 source(file.path("R", "create_parameter_list.R"))
 source(file.path("R", "plotting", "quick_polygon_map.R"))
-
+source(file.path("R", "plotting", "functions_for_plotting_raster_maps.R"))
+       
 library(sf)
 library(ggplot2)
+library(shades)
 
 
 # define parameters -----------------------------------------------------------  
@@ -55,7 +57,8 @@ adm_shp <- st_read(dsn = file.path("output", "shapefiles"),
 # pre processing -------------------------------------------------------------- 
 
 
-my_col <- colorRamps::matlab.like(100)
+# my_col <- colorRamps::matlab.like(100)
+my_col <- creating_color_palette(100)
 
 
 # plot ------------------------------------------------------------------------
