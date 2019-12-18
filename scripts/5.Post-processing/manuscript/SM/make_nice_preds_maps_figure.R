@@ -7,6 +7,7 @@ library(sf)
 library(raster)
 library(ggplot2)
 library(dplyr)
+library(shades)
 
 
 # define parameters ----------------------------------------------------------- 
@@ -28,6 +29,9 @@ extra_prms <- list(id = 2,
                    leg_ttl_sz = 12,
                    coord_limits = c(-130, 180, -60, 38),
                    ID_0_to_remove = c(1, 69, 171, 122, 200, 224, 226, 235, 236, 244, 246))
+
+# my_col <- matlab.like(100)
+my_col <- creating_color_palette(100)
 
 
 # define variables ------------------------------------------------------------  
@@ -183,8 +187,6 @@ for (i in seq_len(nrow(fct_combs))) {
   x2 <- bbox[2]
   y1 <- bbox[3]
   y2 <- bbox[4]
-  
-  my_col <- matlab.like(100)
   
   p <- ggplot() +
     geom_sf(data = countries, fill = "grey80", color = NA) +
