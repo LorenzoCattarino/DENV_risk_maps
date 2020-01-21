@@ -101,22 +101,22 @@ adm_shp_2_long <- adm_shp_2 %>%
 
 
 adm_shp_2_long$scenario <- factor(adm_shp_2_long$scenario, 
-                                  levels = c("pr_R0_1_a",
-                                             "pr_R0_1_b",
-                                             "pr_R0_2_a",
-                                             "pr_R0_2_b"))
+                                  levels = c("pr_R0_2_a",
+                                             "pr_R0_2_b",
+                                             "pr_R0_1_a",
+                                             "pr_R0_1_b"))
 
-data_text <- data.frame(scenario = c("pr_R0_1_a",
-                                     "pr_R0_1_b",                                     
-                                     "pr_R0_2_a",
-                                     "pr_R0_2_b"),
+data_text <- data.frame(scenario = c("pr_R0_2_a",
+                                     "pr_R0_2_b",
+                                     "pr_R0_1_a",
+                                     "pr_R0_1_b"),
                         label = c('A', 'B', 'C', 'D'))
 
 data_text_2 <- data.frame(label = "Reduction in \n number of cases",
-                          scenario = factor("pr_R0_1_b", levels = c("pr_R0_1_a",
-                                                                    "pr_R0_1_b",                                     
-                                                                    "pr_R0_2_a",
-                                                                    "pr_R0_2_b")))
+                          scenario = factor("pr_R0_2_b", levels = c("pr_R0_2_a",
+                                                                    "pr_R0_2_b",
+                                                                    "pr_R0_1_a",
+                                                                    "pr_R0_1_b")))
                           
 z_vals <- c(0, 0.5, 1)
 
