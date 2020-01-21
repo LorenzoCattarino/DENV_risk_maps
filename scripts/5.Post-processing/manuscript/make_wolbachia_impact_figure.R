@@ -59,6 +59,8 @@ for (j in seq_along(burden_measures)) {
                                            paste0("prop_change_", my_var_name, "_", intervention_name, ".csv")),
                                  header = TRUE)
   
+  summary_table_orig$phi_set_id <- factor(summary_table_orig$phi_set_id, levels = c("4S", "2S"))
+  
   summary_table <- subset(summary_table_orig, treatment != 1 & phi_set_id != "FOI")
   summary_table$treatment <- 1 - summary_table$treatment
   
@@ -101,6 +103,8 @@ for (j in seq_along(burden_measures)) {
                                            paste0("total_", my_var_name, "_", intervention_name, ".csv")),
                                  header = TRUE)
   
+  tot_num_table_orig$phi_set_id <- factor(tot_num_table_orig$phi_set_id, levels = c("4S", "2S"))
+  
   tot_num_table <- subset(tot_num_table_orig, treatment != 1 & phi_set_id != "FOI")
   tot_num_table$treatment <- 1 - tot_num_table$treatment
   
@@ -142,6 +146,8 @@ dengue_free_table_orig <- read.csv(file.path("output",
                                              "bootstrap_models",
                                              "dengue_free_countries_wolbachia.csv"),
                                    header = TRUE)
+
+dengue_free_table_orig$phi_set_id <- factor(dengue_free_table_orig$phi_set_id, levels = c("4S", "2S"))
 
 dengue_free_table <- subset(dengue_free_table_orig, treatment != 1 & phi_set_id != "FOI")
 dengue_free_table$treatment <- 1 - dengue_free_table$treatment
