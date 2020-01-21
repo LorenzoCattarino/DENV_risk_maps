@@ -119,19 +119,19 @@ adm_shp_2_long <- adm_shp_2 %>%
 
 
 adm_shp_2_long$scenario <- factor(adm_shp_2_long$scenario, 
-                                  levels = c("pr_R0_1_a",
-                                             "pr_R0_1_b",
-                                             "pr_R0_1_c",
-                                             "pr_R0_2_a",
+                                  levels = c("pr_R0_2_a",
                                              "pr_R0_2_b",
-                                             "pr_R0_2_c"))
+                                             "pr_R0_2_c",
+                                             "pr_R0_1_a",
+                                             "pr_R0_1_b",
+                                             "pr_R0_1_c"))
 
-data_text <- data.frame(scenario = c("pr_R0_1_a",
-                                     "pr_R0_1_b",
-                                     "pr_R0_1_c",
-                                     "pr_R0_2_a",
+data_text <- data.frame(scenario = c("pr_R0_2_a",
                                      "pr_R0_2_b",
-                                     "pr_R0_2_c"),
+                                     "pr_R0_2_c",
+                                     "pr_R0_1_a",
+                                     "pr_R0_1_b",
+                                     "pr_R0_1_c"),
                         label = c("A", "B", "C", "D", "E", "F"))
 
 z_vals <- seq(0, 0.4, 0.2)
