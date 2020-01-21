@@ -9,7 +9,7 @@ out_fig_path <- file.path("figures",
 scale_fill_vals <- c("lightskyblue1", "lightskyblue4", "deepskyblue")
 leg_title <- "Screening age"
 leg_labels <- c("9", "16", "Optimal")
-y_axis_title <- "Cases reduction"
+y_axis_title <- "Reduction in cases"
 screening_ages <- c(9, 16, 0)
 y_values <- seq(0, 0.45, 0.1)
 
@@ -25,6 +25,8 @@ summary_table_all <- read.csv(file.path("output",
 
 # -----------------------------------------------------------------------------
 
+
+summary_table_all$phi_set_id <- factor(summary_table_all$phi_set_id, levels = c("4S", "2S"))
 
 summary_table_all$treatment <- factor(summary_table_all$treatment, 
                                       levels = screening_ages)
